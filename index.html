@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Phoenix Command Center</title>
+
+<style>
+:root{
+  --bg-primary:#0B0F14;
+  --bg-panel:#121C26;
+  --gold:#C7A15B;
+  --text:#F5EFE6;
+  --green:#22c55e;
+  --yellow:#eab308;
+  --red:#ef4444;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter, system-ui, sans-serif;
+}
+
+body{
+  background:var(--bg-primary);
+  color:var(--text);
+}
+
+/* TOP BAR */
+.topbar{
+  height:60px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 20px;
+}
+
+.logo{
+  font-weight:700;
+  color:var(--gold);
+  letter-spacing:1px;
+}
+
+.status{
+  font-size:12px;
+  opacity:0.7;
+}
+
+/* LAYOUT */
+.container{
+  display:flex;
+  height:calc(100vh - 60px);
+}
+
+/* LEFT PANEL */
+.sidebar{
+  width:240px;
+  background:var(--bg-panel);
+  border-right:1px solid rgba(255,255,255,0.05);
+  padding:20px;
+}
+
+.nav-item{
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:6px;
+  cursor:pointer;
+  opacity:0.8;
+}
+
+.nav-item:hover{
+  background:rgba(255,255,255,0.05);
+  opacity:1;
+}
+
+/* CENTER PANEL */
+.main{
+  flex:1;
+  padding:20px;
+}
+
+/* RIGHT PANEL */
+.intel{
+  width:260px;
+  background:var(--bg-panel);
+  border-left:1px solid rgba(255,255,255,0.05);
+  padding:20px;
+}
+
+/* CARDS */
+.card{
+  background:#0F1720;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:15px;
+}
+
+.card-title{
+  font-size:12px;
+  opacity:0.6;
+  margin-bottom:10px;
+}
+
+.metric{
+  font-size:22px;
+  font-weight:700;
+}
+
+/* STATUS COLORS */
+.green{color:var(--green);}
+.yellow{color:var(--yellow);}
+.red{color:var(--red);}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="logo">PHOENIX COMMAND CENTER</div>
+  <div class="status">SYSTEM: OPERATIONAL</div>
+</div>
+
+<div class="container">
+
+  <!-- LEFT -->
+  <div class="sidebar">
+    <div class="nav-item">NHCE Engines</div>
+    <div class="nav-item">Command Queue</div>
+    <div class="nav-item">Performance</div>
+    <div class="nav-item">Audit / PAIRS</div>
+    <div class="nav-item">System Logs</div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="main">
+
+    <div class="card">
+      <div class="card-title">Active Commands</div>
+      <div class="metric green">12 RUNNING</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Queue Status</div>
+      <div class="metric yellow">5 PENDING</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Execution Failures</div>
+      <div class="metric red">1 ERROR</div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="intel">
+
+    <div class="card">
+      <div class="card-title">NACE Insight</div>
+      <div>Increase PBRS routing signals.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Audit Alert</div>
+      <div class="red">Drift detected in Content Engine</div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html> 
