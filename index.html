@@ -5,740 +5,853 @@
   <title>Phoenix Command Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#04070c;
-      --bg-2:#08111a;
-      --panel:#0b131d;
-      --panel-2:#101a26;
-      --panel-3:#132131;
-      --gold:#c7a15b;
-      --gold-2:#e2bf7d;
-      --text:#f5efe6;
-      --muted:rgba(245,239,230,.68);
-      --line:rgba(199,161,91,.16);
-      --line-2:rgba(199,161,91,.28);
-      --cyan:#66d3ff;
-      --green:#2fd37a;
-      --amber:#f1b841;
-      --red:#ef5f5f;
-      --blue:#5c8dff;
-      --shadow:0 30px 90px rgba(0,0,0,.45);
-      --radius:18px;
-    }*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+    :root {
+      --bg: #05070b;
+      --bg-2: #0a0f15;
+      --panel: #0d131a;
+      --panel-2: #101923;
+      --line: rgba(255,255,255,0.08);
+      --line-strong: rgba(255,255,255,0.16);
+      --text: #f3efe6;
+      --muted: #9ca6b2;
+      --soft: #6f7a86;
+      --green: #42d392;
+      --yellow: #d1a73a;
+      --red: #d85858;
+      --gold: #c7a15b;
+      --glow: 0 0 0 1px rgba(255,255,255,0.03), 0 14px 40px rgba(0,0,0,0.38);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --max: 1480px;
+    }* { box-sizing: border-box; }
 
-body{
-  font-family:"Inter",sans-serif;
-  color:var(--text);
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
   background:
-    radial-gradient(circle at top center, rgba(199,161,91,.09), transparent 20%),
-    radial-gradient(circle at right 20%, rgba(102,211,255,.05), transparent 18%),
-    linear-gradient(180deg, #05080d 0%, #04070c 100%);
-  overflow:hidden;
+    radial-gradient(circle at top left, rgba(199,161,91,0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(66,211,146,0.05), transparent 22%),
+    linear-gradient(180deg, #04060a 0%, #05070b 45%, #060a10 100%);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg, rgba(255,255,255,0.5), transparent 92%);
+}
+
+body::after {
   background:
-    linear-gradient(rgba(102,211,255,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(102,211,255,.04) 1px, transparent 1px);
-  background-size:68px 68px;
-  opacity:.14;
-  pointer-events:none;
-  mask-image:radial-gradient(circle at center, black 34%, transparent 88%);
+    linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%),
+    linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.015) 50%, transparent 100%);
+  opacity: 0.55;
 }
 
-.screen{display:none;height:100%}
-.screen.active{display:block}
-
-/* ENTRY GATE */
-.gate{
-  position:relative;
-  height:100%;
-  padding:26px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
+.shell {
+  position: relative;
+  z-index: 1;
+  width: min(var(--max), calc(100vw - 40px));
+  margin: 0 auto;
+  padding: 28px 0 34px;
 }
 
-.gate .orbit,
-.gate .orbit-2,
-.gate .orbit-3,
-.gate .sweep{
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none;
+.topbar {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 18px;
 }
 
-.gate .orbit{width:980px;height:980px;border:1px solid rgba(199,161,91,.08);animation:spinSlow 44s linear infinite}
-.gate .orbit-2{width:760px;height:760px;border:1px dashed rgba(102,211,255,.12);animation:spinReverse 30s linear infinite}
-.gate .orbit-3{width:620px;height:620px;border:1px solid rgba(199,161,91,.16)}
-.gate .sweep{
-  width:860px;height:860px;
-  background:conic-gradient(from 0deg, rgba(102,211,255,0) 0deg, rgba(102,211,255,.12) 12deg, rgba(102,211,255,0) 28deg 360deg);
-  mask-image:radial-gradient(circle at center, transparent 0 44%, black 62%, transparent 83%);
-  filter:blur(3px);
-  animation:spinSlow 8s linear infinite;
-  opacity:.6;
+.topcard,
+.card,
+.command,
+.feed-row,
+.signal-row,
+.metric,
+.status-row {
+  background: linear-gradient(180deg, rgba(16,25,35,0.92), rgba(10,15,21,0.92));
+  border: 1px solid var(--line);
+  box-shadow: var(--glow);
 }
 
-.gate-shell{
-  position:relative;
-  z-index:1;
-  width:min(1500px, 100%);
-  display:grid;
-  grid-template-columns: .9fr 1.1fr;
-  gap:30px;
-  align-items:center;
+.topcard {
+  min-height: 110px;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
 }
 
-.gate-copy{
-  padding:12px 0;
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
 }
 
-.mono{font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.18em}
-
-.gate-copy .eyebrow{
-  color:var(--gold);
-  font-size:12px;
-  margin-bottom:18px;
+.title-lg {
+  font-size: clamp(1.1rem, 1.55vw, 1.45rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.gate-copy h1{
-  font-family:"Playfair Display", serif;
-  font-size:clamp(2.6rem, 5.5vw, 4.8rem);
-  line-height:.92;
-  letter-spacing:-.02em;
-  max-width:8ch;
-  margin-bottom:12px;
-  text-shadow:0 0 1px rgba(255,255,255,.12), 0 0 32px rgba(199,161,91,.08);
-}
-.gate-copy h1 span{display:block}
-.gate-copy h1 span{display:block}
-.gate-doctrine{display:inline-flex;align-items:center;gap:10px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);font-size:11px;margin-bottom:18px}
-
-.gate-copy p{
-  max-width:580px;
-  color:var(--muted);
-  font-size:1.05rem;
-  line-height:1.78;
-  margin-bottom:28px;
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.gate-metrics{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:14px;
-  margin-bottom:18px;
-  max-width:820px;
+.hero {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
 }
 
-.metric{
-  background:linear-gradient(180deg, rgba(14,20,30,.86), rgba(9,14,21,.92));
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:16px;
-  box-shadow:var(--shadow);
+.hero-main,
+.hero-side {
+  border-radius: calc(var(--radius) + 2px);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, rgba(10,15,21,0.98), rgba(7,11,16,0.98));
+  box-shadow: var(--glow);
+  position: relative;
 }
 
-.metric .label{font-size:11px;color:var(--muted)}
-.metric strong{display:block;font-size:1.08rem;line-height:1.24;margin-top:8px}
-
-.access-box{
-  max-width:640px;
-  border:1px solid var(--line-2);
-  border-radius:20px;
-  background:linear-gradient(180deg, rgba(16,26,38,.88), rgba(9,14,21,.94));
-  padding:20px;
-  box-shadow:var(--shadow), 0 0 34px rgba(199,161,91,.09);
-  backdrop-filter:blur(14px);
+.hero-main::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(199,161,91,0.13), transparent 26%),
+    radial-gradient(circle at 85% 15%, rgba(66,211,146,0.06), transparent 20%),
+    linear-gradient(135deg, rgba(255,255,255,0.03), transparent 46%);
+  pointer-events: none;
 }
 
-.access-box h2{font-size:1.1rem;letter-spacing:.02em;margin:8px 0 10px}
-.access-box p{margin-bottom:14px;font-size:.95rem;line-height:1.7;color:var(--muted)}
-
-.code-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
-
-.code-grid input{
-  height:56px;
-  border-radius:12px;
-  border:1px solid rgba(199,161,91,.18);
-  background:rgba(255,255,255,.03);
-  color:var(--text);
-  text-align:center;
-  font-size:1.2rem;
-  font-weight:800;
-  outline:none;
+.hero-main-inner {
+  position: relative;
+  padding: 26px 26px 22px;
+  min-height: 335px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.code-grid input:focus{
-  border-color:var(--gold-2);
-  box-shadow:0 0 0 1px rgba(226,191,125,.18), 0 0 22px rgba(226,191,125,.10);
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(255,255,255,0.55), transparent 88%);
+  pointer-events: none;
 }
 
-.actions{display:flex;gap:10px;flex-wrap:wrap}
-
-.btn{
-  appearance:none;border:none;cursor:pointer;
-  min-height:50px;padding:0 18px;border-radius:14px;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.16em;
-  font-size:11px;font-weight:700;transition:transform .18s ease, opacity .18s ease;
+.hero-heading {
+  max-width: 720px;
 }
 
-.btn:hover{transform:translateY(-1px)}
-.btn-primary{background:linear-gradient(180deg, var(--gold-2), var(--gold));color:#0a1016;box-shadow:0 12px 30px rgba(199,161,91,.22);flex:1 1 200px}
-.btn-secondary{background:rgba(255,255,255,.03);color:var(--text);border:1px solid var(--line);flex:1 1 150px}
-
-.hint{margin-top:10px;color:rgba(245,239,230,.5);font-size:.82rem;line-height:1.55}
-
-.seal-side{
-  position:relative;
-  min-height:760px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+.hero-heading h1 {
+  margin: 12px 0 10px;
+  font-size: clamp(2rem, 4vw, 4.05rem);
+  line-height: 0.94;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 800;
 }
 
-.seal-core{
-  position:relative;
-  width:700px;
-  height:700px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:radial-gradient(circle at center, rgba(199,161,91,.18), rgba(199,161,91,.04) 42%, rgba(0,0,0,0) 70%);
-  border-radius:50%;
-  box-shadow:0 0 170px rgba(199,161,91,.11);
+.hero-heading p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  letter-spacing: 0.02em;
 }
 
-.seal-core img{
-  width:min(92%, 640px);
-  display:block;
-  object-fit:contain;
-  filter:drop-shadow(0 0 44px rgba(199,161,91,.20));
-  animation:sealPulse 4.2s ease-in-out infinite;
-  user-select:none;
-  -webkit-user-drag:none;
+.hero-status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 18px;
 }
 
-.seal-tag{
-  position:absolute;
-  left:50%;
-  bottom:36px;
-  transform:translateX(-50%);
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.03);
-  color:var(--muted);
-  font-size:11px;
+.metric {
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  min-height: 86px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-/* DASHBOARD */
-.dashboard{height:100%;padding:18px;overflow:auto}
-
-.dash-shell{
-  min-height:100%;
-  border:1px solid var(--line);
-  border-radius:24px;
-  padding:18px;
-  background:linear-gradient(180deg, rgba(8,12,18,.96), rgba(4,7,12,.98));
-  box-shadow:var(--shadow);
+.metric-label {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--soft);
+  font-weight: 700;
 }
 
-.topbar{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  gap:18px;
-  align-items:center;
-  padding:14px 16px;
-  border:1px solid var(--line);
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(15,22,32,.9), rgba(9,14,21,.92));
-  margin-bottom:18px;
+.metric-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.brand{display:flex;align-items:center;gap:14px;min-width:0}
-.brand-seal{width:58px;height:58px;border-radius:50%;overflow:hidden;border:1px solid rgba(199,161,91,.22);box-shadow:0 0 28px rgba(199,161,91,.11);flex:0 0 auto}
-.brand-seal img{width:100%;height:100%;object-fit:cover}
-.brand-copy{min-width:0}
-.brand-copy .line{font-size:11px;color:var(--gold);margin-bottom:4px}
-.brand-copy h1{font-size:1.8rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.clock{justify-self:center;font-size:11px;color:var(--muted)}
-
-.status-row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted)}
-.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}
-.green{color:var(--green)} .amber{color:var(--amber)} .cyan{color:var(--cyan)} .red{color:var(--red)}
-
-.hero{
-  display:grid;
-  grid-template-columns: 1.03fr .97fr;
-  gap:18px;
-  margin-bottom:18px;
+.hero-side {
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 335px;
 }
 
-.panel{
-  position:relative;
-  border:1px solid var(--line);
-  border-radius:20px;
-  background:linear-gradient(180deg, rgba(14,20,30,.86), rgba(9,14,21,.92));
-  box-shadow:var(--shadow);
-  overflow:hidden;
+.side-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
-.panel::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(199,161,91,.06), transparent 30%, transparent 70%, rgba(102,211,255,.05));
-  pointer-events:none;
+.badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  border: 1px solid rgba(66,211,146,0.24);
+  background: rgba(66,211,146,0.08);
+  color: #d8f7ea;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.hero-copy{padding:28px 28px 24px}
-.hero-copy .eyebrow{font-size:12px;color:var(--gold);margin-bottom:16px}
-.hero-copy h2{font-family:"Playfair Display", serif;font-size:clamp(3.2rem, 5vw, 5.8rem);line-height:.92;letter-spacing:-.03em;max-width:8ch;margin-bottom:12px;text-shadow:0 0 1px rgba(255,255,255,.14), 0 0 42px rgba(199,161,91,.08)}
-.hero-copy h2 span{display:block}
-.doctrine-chip{display:inline-flex;align-items:center;gap:10px;min-height:38px;padding:0 12px;border-radius:999px;border:1px solid rgba(102,211,255,.16);background:linear-gradient(180deg, rgba(102,211,255,.05), rgba(255,255,255,.02));color:var(--muted);font-size:11px;margin-bottom:14px}
-.hero-copy p{color:var(--muted);font-size:1rem;line-height:1.78;max-width:62ch;margin-bottom:24px}
-
-.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.mini-card{padding:14px;border-radius:14px;border:1px solid rgba(199,161,91,.12);background:rgba(255,255,255,.025)}
-.mini-card strong{display:block;font-size:1.08rem;line-height:1.25;margin-top:8px}
-
-.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
-
-.hero-telemetry{padding:22px;display:grid;grid-template-rows:auto auto 1fr;gap:14px}
-.telemetry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.tele-box{padding:16px;border-radius:14px;border:1px solid rgba(199,161,91,.12);background:rgba(255,255,255,.025)}
-.tele-box strong{display:block;font-size:1.9rem;line-height:1;margin:10px 0 8px}
-.tele-box p{color:var(--muted);font-size:.92rem;line-height:1.65}
-
-.ticker-wrap{padding:14px 16px;border-radius:14px;border:1px solid rgba(102,211,255,.16);background:linear-gradient(180deg, rgba(102,211,255,.06), rgba(255,255,255,.02))}
-.ticker{overflow:hidden;white-space:nowrap;position:relative}
-.ticker-track{display:inline-block;white-space:nowrap;animation:tickerMove 22s linear infinite}
-.ticker-track span{display:inline-block;margin-right:30px;color:var(--muted);font-size:11px}
-.ticker-track span::after{content:' • ';color:var(--gold);margin-left:14px}
-
-.grid{
-  display:grid;
-  grid-template-columns:1.05fr .95fr;
-  gap:18px;
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 14px currentColor;
 }
 
-.stack{display:grid;gap:18px}
-
-.matrix{padding:22px}
-.matrix-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.matrix-card{padding:16px;border-radius:14px;border:1px solid rgba(199,161,91,.12);background:rgba(255,255,255,.024)}
-.matrix-card strong{display:block;font-size:1.1rem;margin:10px 0 6px}
-.micro-chart{height:54px;display:flex;align-items:flex-end;gap:5px;margin-top:14px;padding-top:6px}
-.micro-chart span{flex:1;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg, rgba(226,191,125,.96), rgba(226,191,125,.20));animation:bounce 2.2s ease-in-out infinite}
-.micro-chart.green span{background:linear-gradient(180deg, rgba(47,211,122,.95), rgba(47,211,122,.22))}
-.micro-chart.cyan span{background:linear-gradient(180deg, rgba(68,198,255,.96), rgba(68,198,255,.22))}
-.micro-chart.red span{background:linear-gradient(180deg, rgba(239,95,95,.96), rgba(239,95,95,.22))}
-.micro-chart.gold span{background:linear-gradient(180deg, rgba(226,191,125,.96), rgba(226,191,125,.22))}
-.micro-chart span:nth-child(2){animation-delay:.12s}
-.micro-chart span:nth-child(3){animation-delay:.24s}
-.micro-chart span:nth-child(4){animation-delay:.36s}
-.micro-chart span:nth-child(5){animation-delay:.48s}
-.micro-chart span:nth-child(6){animation-delay:.60s}
-.micro-chart span:nth-child(7){animation-delay:.72s}
-.micro-chart span:nth-child(8){animation-delay:.84s}
-.micro-chart span:nth-child(9){animation-delay:.96s}
-.micro-chart span:nth-child(10){animation-delay:1.08s}
-.bar{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:12px}
-.bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold-2));animation:pulseBar 2.8s ease-in-out infinite}
-.bar.green > span{background:linear-gradient(90deg,#2fd37a,#7ef1a7)}
-.bar.cyan > span{background:linear-gradient(90deg,#44c6ff,#8be3ff)}
-.bar.red > span{background:linear-gradient(90deg,#ef5f5f,#ff8f8f)}
-
-.boards{padding:22px}
-.boards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.board{padding:16px;border-radius:14px;border:1px solid rgba(199,161,91,.12);background:rgba(255,255,255,.024)}
-.big{font-size:2.5rem;font-weight:900;letter-spacing:-.05em;margin:10px 0 6px}
-.chart{height:70px;display:flex;align-items:flex-end;gap:6px;margin-top:14px}
-.chart span{flex:1;border-radius:8px 8px 2px 2px;background:linear-gradient(180deg, rgba(102,211,255,.95), rgba(102,211,255,.28));animation:bounce 2.4s ease-in-out infinite}
-.chart span:nth-child(2){animation-delay:.2s}
-.chart span:nth-child(3){animation-delay:.4s}
-.chart span:nth-child(4){animation-delay:.6s}
-.chart span:nth-child(5){animation-delay:.8s}
-.chart span:nth-child(6){animation-delay:1s}
-.chart span:nth-child(7){animation-delay:1.2s}
-.chart span:nth-child(8){animation-delay:1.4s}
-.chart.gold span{background:linear-gradient(180deg, rgba(226,191,125,.95), rgba(226,191,125,.28))}
-.chart.red span{background:linear-gradient(180deg, rgba(239,95,95,.95), rgba(239,95,95,.28))}
-.chart.green span{background:linear-gradient(180deg, rgba(47,211,122,.95), rgba(47,211,122,.28))}
-.signal-bar-row{display:grid;gap:8px;margin-top:14px}
-.signal-line{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
-.signal-line span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;animation:signalFlow 2.8s ease-in-out infinite}
-.signal-line.cyan span{background:linear-gradient(90deg,#44c6ff,#8be3ff)}
-.signal-line.gold span{background:linear-gradient(90deg,#c7a15b,#e2bf7d)}
-.signal-line.green span{background:linear-gradient(90deg,#2fd37a,#7ef1a7)}
-.signal-line.red span{background:linear-gradient(90deg,#ef5f5f,#ff9b9b)}
-
-.feed{padding:22px}
-.feed-list{display:grid;gap:10px}
-.feed-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;border:1px solid rgba(199,161,91,.10);background:rgba(255,255,255,.022)}
-.feed-item .signal{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
-.feed-item:nth-child(2) .signal{background:var(--amber);box-shadow:0 0 12px var(--amber)}
-.feed-item:nth-child(3) .signal{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
-.feed-item:nth-child(4) .signal{background:var(--red);box-shadow:0 0 12px var(--red)}
-
-.section-title{font-size:12px;color:var(--gold);margin-bottom:14px}
-.sub{font-size:.92rem;color:var(--muted);line-height:1.65}
-
-.footer-note{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02);font-size:.9rem;color:var(--muted);line-height:1.7}
-
-@keyframes spinSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes spinReverse{from{transform:rotate(360deg)}to{transform:rotate(0deg)}}
-@keyframes sealPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 38px rgba(199,161,91,.18))}50%{transform:scale(1.012);filter:drop-shadow(0 0 58px rgba(199,161,91,.28))}}
-@keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@keyframes pulseBar{0%,100%{filter:brightness(.92)}50%{filter:brightness(1.18)}}
-@keyframes signalFlow{0%,100%{filter:brightness(.94);transform:scaleX(.985);transform-origin:left center}50%{filter:brightness(1.18);transform:scaleX(1);transform-origin:left center}}
-@keyframes bounce{0%,100%{transform:scaleY(.68)}50%{transform:scaleY(1)}}
-
-@media (max-width: 1280px){
-  .gate-shell,.hero,.grid{grid-template-columns:1fr}
-  .seal-side{min-height:560px}
-  .seal-core{width:520px;height:520px}
+.side-quote {
+  border-left: 2px solid rgba(199,161,91,0.34);
+  padding-left: 14px;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: 0.03em;
+  margin: 8px 0 20px;
 }
 
-@media (max-width: 860px){
-  body{overflow:auto}
-  .screen{height:auto;min-height:100%}
-  .gate,.dashboard{overflow:visible;height:auto;min-height:100%}
-  .topbar{grid-template-columns:1fr}
-  .clock{justify-self:start}
-  .status-row{justify-content:flex-start}
-  .hero-stats,.gate-metrics,.telemetry-grid,.matrix-grid,.boards-grid{grid-template-columns:1fr}
-  .code-grid{grid-template-columns:repeat(6,1fr)}
-  .brand-copy h1{white-space:normal}
-  .seal-side{min-height:420px}
-  .seal-core{width:360px;height:360px}
-  .gate .orbit{width:600px;height:600px}
-  .gate .orbit-2{width:460px;height:460px}
-  .gate .orbit-3{width:340px;height:340px}
-  .gate .sweep{width:520px;height:520px}
+.status-list {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.status-row {
+  border-radius: 14px;
+  padding: 14px 15px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.status-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-name {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.status-detail {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-pill {
+  min-width: 112px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 800;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.active { color: var(--green); }
+.watch { color: var(--yellow); }
+.critical { color: var(--red); }
+.gold { color: var(--gold); }
+
+.pill-active { background: rgba(66,211,146,0.09); color: #d8f7ea; border-color: rgba(66,211,146,0.24); }
+.pill-watch { background: rgba(209,167,58,0.09); color: #f1ddb0; border-color: rgba(209,167,58,0.22); }
+.pill-critical { background: rgba(216,88,88,0.09); color: #f4c3c3; border-color: rgba(216,88,88,0.22); }
+
+.layout {
+  display: grid;
+  grid-template-columns: 0.95fr 1.25fr 0.9fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.card {
+  border-radius: var(--radius);
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 800;
+}
+
+.section-note {
+  color: var(--soft);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.command-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.command {
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.command::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent 38%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.command:hover {
+  transform: translateY(-1px);
+  border-color: rgba(199,161,91,0.28);
+  background: linear-gradient(180deg, rgba(17,26,36,0.98), rgba(11,17,24,0.98));
+}
+
+.command:hover::before {
+  opacity: 1;
+}
+
+.command-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.command-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.command-sub {
+  color: var(--muted);
+  font-size: 0.83rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+}
+
+.command-code {
+  color: var(--soft);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+.feed {
+  display: grid;
+  gap: 10px;
+}
+
+.feed-row {
+  border-radius: 16px;
+  padding: 14px 14px 13px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.feed-time {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+  white-space: nowrap;
+}
+
+.feed-main {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.feed-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.feed-desc {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.feed-state {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 800;
+  text-align: center;
+  min-width: 112px;
+}
+
+.signal-list {
+  display: grid;
+  gap: 10px;
+}
+
+.signal-row {
+  border-radius: 16px;
+  padding: 14px 14px 13px;
+  display: grid;
+  gap: 8px;
+}
+
+.signal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.signal-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.signal-body {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.footer-strip {
+  margin-top: 18px;
+  border-radius: 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(10,15,21,0.95), rgba(8,12,17,0.95));
+  box-shadow: var(--glow);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.footer-strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+@media (max-width: 1220px) {
+  .topbar,
+  .hero,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-status-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(var(--max), calc(100vw - 20px));
+    padding-top: 12px;
+  }
+
+  .topcard,
+  .card,
+  .hero-main-inner,
+  .hero-side {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .hero-status-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .feed-row {
+    grid-template-columns: 1fr;
+  }
+
+  .feed-state {
+    min-width: 0;
+    width: fit-content;
+  }
+
+  .status-row {
+    grid-template-columns: 1fr;
+  }
 }
 
   </style>
 </head>
 <body>
-  <section class="screen gate active" id="gateScreen">
-    <div class="orbit"></div>
-    <div class="orbit-2"></div>
-    <div class="orbit-3"></div>
-    <div class="sweep"></div><div class="gate-shell">
-  <div class="gate-copy">
-    <div class="eyebrow mono">Rising Phoenix Enterprises · Phoenix King Restricted Entry</div>
-    <h1><span>From Ashes</span><span>to Authority.</span></h1>
-    <div class="gate-doctrine mono">Command Before Visibility · Restricted Executive Layer</div>
-    <p>
-      Phoenix Command Center is not a public website and not a generic dashboard. It is the controlled authority layer above the operational systems — part mission control, part market intelligence floor, fully subordinate to executive access and system governance.
-    </p>
-
-    <div class="gate-metrics">
-      <div class="metric">
-        <div class="label mono">Authority</div>
-        <strong>Executive Sovereign Access</strong>
-      </div>
-      <div class="metric">
-        <div class="label mono">Environment</div>
-        <strong>Live Command Surface</strong>
-      </div>
-      <div class="metric">
-        <div class="label mono">Status</div>
-        <strong>Gate Locked / Ready</strong>
-      </div>
-    </div>
-
-    <div class="access-box">
-      <div class="label mono">Phoenix King Access Code</div>
-      <h2>Authenticate to enter Command Center</h2>
-      <p>Use the six-character executive access sequence to open the live operational floor.</p>
-      <div class="code-grid">
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-      </div>
-      <div class="actions">
-        <button class="btn btn-primary" id="enterBtn">Enter Command Floor</button>
-        <button class="btn btn-secondary" id="demoBtn">Demo Access</button>
-      </div>
-      <div class="hint mono">Seal-authorized · receipt-backed · command-gated</div>
+  <div class="shell">
+    <section class="topbar">
+      <div class="topcard">
+        <div>
+          <div class="eyebrow">Phoenix OS</div>
+          <div class="title-lg">Phoenix Command Center</div>
+        </div>
+        <div class="meta-line">
+          <span>Authority Surface</span>
+          <span>Restricted Interface</span>
+          <span>Command Active</span>
+        </div>
+      </div><div class="topcard">
+    <div class="eyebrow">System Time</div>
+    <div class="title-lg">08:44:22 CST</div>
+    <div class="meta-line">
+      <span>Central Command</span>
+      <span>Live Refresh</span>
     </div>
   </div>
 
-  <div class="seal-side">
-    <div class="seal-core">
-      <img src="rpe_seal_logo.png" alt="RPE Seal" />
-      <div class="seal-tag mono">Piri · It Ienstrumentum · Iti Irstrumentum</div>
+  <div class="topcard">
+    <div class="eyebrow">Execution Posture</div>
+    <div class="title-lg">Controlled / Active</div>
+    <div class="meta-line">
+      <span>Receipts Required</span>
+      <span>Drift Guard On</span>
     </div>
   </div>
-</div>
+</section>
 
-  </section>  <section class="screen dashboard" id="dashScreen">
-    <div class="dash-shell">
-      <header class="topbar">
-        <div class="brand">
-          <div class="brand-seal"><img src="rpe_seal_logo.png" alt="RPE Seal"></div>
-          <div class="brand-copy">
-            <div class="line mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
-            <h1>Phoenix Command Center</h1>
-          </div>
-        </div><div class="clock mono" id="liveClock">00:00:00 · CST</div>
+<section class="hero">
+  <div class="hero-main">
+    <div class="hero-grid"></div>
+    <div class="hero-main-inner">
+      <div class="hero-heading">
+        <div class="eyebrow">Mission Control · Capital Systems · Execution Governance</div>
+        <h1>Phoenix Command Center</h1>
+        <p>
+          Sovereign command surface for observing, authorizing, routing, halting, and verifying execution across
+          Phoenix Media, PBS, Spider, StatsCore, Aegis, and future governed systems. Nothing visible here is decorative.
+          Every surface exists to support command authority.
+        </p>
+      </div>
 
-    <div class="status-row">
-      <div class="chip green mono"><span class="dot"></span> Command Link Active</div>
-      <div class="chip amber mono"><span class="dot"></span> Oversight Mode</div>
-      <div class="chip cyan mono"><span class="dot"></span> Market Signals Live</div>
+      <div class="hero-status-strip">
+        <div class="metric">
+          <div class="metric-label">Media Pipeline</div>
+          <div class="metric-value active">Active</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">PBS Stack</div>
+          <div class="metric-value gold">Stable</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Distribution</div>
+          <div class="metric-value active">Live</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Command Load</div>
+          <div class="metric-value">Nominal</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </div>
 
-  <section class="hero">
-    <article class="panel hero-copy">
-      <div class="eyebrow mono">Layer 0 · Executive Command Surface</div>
-      <h2><span>From Ashes</span><span>to Authority.</span></h2>
-      <div class="doctrine-chip mono">Command Before Visibility · Mission Floor Active</div>
-      <p>
-        Phoenix Command Center is the sovereign control surface above the public systems. It carries the ceremonial weight of the RPE front door, but operates like a live mission floor with moving signals, active telemetry, monitored system bars, and market-grade intelligence visibility.
-      </p>
-
-      <div class="hero-stats">
-        <div class="mini-card">
-          <div class="label mono">Authority</div>
-          <strong>Executive Control</strong>
+  <aside class="hero-side">
+    <div>
+      <div class="side-head">
+        <div>
+          <div class="eyebrow">Authority Doctrine</div>
+          <div class="title-lg">NASA × Wall Street</div>
         </div>
-        <div class="mini-card">
-          <div class="label mono">Mode</div>
-          <strong>Governed / Verified</strong>
-        </div>
-        <div class="mini-card">
-          <div class="label mono">Position</div>
-          <strong>Above All Active Systems</strong>
-        </div>
+        <div class="badge-live"><span class="dot"></span>System Active</div>
       </div>
 
-      <div class="hero-actions">
-        <button class="btn btn-primary">Open Command Layer</button>
-        <button class="btn btn-secondary">Review Signals</button>
+      <div class="side-quote">
+        Precision over motion. Control over noise. Capital-grade seriousness fused with mission-control clarity.
       </div>
-    </article>
-
-    <aside class="panel hero-telemetry">
-      <div class="section-title mono">Oversight Telemetry</div>
-
-      <div class="telemetry-grid">
-        <div class="tele-box">
-          <div class="label mono">System Status</div>
-          <strong>Stable</strong>
-          <p>Governance thresholds holding.</p>
-        </div>
-        <div class="tele-box">
-          <div class="label mono">Signal Readiness</div>
-          <strong>Live</strong>
-          <p>Active surveillance across lanes.</p>
-        </div>
-        <div class="tele-box">
-          <div class="label mono">Execution Posture</div>
-          <strong>Controlled</strong>
-          <p>Human authorization required.</p>
-        </div>
-        <div class="tele-box">
-          <div class="label mono">Command Confidence</div>
-          <strong>99%</strong>
-          <p>TQL/TQM doctrine aligned.</p>
-        </div>
-      </div>
-
-      <div class="ticker-wrap">
-        <div class="ticker">
-          <div class="ticker-track mono">
-            <span>PBRS Corridor Monitored</span>
-            <span>Spider Execution Verified</span>
-            <span>Receipts Locked</span>
-            <span>PBB Continuity Stable</span>
-            <span>StatsCORE Tracking Active</span>
-            <span>Phoenix OS Governance Holding</span>
-            <span>PBRS Corridor Monitored</span>
-            <span>Spider Execution Verified</span>
-            <span>Receipts Locked</span>
-            <span>PBB Continuity Stable</span>
-            <span>StatsCORE Tracking Active</span>
-            <span>Phoenix OS Governance Holding</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </section>
-
-  <section class="grid">
-    <div class="stack">
-      <section class="panel matrix">
-        <div class="section-title mono">Command Matrix</div>
-        <div class="matrix-grid">
-          <div class="matrix-card">
-            <div class="label mono">PBS</div>
-            <strong>Operational Corridor</strong>
-            <div class="sub">Institutional surface active and monitored.</div>
-            <div class="bar green"><span style="width:92%"></span></div>
-            <div class="micro-chart green">
-              <span style="height:32%"></span><span style="height:48%"></span><span style="height:40%"></span><span style="height:62%"></span><span style="height:74%"></span><span style="height:58%"></span><span style="height:88%"></span><span style="height:70%"></span><span style="height:84%"></span><span style="height:66%"></span>
-            </div>
-          </div>
-          <div class="matrix-card">
-            <div class="label mono">PBRS</div>
-            <strong>Readiness Intake</strong>
-            <div class="sub">Qualification logic and scoring visible.</div>
-            <div class="bar cyan"><span style="width:78%"></span></div>
-            <div class="micro-chart cyan">
-              <span style="height:28%"></span><span style="height:42%"></span><span style="height:56%"></span><span style="height:46%"></span><span style="height:68%"></span><span style="height:52%"></span><span style="height:76%"></span><span style="height:64%"></span><span style="height:82%"></span><span style="height:60%"></span>
-            </div>
-          </div>
-          <div class="matrix-card">
-            <div class="label mono">PBB</div>
-            <strong>Build Continuity</strong>
-            <div class="sub">Builder flow armed for guided execution.</div>
-            <div class="bar"><span style="width:84%"></span></div>
-            <div class="micro-chart gold">
-              <span style="height:34%"></span><span style="height:50%"></span><span style="height:44%"></span><span style="height:60%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:80%"></span><span style="height:68%"></span><span style="height:86%"></span><span style="height:62%"></span>
-            </div>
-          </div>
-          <div class="matrix-card">
-            <div class="label mono">Spider</div>
-            <strong>Execution Spine</strong>
-            <div class="sub">Receipt-backed actions and live system routing.</div>
-            <div class="bar red"><span style="width:66%"></span></div>
-            <div class="micro-chart red">
-              <span style="height:24%"></span><span style="height:38%"></span><span style="height:52%"></span><span style="height:40%"></span><span style="height:70%"></span><span style="height:48%"></span><span style="height:82%"></span><span style="height:58%"></span><span style="height:74%"></span><span style="height:50%"></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel feed">
-        <div class="section-title mono">Live Command Feed</div>
-        <div class="feed-list mono">
-          <div class="feed-item"><span class="signal"></span><span>PBRS intake channel heartbeat confirmed</span><span>+00:03</span></div>
-          <div class="feed-item"><span class="signal"></span><span>PBB continuity surface flagged for review</span><span>+00:08</span></div>
-          <div class="feed-item"><span class="signal"></span><span>Spider lane observing execution receipts</span><span>+00:14</span></div>
-          <div class="feed-item"><span class="signal"></span><span>StatsCORE board awaiting next signal burst</span><span>+00:21</span></div>
-        </div>
-      </section>
     </div>
 
-    <div class="stack">
-      <section class="panel boards">
-        <div class="section-title mono">Signal Boards</div>
-        <div class="boards-grid">
-          <div class="board">
-            <div class="label mono">Market Pulse</div>
-            <div class="big">10,753</div>
-            <div class="sub">Lead pressure across monitored corridors.</div>
-            <div class="chart">
-              <span style="height:26%"></span><span style="height:46%"></span><span style="height:38%"></span><span style="height:58%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:82%"></span><span style="height:64%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line cyan"><span style="width:82%"></span></div>
-              <div class="signal-line gold"><span style="width:61%"></span></div>
-            </div>
-          </div>
-          <div class="board">
-            <div class="label mono">Authority Index</div>
-            <div class="big">99.2%</div>
-            <div class="sub">System confidence and governance integrity.</div>
-            <div class="chart gold">
-              <span style="height:44%"></span><span style="height:56%"></span><span style="height:66%"></span><span style="height:52%"></span><span style="height:78%"></span><span style="height:62%"></span><span style="height:88%"></span><span style="height:74%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line gold"><span style="width:92%"></span></div>
-              <div class="signal-line green"><span style="width:88%"></span></div>
-            </div>
-          </div>
-          <div class="board">
-            <div class="label mono">Social Velocity</div>
-            <div class="big">312.6K</div>
-            <div class="sub">Cross-lane attention signal density.</div>
-            <div class="chart red">
-              <span style="height:22%"></span><span style="height:42%"></span><span style="height:62%"></span><span style="height:40%"></span><span style="height:78%"></span><span style="height:58%"></span><span style="height:84%"></span><span style="height:66%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line red"><span style="width:76%"></span></div>
-              <div class="signal-line cyan"><span style="width:54%"></span></div>
-            </div>
-          </div>
-          <div class="board">
-            <div class="label mono">Command Health</div>
-            <div class="big">Stable</div>
-            <div class="sub">Internal system posture and availability.</div>
-            <div class="chart green">
-              <span style="height:36%"></span><span style="height:48%"></span><span style="height:64%"></span><span style="height:52%"></span><span style="height:70%"></span><span style="height:60%"></span><span style="height:78%"></span><span style="height:68%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line green"><span style="width:84%"></span></div>
-              <div class="signal-line gold"><span style="width:72%"></span></div>
-            </div>
-          </div>
+    <div class="status-list">
+      <div class="status-row">
+        <div class="status-left">
+          <div class="status-name">Governance Layer</div>
+          <div class="status-detail">Receipts Enforced</div>
         </div>
-      </section>
+        <div class="status-pill pill-active">Confirmed</div>
+      </div>
 
-      <div class="footer-note mono">
-        Phoenix Command Center is the room above the rooms. Authority first. Signals second. Systems third.
+      <div class="status-row">
+        <div class="status-left">
+          <div class="status-name">Quality Gate</div>
+          <div class="status-detail">Pre-Release Hold Active</div>
+        </div>
+        <div class="status-pill pill-watch">Monitoring</div>
+      </div>
+
+      <div class="status-row">
+        <div class="status-left">
+          <div class="status-name">Mutation Control</div>
+          <div class="status-detail">Unauthorized Change Blocked</div>
+        </div>
+        <div class="status-pill pill-active">Locked</div>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<section class="layout">
+  <section class="card">
+    <div class="section-head">
+      <div class="section-title">Command Surface</div>
+      <div class="section-note">Control Only</div>
+    </div>
+
+    <div class="command-grid">
+      <div class="command">
+        <div class="command-top">
+          <div class="command-label">Authorize</div>
+          <div class="dot active"></div>
+        </div>
+        <div class="command-sub">Approve governed execution, unlock scheduled flows, and release controlled actions into system lanes.</div>
+        <div class="command-code">Command Authority</div>
+      </div>
+
+      <div class="command">
+        <div class="command-top">
+          <div class="command-label">Halt</div>
+          <div class="dot critical"></div>
+        </div>
+        <div class="command-sub">Freeze execution, stop drift, block unstable outputs, and preserve command integrity under exception conditions.</div>
+        <div class="command-code">Emergency Control</div>
+      </div>
+
+      <div class="command">
+        <div class="command-top">
+          <div class="command-label">Route</div>
+          <div class="dot gold"></div>
+        </div>
+        <div class="command-sub">Redirect traffic, tasks, channel payloads, and operational signals between governed systems and execution lanes.</div>
+        <div class="command-code">Routing Control</div>
+      </div>
+
+      <div class="command">
+        <div class="command-top">
+          <div class="command-label">Inspect</div>
+          <div class="dot watch"></div>
+        </div>
+        <div class="command-sub">Open receipts, verify runtime truth, review queue posture, and examine command outcomes without exposing system complexity.</div>
+        <div class="command-code">Verification Surface</div>
       </div>
     </div>
   </section>
+
+  <section class="card">
+    <div class="section-head">
+      <div class="section-title">Latest Execution</div>
+      <div class="section-note">Receipt-Backed Feed</div>
+    </div>
+
+    <div class="feed">
+      <div class="feed-row">
+        <div class="feed-time">08:41 CST</div>
+        <div class="feed-main">
+          <div class="feed-title">GoldWords Media Post</div>
+          <div class="feed-desc">Script generated, voice assembled, render completed, and distribution handoff recorded with clean terminal receipt.</div>
+        </div>
+        <div class="feed-state pill-active">Completed</div>
+      </div>
+
+      <div class="feed-row">
+        <div class="feed-time">08:36 CST</div>
+        <div class="feed-main">
+          <div class="feed-title">PBRS Intake Cycle</div>
+          <div class="feed-desc">Traffic entered corridor, scoring executed, output persisted, and routing state held within governed operational range.</div>
+        </div>
+        <div class="feed-state pill-active">Processed</div>
+      </div>
+
+      <div class="feed-row">
+        <div class="feed-time">08:29 CST</div>
+        <div class="feed-main">
+          <div class="feed-title">Render Worker Verification</div>
+          <div class="feed-desc">Video composition pipeline responded within target envelope. Preview, final asset, and thumbnail surfaces passed assembly.</div>
+        </div>
+        <div class="feed-state pill-watch">Observed</div>
+      </div>
+
+      <div class="feed-row">
+        <div class="feed-time">08:22 CST</div>
+        <div class="feed-main">
+          <div class="feed-title">Spider Distribution Lane</div>
+          <div class="feed-desc">Command queue remained stable under governed load. No duplicate claims detected across controlled execution window.</div>
+        </div>
+        <div class="feed-state pill-active">Stable</div>
+      </div>
+
+      <div class="feed-row">
+        <div class="feed-time">08:16 CST</div>
+        <div class="feed-main">
+          <div class="feed-title">Quality Gate Hold</div>
+          <div class="feed-desc">One output withheld pending motion/brand verification. Release prevented automatically under high-quality minimum doctrine.</div>
+        </div>
+        <div class="feed-state pill-critical">Blocked</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <div class="section-title">Signals / Alerts</div>
+      <div class="section-note">Watch Surface</div>
+    </div>
+
+    <div class="signal-list">
+      <div class="signal-row">
+        <div class="signal-top">
+          <div class="signal-label">Media Quality</div>
+          <div class="badge-live" style="border-color: rgba(209,167,58,0.22); background: rgba(209,167,58,0.08); color: #f1ddb0;"><span class="dot watch"></span>Watch</div>
+        </div>
+        <div class="signal-body">One render sequence passed assembly but failed premium motion confidence. Output remains held pending governed re-run.</div>
+      </div>
+
+      <div class="signal-row">
+        <div class="signal-top">
+          <div class="signal-label">PBS Corridor</div>
+          <div class="badge-live"><span class="dot"></span>Nominal</div>
+        </div>
+        <div class="signal-body">PBRS → PBB flow remains operational. Intake, scoring, and routing posture are aligned inside current execution limits.</div>
+      </div>
+
+      <div class="signal-row">
+        <div class="signal-top">
+          <div class="signal-label">Capital Surface</div>
+          <div class="badge-live" style="border-color: rgba(199,161,91,0.24); background: rgba(199,161,91,0.08); color: #efd9ae;"><span class="dot gold"></span>Monitoring</div>
+        </div>
+        <div class="signal-body">No release action required. Capital-readiness and command-routing signals remain under observation for future escalation.</div>
+      </div>
+
+      <div class="signal-row">
+        <div class="signal-top">
+          <div class="signal-label">StatsCore / Aegis</div>
+          <div class="badge-live" style="border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #d5d9dd;"><span class="dot" style="color:#d5d9dd"></span>Queued</div>
+        </div>
+        <div class="signal-body">Future system lanes remain subordinate to current command order. No premature expansion authorized before active lane stabilization.</div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<div class="footer-strip">
+  <div><span class="footer-strong">PCC</span> · Command surface only · No decorative modules</div>
+  <div>AI builds · Humans authorize · Phoenix OS governs · Receipts prove</div>
+  <div>Highest authority interface across the ecosystem</div>
 </div>
 
-  </section>  <script>
-    const gateScreen = document.getElementById('gateScreen');
-    const dashScreen = document.getElementById('dashScreen');
-    const enterBtn = document.getElementById('enterBtn');
-    const demoBtn = document.getElementById('demoBtn');
-    const codeInputs = document.querySelectorAll('.code-input');
-    const liveClock = document.getElementById('liveClock');
-
-    function openDashboard(){
-      gateScreen.classList.remove('active');
-      dashScreen.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function updateClock(){
-      if(!liveClock) return;
-      const now = new Date();
-      const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-      liveClock.textContent = `${time} · CST`;
-    }
-
-    codeInputs.forEach((input, index) => {
-      input.addEventListener('input', (e) => {
-        e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        if(e.target.value && index < codeInputs.length - 1){
-          codeInputs[index + 1].focus();
-        }
-      });
-      input.addEventListener('keydown', (e) => {
-        if(e.key === 'Backspace' && !e.target.value && index > 0){
-          codeInputs[index - 1].focus();
-        }
-        if(e.key === 'Enter') openDashboard();
-      });
-    });
-
-    enterBtn.addEventListener('click', openDashboard);
-    demoBtn.addEventListener('click', openDashboard);
-    updateClock();
-    setInterval(updateClock, 1000);
-  </script></body>
+  </div>
+</body>
 </html> 
