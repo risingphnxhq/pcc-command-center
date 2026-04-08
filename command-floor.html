@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center — Command Floor</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <title>Phoenix Command Center — Command Floor</title>  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">  <style>
     :root{
       --bg:#04070c;
       --bg2:#08111a;
@@ -636,423 +631,419 @@
         text-align:left;
       }
     }
-  </style>
-</head>
+  </style></head>
 <body>
-  <div class="app">
-
-    <header class="topbar">
-      <div class="brand">
-        <img src="rpe_seal_logo.png" alt="RPE Seal">
-        <div class="brand-copy">
-          <div class="kicker mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
-          <h1>Phoenix Command Center</h1>
-        </div>
-      </div>
-
-      <div class="center-status">
-        <div class="chip green mono"><span class="dot"></span>System Link Active</div>
-        <div class="chip amber mono"><span class="dot"></span>Oversight Mode</div>
-        <div class="chip cyan mono"><span class="dot"></span>Signals Live</div>
-      </div>
-
-      <div class="clock mono" id="liveClock">00:00:00 CST</div>
-    </header>
-
-    <section class="ticker">
-      <div class="ticker-track mono">
-        <span>Phoenix OS Governance Holding</span>
-        <span>PBRS Corridor Monitored</span>
-        <span>Spider Execution Verified</span>
-        <span>Receipts Locked</span>
-        <span>Financial Controls Stable</span>
-        <span>StatsCORE Tracking Active</span>
-        <span>PHXN Studios Monitored</span>
-        <span>Council Oversight Live</span>
-        <span>Voice Intake Ready</span>
-        <span>Phoenix OS Governance Holding</span>
-        <span>PBRS Corridor Monitored</span>
-        <span>Spider Execution Verified</span>
-        <span>Receipts Locked</span>
-        <span>Financial Controls Stable</span>
-        <span>StatsCORE Tracking Active</span>
-        <span>PHXN Studios Monitored</span>
-        <span>Council Oversight Live</span>
-        <span>Voice Intake Ready</span>
-      </div>
-    </section>
-
-    <section class="main">
-      <aside class="left-rail">
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Navigation</div>
-          </div>
-          <div class="panel-body">
-            <div class="nav-list">
-              <div class="nav-item active"><span>Executive Overview</span><small>Live</small></div>
-              <div class="nav-item"><span>Engine Monitoring</span><small>12</small></div>
-              <div class="nav-item"><span>Command Queue</span><small>Active</small></div>
-              <div class="nav-item"><span>System Health</span><small>Stable</small></div>
-              <div class="nav-item"><span>Financial Strength</span><small>Visible</small></div>
-              <div class="nav-item"><span>Council Layer</span><small>12</small></div>
-              <div class="nav-item"><span>Receipts / Audit</span><small>Tracked</small></div>
-              <div class="nav-item"><span>Voice Intake</span><small>Ready</small></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Mission State</div>
-          </div>
-          <div class="panel-body">
-            <div class="feed-list">
-              <div class="feed-item">
-                <span class="signal"></span>
-                <span>Enterprise state aligned</span>
-                <span>Green</span>
-              </div>
-              <div class="feed-item">
-                <span class="signal warn"></span>
-                <span>Builder lane under review</span>
-                <span>Watch</span>
-              </div>
-              <div class="feed-item">
-                <span class="signal info"></span>
-                <span>Voice channel standing by</span>
-                <span>Ready</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </aside>
-
-      <main class="center-core">
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Enterprise Metrics</div>
-          </div>
-          <div class="panel-body">
-            <div class="metric-grid">
-              <div class="metric-card">
-                <div class="label mono">Engine Health</div>
-                <div class="value" style="color:var(--green)">96%</div>
-                <div class="sub">Cross-system readiness</div>
-              </div>
-              <div class="metric-card">
-                <div class="label mono">Active Commands</div>
-                <div class="value" style="color:var(--cyan)">148</div>
-                <div class="sub">Governed active queue</div>
-              </div>
-              <div class="metric-card">
-                <div class="label mono">Financial Strength</div>
-                <div class="value" style="color:var(--gold)">88</div>
-                <div class="sub">Liquidity / stability index</div>
-              </div>
-              <div class="metric-card">
-                <div class="label mono">Receipt Success</div>
-                <div class="value" style="color:var(--blue)">92%</div>
-                <div class="sub">Completed execution ratio</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Signal Boards</div>
-          </div>
-          <div class="panel-body">
-            <div class="chart-grid">
-              <div class="chart-box">
-                <div class="panel-title mono">Engine Performance Trend</div>
-                <svg viewBox="0 0 600 180" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="trend1" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stop-color="#66d3ff"/>
-                      <stop offset="100%" stop-color="#92e4ff"/>
-                    </linearGradient>
-                    <linearGradient id="trend2" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stop-color="#5c8dff"/>
-                      <stop offset="100%" stop-color="#9f7cff"/>
-                    </linearGradient>
-                  </defs>
-                  <g opacity=".15" stroke="#66d3ff" stroke-width="1">
-                    <line x1="0" y1="28" x2="600" y2="28"/>
-                    <line x1="0" y1="68" x2="600" y2="68"/>
-                    <line x1="0" y1="108" x2="600" y2="108"/>
-                    <line x1="0" y1="148" x2="600" y2="148"/>
-                  </g>
-                  <polyline fill="none" stroke="url(#trend1)" stroke-width="4"
-                    points="10,144 70,136 120,122 180,126 240,102 300,108 360,86 420,92 480,66 540,72 590,50"/>
-                  <polyline fill="none" stroke="url(#trend2)" stroke-width="3"
-                    points="10,156 70,150 120,146 180,138 240,130 300,120 360,114 420,104 480,100 540,92 590,84"/>
-                </svg>
-                <div class="legend">
-                  <span><i style="background:var(--cyan)"></i>command strength</span>
-                  <span><i style="background:var(--blue)"></i>system pressure</span>
-                </div>
-              </div>
-
-              <div class="chart-box">
-                <div class="panel-title mono">Financial Strength Gauge</div>
-                <svg viewBox="0 0 320 180">
-                  <defs>
-                    <linearGradient id="gauge" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stop-color="#ef5f5f"/>
-                      <stop offset="50%" stop-color="#f1b841"/>
-                      <stop offset="100%" stop-color="#2fd37a"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M40 140 A120 120 0 0 1 280 140" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="18" stroke-linecap="round"/>
-                  <path d="M40 140 A120 120 0 0 1 280 140" fill="none" stroke="url(#gauge)" stroke-width="18" stroke-linecap="round" stroke-dasharray="300 120"/>
-                  <line x1="160" y1="140" x2="228" y2="76" stroke="#eef4fb" stroke-width="5" stroke-linecap="round"/>
-                  <circle cx="160" cy="140" r="10" fill="#eef4fb"/>
-                  <text x="160" y="106" text-anchor="middle" fill="#eef4fb" font-size="34" font-weight="800">88</text>
-                  <text x="160" y="126" text-anchor="middle" fill="rgba(238,244,251,.62)" font-size="11">SOVEREIGN STRENGTH</text>
-                </svg>
-                <div class="legend">
-                  <span><i style="background:var(--green)"></i>strong</span>
-                  <span><i style="background:var(--amber)"></i>watch</span>
-                  <span><i style="background:var(--red)"></i>weak</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Engine Monitoring</div>
-          </div>
-          <div class="panel-body">
-            <div class="system-grid">
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>Phoenix OS</div>
-                <h4>Governance Spine</h4>
-                <div class="meta">Memory, law, continuity, command discipline.</div>
-                <div class="bar gold"><span style="width:94%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>PBS</div>
-                <h4>Business System</h4>
-                <div class="meta">Institutional corridor and system surfaces.</div>
-                <div class="bar cyan"><span style="width:89%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>PBRS</div>
-                <h4>Readiness Snapshot</h4>
-                <div class="meta">Scoring, routing, outputs, qualification flow.</div>
-                <div class="bar green"><span style="width:91%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot amber"></span>PBB</div>
-                <h4>Business Builder</h4>
-                <div class="meta">Continuity and guided execution system.</div>
-                <div class="bar gold"><span style="width:73%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>Spider</div>
-                <h4>Execution Spine</h4>
-                <div class="meta">Receipts, posts, command routing, delivery.</div>
-                <div class="bar blue"><span style="width:87%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>FCC</div>
-                <h4>Financial Controls</h4>
-                <div class="meta">Liquidity, visibility, solvency monitoring.</div>
-                <div class="bar green"><span style="width:84%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>StatsCORE</div>
-                <h4>Sports Intelligence</h4>
-                <div class="meta">Athlete tracking and lifecycle monitoring.</div>
-                <div class="bar purple"><span style="width:86%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot green"></span>PHXN</div>
-                <h4>PHXN Studios</h4>
-                <div class="meta">Synthetic production and media monitoring.</div>
-                <div class="bar cyan"><span style="width:81%"></span></div>
-              </div>
-              <div class="system-card">
-                <div class="status-pill mono"><span class="dot amber"></span>CCE</div>
-                <h4>Communication Layer</h4>
-                <div class="meta">Voice, routing, callbacks, oversight.</div>
-                <div class="bar red"><span style="width:68%"></span></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Command Intake</div>
-          </div>
-          <div class="panel-body">
-            <div class="input-grid">
-              <div class="chart-box">
-                <div class="field-grid">
-                  <div class="field">
-                    <label class="mono">Command Type</label>
-                    <select>
-                      <option>Executive Directive</option>
-                      <option>System Check</option>
-                      <option>Build Order</option>
-                      <option>Signal Review</option>
-                    </select>
-                  </div>
-                  <div class="field">
-                    <label class="mono">Target Engine</label>
-                    <select>
-                      <option>Phoenix OS</option>
-                      <option>PBS</option>
-                      <option>PBRS</option>
-                      <option>PBB</option>
-                      <option>Spider</option>
-                      <option>FCC</option>
-                    </select>
-                  </div>
-                  <div class="field full">
-                    <label class="mono">Directive Title</label>
-                    <input type="text" placeholder="Enter directive title">
-                  </div>
-                  <div class="field full">
-                    <label class="mono">Directive / Notes</label>
-                    <textarea placeholder="Enter governed instruction, command notes, or execution order..."></textarea>
-                  </div>
-                </div>
-
-                <div class="actions">
-                  <button class="btn primary">Stage Command</button>
-                  <button class="btn">Save Note</button>
-                </div>
-              </div>
-
-              <div class="voice-box">
-                <div class="chart-box">
-                  <div class="panel-title mono">Voice Intake</div>
-                  <div class="voice-visual" style="margin-top:10px;">
-                    <div class="voice-bars">
-                      <span style="height:18px"></span>
-                      <span style="height:28px"></span>
-                      <span style="height:42px"></span>
-                      <span style="height:22px"></span>
-                      <span style="height:54px"></span>
-                      <span style="height:34px"></span>
-                      <span style="height:46px"></span>
-                      <span style="height:24px"></span>
-                      <span style="height:38px"></span>
-                      <span style="height:20px"></span>
-                    </div>
-                  </div>
-                  <div class="legend" style="margin-top:12px;">
-                    <span><i style="background:var(--cyan)"></i>dictation ready</span>
-                    <span><i style="background:var(--blue)"></i>transcription queue</span>
-                  </div>
-                  <div class="actions">
-                    <button class="btn primary">Begin Voice Intake</button>
-                    <button class="btn">Transcription Queue</button>
-                  </div>
-                </div>
-
-                <div class="chart-box">
-                  <div class="panel-title mono">Live Feed</div>
-                  <div class="feed-list" style="margin-top:10px;">
-                    <div class="feed-item">
-                      <span class="signal"></span>
-                      <span>PBRS intake channel heartbeat confirmed</span>
-                      <span>+00:03</span>
-                    </div>
-                    <div class="feed-item">
-                      <span class="signal warn"></span>
-                      <span>PBB continuity surface flagged for review</span>
-                      <span>+00:08</span>
-                    </div>
-                    <div class="feed-item">
-                      <span class="signal info"></span>
-                      <span>Spider lane observing execution receipts</span>
-                      <span>+00:14</span>
-                    </div>
-                    <div class="feed-item">
-                      <span class="signal alert"></span>
-                      <span>Audit watch issued for content engine drift</span>
-                      <span>+00:21</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <aside class="right-rail">
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Council Oversight</div>
-          </div>
-          <div class="panel-body">
-            <div class="council-list">
-              <div class="council-item">
-                <h4>Alexis Vale · Chairwoman</h4>
-                <p>Governance posture stable. Institutional tone and continuity aligned.</p>
-              </div>
-              <div class="council-item">
-                <h4>Michael Carrington · CEO</h4>
-                <p>Enterprise execution visibility remains strong across active corridors.</p>
-              </div>
-              <div class="council-item">
-                <h4>Chad G. Pennington · COO</h4>
-                <p>Command floor prepared for live wiring into governed execution systems.</p>
-              </div>
-              <div class="council-item">
-                <h4>Oliver Grant · CFO</h4>
-                <p>Financial strength remains durable; FCC should be fully wired next.</p>
-              </div>
-              <div class="council-item">
-                <h4>Aiden Mercer · Auditor</h4>
-                <p>Monitor drift, maintain determinism, preserve execution clarity.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <div class="panel-title mono">Financial Monitor</div>
-          </div>
-          <div class="panel-body">
-            <div class="metric-card" style="min-height:auto;">
-              <div class="label mono">Liquidity</div>
-              <div class="value" style="font-size:1.45rem;color:var(--green)">82</div>
-              <div class="sub">Protected operating visibility</div>
-              <div class="bar green"><span style="width:82%"></span></div>
-            </div>
-            <div class="metric-card" style="min-height:auto;margin-top:8px;">
-              <div class="label mono">Flow Stability</div>
-              <div class="value" style="font-size:1.45rem;color:var(--gold)">88</div>
-              <div class="sub">Capital discipline intact</div>
-              <div class="bar gold"><span style="width:88%"></span></div>
-            </div>
-            <div class="metric-card" style="min-height:auto;margin-top:8px;">
-              <div class="label mono">Burn Pressure</div>
-              <div class="value" style="font-size:1.45rem;color:var(--amber)">21</div>
-              <div class="sub">Low-to-moderate system pressure</div>
-              <div class="bar red"><span style="width:21%"></span></div>
-            </div>
-          </div>
-        </section>
-      </aside>
-    </section>
-
-    <footer class="footer mono">
-      Phoenix Command Center is the room above the rooms. Authority first. Signals second. Systems third.
-    </footer>
+  <div class="app" id="pccApp" data-system="phoenix-command-center" data-layer="command-floor"><header class="topbar" id="pccTopbar" data-module="command-header">
+  <div class="brand" id="brandBlock">
+    <img src="rpe_seal_logo.png" alt="RPE Seal" id="pccSeal">
+    <div class="brand-copy">
+      <div class="kicker mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
+      <h1 id="pccTitle">Phoenix Command Center</h1>
+    </div>
   </div>
 
-  <script>
+  <div class="center-status" id="systemStatusChips" data-module="system-status">
+    <div class="chip green mono" id="chipSystemLink" data-status="active"><span class="dot"></span>System Link Active</div>
+    <div class="chip amber mono" id="chipOversightMode" data-status="oversight"><span class="dot"></span>Oversight Mode</div>
+    <div class="chip cyan mono" id="chipSignalsLive" data-status="signals-live"><span class="dot"></span>Signals Live</div>
+  </div>
+
+  <div class="clock mono" id="liveClock" data-role="live-clock">00:00:00 CST</div>
+</header>
+
+<section class="ticker" id="commandTicker" data-module="signal-ticker">
+  <div class="ticker-track mono" id="tickerTrack">
+    <span>Phoenix OS Governance Holding</span>
+    <span>PBRS Corridor Monitored</span>
+    <span>Spider Execution Verified</span>
+    <span>Receipts Locked</span>
+    <span>Financial Controls Stable</span>
+    <span>StatsCORE Tracking Active</span>
+    <span>PHXN Studios Monitored</span>
+    <span>Council Oversight Live</span>
+    <span>Voice Intake Ready</span>
+    <span>Phoenix OS Governance Holding</span>
+    <span>PBRS Corridor Monitored</span>
+    <span>Spider Execution Verified</span>
+    <span>Receipts Locked</span>
+    <span>Financial Controls Stable</span>
+    <span>StatsCORE Tracking Active</span>
+    <span>PHXN Studios Monitored</span>
+    <span>Council Oversight Live</span>
+    <span>Voice Intake Ready</span>
+  </div>
+</section>
+
+<section class="main" id="commandMainGrid">
+  <aside class="left-rail" id="leftRail" data-region="left-rail">
+    <section class="panel" id="navigationPanel" data-module="navigation">
+      <div class="panel-head">
+        <div class="panel-title mono">Navigation</div>
+      </div>
+      <div class="panel-body">
+        <div class="nav-list" id="navigationList">
+          <div class="nav-item active" data-nav="executive-overview"><span>Executive Overview</span><small>Live</small></div>
+          <div class="nav-item" data-nav="engine-monitoring"><span>Engine Monitoring</span><small>12</small></div>
+          <div class="nav-item" data-nav="command-queue"><span>Command Queue</span><small>Active</small></div>
+          <div class="nav-item" data-nav="system-health"><span>System Health</span><small>Stable</small></div>
+          <div class="nav-item" data-nav="financial-strength"><span>Financial Strength</span><small>Visible</small></div>
+          <div class="nav-item" data-nav="council-layer"><span>Council Layer</span><small>12</small></div>
+          <div class="nav-item" data-nav="receipts-audit"><span>Receipts / Audit</span><small>Tracked</small></div>
+          <div class="nav-item" data-nav="voice-intake"><span>Voice Intake</span><small>Ready</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="missionStatePanel" data-module="mission-state">
+      <div class="panel-head">
+        <div class="panel-title mono">Mission State</div>
+      </div>
+      <div class="panel-body">
+        <div class="feed-list" id="missionStateList">
+          <div class="feed-item" data-mission-state="enterprise-aligned">
+            <span class="signal"></span>
+            <span>Enterprise state aligned</span>
+            <span>Green</span>
+          </div>
+          <div class="feed-item" data-mission-state="builder-review">
+            <span class="signal warn"></span>
+            <span>Builder lane under review</span>
+            <span>Watch</span>
+          </div>
+          <div class="feed-item" data-mission-state="voice-ready">
+            <span class="signal info"></span>
+            <span>Voice channel standing by</span>
+            <span>Ready</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <main class="center-core" id="centerCore" data-region="center-core">
+    <section class="panel" id="enterpriseMetricsPanel" data-module="enterprise-metrics">
+      <div class="panel-head">
+        <div class="panel-title mono">Enterprise Metrics</div>
+      </div>
+      <div class="panel-body">
+        <div class="metric-grid" id="enterpriseMetricsGrid">
+          <div class="metric-card" data-metric-card="engine-health">
+            <div class="label mono">Engine Health</div>
+            <div class="value" id="metricEngineHealth" data-metric="engine-health" style="color:var(--green)">96%</div>
+            <div class="sub">Cross-system readiness</div>
+          </div>
+          <div class="metric-card" data-metric-card="active-commands">
+            <div class="label mono">Active Commands</div>
+            <div class="value" id="metricActiveCommands" data-metric="active-commands" style="color:var(--cyan)">148</div>
+            <div class="sub">Governed active queue</div>
+          </div>
+          <div class="metric-card" data-metric-card="financial-strength">
+            <div class="label mono">Financial Strength</div>
+            <div class="value" id="metricFinancialStrength" data-metric="financial-strength" style="color:var(--gold)">88</div>
+            <div class="sub">Liquidity / stability index</div>
+          </div>
+          <div class="metric-card" data-metric-card="receipt-success">
+            <div class="label mono">Receipt Success</div>
+            <div class="value" id="metricReceiptSuccess" data-metric="receipt-success" style="color:var(--blue)">92%</div>
+            <div class="sub">Completed execution ratio</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="signalBoardsPanel" data-module="signal-boards">
+      <div class="panel-head">
+        <div class="panel-title mono">Signal Boards</div>
+      </div>
+      <div class="panel-body">
+        <div class="chart-grid" id="signalBoardsGrid">
+          <div class="chart-box" id="enginePerformanceTrendBox" data-chart="engine-performance-trend">
+            <div class="panel-title mono">Engine Performance Trend</div>
+            <svg viewBox="0 0 600 180" preserveAspectRatio="none" id="enginePerformanceTrendChart">
+              <defs>
+                <linearGradient id="trend1" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#66d3ff"/>
+                  <stop offset="100%" stop-color="#92e4ff"/>
+                </linearGradient>
+                <linearGradient id="trend2" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#5c8dff"/>
+                  <stop offset="100%" stop-color="#9f7cff"/>
+                </linearGradient>
+              </defs>
+              <g opacity=".15" stroke="#66d3ff" stroke-width="1">
+                <line x1="0" y1="28" x2="600" y2="28"/>
+                <line x1="0" y1="68" x2="600" y2="68"/>
+                <line x1="0" y1="108" x2="600" y2="108"/>
+                <line x1="0" y1="148" x2="600" y2="148"/>
+              </g>
+              <polyline id="trendCommandStrength" fill="none" stroke="url(#trend1)" stroke-width="4"
+                points="10,144 70,136 120,122 180,126 240,102 300,108 360,86 420,92 480,66 540,72 590,50"/>
+              <polyline id="trendSystemPressure" fill="none" stroke="url(#trend2)" stroke-width="3"
+                points="10,156 70,150 120,146 180,138 240,130 300,120 360,114 420,104 480,100 540,92 590,84"/>
+            </svg>
+            <div class="legend" id="enginePerformanceLegend">
+              <span><i style="background:var(--cyan)"></i>command strength</span>
+              <span><i style="background:var(--blue)"></i>system pressure</span>
+            </div>
+          </div>
+
+          <div class="chart-box" id="financialStrengthGaugeBox" data-chart="financial-strength-gauge">
+            <div class="panel-title mono">Financial Strength Gauge</div>
+            <svg viewBox="0 0 320 180" id="financialStrengthGaugeChart">
+              <defs>
+                <linearGradient id="gauge" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#ef5f5f"/>
+                  <stop offset="50%" stop-color="#f1b841"/>
+                  <stop offset="100%" stop-color="#2fd37a"/>
+                </linearGradient>
+              </defs>
+              <path d="M40 140 A120 120 0 0 1 280 140" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="18" stroke-linecap="round"/>
+              <path d="M40 140 A120 120 0 0 1 280 140" fill="none" stroke="url(#gauge)" stroke-width="18" stroke-linecap="round" stroke-dasharray="300 120"/>
+              <line x1="160" y1="140" x2="228" y2="76" stroke="#eef4fb" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="160" cy="140" r="10" fill="#eef4fb"/>
+              <text x="160" y="106" text-anchor="middle" fill="#eef4fb" font-size="34" font-weight="800" id="financialGaugeValue">88</text>
+              <text x="160" y="126" text-anchor="middle" fill="rgba(238,244,251,.62)" font-size="11">SOVEREIGN STRENGTH</text>
+            </svg>
+            <div class="legend" id="financialGaugeLegend">
+              <span><i style="background:var(--green)"></i>strong</span>
+              <span><i style="background:var(--amber)"></i>watch</span>
+              <span><i style="background:var(--red)"></i>weak</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="engineMonitoringPanel" data-module="engine-monitoring">
+      <div class="panel-head">
+        <div class="panel-title mono">Engine Monitoring</div>
+      </div>
+      <div class="panel-body">
+        <div class="system-grid" id="engineMonitoringGrid">
+          <div class="system-card" id="enginePhoenixOS" data-engine="phoenix-os">
+            <div class="status-pill mono"><span class="dot green"></span>Phoenix OS</div>
+            <h4>Governance Spine</h4>
+            <div class="meta">Memory, law, continuity, command discipline.</div>
+            <div class="bar gold"><span id="enginePhoenixOSBar" style="width:94%"></span></div>
+          </div>
+          <div class="system-card" id="enginePBS" data-engine="pbs">
+            <div class="status-pill mono"><span class="dot green"></span>PBS</div>
+            <h4>Business System</h4>
+            <div class="meta">Institutional corridor and system surfaces.</div>
+            <div class="bar cyan"><span id="enginePBSBar" style="width:89%"></span></div>
+          </div>
+          <div class="system-card" id="enginePBRS" data-engine="pbrs">
+            <div class="status-pill mono"><span class="dot green"></span>PBRS</div>
+            <h4>Readiness Snapshot</h4>
+            <div class="meta">Scoring, routing, outputs, qualification flow.</div>
+            <div class="bar green"><span id="enginePBRSBar" style="width:91%"></span></div>
+          </div>
+          <div class="system-card" id="enginePBB" data-engine="pbb">
+            <div class="status-pill mono"><span class="dot amber"></span>PBB</div>
+            <h4>Business Builder</h4>
+            <div class="meta">Continuity and guided execution system.</div>
+            <div class="bar gold"><span id="enginePBBBar" style="width:73%"></span></div>
+          </div>
+          <div class="system-card" id="engineSpider" data-engine="spider">
+            <div class="status-pill mono"><span class="dot green"></span>Spider</div>
+            <h4>Execution Spine</h4>
+            <div class="meta">Receipts, posts, command routing, delivery.</div>
+            <div class="bar blue"><span id="engineSpiderBar" style="width:87%"></span></div>
+          </div>
+          <div class="system-card" id="engineFCC" data-engine="fcc">
+            <div class="status-pill mono"><span class="dot green"></span>FCC</div>
+            <h4>Financial Controls</h4>
+            <div class="meta">Liquidity, visibility, solvency monitoring.</div>
+            <div class="bar green"><span id="engineFCCBar" style="width:84%"></span></div>
+          </div>
+          <div class="system-card" id="engineStatsCORE" data-engine="statscore">
+            <div class="status-pill mono"><span class="dot green"></span>StatsCORE</div>
+            <h4>Sports Intelligence</h4>
+            <div class="meta">Athlete tracking and lifecycle monitoring.</div>
+            <div class="bar purple"><span id="engineStatsCOREBar" style="width:86%"></span></div>
+          </div>
+          <div class="system-card" id="enginePHXN" data-engine="phxn">
+            <div class="status-pill mono"><span class="dot green"></span>PHXN</div>
+            <h4>PHXN Studios</h4>
+            <div class="meta">Synthetic production and media monitoring.</div>
+            <div class="bar cyan"><span id="enginePHXNBar" style="width:81%"></span></div>
+          </div>
+          <div class="system-card" id="engineCCE" data-engine="cce">
+            <div class="status-pill mono"><span class="dot amber"></span>CCE</div>
+            <h4>Communication Layer</h4>
+            <div class="meta">Voice, routing, callbacks, oversight.</div>
+            <div class="bar red"><span id="engineCCEBar" style="width:68%"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="commandIntakePanel" data-module="command-intake">
+      <div class="panel-head">
+        <div class="panel-title mono">Command Intake</div>
+      </div>
+      <div class="panel-body">
+        <div class="input-grid" id="commandInputGrid">
+          <div class="chart-box" id="commandEntryBox" data-submodule="typed-intake">
+            <div class="field-grid" id="commandFieldGrid">
+              <div class="field">
+                <label class="mono" for="commandType">Command Type</label>
+                <select id="commandType" data-role="command-type" name="commandType">
+                  <option>Executive Directive</option>
+                  <option>System Check</option>
+                  <option>Build Order</option>
+                  <option>Signal Review</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="mono" for="targetEngine">Target Engine</label>
+                <select id="targetEngine" data-role="target-engine" name="targetEngine">
+                  <option>Phoenix OS</option>
+                  <option>PBS</option>
+                  <option>PBRS</option>
+                  <option>PBB</option>
+                  <option>Spider</option>
+                  <option>FCC</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label class="mono" for="directiveTitle">Directive Title</label>
+                <input id="directiveTitle" data-role="directive-title" name="directiveTitle" type="text" placeholder="Enter directive title">
+              </div>
+              <div class="field full">
+                <label class="mono" for="directiveBody">Directive / Notes</label>
+                <textarea id="directiveBody" data-role="directive-body" name="directiveBody" placeholder="Enter governed instruction, command notes, or execution order..."></textarea>
+              </div>
+            </div>
+
+            <div class="actions" id="commandActions">
+              <button class="btn primary" id="stageCommandBtn" data-action="stage-command" type="button">Stage Command</button>
+              <button class="btn" id="saveNoteBtn" data-action="save-note" type="button">Save Note</button>
+            </div>
+          </div>
+
+          <div class="voice-box" id="voiceAndFeedColumn" data-submodule="voice-and-feed">
+            <div class="chart-box" id="voiceIntakeBox" data-module="voice-intake">
+              <div class="panel-title mono">Voice Intake</div>
+              <div class="voice-visual" id="voiceVisualizer" style="margin-top:10px;">
+                <div class="voice-bars" id="voiceBars">
+                  <span style="height:18px"></span>
+                  <span style="height:28px"></span>
+                  <span style="height:42px"></span>
+                  <span style="height:22px"></span>
+                  <span style="height:54px"></span>
+                  <span style="height:34px"></span>
+                  <span style="height:46px"></span>
+                  <span style="height:24px"></span>
+                  <span style="height:38px"></span>
+                  <span style="height:20px"></span>
+                </div>
+              </div>
+              <div class="legend" id="voiceLegend" style="margin-top:12px;">
+                <span><i style="background:var(--cyan)"></i>dictation ready</span>
+                <span><i style="background:var(--blue)"></i>transcription queue</span>
+              </div>
+              <div class="actions" id="voiceActions">
+                <button class="btn primary" id="beginVoiceIntakeBtn" data-action="begin-voice-intake" type="button">Begin Voice Intake</button>
+                <button class="btn" id="transcriptionQueueBtn" data-action="open-transcription-queue" type="button">Transcription Queue</button>
+              </div>
+            </div>
+
+            <div class="chart-box" id="liveFeedBox" data-module="live-feed">
+              <div class="panel-title mono">Live Feed</div>
+              <div class="feed-list" id="liveFeedList" data-role="live-feed-list" style="margin-top:10px;">
+                <div class="feed-item" data-feed-item="heartbeat-confirmed">
+                  <span class="signal"></span>
+                  <span>PBRS intake channel heartbeat confirmed</span>
+                  <span>+00:03</span>
+                </div>
+                <div class="feed-item" data-feed-item="pbb-review">
+                  <span class="signal warn"></span>
+                  <span>PBB continuity surface flagged for review</span>
+                  <span>+00:08</span>
+                </div>
+                <div class="feed-item" data-feed-item="spider-receipts">
+                  <span class="signal info"></span>
+                  <span>Spider lane observing execution receipts</span>
+                  <span>+00:14</span>
+                </div>
+                <div class="feed-item" data-feed-item="audit-watch">
+                  <span class="signal alert"></span>
+                  <span>Audit watch issued for content engine drift</span>
+                  <span>+00:21</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="right-rail" id="rightRail" data-region="right-rail">
+    <section class="panel" id="councilOversightPanel" data-module="council-oversight">
+      <div class="panel-head">
+        <div class="panel-title mono">Council Oversight</div>
+      </div>
+      <div class="panel-body">
+        <div class="council-list" id="councilOversightList">
+          <div class="council-item" data-council-member="alexis-vale">
+            <h4>Alexis Vale · Chairwoman</h4>
+            <p>Governance posture stable. Institutional tone and continuity aligned.</p>
+          </div>
+          <div class="council-item" data-council-member="michael-carrington">
+            <h4>Michael Carrington · CEO</h4>
+            <p>Enterprise execution visibility remains strong across active corridors.</p>
+          </div>
+          <div class="council-item" data-council-member="chad-pennington">
+            <h4>Chad G. Pennington · COO</h4>
+            <p>Command floor prepared for live wiring into governed execution systems.</p>
+          </div>
+          <div class="council-item" data-council-member="oliver-grant">
+            <h4>Oliver Grant · CFO</h4>
+            <p>Financial strength remains durable; FCC should be fully wired next.</p>
+          </div>
+          <div class="council-item" data-council-member="aiden-mercer">
+            <h4>Aiden Mercer · Auditor</h4>
+            <p>Monitor drift, maintain determinism, preserve execution clarity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="financialMonitorPanel" data-module="financial-monitor">
+      <div class="panel-head">
+        <div class="panel-title mono">Financial Monitor</div>
+      </div>
+      <div class="panel-body" id="financialMonitorBody">
+        <div class="metric-card" id="financialLiquidityCard" data-financial-metric="liquidity" style="min-height:auto;">
+          <div class="label mono">Liquidity</div>
+          <div class="value" id="financialLiquidityValue" style="font-size:1.45rem;color:var(--green)">82</div>
+          <div class="sub">Protected operating visibility</div>
+          <div class="bar green"><span id="financialLiquidityBar" style="width:82%"></span></div>
+        </div>
+        <div class="metric-card" id="financialFlowStabilityCard" data-financial-metric="flow-stability" style="min-height:auto;margin-top:8px;">
+          <div class="label mono">Flow Stability</div>
+          <div class="value" id="financialFlowStabilityValue" style="font-size:1.45rem;color:var(--gold)">88</div>
+          <div class="sub">Capital discipline intact</div>
+          <div class="bar gold"><span id="financialFlowStabilityBar" style="width:88%"></span></div>
+        </div>
+        <div class="metric-card" id="financialBurnPressureCard" data-financial-metric="burn-pressure" style="min-height:auto;margin-top:8px;">
+          <div class="label mono">Burn Pressure</div>
+          <div class="value" id="financialBurnPressureValue" style="font-size:1.45rem;color:var(--amber)">21</div>
+          <div class="sub">Low-to-moderate system pressure</div>
+          <div class="bar red"><span id="financialBurnPressureBar" style="width:21%"></span></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</section>
+
+<footer class="footer mono" id="commandFooter" data-module="footer-doctrine">
+  Phoenix Command Center is the room above the rooms. Authority first. Signals second. Systems third.
+</footer>
+
+  </div>  <script>
     function updateClock(){
       const el = document.getElementById('liveClock');
       if(!el) return;
@@ -1060,8 +1051,8 @@
       const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
       el.textContent = `${time} CST`;
     }
+
     updateClock();
     setInterval(updateClock, 1000);
-  </script>
-</body>
+  </script></body>
 </html> 
