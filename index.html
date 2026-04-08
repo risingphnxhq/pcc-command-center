@@ -1,782 +1,214 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg-primary:#060b12;
-      --bg-secondary:#0b1119;
-      --bg-panel:#101823;
-      --bg-panel-2:#121d29;
-      --line-soft:rgba(199,161,91,0.16);
-      --line-strong:rgba(199,161,91,0.34);
-      --gold:#c7a15b;
-      --gold-bright:#e0bd7a;
-      --text:#f5efe6;
-      --text-soft:rgba(245,239,230,0.72);
-      --green:#2ecc71;
-      --amber:#e2b93b;
-      --red:#e0565b;
-      --cyan:#6ed3ff;
-      --glow:0 0 0 1px rgba(199,161,91,0.14), 0 0 28px rgba(199,161,91,0.10);
-      --shadow:0 20px 60px rgba(0,0,0,0.45);
-      --radius:18px;
-      --radius-sm:12px;
-      --max:1480px;
-    }*{box-sizing:border-box;margin:0;padding:0}
-
-html,body{
-  min-height:100%;
-  background:
-    radial-gradient(circle at top center, rgba(199,161,91,0.08), transparent 26%),
-    linear-gradient(180deg, #0a1017 0%, #060b12 100%);
-  color:var(--text);
-  font-family:"Inter",sans-serif;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phoenix Command Center</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"><style>
+:root{
+--bg:#060b12;
+--panel:#101823;
+--panel2:#121C26;
+--gold:#C7A15B;
+--gold2:#E0BD7A;
+--text:#F5EFE6;
+--muted:rgba(245,239,230,.6);
+--cyan:#6ED3FF;
 }
+
+*{box-sizing:border-box;margin:0;padding:0}
 
 body{
-  position:relative;
-  overflow-x:hidden;
+background:radial-gradient(circle at top, rgba(199,161,91,.08), transparent 40%), var(--bg);
+color:var(--text);
+font-family:"Inter",sans-serif;
 }
 
-body::before,
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
+.container{
+max-width:1400px;
+margin:auto;
+padding:30px 20px;
 }
 
-body::before{
-  background:
-    linear-gradient(rgba(110,211,255,0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(110,211,255,0.045) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(circle at center, rgba(0,0,0,0.9), rgba(0,0,0,0.35) 65%, transparent 100%);
-  opacity:.26;
-}
-
-body::after{
-  background:
-    repeating-linear-gradient(90deg, transparent 0 120px, rgba(199,161,91,.028) 120px 121px),
-    linear-gradient(180deg, transparent 0%, rgba(255,255,255,.02) 50%, transparent 100%);
-  opacity:.48;
-}
-
-.shell{
-  position:relative;
-  z-index:1;
-  width:min(100%, var(--max));
-  margin:0 auto;
-  padding:28px 22px 28px;
-}
-
+/* TOP BAR */
 .topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:18px;
-  padding:14px 18px;
-  border:1px solid var(--line-soft);
-  background:linear-gradient(180deg, rgba(18,29,41,0.84), rgba(9,14,21,0.88));
-  backdrop-filter:blur(12px);
-  box-shadow:var(--glow);
-  border-radius:20px;
-  margin-bottom:20px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+border:1px solid rgba(199,161,91,.2);
+padding:12px 18px;
+border-radius:14px;
+margin-bottom:25px;
+background:rgba(255,255,255,.02);
 }
 
 .brand{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  min-width:0;
+font-weight:800;
+letter-spacing:.2em;
+font-size:14px;
 }
 
-.seal-wrap{
-  width:56px;
-  height:56px;
-  border-radius:16px;
-  border:1px solid var(--line-strong);
-  background:radial-gradient(circle at 30% 30%, rgba(199,161,91,.18), rgba(199,161,91,.04) 34%, rgba(255,255,255,0.01) 80%);
-  display:grid;
-  place-items:center;
-  box-shadow:var(--glow);
-  flex:0 0 auto;
+.status{
+font-family:"IBM Plex Mono";
+font-size:11px;
+letter-spacing:.15em;
+color:var(--muted);
+}
+
+/* HERO */
+.hero{
+display:grid;
+grid-template-columns:1.2fr .8fr;
+gap:30px;
+align-items:center;
+margin-bottom:30px;
+}
+
+.hero-left{
+display:flex;
+flex-direction:column;
+gap:20px;
+}
+
+.kicker{
+font-family:"IBM Plex Mono";
+letter-spacing:.2em;
+font-size:11px;
+color:var(--gold);
+}
+
+.hero h1{
+font-size:60px;
+line-height:1;
+}
+
+.hero p{
+color:var(--muted);
+max-width:500px;
+line-height:1.6;
+}
+
+/* SEAL CORE */
+.seal-core{
+position:relative;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.seal-ring{
+position:absolute;
+width:420px;
+height:420px;
+border-radius:50%;
+border:1px solid rgba(199,161,91,.2);
+animation:spin 40s linear infinite;
+}
+
+.seal-ring::before{
+content:"";
+position:absolute;
+inset:20px;
+border-radius:50%;
+border:1px dashed rgba(110,211,255,.15);
 }
 
 .seal{
-  width:38px;
-  height:38px;
-  object-fit:contain;
-  display:block;
-  filter:drop-shadow(0 4px 14px rgba(199,161,91,.25));
+width:260px;
+filter:drop-shadow(0 0 40px rgba(199,161,91,.4));
 }
 
-.brand-copy{min-width:0}
-
-.eyebrow{
-  font-family:"IBM Plex Mono", monospace;
-  font-size:12px;
-  letter-spacing:.24em;
-  color:var(--gold);
-  text-transform:uppercase;
-  margin-bottom:4px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+@keyframes spin{
+from{transform:rotate(0deg)}
+to{transform:rotate(360deg)}
 }
 
-.brand h1{
-  font-size:clamp(1rem, 1.8vw, 1.24rem);
-  font-weight:800;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+/* PANELS */
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin-bottom:25px;
 }
 
-.status-strip{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
+.panel{
+background:var(--panel);
+border:1px solid rgba(199,161,91,.15);
+padding:20px;
+border-radius:14px;
 }
 
-.chip{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:9px 12px;
-  border:1px solid var(--line-soft);
-  border-radius:999px;
-  background:rgba(255,255,255,0.03);
-  font-family:"IBM Plex Mono", monospace;
-  font-size:11px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:var(--text-soft);
+.panel h3{
+font-size:14px;
+letter-spacing:.15em;
+margin-bottom:12px;
 }
 
-.dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:currentColor;
-  box-shadow:0 0 12px currentColor;
+.row{
+display:flex;
+justify-content:space-between;
+padding:10px 0;
+border-bottom:1px solid rgba(255,255,255,.05);
+font-size:13px;
 }
 
-.green{color:var(--green)}
-.amber{color:var(--amber)}
-.red{color:var(--red)}
-.cyan{color:var(--cyan)}
+.row:last-child{border:none}
 
-.hero{
-  display:grid;
-  grid-template-columns: 1.18fr .82fr;
-  gap:20px;
-  margin-bottom:20px;
-}
-
-.hero-panel,
-.right-stack > section,
-.lower-grid > section,
-.ticker,
-.footer-bar{
-  border:1px solid var(--line-soft);
-  background:linear-gradient(180deg, rgba(16,24,35,0.96), rgba(8,13,20,0.96));
-  box-shadow:var(--shadow), var(--glow);
-  border-radius:var(--radius);
-  position:relative;
-  overflow:hidden;
-}
-
-.hero-panel::before,
-.right-stack > section::before,
-.lower-grid > section::before,
-.ticker::before,
-.footer-bar::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(199,161,91,.08), transparent 26%, transparent 74%, rgba(110,211,255,.05));
-  pointer-events:none;
-}
-
-.hero-panel{
-  padding:34px 32px 30px;
-  min-height:360px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
-
-.hero-panel .kicker,
-.section-kicker{
-  font-family:"IBM Plex Mono", monospace;
-  color:var(--gold);
-  letter-spacing:.20em;
-  text-transform:uppercase;
-  font-size:12px;
-  margin-bottom:16px;
-}
-
-.hero-panel h2{
-  font-size:clamp(2.2rem, 5vw, 4.6rem);
-  line-height:.96;
-  letter-spacing:-.04em;
-  max-width:12ch;
-  margin-bottom:20px;
-}
-
-.hero-panel p{
-  max-width:62ch;
-  color:var(--text-soft);
-  font-size:1rem;
-  line-height:1.7;
-}
-
-.hero-meta{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:14px;
-  margin-top:28px;
-}
-
-.meta-card{
-  padding:14px 14px 16px;
-  border:1px solid rgba(199,161,91,.12);
-  background:rgba(255,255,255,.025);
-  border-radius:14px;
-}
-
-.meta-label,
-.mini-label,
-.metric-label{
-  font-family:"IBM Plex Mono", monospace;
-  font-size:11px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:var(--text-soft);
-}
-
-.meta-value{
-  font-size:1.16rem;
-  font-weight:700;
-  letter-spacing:.04em;
-  margin-top:8px;
-}
-
-.right-stack{
-  display:grid;
-  grid-template-rows: 1fr auto;
-  gap:20px;
-}
-
-.oversight{
-  padding:24px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  min-height:360px;
-}
-
-.oversight-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-  margin-top:18px;
-}
-
-.metric{
-  border:1px solid rgba(199,161,91,.12);
-  background:rgba(255,255,255,.025);
-  border-radius:14px;
-  padding:14px;
-  min-height:88px;
-}
-
-.metric-value{
-  font-size:1.7rem;
-  font-weight:800;
-  letter-spacing:-.04em;
-  margin-top:8px;
-}
-
-.metric-sub{
-  color:var(--text-soft);
-  font-size:12px;
-  margin-top:5px;
-}
-
-.authority-box{
-  margin-top:18px;
-  padding:16px;
-  border-radius:14px;
-  border:1px solid rgba(110,211,255,.18);
-  background:linear-gradient(180deg, rgba(110,211,255,.08), rgba(255,255,255,.02));
-}
-
-.authority-box p{
-  color:var(--text-soft);
-  line-height:1.7;
-  font-size:.96rem;
-}
-
+/* TICKER */
 .ticker{
-  padding:14px 18px;
-  display:flex;
-  align-items:center;
-  gap:18px;
-  min-height:64px;
+border:1px solid rgba(199,161,91,.2);
+padding:12px 16px;
+border-radius:12px;
+font-family:"IBM Plex Mono";
+font-size:11px;
+letter-spacing:.15em;
+color:var(--muted);
+overflow:hidden;
+white-space:nowrap;
 }
 
-.ticker-label{
-  flex:0 0 auto;
-  font-family:"IBM Plex Mono", monospace;
-  font-size:11px;
-  letter-spacing:.22em;
-  text-transform:uppercase;
-  color:var(--gold);
+/* FOOTER */
+.footer{
+margin-top:20px;
+font-size:12px;
+color:var(--muted);
+text-align:center;
 }
 
-.ticker-track{
-  display:flex;
-  align-items:center;
-  gap:26px;
-  width:100%;
-  white-space:nowrap;
-  overflow:hidden;
-  position:relative;
+@media(max-width:900px){
+.hero{grid-template-columns:1fr}
+.grid{grid-template-columns:1fr}
+.hero h1{font-size:40px}
+.seal-ring{width:300px;height:300px}
+.seal{width:200px}
 }
 
-.ticker-track span{
-  font-family:"IBM Plex Mono", monospace;
-  font-size:12px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:var(--text-soft);
-  position:relative;
-  padding-right:24px;
-}
-
-.ticker-track span::after{
-  content:"•";
-  color:var(--gold);
-  position:absolute;
-  right:6px;
-}
-
-.lower-grid{
-  display:grid;
-  grid-template-columns: 1.08fr .92fr;
-  gap:20px;
-  margin-bottom:20px;
-}
-
-.command-matrix,
-.market-board{
-  padding:24px;
-}
-
-.command-list{
-  display:grid;
-  gap:12px;
-  margin-top:18px;
-}
-
-.command-row{
-  display:grid;
-  grid-template-columns: 1.1fr .6fr .58fr .54fr;
-  gap:12px;
-  align-items:center;
-  padding:14px 16px;
-  border-radius:14px;
-  border:1px solid rgba(199,161,91,.11);
-  background:rgba(255,255,255,.022);
-}
-
-.command-title{
-  font-weight:700;
-  letter-spacing:.02em;
-}
-
-.command-desc,
-.board-note,
-.sys-text{
-  color:var(--text-soft);
-  font-size:.94rem;
-  line-height:1.65;
-}
-
-.mono{
-  font-family:"IBM Plex Mono", monospace;
-  font-size:12px;
-  letter-spacing:.10em;
-  text-transform:uppercase;
-}
-
-.pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:8px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.03);
-  min-width:94px;
-}
-
-.board-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-  margin-top:18px;
-}
-
-.board-card{
-  padding:16px;
-  border-radius:14px;
-  border:1px solid rgba(199,161,91,.12);
-  background:rgba(255,255,255,.024);
-  min-height:120px;
-}
-
-.board-card strong{
-  display:block;
-  font-size:1.15rem;
-  font-weight:800;
-  margin:10px 0 6px;
-}
-
-.footer-bar{
-  padding:18px 22px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-}
-
-.footer-bar p{
-  color:var(--text-soft);
-  font-size:.92rem;
-  line-height:1.6;
-}
-
-.footer-actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  appearance:none;
-  border:none;
-  cursor:pointer;
-  text-decoration:none;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  min-width:180px;
-  padding:14px 18px;
-  border-radius:14px;
-  transition:transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
-  font-family:"IBM Plex Mono", monospace;
-  font-size:12px;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-}
-
-.btn:hover{transform:translateY(-1px)}
-
-.btn-primary{
-  color:#091018;
-  background:linear-gradient(180deg, var(--gold-bright), var(--gold));
-  box-shadow:0 10px 30px rgba(199,161,91,.28);
-}
-
-.btn-secondary{
-  color:var(--text);
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--line-soft);
-}
-
-.btn-secondary:hover{
-  border-color:var(--line-strong);
-  background:rgba(255,255,255,.05);
-}
-
-.corner-tag{
-  position:absolute;
-  top:14px;
-  right:16px;
-  font-family:"IBM Plex Mono", monospace;
-  font-size:10px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:rgba(245,239,230,.36);
-}
-
-@media (max-width: 1180px){
-  .hero,
-  .lower-grid{
-    grid-template-columns:1fr;
-  }
-
-  .hero-panel,
-  .oversight{min-height:auto}
-}
-
-@media (max-width: 860px){
-  .topbar,
-  .footer-bar{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .status-strip,
-  .footer-actions{
-    justify-content:flex-start;
-  }
-
-  .hero-meta,
-  .oversight-grid,
-  .board-grid{
-    grid-template-columns:1fr;
-  }
-
-  .command-row{
-    grid-template-columns:1fr;
-  }
-}
-
-@media (max-width: 640px){
-  .shell{padding:16px}
-  .hero-panel,
-  .command-matrix,
-  .market-board,
-  .oversight{padding:20px}
-  .btn{width:100%}
-  .brand h1{white-space:normal}
-}
-
-  </style>
-</head>
-<body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="seal-wrap">
-          <img src="https://www.risingphoenixhq.com/rpe_seal_logo.png" alt="Rising Phoenix Seal" class="seal">
-        </div>
-        <div class="brand-copy">
-          <div class="eyebrow">Rising Phoenix Enterprises · Sovereign Command Layer</div>
-          <h1>Phoenix Command Center</h1>
-        </div>
-      </div><div class="status-strip">
-    <div class="chip green"><span class="dot"></span> Command Link Active</div>
-    <div class="chip amber"><span class="dot"></span> Oversight Mode</div>
-    <div class="chip cyan"><span class="dot"></span> Market Signals Live</div>
-  </div>
-</header>
-
-<section class="hero">
-  <article class="hero-panel">
-    <div>
-      <div class="kicker">Layer 0 · Executive Command Surface</div>
-      <h2>From Ashes to Authority.</h2>
-      <p>
-        Phoenix Command Center is the sovereign control surface above the public systems. It carries the ceremonial weight of the RPE front door, while operating like a live command room with monitored lanes, institutional oversight, and market-grade signal visibility.
-      </p>
-
-      <div class="hero-meta">
-        <div class="meta-card">
-          <div class="meta-label">Authority</div>
-          <div class="meta-value">Executive Control</div>
-        </div>
-        <div class="meta-card">
-          <div class="meta-label">Mode</div>
-          <div class="meta-value">Governed / Verified</div>
-        </div>
-        <div class="meta-card">
-          <div class="meta-label">Position</div>
-          <div class="meta-value">Above All Active Systems</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-actions">
-      <a href="#command-matrix" class="btn btn-primary">Enter Command Layer</a>
-      <a href="#market-board" class="btn btn-secondary">View Signal Board</a>
-    </div>
-    <div class="corner-tag">PCC / Shell-Compliant</div>
-  </article>
-
-  <div class="right-stack">
-    <section class="oversight">
-      <div>
-        <div class="section-kicker">Oversight Telemetry</div>
-        <div class="oversight-grid">
-          <div class="metric">
-            <div class="metric-label">System Status</div>
-            <div class="metric-value">Stable</div>
-            <div class="metric-sub">Governance thresholds holding.</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Signal Readiness</div>
-            <div class="metric-value">Live</div>
-            <div class="metric-sub">Active surveillance across lanes.</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Execution Posture</div>
-            <div class="metric-value">Controlled</div>
-            <div class="metric-sub">Human authorization required.</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Command Confidence</div>
-            <div class="metric-value">99%</div>
-            <div class="metric-sub">TQL/TQM doctrine aligned.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="authority-box">
-        <div class="mini-label">Institutional Position</div>
-        <p>
-          Designed to feel like a NASA mission interface under executive financial discipline: precise, quiet, premium, and real-time without becoming noisy or retail-looking.
-        </p>
-      </div>
-      <div class="corner-tag">Command Authority</div>
-    </section>
-
-    <section class="ticker" aria-label="Live command ticker">
-      <div class="ticker-label">Live Feed</div>
-      <div class="ticker-track">
-        <span>PBS Corridor Monitored</span>
-        <span>PBRS Intake Aligned</span>
-        <span>PBB Continuity Active</span>
-        <span>StatsCORE Surface Tracking</span>
-        <span>Spider Signal Intake Live</span>
-        <span>Receipts Governance Locked</span>
-      </div>
-    </section>
-  </div>
-</section>
-
-<section class="lower-grid">
-  <section class="command-matrix" id="command-matrix">
-    <div class="section-kicker">Controlled Access · Command Matrix</div>
-    <div class="sys-text">
-      This layer presents the systems under command with a mission-control posture and trading-desk readability. Each lane reads like an executive instrument, not a consumer dashboard.
-    </div>
-
-    <div class="command-list">
-      <div class="command-row">
-        <div>
-          <div class="command-title">Phoenix Business System</div>
-          <div class="command-desc">Operational readiness corridor and enterprise routing spine.</div>
-        </div>
-        <div class="mono">PBS / Core</div>
-        <div><span class="pill green mono">Active</span></div>
-        <div><span class="pill mono">Monitor</span></div>
-      </div>
-
-      <div class="command-row">
-        <div>
-          <div class="command-title">PBRS</div>
-          <div class="command-desc">Readiness snapshot intake, scoring, and qualification layer.</div>
-        </div>
-        <div class="mono">PBRS / Intake</div>
-        <div><span class="pill amber mono">Observe</span></div>
-        <div><span class="pill mono">Route</span></div>
-      </div>
-
-      <div class="command-row">
-        <div>
-          <div class="command-title">PBB</div>
-          <div class="command-desc">Build continuity, implementation corridor, and upgrade path.</div>
-        </div>
-        <div class="mono">PBB / Build</div>
-        <div><span class="pill green mono">Ready</span></div>
-        <div><span class="pill mono">Authorize</span></div>
-      </div>
-
-      <div class="command-row">
-        <div>
-          <div class="command-title">StatsCORE</div>
-          <div class="command-desc">Athlete lifecycle intelligence and performance truth engine.</div>
-        </div>
-        <div class="mono">PHNX / Sports</div>
-        <div><span class="pill amber mono">Tracking</span></div>
-        <div><span class="pill mono">Review</span></div>
-      </div>
-
-      <div class="command-row">
-        <div>
-          <div class="command-title">Spider</div>
-          <div class="command-desc">Deterministic execution, social arms, and receipt-backed actions.</div>
-        </div>
-        <div class="mono">Spider / Exec</div>
-        <div><span class="pill green mono">Linked</span></div>
-        <div><span class="pill mono">Log</span></div>
-      </div>
-    </div>
-    <div class="corner-tag">Layer 3 / Access</div>
-  </section>
-
-  <section class="market-board" id="market-board">
-    <div class="section-kicker">Signal Board · Market Intelligence</div>
-    <div class="board-note">
-      A Wall Street-style observation band for live readiness, opportunity velocity, and command temperature without losing institutional restraint.
-    </div>
-
-    <div class="board-grid">
-      <div class="board-card">
-        <div class="mini-label">Readiness Flow</div>
-        <strong>+12.4%</strong>
-        <div class="board-note">Improved corridor readiness across monitored surfaces.</div>
-      </div>
-      <div class="board-card">
-        <div class="mini-label">Execution Integrity</div>
-        <strong>99.2%</strong>
-        <div class="board-note">Receipts and locks maintaining deterministic discipline.</div>
-      </div>
-      <div class="board-card">
-        <div class="mini-label">Traffic Signal</div>
-        <strong>Moderate</strong>
-        <div class="board-note">Institutional attention rising without public strain.</div>
-      </div>
-      <div class="board-card">
-        <div class="mini-label">Authority Posture</div>
-        <strong>High</strong>
-        <div class="board-note">Brand perception holding premium, quiet, controlled.</div>
-      </div>
-    </div>
-    <div class="corner-tag">NASA × Wall Street</div>
-  </section>
-</section>
-
-<footer class="footer-bar">
-  <div>
-    <div class="section-kicker" style="margin-bottom:8px">Phoenix OS Governance</div>
-    <p>
-      This surface positions authority first, systems second, and execution third. It should feel like the room above the rooms.
-    </p>
-  </div>
-
-  <div class="footer-actions">
-    <a href="#" class="btn btn-secondary">Open Receipts</a>
-    <a href="#" class="btn btn-primary">Command Review</a>
-  </div>
-</footer>
-
-  </main>
-</body>
+</style></head>
+<body><div class="container"><!-- TOP BAR --><div class="topbar">
+<div class="brand">PHOENIX COMMAND CENTER</div>
+<div class="status">SYSTEM ACTIVE · GOVERNED · MONITORED</div>
+</div><!-- HERO --><div class="hero"><div class="hero-left">
+<div class="kicker">SOVEREIGN COMMAND LAYER</div>
+<h1>From Ashes<br>to Authority.</h1>
+<p>
+This is not a dashboard. This is the control surface above all systems. Every signal, execution, and decision flows through this layer.
+</p>
+</div><div class="seal-core">
+<div class="seal-ring"></div>
+<img src="rpe_seal_logo.png" class="seal">
+</div></div><!-- PANELS --><div class="grid"><div class="panel">
+<h3>COMMAND MATRIX</h3>
+<div class="row"><span>PBS</span><span>ACTIVE</span></div>
+<div class="row"><span>PBRS</span><span>MONITOR</span></div>
+<div class="row"><span>PBB</span><span>READY</span></div>
+<div class="row"><span>SPIDER</span><span>LINKED</span></div>
+</div><div class="panel">
+<h3>SIGNAL BOARD</h3>
+<div class="row"><span>READINESS</span><span>+12%</span></div>
+<div class="row"><span>EXECUTION</span><span>99%</span></div>
+<div class="row"><span>TRAFFIC</span><span>MODERATE</span></div>
+<div class="row"><span>AUTHORITY</span><span>HIGH</span></div>
+</div></div><!-- TICKER --><div class="ticker">
+PBRS ACTIVE • SPIDER EXECUTION VERIFIED • RECEIPTS LOCKED • PBB READY • SYSTEM GOVERNED
+</div><!-- FOOTER --><div class="footer">
+Phoenix OS Command Layer · All Systems Subordinate
+</div></div></body>
 </html> 
