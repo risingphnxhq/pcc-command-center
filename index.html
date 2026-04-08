@@ -132,23 +132,27 @@
     .rail-right{right:56px}
 
     .layout{
-      position:relative;
-      z-index:3;
-      width:100%;
-      height:100%;
-      display:grid;
-      grid-template-columns:minmax(360px, 490px) minmax(560px, 1fr);
-      gap:18px;
-      align-items:center;
-      padding:54px 54px 54px 64px;
-    }
-
+  position:relative;
+  z-index:3;
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-columns:minmax(360px, 490px) minmax(560px, 1fr);
+  grid-template-rows:auto 1fr;
+  grid-template-areas:
+    "eyebrow eyebrow"
+    "left right";
+  gap:8px 18px;
+  align-items:center;
+  padding:36px 54px 32px 64px;
+} 
     /* LEFT SIDE */
     .left{
-      max-width:480px;
-      align-self:center;
-    }
-
+  grid-area:left;
+  max-width:480px;
+  align-self:center;
+} 
+   
     .eyebrow{
       font-family:"Cinzel",serif;
       font-size:12px;
@@ -318,12 +322,13 @@
 
     /* RIGHT SIDE / SOVEREIGN MOUNT */
     .right{
-      position:relative;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
+  grid-area:right;
+  position:relative;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+} 
 
     .seal-mount{
       position:relative;
@@ -473,11 +478,18 @@
         height:48px;
       }
 .eyebrow{
-  grid-column: 1 / -1;
-  width: 100%;
-  white-space: nowrap;
-  display: block;
-}    
+  grid-area:eyebrow;
+  width:100%;
+  white-space:nowrap;
+  display:block;
+  font-family:"Cinzel",serif;
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:6px;
+  opacity:.95;
+} 
   </style>
 </head>
 <body>
