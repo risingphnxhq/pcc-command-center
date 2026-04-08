@@ -7,411 +7,559 @@
   <meta name="theme-color" content="#0B0F14" />
   <style>
     :root{
-      --bg:#0B0F14;
-      --bg-soft:#0F1720;
+      --bg:#070A0E;
+      --bg-2:#0B0F14;
+      --bg-3:#0F1720;
       --panel:#121C26;
-      --panel-2:#17212c;
-      --line:rgba(255,255,255,0.07);
-      --line-strong:rgba(199,161,91,0.22);
-      --text:#F5EFE6;
-      --muted:#A7A29A;
+      --panel-2:#18222D;
+      --panel-3:#0E151D;
       --gold:#C7A15B;
-      --gold-soft:#8b6c37;
-      --green:#22c55e;
-      --yellow:#eab308;
-      --red:#ef4444;
-      --blue:#60a5fa;
-      --shadow:0 20px 50px rgba(0,0,0,0.35);
-      --radius:14px;
-      --radius-sm:10px;
-      --topbar-h:68px;
-      --footer-h:40px;
+      --gold-2:#9D7740;
+      --gold-soft:rgba(199,161,91,.14);
+      --text:#F5EFE6;
+      --muted:#A9B1B8;
+      --line:rgba(255,255,255,.07);
+      --line-2:rgba(199,161,91,.18);
+      --green:#2ECC71;
+      --yellow:#E2B93B;
+      --red:#E74C3C;
+      --blue:#59A6FF;
+      --shadow:0 20px 60px rgba(0,0,0,.45);
+      --radius:12px;
+      --topbar-h:64px;
+      --ticker-h:34px;
       --left-w:240px;
       --right-w:320px;
+      --font:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     }
 
-    * { box-sizing:border-box; }
-    html, body {
-      margin:0;
-      padding:0;
-      background:var(--bg);
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:var(--font);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(199,161,91,.06), transparent 26%),
+        radial-gradient(circle at 100% 0%, rgba(89,166,255,.04), transparent 18%),
+        linear-gradient(180deg, #0A0E13 0%, #070A0E 100%);
       color:var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      min-height:100%;
+      overflow:hidden;
+      letter-spacing:.1px;
     }
 
-    body {
+    button,input,textarea,select{font:inherit}
+    img{display:block;max-width:100%}
+    .hidden{display:none !important}
+    .mono{font-family:var(--mono)}
+
+    /* ---------- GATE + FRAME ---------- */
+    .layer{
+      position:fixed;
+      inset:0;
+      z-index:60;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(199,161,91,.10), transparent 24%),
+        linear-gradient(180deg, rgba(3,5,8,.82), rgba(3,5,8,.94)),
+        #06080B;
+    }
+
+    .gate-card,
+    .frame-card{
+      width:min(1100px, 100%);
+      border:1px solid var(--line-2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)),
+        linear-gradient(180deg, rgba(18,28,38,.96), rgba(8,12,17,.98));
+      box-shadow:var(--shadow);
+      border-radius:22px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .gate-card::before,
+    .frame-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(90deg, transparent, rgba(199,161,91,.04), transparent);
+      mix-blend-mode:screen;
+    }
+
+    .gate-inner{
+      min-height:78vh;
       display:flex;
       flex-direction:column;
-      min-height:100vh;
-      letter-spacing:0.1px;
+      align-items:center;
+      justify-content:center;
+      padding:40px 24px;
+      text-align:center;
+      gap:22px;
     }
 
-    .hidden { display:none !important; }
+    .seal-wrap{
+      width:min(420px, 54vw);
+      aspect-ratio:1/1;
+      display:grid;
+      place-items:center;
+      filter:drop-shadow(0 0 40px rgba(199,161,91,.14));
+    }
 
-    .app-shell {
+    .seal-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .gate-title{
+      font-size:clamp(28px, 4.2vw, 56px);
+      line-height:1;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1.8px;
+      color:var(--text);
+    }
+
+    .gate-action{
+      appearance:none;
+      border:1px solid var(--line-2);
+      background:
+        linear-gradient(180deg, rgba(199,161,91,.18), rgba(199,161,91,.08));
+      color:var(--text);
+      text-transform:uppercase;
+      letter-spacing:2px;
+      font-size:13px;
+      font-weight:700;
+      padding:14px 28px;
+      cursor:pointer;
+      min-width:220px;
+      transition:.18s ease;
+      border-radius:999px;
+    }
+    .gate-action:hover{transform:translateY(-1px); background:linear-gradient(180deg, rgba(199,161,91,.28), rgba(199,161,91,.12))}
+    .gate-action:active{transform:translateY(0)}
+
+    .frame-inner{
+      padding:48px 56px;
+      display:grid;
+      gap:22px;
+      min-height:70vh;
+      align-content:center;
+    }
+
+    .frame-kicker{
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:1.8px;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .frame-title{
+      font-size:clamp(28px, 4vw, 52px);
+      line-height:1.02;
+      font-weight:700;
+      max-width:860px;
+    }
+
+    .frame-copy{
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.75;
+      max-width:880px;
+    }
+
+    .frame-actions{
       display:flex;
-      flex-direction:column;
-      min-height:100vh;
+      gap:12px;
+      flex-wrap:wrap;
+      padding-top:6px;
     }
 
-    .topbar {
-      height:var(--topbar-h);
+    .btn{
+      appearance:none;
+      border:1px solid var(--line-2);
+      background:var(--panel-3);
+      color:var(--text);
+      border-radius:999px;
+      padding:12px 18px;
+      cursor:pointer;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1.4px;
+      font-size:12px;
+      transition:.18s ease;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(199,161,91,.32)}
+    .btn.primary{
+      background:linear-gradient(180deg, rgba(199,161,91,.28), rgba(199,161,91,.12));
+    }
+
+    /* ---------- APP ---------- */
+    .app{
+      height:100%;
+      display:grid;
+      grid-template-rows: var(--topbar-h) var(--ticker-h) 1fr;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease;
+    }
+    .app.live{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      padding:0 22px;
+      padding:0 16px 0 14px;
       border-bottom:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
-      position:sticky;
-      top:0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)),
+        rgba(7,10,14,.90);
+      backdrop-filter:blur(10px);
+      position:relative;
       z-index:20;
-      backdrop-filter: blur(8px);
     }
 
-    .brand {
-      display:flex;
-      align-items:center;
-      gap:14px;
-    }
-
-    .brand-mark {
-      width:34px;
-      height:34px;
-      border:1px solid var(--line-strong);
-      border-radius:50%;
-      display:grid;
-      place-items:center;
-      color:var(--gold);
-      font-weight:700;
-      font-size:14px;
-      box-shadow: inset 0 0 18px rgba(199,161,91,0.08);
-    }
-
-    .brand-copy {
-      display:flex;
-      flex-direction:column;
-      gap:3px;
-    }
-
-    .brand-title {
-      font-size:14px;
-      font-weight:700;
-      letter-spacing:1.3px;
-      color:var(--gold);
-      text-transform:uppercase;
-    }
-
-    .brand-subtitle {
-      font-size:11px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:1.1px;
-    }
-
-    .topbar-right {
+    .brand{
       display:flex;
       align-items:center;
       gap:12px;
+      min-width:0;
+    }
+
+    .brand img{
+      width:34px;
+      height:34px;
+      object-fit:contain;
+      filter:drop-shadow(0 0 12px rgba(199,161,91,.10));
+      flex:0 0 auto;
+    }
+
+    .brand-title{
+      color:var(--gold);
+      text-transform:uppercase;
+      font-size:15px;
+      font-weight:700;
+      letter-spacing:1.5px;
+      white-space:nowrap;
+    }
+
+    .brand-sub{
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:1.15px;
+      text-transform:uppercase;
+      margin-top:3px;
+    }
+
+    .top-meta{
+      display:flex;
+      align-items:center;
+      gap:10px;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
 
-    .pill {
+    .pill{
       display:inline-flex;
       align-items:center;
       gap:8px;
       min-height:34px;
       padding:0 12px;
       border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
       border-radius:999px;
-      background:rgba(255,255,255,0.02);
-      font-size:12px;
       color:var(--muted);
+      font-size:12px;
+    }
+    .pill strong{color:var(--text)}
+    .dot{
+      width:8px;height:8px;border-radius:999px;background:#777;
+      box-shadow:0 0 0 4px rgba(255,255,255,.02);
+    }
+    .dot.green{background:var(--green)}
+    .dot.yellow{background:var(--yellow)}
+    .dot.red{background:var(--red)}
+
+    /* ---------- TICKER ---------- */
+    .ticker{
+      border-bottom:1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(199,161,91,.06), rgba(199,161,91,.02)),
+        rgba(10,14,19,.96);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      position:relative;
+      z-index:10;
     }
 
-    .pill strong { color:var(--text); font-weight:600; }
-
-    .dot {
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:var(--muted);
-      box-shadow:0 0 0 4px rgba(255,255,255,0.02);
-    }
-    .dot.green { background:var(--green); }
-    .dot.yellow { background:var(--yellow); }
-    .dot.red { background:var(--red); }
-
-    .workspace {
-      flex:1;
-      display:grid;
-      grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w);
-      min-height:calc(100vh - var(--topbar-h) - var(--footer-h));
-    }
-
-    .left-rail, .right-rail {
-      background:var(--bg-soft);
-    }
-
-    .left-rail {
-      border-right:1px solid var(--line);
-      padding:18px 16px;
-    }
-
-    .right-rail {
-      border-left:1px solid var(--line);
-      padding:18px 16px;Su
-    }
-
-    .center-stage {
-      padding:18px;
-      min-width:0;
-    }
-
-    .section-label {
+    .ticker-label{
+      height:100%;
+      display:flex;
+      align-items:center;
+      padding:0 14px;
       color:var(--gold);
-      font-size:11px;
-      letter-spacing:1.25px;
       text-transform:uppercase;
+      letter-spacing:1.2px;
+      font-size:11px;
+      font-weight:700;
+      border-right:1px solid var(--line-2);
+      background:rgba(255,255,255,.02);
+      flex:0 0 auto;
+    }
+
+    .ticker-track{
+      min-width:100%;
+      white-space:nowrap;
+      will-change:transform;
+      animation:ticker 28s linear infinite;
+      font-family:var(--mono);
+      font-size:12px;
+      color:#D8D1C7;
+      padding-left:18px;
+    }
+    @keyframes ticker{
+      0%{transform:translateX(0)}
+      100%{transform:translateX(-50%)}
+    }
+
+    .ticker-item{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-right:34px;
+      text-transform:uppercase;
+      letter-spacing:.6px;
+    }
+    .ticker-item .tag{color:var(--gold)}
+    .ticker-item .state.green{color:var(--green)}
+    .ticker-item .state.yellow{color:var(--yellow)}
+    .ticker-item .state.red{color:var(--red)}
+
+    /* ---------- WORKSPACE ---------- */
+    .workspace{
+      min-height:0;
+      display:grid;
+      grid-template-columns: var(--left-w) 1fr var(--right-w);
+    }
+
+    .left-rail,
+    .right-rail{
+      min-height:0;
+      overflow:auto;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),
+        rgba(11,15,20,.78);
+    }
+
+    .left-rail{
+      border-right:1px solid var(--line);
+      padding:14px;
+    }
+
+    .right-rail{
+      border-left:1px solid var(--line);
+      padding:14px;
+    }
+
+    .center{
+      min-width:0;
+      min-height:0;
+      overflow:auto;
+      padding:14px;
+    }
+
+    .rail-title{
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:1.2px;
+      font-size:11px;
+      font-weight:700;
       margin-bottom:12px;
-      opacity:0.92;
     }
 
-    .nav-group {
-      margin-bottom:22px;
-    }
-
-    .nav-list {
+    .nav{
       display:flex;
       flex-direction:column;
       gap:8px;
+      margin-bottom:18px;
     }
 
-    .nav-btn {
+    .nav-btn{
+      appearance:none;
       width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 12px;
-      border-radius:12px;
+      text-align:left;
       border:1px solid transparent;
       background:transparent;
       color:var(--text);
+      padding:12px 12px;
+      border-radius:10px;
       cursor:pointer;
-      text-align:left;
-      transition:all .18s ease;
-      font-size:13px;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:center;
+      transition:.18s ease;
+      min-height:44px;
     }
-
-    .nav-btn:hover {
-      background:rgba(255,255,255,0.03);
-      border-color:var(--line);
+    .nav-btn:hover{background:rgba(255,255,255,.03);border-color:var(--line)}
+    .nav-btn.active{
+      background:linear-gradient(180deg, rgba(199,161,91,.08), rgba(199,161,91,.03));
+      border-color:var(--line-2);
     }
+    .nav-btn small{color:var(--muted);font-size:11px}
 
-    .nav-btn.active {
-      background:linear-gradient(180deg, rgba(199,161,91,0.08), rgba(199,161,91,0.03));
-      border-color:var(--line-strong);
-      box-shadow: inset 0 0 0 1px rgba(199,161,91,0.06);
-    }
-
-    .nav-meta {
-      color:var(--muted);
-      font-size:11px;
-    }
-
-    .panel {
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    .block{
       border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
       border-radius:var(--radius);
       box-shadow:var(--shadow);
     }
+    .block + .block{margin-top:14px}
 
-    .panel + .panel { margin-top:16px; }
-
-    .panel-header {
-      padding:16px 18px 14px;
+    .block-head{
+      padding:12px 14px;
       border-bottom:1px solid var(--line);
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      gap:12px;
+      align-items:center;
+      gap:8px;
       flex-wrap:wrap;
     }
 
-    .panel-title {
-      font-size:13px;
-      letter-spacing:1.1px;
-      text-transform:uppercase;
+    .block-title{
       color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:1.15px;
+      font-size:11px;
       font-weight:700;
     }
 
-    .panel-subtitle {
-      font-size:12px;
+    .block-body{padding:14px}
+
+    .block-sub{
       color:var(--muted);
-      margin-top:4px;
+      font-size:12px;
+      line-height:1.5;
     }
 
-    .panel-body {
-      padding:16px 18px 18px;
-    }
-
-    .stats-grid {
+    .stats{
       display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap:14px;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
     }
 
-    .stat-card {
-      background:var(--panel);
+    .stat{
       border:1px solid var(--line);
-      border-radius:var(--radius-sm);
-      padding:15px 15px 13px;
-      min-height:98px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0)),
+        var(--panel);
+      border-radius:var(--radius);
+      padding:14px;
+      min-height:102px;
     }
 
-    .stat-label {
+    .stat-label{
+      color:var(--muted);
       font-size:11px;
       text-transform:uppercase;
       letter-spacing:1px;
-      color:var(--muted);
       margin-bottom:10px;
     }
 
-    .stat-value {
-      font-size:28px;
+    .stat-value{
+      font-size:34px;
       line-height:1;
       font-weight:700;
       margin-bottom:10px;
     }
 
-    .stat-foot {
-      font-size:12px;
+    .stat-foot{
       color:var(--muted);
+      font-size:12px;
     }
 
-    .green { color:var(--green); }
-    .yellow { color:var(--yellow); }
-    .red { color:var(--red); }
-    .blue { color:var(--blue); }
-
-    .grid-2 {
+    .main-grid{
       display:grid;
-      grid-template-columns: 1.25fr .95fr;
-      gap:16px;
-      margin-top:16px;
+      grid-template-columns: 1.2fr .9fr;
+      gap:14px;
     }
 
-    .stack {
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
+    .stack{display:flex;flex-direction:column;gap:14px}
 
-    .toolbar {
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-
-    .btn {
-      appearance:none;
+    .table-wrap{
       border:1px solid var(--line);
-      background:var(--panel);
-      color:var(--text);
       border-radius:10px;
-      padding:10px 12px;
-      font-size:12px;
-      font-weight:600;
-      cursor:pointer;
-      transition:all .18s ease;
-    }
-
-    .btn:hover {
-      border-color:var(--line-strong);
-      transform:translateY(-1px);
-    }
-
-    .btn.primary {
-      background:linear-gradient(180deg, #d5af68, #b98d3f);
-      color:#111;
-      border-color:#d0aa64;
-    }
-
-    .btn.ghost {
-      background:transparent;
-    }
-
-    .badge {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:11px;
-      border:1px solid var(--line);
-      color:var(--muted);
-      background:rgba(255,255,255,0.02);
-    }
-
-    .table-wrap {
       overflow:auto;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:var(--panel);
+      background:var(--panel-3);
     }
 
-    table {
+    table{
       width:100%;
       border-collapse:collapse;
-      min-width:720px;
+      min-width:760px;
     }
-
-    th, td {
-      padding:12px 12px;
-      text-align:left;
+    th,td{
+      padding:11px 12px;
       border-bottom:1px solid var(--line);
+      text-align:left;
       font-size:12px;
       vertical-align:top;
     }
-
-    th {
-      color:var(--muted);
-      font-weight:600;
-      text-transform:uppercase;
-      letter-spacing:.8px;
-      background:rgba(255,255,255,0.015);
+    th{
       position:sticky;
       top:0;
       z-index:1;
+      background:#0E151D;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.8px;
+      font-size:11px;
+      font-weight:700;
+    }
+    tr:last-child td{border-bottom:none}
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.7px;
+      white-space:nowrap;
     }
 
-    tr:last-child td { border-bottom:none; }
-
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size:12px;
-    }
-
-    .feed {
+    .feed{
       display:flex;
       flex-direction:column;
       gap:10px;
-      max-height:420px;
+      max-height:440px;
       overflow:auto;
     }
 
-    .feed-item {
+    .feed-item{
       border:1px solid var(--line);
-      background:var(--panel);
-      border-radius:12px;
-      padding:12px 12px;
+      background:var(--panel-3);
+      border-radius:10px;
+      padding:12px;
     }
 
-    .feed-top {
+    .feed-top{
       display:flex;
       justify-content:space-between;
       gap:10px;
@@ -419,365 +567,285 @@
       align-items:flex-start;
     }
 
-    .feed-title {
+    .feed-title{
       font-size:12px;
-      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.9px;
       color:var(--text);
+      font-weight:700;
+    }
+
+    .feed-meta{
+      color:var(--muted);
+      font-size:11px;
+      margin-top:3px;
+    }
+
+    .feed-body{
+      color:#DDD7CE;
+      font-size:12px;
+      line-height:1.5;
+      word-break:break-word;
+      font-family:var(--mono);
+    }
+
+    .kv{
+      display:grid;
+      grid-template-columns:110px 1fr;
+      gap:8px 10px;
+    }
+    .kv .k{
+      color:var(--muted);
+      font-size:11px;
       text-transform:uppercase;
       letter-spacing:.8px;
     }
-
-    .feed-meta {
-      color:var(--muted);
-      font-size:11px;
-    }
-
-    .feed-body {
-      color:#d8d2c8;
-      font-size:12px;
-      line-height:1.45;
-      word-break:break-word;
-    }
-
-    .kv {
-      display:grid;
-      grid-template-columns: 120px 1fr;
-      gap:8px 12px;
-      font-size:12px;
-      align-items:start;
-    }
-
-    .kv .k { color:var(--muted); text-transform:uppercase; letter-spacing:.7px; font-size:11px; }
-
-    .command-form {
-      display:grid;
-      gap:12px;
-    }
-
-    .field {
-      display:grid;
-      gap:7px;
-    }
-
-    .field label {
-      font-size:11px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.85px;
-    }
-
-    .input, .textarea, .select {
-      width:100%;
-      border-radius:10px;
-      border:1px solid var(--line);
-      background:#0e141b;
+    .kv .v{
       color:var(--text);
-      padding:11px 12px;
-      font-size:13px;
-      outline:none;
-    }
-
-    .textarea {
-      min-height:116px;
-      resize:vertical;
-      line-height:1.5;
-    }
-
-    .row {
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap:12px;
-    }
-
-    .insight-box, .alert-box, .truth-box {
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:14px;
-    }
-
-    .insight-box + .insight-box,
-    .alert-box + .alert-box,
-    .truth-box + .truth-box { margin-top:12px; }
-
-    .rail-title {
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:1px;
-      color:var(--gold);
-      margin-bottom:10px;
-      font-weight:700;
-    }
-
-    .rail-copy {
-      color:#ddd7cf;
       font-size:12px;
       line-height:1.5;
     }
 
-    .footer {
-      height:var(--footer-h);
-      border-top:1px solid var(--line);
+    .toolbar{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 18px;
-      color:var(--muted);
-      font-size:11px;
-      letter-spacing:.75px;
-      background:#0a0e13;
-    }
-
-    .state-line {
-      display:flex;
-      align-items:center;
       gap:8px;
-      margin-bottom:10px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .empty-state {
-      border:1px dashed var(--line);
-      border-radius:12px;
-      padding:16px;
-      color:var(--muted);
-      font-size:12px;
-      background:rgba(255,255,255,0.015);
-    }
-
-    .gate-overlay {
-      position:fixed;
-      inset:0;
-      z-index:50;
-      background:
-        radial-gradient(circle at top, rgba(199,161,91,0.10), transparent 28%),
-        linear-gradient(180deg, rgba(0,0,0,0.72), rgba(0,0,0,0.88)),
-        var(--bg);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-    }
-
-    .gate-card {
-      width:min(860px, 100%);
-      border:1px solid var(--line-strong);
-      border-radius:24px;
-      background:linear-gradient(180deg, rgba(18,28,38,0.92), rgba(11,15,20,0.98));
-      box-shadow:0 30px 80px rgba(0,0,0,0.5);
-      padding:48px 34px;
-      text-align:center;
-    }
-
-    .gate-seal {
-      width:84px;
-      height:84px;
-      margin:0 auto 18px;
-      border-radius:50%;
-      border:1px solid rgba(199,161,91,0.35);
-      display:grid;
-      place-items:center;
-      color:var(--gold);
-      font-size:24px;
-      font-weight:700;
-      box-shadow: inset 0 0 24px rgba(199,161,91,0.08);
-    }
-
-    .gate-kicker {
-      color:var(--gold);
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:1.4px;
-      margin-bottom:14px;
-    }
-
-    .gate-title {
-      font-size:36px;
-      line-height:1.1;
-      margin-bottom:12px;
-      font-weight:700;
-      letter-spacing:.4px;
-    }
-
-    .gate-copy {
-      width:min(620px, 100%);
-      margin:0 auto 28px;
-      color:var(--muted);
-      line-height:1.7;
-      font-size:14px;
-    }
-
-    .gate-actions {
-      display:flex;
-      justify-content:center;
-      gap:12px;
       flex-wrap:wrap;
     }
 
-    @media (max-width: 1220px) {
-      .workspace {
-        grid-template-columns: 220px minmax(0, 1fr);
-      }
-      .right-rail {
-        display:none;
-      }
-      .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .grid-2 {
-        grid-template-columns: 1fr;
-      }
+    .tool-btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:var(--panel-3);
+      color:var(--text);
+      min-height:38px;
+      padding:0 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+      transition:.18s ease;
+    }
+    .tool-btn:hover{border-color:var(--line-2)}
+    .tool-btn.primary{
+      background:linear-gradient(180deg, rgba(199,161,91,.22), rgba(199,161,91,.08));
+      border-color:var(--line-2);
     }
 
-    @media (max-width: 820px) {
-      .workspace {
-        grid-template-columns: 1fr;
-      }
-      .left-rail {
-        display:none;
-      }
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      .row {
-        grid-template-columns: 1fr;
-      }
-      .topbar {
+    .form{
+      display:grid;
+      gap:12px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+    .field{
+      display:grid;
+      gap:7px;
+    }
+    .field label{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.9px;
+    }
+    .input,.select,.textarea{
+      width:100%;
+      background:#0E151D;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    .textarea{
+      min-height:132px;
+      resize:vertical;
+      line-height:1.55;
+      font-family:var(--mono);
+    }
+
+    .status-line{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+    }
+
+    .empty{
+      border:1px dashed var(--line);
+      background:rgba(255,255,255,.01);
+      border-radius:10px;
+      padding:14px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    .view{display:none}
+    .view.active{display:block}
+
+    .footer-note{
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.7px;
+      text-transform:uppercase;
+    }
+
+    @media (max-width: 1320px){
+      .workspace{grid-template-columns:220px 1fr}
+      .right-rail{display:none}
+      .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .main-grid{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 920px){
+      body{overflow:auto}
+      .app{grid-template-rows:auto auto 1fr}
+      .workspace{grid-template-columns:1fr}
+      .left-rail{display:none}
+      .stats{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr}
+      .topbar{
         height:auto;
-        padding:14px 16px;
-        gap:10px;
-        align-items:flex-start;
+        padding:10px 12px;
         flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
       }
-      .center-stage, .right-rail {
-        padding:14px;
-      }
-      .gate-title {
-        font-size:28px;
-      }
+      .top-meta{justify-content:flex-start}
+      .ticker{min-height:38px}
+      .seal-wrap{width:min(340px, 72vw)}
+      .frame-inner{padding:36px 22px}
     }
   </style>
 </head>
 <body>
-  <div id="gateOverlay" class="gate-overlay">
+
+  <!-- LAYER 1 -->
+  <section id="gateLayer" class="layer">
     <div class="gate-card">
-      <div class="gate-seal">P</div>
-      <div class="gate-kicker">Phoenix OS · Command Infrastructure</div>
-      <div class="gate-title">Phoenix Command Center</div>
-      <div class="gate-copy">
-        Restricted control surface for observing system state, authorizing execution,
-        verifying receipts, and maintaining enterprise integrity across governed Phoenix OS systems.
-      </div>
-      <div class="gate-actions">
-        <button class="btn primary" id="enterBtn">Access System</button>
-        <button class="btn ghost" id="frameBtn">Institutional Frame</button>
+      <div class="gate-inner">
+        <div class="seal-wrap">
+          <img src="rpe_seal_logo.png" alt="Phoenix Command Center Seal">
+        </div>
+        <div class="gate-title">Phoenix Command Center</div>
+        <button id="gateAccessBtn" class="gate-action">Enter Command Center</button>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="app-shell">
-    <div class="topbar">
+  <!-- LAYER 2 -->
+  <section id="frameLayer" class="layer hidden">
+    <div class="frame-card">
+      <div class="frame-inner">
+        <div class="frame-kicker">Phoenix OS · Command Infrastructure</div>
+        <div class="frame-title">Restricted command surface for governed enterprise observation, routing, authorization, and receipt-backed control.</div>
+        <div class="frame-copy">
+          Phoenix Command Center is the PBS Shell control interface for observing system state, reviewing live command flow, detecting drift, and maintaining operational integrity across Rising Phoenix Enterprises systems.
+        </div>
+        <div class="frame-actions">
+          <button id="frameEnterBtn" class="btn primary">Access Operational Surface</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYER 3 -->
+  <div id="app" class="app">
+    <header class="topbar">
       <div class="brand">
-        <div class="brand-mark">P</div>
-        <div class="brand-copy">
+        <img src="rpe_seal_logo.png" alt="Phoenix Command Center Seal">
+        <div>
           <div class="brand-title">Phoenix Command Center</div>
-          <div class="brand-subtitle">Rising Phoenix Enterprises · PBS Shell Control Surface</div>
+          <div class="brand-sub">Rising Phoenix Enterprises · PBS Shell Protocol</div>
         </div>
       </div>
 
-      <div class="topbar-right">
-        <div class="pill"><span class="dot" id="sysDot"></span><strong id="sysState">Initializing</strong></div>
-        <div class="pill">Env: <strong id="envLabel">Production</strong></div>
-        <div class="pill">Updated: <strong id="lastRefresh">—</strong></div>
-        <div class="pill">Time: <strong id="localTime">—</strong></div>
+      <div class="top-meta">
+        <div class="pill"><span id="sysDot" class="dot"></span><strong id="sysState">Initializing</strong></div>
+        <div class="pill">Environment <strong id="envLabel">Production</strong></div>
+        <div class="pill">Refresh <strong id="lastRefresh">—</strong></div>
+        <div class="pill">Time <strong id="clock">—</strong></div>
       </div>
-    </div>
+    </header>
+
+    <section class="ticker">
+      <div class="ticker-label">Live Feed</div>
+      <div id="tickerTrack" class="ticker-track mono">SYSTEM INITIALIZING · WAITING FOR LIVE STATE · SYSTEM INITIALIZING · WAITING FOR LIVE STATE ·</div>
+    </section>
 
     <div class="workspace">
       <aside class="left-rail">
-        <div class="nav-group">
-          <div class="section-label">Control Navigation</div>
-          <div class="nav-list">
-            <button class="nav-btn active" data-view="overview">
-              <span>System Overview</span>
-              <span class="nav-meta">Live</span>
-            </button>
-            <button class="nav-btn" data-view="commands">
-              <span>Command Queue</span>
-              <span class="nav-meta" id="navCommandsMeta">—</span>
-            </button>
-            <button class="nav-btn" data-view="receipts">
-              <span>Execution Receipts</span>
-              <span class="nav-meta" id="navReceiptsMeta">—</span>
-            </button>
-            <button class="nav-btn" data-view="builder">
-              <span>Command Builder</span>
-              <span class="nav-meta">Authorized</span>
-            </button>
-            <button class="nav-btn" data-view="audit">
-              <span>Audit / Drift</span>
-              <span class="nav-meta" id="navAuditMeta">Watch</span>
-            </button>
-          </div>
+        <div class="rail-title">Control Navigation</div>
+        <div class="nav">
+          <button class="nav-btn active" data-view="overview"><span>System Overview</span><small>Live</small></button>
+          <button class="nav-btn" data-view="commands"><span>Command Queue</span><small id="metaCommands">—</small></button>
+          <button class="nav-btn" data-view="receipts"><span>Execution Receipts</span><small id="metaReceipts">—</small></button>
+          <button class="nav-btn" data-view="builder"><span>Command Builder</span><small>Controlled</small></button>
+          <button class="nav-btn" data-view="audit"><span>Audit / PAIRS</span><small id="metaAudit">—</small></button>
         </div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">System Truth</div>
-              <div class="panel-subtitle">Shell Protocol · Position before explanation</div>
-            </div>
+        <div class="block">
+          <div class="block-head">
+            <div class="block-title">Shell Truth</div>
           </div>
-          <div class="panel-body">
+          <div class="block-body">
             <div class="kv">
-              <div class="k">Mode</div><div id="truthMode">System First</div>
-              <div class="k">Build Standard</div><div id="truthBuild">Full File / Full Section</div>
-              <div class="k">Execution</div><div id="truthExec">Governed</div>
-              <div class="k">Receipts</div><div id="truthReceipt">Required</div>
+              <div class="k">Mode</div><div class="v">System First</div>
+              <div class="k">Entry</div><div class="v">Restricted</div>
+              <div class="k">Execution</div><div class="v">Governed</div>
+              <div class="k">Receipts</div><div class="v">Required</div>
+              <div class="k">Interface</div><div class="v">Authority Before Explanation</div>
             </div>
           </div>
         </div>
       </aside>
 
-      <main class="center-stage">
-        <section id="view-overview" class="view">
-          <div class="stats-grid">
-            <div class="stat-card">
+      <main class="center">
+        <section id="view-overview" class="view active">
+          <div class="stats">
+            <div class="stat">
               <div class="stat-label">Active Commands</div>
-              <div class="stat-value green" id="statActive">—</div>
-              <div class="stat-foot">Commands currently in live execution state</div>
+              <div id="statActive" class="stat-value" style="color:var(--green)">—</div>
+              <div class="stat-foot">Locked and unprocessed command volume</div>
             </div>
-            <div class="stat-card">
+            <div class="stat">
               <div class="stat-label">Queued Commands</div>
-              <div class="stat-value yellow" id="statQueued">—</div>
-              <div class="stat-foot">Commands awaiting governed execution</div>
+              <div id="statQueued" class="stat-value" style="color:var(--yellow)">—</div>
+              <div class="stat-foot">Awaiting execution claim</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">Failed Executions</div>
-              <div class="stat-value red" id="statFailed">—</div>
-              <div class="stat-foot">Detected from latest receipt states</div>
+            <div class="stat">
+              <div class="stat-label">Receipt Failures</div>
+              <div id="statFailed" class="stat-value" style="color:var(--red)">—</div>
+              <div class="stat-foot">Latest failed terminal states</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">Receipts Logged</div>
-              <div class="stat-value blue" id="statReceipts">—</div>
-              <div class="stat-foot">Most recent execution proof count window</div>
+            <div class="stat">
+              <div class="stat-label">Receipts Loaded</div>
+              <div id="statReceipts" class="stat-value" style="color:var(--blue)">—</div>
+              <div class="stat-foot">Current visibility window</div>
             </div>
           </div>
 
-          <div class="grid-2">
+          <div class="main-grid">
             <div class="stack">
-              <div class="panel">
-                <div class="panel-header">
+              <div class="block">
+                <div class="block-head">
                   <div>
-                    <div class="panel-title">Live Command Queue</div>
-                    <div class="panel-subtitle">Read directly from Supabase command spine</div>
+                    <div class="block-title">Live Command Queue</div>
+                    <div class="block-sub">Commands visible from the execution spine</div>
                   </div>
                   <div class="toolbar">
-                    <button class="btn ghost" id="refreshQueueBtn">Refresh</button>
+                    <button id="refreshBtn1" class="tool-btn">Refresh</button>
                   </div>
                 </div>
-                <div class="panel-body">
+                <div class="block-body">
                   <div class="table-wrap">
                     <table>
                       <thead>
@@ -789,58 +857,64 @@
                           <th>Payload</th>
                         </tr>
                       </thead>
-                      <tbody id="queueTableBody">
-                        <tr><td colspan="5" class="muted">Loading queue…</td></tr>
+                      <tbody id="queueBody">
+                        <tr><td colspan="5">Loading queue…</td></tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
               </div>
 
-              <div class="panel">
-                <div class="panel-header">
+              <div class="block">
+                <div class="block-head">
                   <div>
-                    <div class="panel-title">Latest Execution Feed</div>
-                    <div class="panel-subtitle">Operational truth from immutable receipts</div>
+                    <div class="block-title">Execution Feed</div>
+                    <div class="block-sub">Receipt-backed operational window</div>
                   </div>
                 </div>
-                <div class="panel-body">
-                  <div class="feed" id="receiptFeed">
-                    <div class="empty-state">Loading latest receipts…</div>
+                <div class="block-body">
+                  <div id="receiptFeed" class="feed">
+                    <div class="empty">Loading receipts…</div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="stack">
-              <div class="panel">
-                <div class="panel-header">
-                  <div>
-                    <div class="panel-title">Institutional Frame</div>
-                    <div class="panel-subtitle">What PCC is — not how every component works</div>
-                  </div>
+              <div class="block">
+                <div class="block-head">
+                  <div class="block-title">Institutional Position</div>
                 </div>
-                <div class="panel-body">
-                  <div class="rail-copy">
-                    Phoenix Command Center is the human-authorized control surface for observing system state,
-                    authorizing governed execution, routing enterprise commands, detecting drift, and verifying
-                    proof-of-action across Phoenix OS systems.
+                <div class="block-body">
+                  <div class="block-sub">
+                    Command Center is not a dashboard. It is the authorized PBS Shell control surface for governed observation, live routing visibility, audit attention, and receipt-backed command oversight.
                   </div>
                 </div>
               </div>
 
-              <div class="panel">
-                <div class="panel-header">
-                  <div>
-                    <div class="panel-title">Immediate Actions</div>
-                    <div class="panel-subtitle">Controlled access only</div>
+              <div class="block">
+                <div class="block-head">
+                  <div class="block-title">Immediate Access</div>
+                </div>
+                <div class="block-body">
+                  <div class="toolbar">
+                    <button class="tool-btn primary" data-jump="builder">New Command</button>
+                    <button class="tool-btn" data-jump="commands">Review Queue</button>
+                    <button class="tool-btn" data-jump="receipts">Review Receipts</button>
                   </div>
                 </div>
-                <div class="panel-body">
-                  <div class="toolbar">
-                    <button class="btn primary" data-view-jump="builder">New Command</button>
-                    <button class="btn" data-view-jump="commands">Review Queue</button>
-                    <button class="btn" data-view-jump="receipts">Review Receipts</button>
+              </div>
+
+              <div class="block">
+                <div class="block-head">
+                  <div class="block-title">Connection</div>
+                </div>
+                <div class="block-body">
+                  <div class="kv">
+                    <div class="k">Supabase</div><div id="connSupabase" class="v">Checking</div>
+                    <div class="k">Command API</div><div id="connApi" class="v">Not configured</div>
+                    <div class="k">Refresh Window</div><div id="connWindow" class="v">30 seconds</div>
+                    <div class="k">Build Law</div><div class="v">Full File / No Splicing</div>
                   </div>
                 </div>
               </div>
@@ -848,18 +922,18 @@
           </div>
         </section>
 
-        <section id="view-commands" class="view hidden">
-          <div class="panel">
-            <div class="panel-header">
+        <section id="view-commands" class="view">
+          <div class="block">
+            <div class="block-head">
               <div>
-                <div class="panel-title">Command Queue</div>
-                <div class="panel-subtitle">Governed execution requests entering the system spine</div>
+                <div class="block-title">Command Queue</div>
+                <div class="block-sub">Live spine visibility</div>
               </div>
               <div class="toolbar">
-                <button class="btn ghost" id="refreshCommandsBtn">Refresh</button>
+                <button id="refreshBtn2" class="tool-btn">Refresh</button>
               </div>
             </div>
-            <div class="panel-body">
+            <div class="block-body">
               <div class="table-wrap">
                 <table>
                   <thead>
@@ -873,7 +947,7 @@
                       <th>Payload</th>
                     </tr>
                   </thead>
-                  <tbody id="commandsTableBody">
+                  <tbody id="commandsBody">
                     <tr><td colspan="7">Loading commands…</td></tr>
                   </tbody>
                 </table>
@@ -882,18 +956,18 @@
           </div>
         </section>
 
-        <section id="view-receipts" class="view hidden">
-          <div class="panel">
-            <div class="panel-header">
+        <section id="view-receipts" class="view">
+          <div class="block">
+            <div class="block-head">
               <div>
-                <div class="panel-title">Execution Receipts</div>
-                <div class="panel-subtitle">Immutable proof-of-action ledger</div>
+                <div class="block-title">Execution Receipts</div>
+                <div class="block-sub">Immutable proof-of-action visibility</div>
               </div>
               <div class="toolbar">
-                <button class="btn ghost" id="refreshReceiptsBtn">Refresh</button>
+                <button id="refreshBtn3" class="tool-btn">Refresh</button>
               </div>
             </div>
-            <div class="panel-body">
+            <div class="block-body">
               <div class="table-wrap">
                 <table>
                   <thead>
@@ -906,7 +980,7 @@
                       <th>Result</th>
                     </tr>
                   </thead>
-                  <tbody id="receiptsTableBody">
+                  <tbody id="receiptsBody">
                     <tr><td colspan="6">Loading receipts…</td></tr>
                   </tbody>
                 </table>
@@ -915,29 +989,29 @@
           </div>
         </section>
 
-        <section id="view-builder" class="view hidden">
-          <div class="grid-2">
-            <div class="panel">
-              <div class="panel-header">
+        <section id="view-builder" class="view">
+          <div class="main-grid">
+            <div class="block">
+              <div class="block-head">
                 <div>
-                  <div class="panel-title">Command Builder</div>
-                  <div class="panel-subtitle">Authorized command staging for execution spine</div>
+                  <div class="block-title">Command Builder</div>
+                  <div class="block-sub">Authorized staging into execution spine</div>
                 </div>
               </div>
-              <div class="panel-body">
-                <form id="commandForm" class="command-form">
+              <div class="block-body">
+                <form id="commandForm" class="form">
                   <div class="row">
                     <div class="field">
-                      <label for="engineInput">Engine</label>
-                      <select id="engineInput" class="select">
+                      <label for="engine">Engine</label>
+                      <select id="engine" class="select">
                         <option value="phoenix_builder_runner">phoenix_builder_runner</option>
                         <option value="phoenix_content_runner">phoenix_content_runner</option>
                         <option value="phoenix_media_render">phoenix_media_render</option>
                       </select>
                     </div>
                     <div class="field">
-                      <label for="runNowInput">Run Now</label>
-                      <select id="runNowInput" class="select">
+                      <label for="runNow">Run Now</label>
+                      <select id="runNow" class="select">
                         <option value="true">true</option>
                         <option value="false">false</option>
                       </select>
@@ -945,47 +1019,39 @@
                   </div>
 
                   <div class="field">
-                    <label for="payloadInput">Payload JSON</label>
-                    <textarea id="payloadInput" class="textarea">{
+                    <label for="payload">Payload JSON</label>
+                    <textarea id="payload" class="textarea">{
   "action": "test_heartbeat",
-  "note": "PCC authorized command"
+  "note": "PCC authorized command",
+  "source": "pcc"
 }</textarea>
                   </div>
 
                   <div class="toolbar">
-                    <button type="submit" class="btn primary">Submit Command</button>
-                    <button type="button" class="btn ghost" id="loadPayloadBtn">Load Sample Payload</button>
+                    <button type="submit" class="tool-btn primary">Submit Command</button>
+                    <button type="button" id="samplePayloadBtn" class="tool-btn">Load Sample</button>
                   </div>
                 </form>
               </div>
             </div>
 
             <div class="stack">
-              <div class="panel">
-                <div class="panel-header">
-                  <div>
-                    <div class="panel-title">Submission Status</div>
-                    <div class="panel-subtitle">PCC command routing output</div>
-                  </div>
+              <div class="block">
+                <div class="block-head">
+                  <div class="block-title">Submission Status</div>
                 </div>
-                <div class="panel-body">
-                  <div id="commandSubmitStatus" class="empty-state">
-                    No command submitted in this session.
-                  </div>
+                <div class="block-body">
+                  <div id="submitStatus" class="empty">No command submitted in this session.</div>
                 </div>
               </div>
 
-              <div class="panel">
-                <div class="panel-header">
-                  <div>
-                    <div class="panel-title">Build Law</div>
-                    <div class="panel-subtitle">Command routing is controlled, not casual</div>
-                  </div>
+              <div class="block">
+                <div class="block-head">
+                  <div class="block-title">Command Law</div>
                 </div>
-                <div class="panel-body">
-                  <div class="rail-copy">
-                    PCC stages authorized commands into the execution spine. Sensitive execution should route
-                    through a governed backend endpoint. Browser code must never expose service-role or governance secrets.
+                <div class="block-body">
+                  <div class="block-sub">
+                    Browser code may observe live state using public browser access. Governed command creation should route through an authorized endpoint. Service-role secrets must never appear in this file.
                   </div>
                 </div>
               </div>
@@ -993,17 +1059,17 @@
           </div>
         </section>
 
-        <section id="view-audit" class="view hidden">
-          <div class="panel">
-            <div class="panel-header">
+        <section id="view-audit" class="view">
+          <div class="block">
+            <div class="block-head">
               <div>
-                <div class="panel-title">Audit / Drift Watch</div>
-                <div class="panel-subtitle">Aiden Mercer rail · truth, mismatch, and risk visibility</div>
+                <div class="block-title">Audit / Drift Surface</div>
+                <div class="block-sub">Aiden Mercer rail · mismatch, failure, and attention state</div>
               </div>
             </div>
-            <div class="panel-body">
+            <div class="block-body">
               <div id="auditFeed" class="feed">
-                <div class="empty-state">Audit signals are derived from queue and receipt state.</div>
+                <div class="empty">Audit visibility initializing…</div>
               </div>
             </div>
           </div>
@@ -1011,61 +1077,59 @@
       </main>
 
       <aside class="right-rail">
-        <div class="section-label">Intelligence Rail</div>
+        <div class="rail-title">Intelligence Rail</div>
 
-        <div class="insight-box">
-          <div class="rail-title">NACE Insight</div>
-          <div class="rail-copy" id="naceInsight">
-            Waiting for live system state before generating controlled recommendation.
+        <div class="block">
+          <div class="block-head">
+            <div class="block-title">NACE Insight</div>
+          </div>
+          <div class="block-body">
+            <div id="naceInsight" class="block-sub">
+              Waiting for live state before issuing controlled recommendation.
+            </div>
           </div>
         </div>
 
-        <div class="alert-box">
-          <div class="rail-title">Aiden Mercer Audit</div>
-          <div class="rail-copy" id="aidenAlert">
-            No critical audit signal loaded yet.
+        <div class="block">
+          <div class="block-head">
+            <div class="block-title">Aiden Mercer Audit</div>
+          </div>
+          <div class="block-body">
+            <div id="aidenAlert" class="block-sub">
+              No critical signal loaded yet.
+            </div>
           </div>
         </div>
 
-        <div class="truth-box">
-          <div class="rail-title">State Truth</div>
-          <div class="state-line"><span class="dot" id="truthDot"></span><span id="truthSummary">Reading live state…</span></div>
-          <div class="rail-copy" id="truthCopy">
-            PCC only displays what can be grounded from system state or doctrine.
+        <div class="block">
+          <div class="block-head">
+            <div class="block-title">State Truth</div>
+          </div>
+          <div class="block-body">
+            <div class="status-line"><span id="truthDot" class="dot"></span><span id="truthSummary">Reading live state…</span></div>
+            <div id="truthCopy" class="block-sub">
+              PCC only claims authority through grounded operational state and doctrine.
+            </div>
           </div>
         </div>
 
-        <div class="truth-box">
-          <div class="rail-title">Connection</div>
-          <div class="kv">
-            <div class="k">Supabase</div><div id="connSupabase">Not checked</div>
-            <div class="k">Command API</div><div id="connApi">Not configured</div>
-            <div class="k">Build Mode</div><div>System First</div>
+        <div class="block">
+          <div class="block-head">
+            <div class="block-title">Footer Law</div>
+          </div>
+          <div class="block-body">
+            <div class="footer-note">RPE · Phoenix OS · Receipt-Backed Execution</div>
           </div>
         </div>
       </aside>
     </div>
-
-    <div class="footer">
-      <div>© Rising Phoenix Enterprises · Phoenix OS</div>
-      <div>Terms · Privacy · Receipt-Backed Execution</div>
-    </div>
   </div>
 
   <script>
-    /*
-      ============================================================
-      PCC SYSTEM WIRING
-      Browser-safe config only.
-      - SUPABASE_ANON_KEY must be a public browser key with RLS-safe access.
-      - PCC_COMMAND_API_URL should point to a governed backend endpoint.
-      ============================================================
-    */
-
     const CONFIG = {
       SUPABASE_URL: "https://ojympbuxfxusmbouldi.supabase.co",
       SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95am1wYnV4dmZ4dXNtYm91bGRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NDkxNTcsImV4cCI6MjA4NTAyNTE1N30.S4P98vRR8AS7vsg5W-Dxg_fEtVoSlKscMOWEsigo5Mk  ",
-      PCC_COMMAND_API_URL: "REPLACE_WITH_COMMAND_API_URL_OR_LEAVE_BLANK",
+      PCC_COMMAND_API_URL: "",
       COMMANDS_TABLE: "commands",
       RECEIPTS_TABLE: "execution_receipts",
       DEFAULT_COMMAND_ENGINE: "phoenix_builder_runner",
@@ -1077,136 +1141,147 @@
       activeView: "overview",
       commands: [],
       receipts: [],
-      supabaseConnected: false,
-      apiConnected: false,
-      lastRefreshAt: null
+      supabaseOk: false,
+      apiOk: false
     };
 
-    const el = {
-      gateOverlay: document.getElementById("gateOverlay"),
-      enterBtn: document.getElementById("enterBtn"),
-      frameBtn: document.getElementById("frameBtn"),
+    const $ = (id) => document.getElementById(id);
 
-      localTime: document.getElementById("localTime"),
-      sysDot: document.getElementById("sysDot"),
-      sysState: document.getElementById("sysState"),
-      envLabel: document.getElementById("envLabel"),
-      lastRefresh: document.getElementById("lastRefresh"),
+    const gateLayer = $("gateLayer");
+    const frameLayer = $("frameLayer");
+    const app = $("app");
+    const gateAccessBtn = $("gateAccessBtn");
+    const frameEnterBtn = $("frameEnterBtn");
 
-      navButtons: Array.from(document.querySelectorAll(".nav-btn[data-view]")),
-      views: Array.from(document.querySelectorAll(".view")),
-      refreshQueueBtn: document.getElementById("refreshQueueBtn"),
-      refreshCommandsBtn: document.getElementById("refreshCommandsBtn"),
-      refreshReceiptsBtn: document.getElementById("refreshReceiptsBtn"),
+    const sysDot = $("sysDot");
+    const sysState = $("sysState");
+    const envLabel = $("envLabel");
+    const lastRefresh = $("lastRefresh");
+    const clock = $("clock");
 
-      statActive: document.getElementById("statActive"),
-      statQueued: document.getElementById("statQueued"),
-      statFailed: document.getElementById("statFailed"),
-      statReceipts: document.getElementById("statReceipts"),
+    const metaCommands = $("metaCommands");
+    const metaReceipts = $("metaReceipts");
+    const metaAudit = $("metaAudit");
 
-      queueTableBody: document.getElementById("queueTableBody"),
-      commandsTableBody: document.getElementById("commandsTableBody"),
-      receiptsTableBody: document.getElementById("receiptsTableBody"),
-      receiptFeed: document.getElementById("receiptFeed"),
-      auditFeed: document.getElementById("auditFeed"),
+    const statActive = $("statActive");
+    const statQueued = $("statQueued");
+    const statFailed = $("statFailed");
+    const statReceipts = $("statReceipts");
 
-      navCommandsMeta: document.getElementById("navCommandsMeta"),
-      navReceiptsMeta: document.getElementById("navReceiptsMeta"),
-      navAuditMeta: document.getElementById("navAuditMeta"),
+    const queueBody = $("queueBody");
+    const commandsBody = $("commandsBody");
+    const receiptsBody = $("receiptsBody");
+    const receiptFeed = $("receiptFeed");
+    const auditFeed = $("auditFeed");
 
-      naceInsight: document.getElementById("naceInsight"),
-      aidenAlert: document.getElementById("aidenAlert"),
-      truthDot: document.getElementById("truthDot"),
-      truthSummary: document.getElementById("truthSummary"),
-      truthCopy: document.getElementById("truthCopy"),
+    const connSupabase = $("connSupabase");
+    const connApi = $("connApi");
 
-      connSupabase: document.getElementById("connSupabase"),
-      connApi: document.getElementById("connApi"),
+    const naceInsight = $("naceInsight");
+    const aidenAlert = $("aidenAlert");
+    const truthDot = $("truthDot");
+    const truthSummary = $("truthSummary");
+    const truthCopy = $("truthCopy");
+    const tickerTrack = $("tickerTrack");
 
-      commandForm: document.getElementById("commandForm"),
-      engineInput: document.getElementById("engineInput"),
-      runNowInput: document.getElementById("runNowInput"),
-      payloadInput: document.getElementById("payloadInput"),
-      commandSubmitStatus: document.getElementById("commandSubmitStatus"),
-      loadPayloadBtn: document.getElementById("loadPayloadBtn")
-    };
+    const commandForm = $("commandForm");
+    const engineInput = $("engine");
+    const runNowInput = $("runNow");
+    const payloadInput = $("payload");
+    const submitStatus = $("submitStatus");
+    const samplePayloadBtn = $("samplePayloadBtn");
 
     function init() {
-      bindUI();
+      envLabel.textContent = CONFIG.ENV_LABEL;
+      bindShell();
+      bindViews();
+      bindActions();
       tickClock();
       setInterval(tickClock, 1000);
-      el.envLabel.textContent = CONFIG.ENV_LABEL;
-
-      if (sessionStorage.getItem("pcc_entered") === "true") {
-        hideGate();
-      }
-
+      restoreShellState();
       refreshAll();
       setInterval(refreshAll, CONFIG.AUTO_REFRESH_MS);
     }
 
-    function bindUI() {
-      el.enterBtn.addEventListener("click", () => {
-        sessionStorage.setItem("pcc_entered", "true");
-        hideGate();
+    function bindShell() {
+      gateAccessBtn.addEventListener("click", () => {
+        gateLayer.classList.add("hidden");
+        frameLayer.classList.remove("hidden");
       });
 
-      el.frameBtn.addEventListener("click", () => {
-        alert("Phoenix Command Center is the human-authorized control surface for observing system state, authorizing governed execution, routing enterprise commands, detecting drift, and verifying proof-of-action across Phoenix OS systems.");
+      frameEnterBtn.addEventListener("click", () => {
+        frameLayer.classList.add("hidden");
+        app.classList.add("live");
+        sessionStorage.setItem("pcc_shell_entered", "true");
       });
+    }
 
-      el.navButtons.forEach(btn => {
+    function restoreShellState() {
+      if (sessionStorage.getItem("pcc_shell_entered") === "true") {
+        gateLayer.classList.add("hidden");
+        frameLayer.classList.add("hidden");
+        app.classList.add("live");
+      }
+    }
+
+    function bindViews() {
+      document.querySelectorAll(".nav-btn").forEach(btn => {
         btn.addEventListener("click", () => setView(btn.dataset.view));
       });
 
-      document.querySelectorAll("[data-view-jump]").forEach(btn => {
-        btn.addEventListener("click", () => setView(btn.dataset.viewJump));
+      document.querySelectorAll("[data-jump]").forEach(btn => {
+        btn.addEventListener("click", () => setView(btn.dataset.jump));
       });
+    }
 
-      el.refreshQueueBtn.addEventListener("click", refreshAll);
-      el.refreshCommandsBtn.addEventListener("click", refreshAll);
-      el.refreshReceiptsBtn.addEventListener("click", refreshAll);
+    function bindActions() {
+      $("refreshBtn1").addEventListener("click", refreshAll);
+      $("refreshBtn2").addEventListener("click", refreshAll);
+      $("refreshBtn3").addEventListener("click", refreshAll);
 
-      el.loadPayloadBtn.addEventListener("click", () => {
-        el.payloadInput.value = JSON.stringify({
+      samplePayloadBtn.addEventListener("click", () => {
+        payloadInput.value = JSON.stringify({
           action: "test_heartbeat",
           note: "PCC authorized command",
           source: "pcc"
         }, null, 2);
       });
 
-      el.commandForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      commandForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
         await submitCommand();
       });
     }
 
-    function hideGate() {
-      el.gateOverlay.classList.add("hidden");
+    function setView(view) {
+      state.activeView = view;
+
+      document.querySelectorAll(".nav-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.view === view);
+      });
+
+      document.querySelectorAll(".view").forEach(v => {
+        v.classList.toggle("active", v.id === `view-${view}`);
+      });
     }
 
     function tickClock() {
-      const now = new Date();
-      el.localTime.textContent = now.toLocaleString();
-    }
-
-    function setView(viewName) {
-      state.activeView = viewName;
-      el.navButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.view === viewName));
-      el.views.forEach(view => view.classList.toggle("hidden", view.id !== `view-${viewName}`));
+      clock.textContent = new Date().toLocaleString();
     }
 
     async function refreshAll() {
-      await Promise.allSettled([
-        loadCommands(),
-        loadReceipts()
-      ]);
-      state.lastRefreshAt = new Date();
-      el.lastRefresh.textContent = state.lastRefreshAt.toLocaleTimeString();
+      await Promise.allSettled([loadCommands(), loadReceipts()]);
       renderAll();
+      lastRefresh.textContent = new Date().toLocaleTimeString();
     }
 
     async function loadCommands() {
+      if (!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes("REPLACE_")) {
+        state.supabaseOk = false;
+        state.commands = [];
+        return;
+      }
+
       try {
         const params = new URLSearchParams({
           select: "command_id,engine,payload,run_now,locked,processed,created_at,processed_at,locked_at,locked_by,processed_by",
@@ -1214,26 +1289,29 @@
           limit: "25"
         });
 
-        const res = await fetch(
-          `${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.COMMANDS_TABLE}?${params.toString()}`,
-          {
-            headers: {
-              apikey: CONFIG.SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
-            }
+        const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.COMMANDS_TABLE}?${params.toString()}`, {
+          headers: {
+            apikey: CONFIG.SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
           }
-        );
+        });
 
-        if (!res.ok) throw new Error(`Commands fetch failed: ${res.status}`);
+        if (!res.ok) throw new Error(`commands ${res.status}`);
         state.commands = await res.json();
-        state.supabaseConnected = true;
-      } catch (err) {
+        state.supabaseOk = true;
+      } catch {
         state.commands = [];
-        state.supabaseConnected = false;
+        state.supabaseOk = false;
       }
     }
 
     async function loadReceipts() {
+      if (!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes("REPLACE_")) {
+        state.supabaseOk = false;
+        state.receipts = [];
+        return;
+      }
+
       try {
         const params = new URLSearchParams({
           select: "receipt_id,command_id,engine,platform,executed_at,terminal_state,result",
@@ -1241,300 +1319,331 @@
           limit: "25"
         });
 
-        const res = await fetch(
-          `${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.RECEIPTS_TABLE}?${params.toString()}`,
-          {
-            headers: {
-              apikey: CONFIG.SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
-            }
+        const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.RECEIPTS_TABLE}?${params.toString()}`, {
+          headers: {
+            apikey: CONFIG.SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
           }
-        );
+        });
 
-        if (!res.ok) throw new Error(`Receipts fetch failed: ${res.status}`);
+        if (!res.ok) throw new Error(`receipts ${res.status}`);
         state.receipts = await res.json();
-        state.supabaseConnected = true;
-      } catch (err) {
+        state.supabaseOk = true;
+      } catch {
         state.receipts = [];
-        state.supabaseConnected = false;
+        state.supabaseOk = false;
       }
     }
 
     function renderAll() {
       renderStats();
-      renderQueueTables();
-      renderReceiptsTable();
-      renderReceiptFeed();
-      renderAuditRail();
-      renderTruthRail();
-      renderConnectionState();
-      renderNavMeta();
+      renderTables();
+      renderFeeds();
+      renderRail();
+      renderTicker();
     }
 
     function renderStats() {
       const active = state.commands.filter(c => !c.processed && c.locked).length;
       const queued = state.commands.filter(c => !c.processed && !c.locked).length;
-      const failed = state.receipts.filter(r => (r.terminal_state || "").toLowerCase() === "failed").length;
-      const receiptsCount = state.receipts.length;
+      const failed = state.receipts.filter(r => String(r.terminal_state || "").toLowerCase() === "failed").length;
+      const receiptCount = state.receipts.length;
 
-      el.statActive.textContent = String(active);
-      el.statQueued.textContent = String(queued);
-      el.statFailed.textContent = String(failed);
-      el.statReceipts.textContent = String(receiptsCount);
+      statActive.textContent = active;
+      statQueued.textContent = queued;
+      statFailed.textContent = failed;
+      statReceipts.textContent = receiptCount;
 
-      if (failed > 0) {
-        setSystemState("Watch", "yellow");
-      } else if (state.supabaseConnected) {
-        setSystemState("Operational", "green");
-      } else {
+      metaCommands.textContent = `${state.commands.length} loaded`;
+      metaReceipts.textContent = `${state.receipts.length} loaded`;
+
+      if (!state.supabaseOk) {
         setSystemState("Disconnected", "red");
-      }
-    }
-
-    function setSystemState(label, colorClass) {
-      el.sysState.textContent = label;
-      el.sysDot.className = `dot ${colorClass}`;
-      el.truthDot.className = `dot ${colorClass}`;
-    }
-
-    function renderQueueTables() {
-      const queueRows = state.commands.slice(0, 12);
-      if (!queueRows.length) {
-        el.queueTableBody.innerHTML = `<tr><td colspan="5">No commands loaded.</td></tr>`;
-        el.commandsTableBody.innerHTML = `<tr><td colspan="7">No commands loaded.</td></tr>`;
-        return;
+        metaAudit.textContent = "Attention";
+      } else if (failed > 0) {
+        setSystemState("Watch", "yellow");
+        metaAudit.textContent = "Critical";
+      } else {
+        setSystemState("Operational", "green");
+        metaAudit.textContent = "Stable";
       }
 
-      el.queueTableBody.innerHTML = queueRows.map(row => `
-        <tr>
-          <td>${fmtDate(row.created_at)}</td>
-          <td>${escapeHtml(row.engine || "—")}</td>
-          <td>${badgeForCommand(row)}</td>
-          <td class="mono">${shortId(row.command_id)}</td>
-          <td class="mono">${escapeHtml(shortJson(row.payload))}</td>
-        </tr>
-      `).join("");
-
-      el.commandsTableBody.innerHTML = queueRows.map(row => `
-        <tr>
-          <td>${fmtDate(row.created_at)}</td>
-          <td class="mono">${escapeHtml(row.command_id || "—")}</td>
-          <td>${escapeHtml(row.engine || "—")}</td>
-          <td>${String(row.run_now)}</td>
-          <td>${String(row.locked)}</td>
-          <td>${String(row.processed)}</td>
-          <td class="mono">${escapeHtml(shortJson(row.payload))}</td>
-        </tr>
-      `).join("");
+      connSupabase.textContent = state.supabaseOk ? "Connected" : "Unavailable";
+      connApi.textContent = CONFIG.PCC_COMMAND_API_URL ? "Configured" : "Not configured";
     }
 
-    function renderReceiptsTable() {
+    function setSystemState(label, color) {
+      sysState.textContent = label;
+      sysDot.className = `dot ${color}`;
+      truthDot.className = `dot ${color}`;
+    }
+
+    function renderTables() {
+      if (!state.commands.length) {
+        queueBody.innerHTML = `<tr><td colspan="5">No command data loaded.</td></tr>`;
+        commandsBody.innerHTML = `<tr><td colspan="7">No command data loaded.</td></tr>`;
+      } else {
+        queueBody.innerHTML = state.commands.slice(0, 12).map(c => `
+          <tr>
+            <td>${fmtDate(c.created_at)}</td>
+            <td>${escapeHtml(c.engine || "—")}</td>
+            <td>${commandBadge(c)}</td>
+            <td class="mono">${shortId(c.command_id)}</td>
+            <td class="mono">${escapeHtml(shortJson(c.payload))}</td>
+          </tr>
+        `).join("");
+
+        commandsBody.innerHTML = state.commands.slice(0, 25).map(c => `
+          <tr>
+            <td>${fmtDate(c.created_at)}</td>
+            <td class="mono">${escapeHtml(c.command_id || "—")}</td>
+            <td>${escapeHtml(c.engine || "—")}</td>
+            <td>${String(c.run_now)}</td>
+            <td>${String(c.locked)}</td>
+            <td>${String(c.processed)}</td>
+            <td class="mono">${escapeHtml(shortJson(c.payload))}</td>
+          </tr>
+        `).join("");
+      }
+
       if (!state.receipts.length) {
-        el.receiptsTableBody.innerHTML = `<tr><td colspan="6">No receipts loaded.</td></tr>`;
-        return;
+        receiptsBody.innerHTML = `<tr><td colspan="6">No receipt data loaded.</td></tr>`;
+      } else {
+        receiptsBody.innerHTML = state.receipts.map(r => `
+          <tr>
+            <td>${fmtDate(r.executed_at)}</td>
+            <td>${escapeHtml(r.engine || "—")}</td>
+            <td>${escapeHtml(r.platform || "—")}</td>
+            <td>${receiptBadge(r)}</td>
+            <td class="mono">${shortId(r.command_id)}</td>
+            <td class="mono">${escapeHtml(shortJson(r.result))}</td>
+          </tr>
+        `).join("");
       }
-
-      el.receiptsTableBody.innerHTML = state.receipts.map(row => `
-        <tr>
-          <td>${fmtDate(row.executed_at)}</td>
-          <td>${escapeHtml(row.engine || "—")}</td>
-          <td>${escapeHtml(row.platform || "—")}</td>
-          <td>${badgeForReceipt(row)}</td>
-          <td class="mono">${shortId(row.command_id)}</td>
-          <td class="mono">${escapeHtml(shortJson(row.result))}</td>
-        </tr>
-      `).join("");
     }
 
-    function renderReceiptFeed() {
+    function renderFeeds() {
       if (!state.receipts.length) {
-        el.receiptFeed.innerHTML = `<div class="empty-state">No receipts loaded.</div>`;
-        return;
-      }
-
-      el.receiptFeed.innerHTML = state.receipts.slice(0, 10).map(row => `
-        <div class="feed-item">
-          <div class="feed-top">
-            <div>
-              <div class="feed-title">${escapeHtml(row.engine || "unknown_engine")}</div>
-              <div class="feed-meta">${fmtDate(row.executed_at)} · ${escapeHtml(row.platform || "platform_unset")}</div>
+        receiptFeed.innerHTML = `<div class="empty">No receipts loaded.</div>`;
+      } else {
+        receiptFeed.innerHTML = state.receipts.slice(0, 10).map(r => `
+          <div class="feed-item">
+            <div class="feed-top">
+              <div>
+                <div class="feed-title">${escapeHtml(r.engine || "unknown_engine")}</div>
+                <div class="feed-meta">${fmtDate(r.executed_at)} · ${escapeHtml(r.platform || "platform_unset")}</div>
+              </div>
+              <div>${receiptBadge(r)}</div>
             </div>
-            <div>${badgeForReceipt(row)}</div>
+            <div class="feed-body">${escapeHtml(shortJson(r.result))}</div>
           </div>
-          <div class="feed-body mono">${escapeHtml(shortJson(row.result))}</div>
-        </div>
-      `).join("");
-    }
+        `).join("");
+      }
 
-    function renderAuditRail() {
-      const failed = state.receipts.filter(r => (r.terminal_state || "").toLowerCase() === "failed");
+      const failed = state.receipts.filter(r => String(r.terminal_state || "").toLowerCase() === "failed");
       const queued = state.commands.filter(c => !c.processed && !c.locked);
+      const active = state.commands.filter(c => !c.processed && c.locked);
+
+      let auditItems = [];
+
+      if (!state.supabaseOk) {
+        auditItems.push({
+          title: "Connection loss",
+          meta: "Audit attention",
+          body: "Live browser access to Supabase is unavailable. PCC cannot ground system truth until connectivity returns."
+        });
+      }
 
       if (failed.length > 0) {
-        el.aidenAlert.textContent = `${failed.length} failed execution receipt(s) detected. Immediate review recommended.`;
-        el.navAuditMeta.textContent = "Critical";
-        return;
+        auditItems.push({
+          title: "Failed execution state",
+          meta: `${failed.length} receipt(s) flagged`,
+          body: "Execution failures are present in the current receipt window. Review receipt body and dependent command flow."
+        });
       }
 
       if (queued.length > 0) {
-        el.aidenAlert.textContent = `${queued.length} command(s) are queued. Monitor latency and authorization flow.`;
-        el.navAuditMeta.textContent = "Watch";
-        return;
+        auditItems.push({
+          title: "Queued command volume",
+          meta: `${queued.length} command(s) pending`,
+          body: "Queued command count indicates unclaimed work in the execution spine. Monitor latency and authorization sequence."
+        });
       }
 
-      el.aidenAlert.textContent = "No critical receipt-state drift detected in current window.";
-      el.navAuditMeta.textContent = "Stable";
+      if (active.length > 0) {
+        auditItems.push({
+          title: "Live execution",
+          meta: `${active.length} active command(s)`,
+          body: "Locked and unprocessed command state indicates active work moving through the system."
+        });
+      }
+
+      if (!auditItems.length) {
+        auditFeed.innerHTML = `<div class="empty">No critical drift signal detected in the current state window.</div>`;
+      } else {
+        auditFeed.innerHTML = auditItems.map(item => `
+          <div class="feed-item">
+            <div class="feed-top">
+              <div>
+                <div class="feed-title">${escapeHtml(item.title)}</div>
+                <div class="feed-meta">${escapeHtml(item.meta)}</div>
+              </div>
+            </div>
+            <div class="feed-body" style="font-family:var(--font)">${escapeHtml(item.body)}</div>
+          </div>
+        `).join("");
+      }
     }
 
-    function renderTruthRail() {
-      const active = state.commands.filter(c => !c.processed && c.locked).length;
+    function renderRail() {
+      const failed = state.receipts.filter(r => String(r.terminal_state || "").toLowerCase() === "failed").length;
       const queued = state.commands.filter(c => !c.processed && !c.locked).length;
-      const failed = state.receipts.filter(r => (r.terminal_state || "").toLowerCase() === "failed").length;
+      const active = state.commands.filter(c => !c.processed && c.locked).length;
 
-      if (!state.supabaseConnected) {
-        el.truthSummary.textContent = "Supabase connection unavailable";
-        el.truthCopy.textContent = "PCC can only claim authority through grounded system state. Restore live connection before relying on interface conclusions.";
+      if (!state.supabaseOk) {
+        naceInsight.textContent = "Restore live Supabase visibility before relying on queue, receipt, or operational status outputs.";
+        aidenAlert.textContent = "Critical visibility gap detected. PCC cannot verify live truth while connection is unavailable.";
+        truthSummary.textContent = "Supabase unavailable";
+        truthCopy.textContent = "The command surface is present, but live enterprise truth is not grounded until browser-safe data visibility is restored.";
         return;
       }
 
       if (failed > 0) {
-        el.truthSummary.textContent = "Receipts indicate failed execution state";
-        el.truthCopy.textContent = "System truth currently reflects execution faults. Review receipt ledger before issuing new dependent commands.";
+        naceInsight.textContent = "Receipt failures are present. Prioritize fault review before broadening command issuance.";
+        aidenAlert.textContent = "Execution faults detected in current receipt window.";
+        truthSummary.textContent = "Failed execution state present";
+        truthCopy.textContent = "Operational truth currently includes failed terminal states. Review receipts before relying on green assumptions.";
         return;
       }
 
-      if (active > 0 || queued > 0) {
-        el.truthSummary.textContent = "Execution spine is active";
-        el.truthCopy.textContent = `${active} active and ${queued} queued command(s) detected. Governed flow is live.`;
+      if (queued > 0 || active > 0) {
+        naceInsight.textContent = `System is active. ${queued} queued and ${active} active command(s) are visible in the execution spine.`;
+        aidenAlert.textContent = "No critical fault signal detected. Continue monitoring live flow.";
+        truthSummary.textContent = "Execution spine active";
+        truthCopy.textContent = "Command Center is observing live movement through the system. Queue and receipt windows are populated.";
         return;
       }
 
-      el.truthSummary.textContent = "System connected · low live activity";
-      el.truthCopy.textContent = "No critical execution conflict detected. Command spine is reachable and receipts are readable.";
+      naceInsight.textContent = "System is connected with low immediate command pressure. Authorized issuance may proceed carefully.";
+      aidenAlert.textContent = "No critical drift signal detected in the current state window.";
+      truthSummary.textContent = "Operational and stable";
+      truthCopy.textContent = "Live visibility is connected. No active failure pressure is visible in current queue and receipt windows.";
     }
 
-    function renderConnectionState() {
-      el.connSupabase.textContent = state.supabaseConnected ? "Connected" : "Unavailable";
-      el.connApi.textContent = CONFIG.PCC_COMMAND_API_URL && !CONFIG.PCC_COMMAND_API_URL.includes("REPLACE_")
-        ? "Configured"
-        : "Not configured";
+    function renderTicker() {
+      const items = [];
 
-      const queued = state.commands.filter(c => !c.processed && !c.locked).length;
-      const failed = state.receipts.filter(r => (r.terminal_state || "").toLowerCase() === "failed").length;
-
-      if (!state.supabaseConnected) {
-        el.naceInsight.textContent = "Live system state is unavailable. Restore Supabase browser connection before trusting queue or receipt visibility.";
-      } else if (failed > 0) {
-        el.naceInsight.textContent = "Receipt failures are present. Prioritize fault review before broadening command issuance.";
-      } else if (queued > 0) {
-        el.naceInsight.textContent = "Queued command volume is present. Review priority routing and execution cadence.";
+      if (!state.supabaseOk) {
+        items.push(tick("SYSTEM", "SUPABASE UNAVAILABLE", "red"));
+        items.push(tick("ATTENTION", "LIVE TRUTH NOT VERIFIED", "red"));
       } else {
-        el.naceInsight.textContent = "Execution surface is stable. You can authorize a new controlled command from the builder rail.";
+        const active = state.commands.filter(c => !c.processed && c.locked).length;
+        const queued = state.commands.filter(c => !c.processed && !c.locked).length;
+        const failed = state.receipts.filter(r => String(r.terminal_state || "").toLowerCase() === "failed").length;
+
+        items.push(tick("STATE", sysState.textContent, sysDot.classList.contains("green") ? "green" : sysDot.classList.contains("yellow") ? "yellow" : "red"));
+        items.push(tick("ACTIVE", `${active} COMMANDS`, active > 0 ? "green" : "yellow"));
+        items.push(tick("QUEUED", `${queued} COMMANDS`, queued > 0 ? "yellow" : "green"));
+        items.push(tick("FAILED", `${failed} RECEIPTS`, failed > 0 ? "red" : "green"));
+
+        state.commands.slice(0, 6).forEach(c => {
+          items.push(tick(c.engine || "ENGINE", shortId(c.command_id), c.locked ? "yellow" : c.processed ? "green" : "blue"));
+        });
+
+        state.receipts.slice(0, 6).forEach(r => {
+          items.push(tick(r.platform || "PLATFORM", String(r.terminal_state || "UNKNOWN").toUpperCase(), String(r.terminal_state || "").toLowerCase() === "failed" ? "red" : "green"));
+        });
       }
+
+      const joined = items.join("") + items.join("");
+      tickerTrack.innerHTML = joined || `SYSTEM INITIALIZING · WAITING FOR LIVE STATE · SYSTEM INITIALIZING · WAITING FOR LIVE STATE ·`;
     }
 
-    function renderNavMeta() {
-      el.navCommandsMeta.textContent = `${state.commands.length} loaded`;
-      el.navReceiptsMeta.textContent = `${state.receipts.length} loaded`;
+    function tick(tag, value, color) {
+      return `<span class="ticker-item"><span class="tag">${escapeHtml(tag)}</span><span class="state ${color}">${escapeHtml(value)}</span></span>`;
     }
 
     async function submitCommand() {
-      const engine = el.engineInput.value || CONFIG.DEFAULT_COMMAND_ENGINE;
-      const runNow = el.runNowInput.value === "true";
       let payload;
-
       try {
-        payload = JSON.parse(el.payloadInput.value || "{}");
-      } catch (err) {
-        el.commandSubmitStatus.innerHTML = `<div class="red">Payload JSON is invalid.</div>`;
+        payload = JSON.parse(payloadInput.value || "{}");
+      } catch {
+        submitStatus.innerHTML = `<span style="color:var(--red)">Payload JSON is invalid.</span>`;
         return;
       }
 
-      if (!CONFIG.PCC_COMMAND_API_URL || CONFIG.PCC_COMMAND_API_URL.includes("REPLACE_")) {
-        el.commandSubmitStatus.innerHTML = `
-          <div class="red"><strong>Command API not configured.</strong></div>
-          <div style="margin-top:8px;color:var(--muted);font-size:12px;">
-            Set <span class="mono">PCC_COMMAND_API_URL</span> to your governed backend endpoint for inserting commands.
-          </div>
+      if (!CONFIG.PCC_COMMAND_API_URL) {
+        submitStatus.innerHTML = `
+          <span style="color:var(--red)">Command API not configured.</span>
+          <div style="margin-top:8px;color:var(--muted)">Set <span class="mono">PCC_COMMAND_API_URL</span> when governed command submission endpoint is ready.</div>
         `;
         return;
       }
 
-      const body = {
-        engine,
-        run_now: runNow,
-        payload,
-        source: "pcc"
-      };
-
-      el.commandSubmitStatus.innerHTML = `<div class="blue">Submitting command…</div>`;
+      submitStatus.innerHTML = `<span style="color:var(--blue)">Submitting command…</span>`;
 
       try {
-        const res = await fetch(CONFIG.PCC_COMMAND_API_URL, {
+        const response = await fetch(CONFIG.PCC_COMMAND_API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
+          body: JSON.stringify({
+            engine: engineInput.value || CONFIG.DEFAULT_COMMAND_ENGINE,
+            run_now: runNowInput.value === "true",
+            payload,
+            source: "pcc"
+          })
         });
 
-        const data = await safeJsonParseResponse(res);
-        if (!res.ok) {
-          throw new Error(data?.error || `Command submit failed: ${res.status}`);
+        const data = await safeJson(response);
+
+        if (!response.ok) {
+          throw new Error(data?.error || `Submit failed: ${response.status}`);
         }
 
-        state.apiConnected = true;
-        el.commandSubmitStatus.innerHTML = `
-          <div class="green"><strong>Command submitted.</strong></div>
-          <div style="margin-top:8px;" class="mono">${escapeHtml(JSON.stringify(data, null, 2))}</div>
-        `;
-        await refreshAll();
+        submitStatus.innerHTML = `<span style="color:var(--green)">Command submitted.</span><div style="margin-top:8px" class="mono">${escapeHtml(JSON.stringify(data, null, 2))}</div>`;
+        state.apiOk = true;
+        refreshAll();
       } catch (err) {
-        state.apiConnected = false;
-        el.commandSubmitStatus.innerHTML = `
-          <div class="red"><strong>Submission failed.</strong></div>
-          <div style="margin-top:8px;color:var(--muted);font-size:12px;">${escapeHtml(String(err.message || err))}</div>
-        `;
+        state.apiOk = false;
+        submitStatus.innerHTML = `<span style="color:var(--red)">Submission failed.</span><div style="margin-top:8px;color:var(--muted)">${escapeHtml(String(err.message || err))}</div>`;
       }
     }
 
-    async function safeJsonParseResponse(response) {
+    async function safeJson(response) {
       const text = await response.text();
-      try {
-        return text ? JSON.parse(text) : {};
-      } catch {
-        return { raw: text };
-      }
+      try { return text ? JSON.parse(text) : {}; }
+      catch { return { raw: text }; }
     }
 
-    function badgeForCommand(row) {
-      if (row.processed) return `<span class="badge">Processed</span>`;
-      if (row.locked) return `<span class="badge"><span class="dot yellow"></span>Active</span>`;
-      return `<span class="badge"><span class="dot blue"></span>Queued</span>`;
+    function commandBadge(c) {
+      if (c.processed) return `<span class="badge">Processed</span>`;
+      if (c.locked) return `<span class="badge"><span class="dot yellow"></span>Active</span>`;
+      return `<span class="badge"><span class="dot green"></span>Queued</span>`;
     }
 
-    function badgeForReceipt(row) {
-      const state = String(row.terminal_state || "").toLowerCase();
+    function receiptBadge(r) {
+      const state = String(r.terminal_state || "").toLowerCase();
       if (state === "completed") return `<span class="badge"><span class="dot green"></span>Completed</span>`;
       if (state === "failed") return `<span class="badge"><span class="dot red"></span>Failed</span>`;
-      if (state === "queued") return `<span class="badge"><span class="dot yellow"></span>Queued</span>`;
-      return `<span class="badge">${escapeHtml(row.terminal_state || "Unknown")}</span>`;
+      return `<span class="badge">${escapeHtml(String(r.terminal_state || "Unknown"))}</span>`;
     }
 
-    function fmtDate(value) {
-      if (!value) return "—";
-      const d = new Date(value);
+    function fmtDate(v) {
+      if (!v) return "—";
+      const d = new Date(v);
       if (Number.isNaN(d.getTime())) return "—";
       return d.toLocaleString();
     }
 
-    function shortId(value) {
-      const v = String(value || "");
-      return v.length > 12 ? `${v.slice(0, 8)}…${v.slice(-4)}` : v || "—";
+    function shortId(v) {
+      const s = String(v || "");
+      return s.length > 14 ? `${s.slice(0, 8)}…${s.slice(-4)}` : (s || "—");
     }
 
-    function shortJson(value) {
+    function shortJson(v) {
       try {
-        const raw = typeof value === "string" ? value : JSON.stringify(value);
-        return raw.length > 120 ? `${raw.slice(0, 117)}...` : raw;
+        const s = typeof v === "string" ? v : JSON.stringify(v);
+        return s.length > 140 ? `${s.slice(0, 137)}...` : s;
       } catch {
         return "—";
       }
