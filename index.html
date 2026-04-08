@@ -332,6 +332,21 @@ body::before{
 .matrix-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .matrix-card{padding:16px;border-radius:14px;border:1px solid rgba(199,161,91,.12);background:rgba(255,255,255,.024)}
 .matrix-card strong{display:block;font-size:1.1rem;margin:10px 0 6px}
+.micro-chart{height:54px;display:flex;align-items:flex-end;gap:5px;margin-top:14px;padding-top:6px}
+.micro-chart span{flex:1;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg, rgba(226,191,125,.96), rgba(226,191,125,.20));animation:bounce 2.2s ease-in-out infinite}
+.micro-chart.green span{background:linear-gradient(180deg, rgba(47,211,122,.95), rgba(47,211,122,.22))}
+.micro-chart.cyan span{background:linear-gradient(180deg, rgba(68,198,255,.96), rgba(68,198,255,.22))}
+.micro-chart.red span{background:linear-gradient(180deg, rgba(239,95,95,.96), rgba(239,95,95,.22))}
+.micro-chart.gold span{background:linear-gradient(180deg, rgba(226,191,125,.96), rgba(226,191,125,.22))}
+.micro-chart span:nth-child(2){animation-delay:.12s}
+.micro-chart span:nth-child(3){animation-delay:.24s}
+.micro-chart span:nth-child(4){animation-delay:.36s}
+.micro-chart span:nth-child(5){animation-delay:.48s}
+.micro-chart span:nth-child(6){animation-delay:.60s}
+.micro-chart span:nth-child(7){animation-delay:.72s}
+.micro-chart span:nth-child(8){animation-delay:.84s}
+.micro-chart span:nth-child(9){animation-delay:.96s}
+.micro-chart span:nth-child(10){animation-delay:1.08s}
 .bar{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:12px}
 .bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold-2));animation:pulseBar 2.8s ease-in-out infinite}
 .bar.green > span{background:linear-gradient(90deg,#2fd37a,#7ef1a7)}
@@ -354,6 +369,13 @@ body::before{
 .chart.gold span{background:linear-gradient(180deg, rgba(226,191,125,.95), rgba(226,191,125,.28))}
 .chart.red span{background:linear-gradient(180deg, rgba(239,95,95,.95), rgba(239,95,95,.28))}
 .chart.green span{background:linear-gradient(180deg, rgba(47,211,122,.95), rgba(47,211,122,.28))}
+.signal-bar-row{display:grid;gap:8px;margin-top:14px}
+.signal-line{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.signal-line span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;animation:signalFlow 2.8s ease-in-out infinite}
+.signal-line.cyan span{background:linear-gradient(90deg,#44c6ff,#8be3ff)}
+.signal-line.gold span{background:linear-gradient(90deg,#c7a15b,#e2bf7d)}
+.signal-line.green span{background:linear-gradient(90deg,#2fd37a,#7ef1a7)}
+.signal-line.red span{background:linear-gradient(90deg,#ef5f5f,#ff9b9b)}
 
 .feed{padding:22px}
 .feed-list{display:grid;gap:10px}
@@ -373,6 +395,7 @@ body::before{
 @keyframes sealPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 38px rgba(199,161,91,.18))}50%{transform:scale(1.012);filter:drop-shadow(0 0 58px rgba(199,161,91,.28))}}
 @keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes pulseBar{0%,100%{filter:brightness(.92)}50%{filter:brightness(1.18)}}
+@keyframes signalFlow{0%,100%{filter:brightness(.94);transform:scaleX(.985);transform-origin:left center}50%{filter:brightness(1.18);transform:scaleX(1);transform-origin:left center}}
 @keyframes bounce{0%,100%{transform:scaleY(.68)}50%{transform:scaleY(1)}}
 
 @media (max-width: 1280px){
@@ -561,24 +584,36 @@ body::before{
             <strong>Operational Corridor</strong>
             <div class="sub">Institutional surface active and monitored.</div>
             <div class="bar green"><span style="width:92%"></span></div>
+            <div class="micro-chart green">
+              <span style="height:32%"></span><span style="height:48%"></span><span style="height:40%"></span><span style="height:62%"></span><span style="height:74%"></span><span style="height:58%"></span><span style="height:88%"></span><span style="height:70%"></span><span style="height:84%"></span><span style="height:66%"></span>
+            </div>
           </div>
           <div class="matrix-card">
             <div class="label mono">PBRS</div>
             <strong>Readiness Intake</strong>
             <div class="sub">Qualification logic and scoring visible.</div>
             <div class="bar cyan"><span style="width:78%"></span></div>
+            <div class="micro-chart cyan">
+              <span style="height:28%"></span><span style="height:42%"></span><span style="height:56%"></span><span style="height:46%"></span><span style="height:68%"></span><span style="height:52%"></span><span style="height:76%"></span><span style="height:64%"></span><span style="height:82%"></span><span style="height:60%"></span>
+            </div>
           </div>
           <div class="matrix-card">
             <div class="label mono">PBB</div>
             <strong>Build Continuity</strong>
             <div class="sub">Builder flow armed for guided execution.</div>
             <div class="bar"><span style="width:84%"></span></div>
+            <div class="micro-chart gold">
+              <span style="height:34%"></span><span style="height:50%"></span><span style="height:44%"></span><span style="height:60%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:80%"></span><span style="height:68%"></span><span style="height:86%"></span><span style="height:62%"></span>
+            </div>
           </div>
           <div class="matrix-card">
             <div class="label mono">Spider</div>
             <strong>Execution Spine</strong>
             <div class="sub">Receipt-backed actions and live system routing.</div>
             <div class="bar red"><span style="width:66%"></span></div>
+            <div class="micro-chart red">
+              <span style="height:24%"></span><span style="height:38%"></span><span style="height:52%"></span><span style="height:40%"></span><span style="height:70%"></span><span style="height:48%"></span><span style="height:82%"></span><span style="height:58%"></span><span style="height:74%"></span><span style="height:50%"></span>
+            </div>
           </div>
         </div>
       </section>
@@ -605,6 +640,10 @@ body::before{
             <div class="chart">
               <span style="height:26%"></span><span style="height:46%"></span><span style="height:38%"></span><span style="height:58%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:82%"></span><span style="height:64%"></span>
             </div>
+            <div class="signal-bar-row">
+              <div class="signal-line cyan"><span style="width:82%"></span></div>
+              <div class="signal-line gold"><span style="width:61%"></span></div>
+            </div>
           </div>
           <div class="board">
             <div class="label mono">Authority Index</div>
@@ -612,6 +651,10 @@ body::before{
             <div class="sub">System confidence and governance integrity.</div>
             <div class="chart gold">
               <span style="height:44%"></span><span style="height:56%"></span><span style="height:66%"></span><span style="height:52%"></span><span style="height:78%"></span><span style="height:62%"></span><span style="height:88%"></span><span style="height:74%"></span>
+            </div>
+            <div class="signal-bar-row">
+              <div class="signal-line gold"><span style="width:92%"></span></div>
+              <div class="signal-line green"><span style="width:88%"></span></div>
             </div>
           </div>
           <div class="board">
@@ -621,6 +664,10 @@ body::before{
             <div class="chart red">
               <span style="height:22%"></span><span style="height:42%"></span><span style="height:62%"></span><span style="height:40%"></span><span style="height:78%"></span><span style="height:58%"></span><span style="height:84%"></span><span style="height:66%"></span>
             </div>
+            <div class="signal-bar-row">
+              <div class="signal-line red"><span style="width:76%"></span></div>
+              <div class="signal-line cyan"><span style="width:54%"></span></div>
+            </div>
           </div>
           <div class="board">
             <div class="label mono">Command Health</div>
@@ -628,6 +675,10 @@ body::before{
             <div class="sub">Internal system posture and availability.</div>
             <div class="chart green">
               <span style="height:36%"></span><span style="height:48%"></span><span style="height:64%"></span><span style="height:52%"></span><span style="height:70%"></span><span style="height:60%"></span><span style="height:78%"></span><span style="height:68%"></span>
+            </div>
+            <div class="signal-bar-row">
+              <div class="signal-line green"><span style="width:84%"></span></div>
+              <div class="signal-line gold"><span style="width:72%"></span></div>
             </div>
           </div>
         </div>
