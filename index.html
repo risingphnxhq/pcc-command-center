@@ -19,14 +19,16 @@
       --gold-2:#e2c27f;
       --gold-3:#8c6a31;
       --ivory:#f4efe5;
-      --muted:rgba(244,239,229,.68);
+      --muted:rgba(244,239,229,.70);
+      --muted-2:rgba(244,239,229,.54);
       --line:rgba(198,161,91,.18);
       --line-2:rgba(198,161,91,.34);
       --glass:rgba(16,22,30,.46);
-      --glass-2:rgba(13,18,25,.72);
+      --glass-2:rgba(13,18,25,.78);
       --shadow:rgba(0,0,0,.6);
       --error:#d86a6a;
       --success:#8bc49a;
+      --focus:rgba(198,161,91,.18);
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -69,16 +71,13 @@
       position:relative;
       width:100%;
       min-height:100vh;
-      height:auto;
       padding:24px;
     }
 
-    /* OUTER CHAMBER FRAME */
     .chamber{
       position:relative;
       width:100%;
       min-height:calc(100vh - 48px);
-      height:auto;
       border-radius:22px;
       overflow:hidden;
       background:
@@ -88,6 +87,7 @@
         inset 0 0 0 1px rgba(255,255,255,.03),
         inset 0 0 120px rgba(0,0,0,.45),
         0 26px 80px rgba(0,0,0,.45);
+      transition:filter .7s ease, transform .7s ease, opacity .7s ease;
     }
 
     .chamber::before{
@@ -109,7 +109,6 @@
       pointer-events:none;
     }
 
-    /* architectural rails */
     .rail-top,
     .rail-bottom{
       position:absolute;
@@ -141,46 +140,46 @@
       z-index:3;
       width:100%;
       min-height:calc(100vh - 96px);
-      height:auto;
       display:grid;
-      grid-template-columns:minmax(360px, 490px) minmax(560px, 1fr);
+      grid-template-columns:minmax(390px, 520px) minmax(560px, 1fr);
       grid-template-rows:auto 1fr;
       grid-template-areas:
         "eyebrow eyebrow"
         "left right";
-      gap:8px 18px;
+      gap:12px 22px;
       align-items:center;
-      padding:30px 54px 24px 64px;
-    }
-
-    /* LEFT SIDE */
-    .left{
-      grid-area:left;
-      max-width:480px;
-      align-self:center;
+      padding:34px 54px 28px 64px;
     }
 
     .eyebrow{
       grid-area:eyebrow;
       width:100%;
-      white-space:nowrap;
       display:block;
+      white-space:nowrap;
       font-family:"Cinzel",serif;
       font-size:12px;
       letter-spacing:.18em;
       text-transform:uppercase;
       color:var(--gold);
-      margin-bottom:6px;
+      margin-bottom:8px;
       opacity:.95;
+    }
+
+    .left{
+      grid-area:left;
+      max-width:500px;
+      align-self:center;
+      position:relative;
+      z-index:2;
     }
 
     .title{
       font-family:"Cinzel",serif;
-      font-size:clamp(2.4rem, 4.3vw, 4.9rem);
-      line-height:.94;
-      letter-spacing:.045em;
+      font-size:clamp(2.75rem, 4.8vw, 5.1rem);
+      line-height:.92;
+      letter-spacing:.04em;
       text-transform:uppercase;
-      margin-bottom:18px;
+      margin-bottom:20px;
       text-shadow:
         0 1px 0 rgba(255,255,255,.04),
         0 0 18px rgba(198,161,91,.10);
@@ -201,26 +200,30 @@
       letter-spacing:.16em;
       text-transform:uppercase;
       color:var(--muted);
-      margin-bottom:20px;
+      margin-bottom:18px;
     }
 
-    .desc{
-      max-width:420px;
-      font-size:15px;
-      line-height:1.72;
-      color:var(--muted);
+    .position-line{
+      max-width:430px;
+      font-size:16px;
+      line-height:1.7;
+      color:var(--ivory);
       margin-bottom:28px;
+      font-weight:500;
     }
 
-    /* EXEC AUTH STRIP */
+    .position-line .muted{
+      color:var(--muted);
+      font-weight:400;
+    }
+
     .auth-shell{
       position:relative;
-      max-width:470px;
-      padding:18px 18px 20px;
+      max-width:480px;
+      padding:18px 18px 18px;
       background:
-        linear-gradient(180deg, rgba(12,17,23,.74), rgba(7,11,16,.84));
+        linear-gradient(180deg, rgba(12,17,23,.78), rgba(7,11,16,.88));
       border:1px solid var(--line);
-      border-radius:0;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,.02),
         0 24px 50px rgba(0,0,0,.28);
@@ -277,41 +280,69 @@
       margin-bottom:16px;
     }
 
-    .code-row{
-      display:grid;
-      grid-template-columns:repeat(9, 1fr);
-      gap:10px;
-      margin-bottom:16px;
+    .command-field-wrap{
+      position:relative;
+      margin-bottom:14px;
     }
 
-    .code-row input{
-      height:54px;
+    .command-prefix{
+      position:absolute;
+      left:16px;
+      top:50%;
+      transform:translateY(-50%);
+      font-family:"Cinzel",serif;
+      font-size:14px;
+      color:var(--gold-2);
+      letter-spacing:.12em;
+      pointer-events:none;
+      opacity:.92;
+    }
+
+    .command-input{
       width:100%;
-      min-width:0;
-      border:1px solid rgba(198,161,91,.18);
+      height:58px;
+      padding:0 18px 0 42px;
+      border:1px solid rgba(198,161,91,.20);
       background:
-        linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,.005));
+        linear-gradient(180deg, rgba(255,255,255,.018), rgba(255,255,255,.006));
       color:var(--ivory);
-      border-radius:0;
       outline:none;
-      text-align:center;
-      font-size:20px;
-      font-weight:700;
-      transition:border-color .18s ease, background .18s ease, box-shadow .18s ease;
+      border-radius:0;
+      font-size:16px;
+      letter-spacing:.10em;
+      text-transform:none;
+      transition:border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.015);
     }
 
-    .code-row input:focus{
+    .command-input::placeholder{
+      color:rgba(244,239,229,.36);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .command-input:focus{
       border-color:var(--line-2);
-      background:rgba(255,255,255,.025);
+      background:rgba(255,255,255,.028);
       box-shadow:
-        0 0 0 1px rgba(198,161,91,.14),
-        inset 0 0 18px rgba(198,161,91,.05);
+        0 0 0 1px var(--focus),
+        inset 0 0 18px rgba(198,161,91,.05),
+        0 0 30px rgba(198,161,91,.05);
+      transform:translateY(-1px);
+    }
+
+    .command-hint{
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--muted-2);
+      margin-bottom:16px;
     }
 
     .enter{
       width:100%;
       height:52px;
-      border:1px solid rgba(198,161,91,.28);
+      border:1px solid rgba(198,161,91,.30);
       border-radius:0;
       background:
         linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005));
@@ -319,7 +350,7 @@
       font-family:"Cinzel",serif;
       font-size:12px;
       font-weight:700;
-      letter-spacing:.22em;
+      letter-spacing:.24em;
       text-transform:uppercase;
       cursor:pointer;
       transition:transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
@@ -333,18 +364,22 @@
       box-shadow:0 0 24px rgba(198,161,91,.06);
     }
 
+    .enter:active{
+      transform:translateY(0);
+    }
+
     .auth-status{
       margin-top:12px;
       min-height:18px;
       font-size:12px;
-      line-height:1.45;
+      line-height:1.5;
       color:var(--muted);
+      letter-spacing:.03em;
     }
 
     .auth-status.error{color:var(--error)}
     .auth-status.success{color:var(--success)}
 
-    /* RIGHT SIDE / SOVEREIGN MOUNT */
     .right{
       grid-area:right;
       position:relative;
@@ -352,6 +387,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
+      min-width:0;
     }
 
     .seal-mount{
@@ -361,9 +397,9 @@
       display:flex;
       align-items:center;
       justify-content:center;
+      transition:transform .7s ease, filter .7s ease;
     }
 
-    /* recessed chamber */
     .seal-mount::before{
       content:"";
       position:absolute;
@@ -382,7 +418,6 @@
         0 0 140px rgba(198,161,91,.08);
     }
 
-    /* authority ring */
     .seal-mount::after{
       content:"";
       position:absolute;
@@ -403,6 +438,7 @@
         drop-shadow(0 24px 34px rgba(0,0,0,.44))
         drop-shadow(0 0 22px rgba(198,161,91,.10));
       transform:translateY(-6px);
+      transition:transform .7s ease, filter .7s ease, opacity .7s ease;
     }
 
     .seal-shadow{
@@ -415,9 +451,9 @@
       background:radial-gradient(circle at center, rgba(0,0,0,.42), transparent 72%);
       filter:blur(14px);
       opacity:.9;
+      transition:opacity .7s ease, transform .7s ease;
     }
 
-    /* lower ceremonial datum line */
     .datum{
       position:absolute;
       left:0;
@@ -446,12 +482,45 @@
       background:rgba(255,255,255,.01);
     }
 
-    /* responsive */
-    @media (max-width: 1160px){
-      .viewport{
-        height:auto;
-      }
+    .transition-overlay{
+      position:fixed;
+      inset:0;
+      z-index:99;
+      pointer-events:none;
+      opacity:0;
+      background:
+        radial-gradient(circle at 62% 48%, rgba(198,161,91,.14), transparent 0 18%, transparent 18%),
+        linear-gradient(180deg, rgba(2,4,7,0) 0%, rgba(2,4,7,.72) 60%, rgba(2,4,7,.96) 100%);
+      transition:opacity .8s ease;
+    }
 
+    body.authorized .transition-overlay{
+      opacity:1;
+    }
+
+    body.authorized .chamber{
+      filter:brightness(.82);
+      transform:scale(.995);
+    }
+
+    body.authorized .seal-mount{
+      transform:scale(1.02);
+      filter:drop-shadow(0 0 36px rgba(198,161,91,.12));
+    }
+
+    body.authorized .seal{
+      transform:translateY(-8px) scale(1.025);
+      filter:
+        drop-shadow(0 28px 40px rgba(0,0,0,.48))
+        drop-shadow(0 0 30px rgba(198,161,91,.18));
+    }
+
+    body.authorized .seal-shadow{
+      opacity:1;
+      transform:scale(1.04);
+    }
+
+    @media (max-width: 1160px){
       .layout{
         grid-template-columns:1fr;
         grid-template-rows:auto auto auto;
@@ -460,7 +529,12 @@
           "right"
           "left";
         padding:42px 28px 34px;
-        gap:14px;
+        gap:16px;
+      }
+
+      .eyebrow{
+        white-space:normal;
+        line-height:1.5;
       }
 
       .left{
@@ -475,7 +549,7 @@
         width:min(78vw, 520px);
       }
 
-      .desc,
+      .position-line,
       .auth-shell{
         max-width:100%;
       }
@@ -485,23 +559,51 @@
       }
     }
 
-    @media (max-height: 840px) and (min-width: 1161px){
-      body{
-        overflow-y:auto;
-      }
-
+    @media (max-width: 640px){
       .viewport{
-        min-height:100vh;
-        height:auto;
+        padding:12px;
       }
 
       .chamber{
-        min-height:calc(100vh - 48px);
-        height:auto;
+        min-height:calc(100vh - 24px);
+        border-radius:18px;
       }
 
       .layout{
-        height:auto;
+        padding:28px 18px 24px;
+      }
+
+      .title{
+        font-size:clamp(2.3rem, 10vw, 3.4rem);
+        line-height:.94;
+      }
+
+      .position-line{
+        font-size:15px;
+      }
+
+      .auth-top{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .auth-title{
+        font-size:18px;
+      }
+
+      .command-input{
+        height:54px;
+        font-size:15px;
+        padding-left:40px;
+      }
+
+      .enter{
+        height:50px;
+      }
+    }
+
+    @media (max-height: 840px) and (min-width: 1161px){
+      .layout{
         min-height:calc(100vh - 96px);
         padding-top:34px;
         padding-bottom:34px;
@@ -511,8 +613,8 @@
       .eyebrow{margin-bottom:12px}
 
       .title{
-        font-size:clamp(2.05rem, 3.3vw, 3.8rem);
-        margin-bottom:12px;
+        font-size:clamp(2.2rem, 3.5vw, 4rem);
+        margin-bottom:14px;
       }
 
       .micro-rule{margin-bottom:12px}
@@ -522,10 +624,10 @@
         font-size:11px;
       }
 
-      .desc{
-        font-size:13px;
-        line-height:1.5;
-        margin-bottom:16px;
+      .position-line{
+        font-size:14px;
+        line-height:1.6;
+        margin-bottom:18px;
       }
 
       .auth-shell{
@@ -541,14 +643,8 @@
         margin-bottom:12px;
       }
 
-      .code-row{
-        gap:8px;
-        margin-bottom:12px;
-      }
-
-      .code-row input{
-        height:44px;
-        font-size:16px;
+      .command-input{
+        height:48px;
       }
 
       .enter{
@@ -558,6 +654,8 @@
   </style>
 </head>
 <body>
+  <div class="transition-overlay" aria-hidden="true"></div>
+
   <div class="viewport">
     <main class="chamber">
       <div class="rail-top"></div>
@@ -566,7 +664,6 @@
       <div class="rail-right"></div>
 
       <section class="layout">
-
         <div class="eyebrow">
           Rising Phoenix Enterprises · Phoenix King Restricted Entry
         </div>
@@ -581,38 +678,44 @@
 
           <div class="doctrine">Command Before Visibility · Sovereign Executive Layer</div>
 
-          <p class="desc">
-            Phoenix Command Center is not a public interface. It is the sovereign command layer above all operational systems — built for control, visibility, and execution.
+          <p class="position-line">
+            Sovereign command layer above all operational systems.
+            <span class="muted">Restricted to authorized executive entry.</span>
           </p>
 
           <section class="auth-shell" aria-label="Restricted Authentication">
             <div class="auth-top">
-              <span>Phoenix King Access Code</span>
+              <span>Phoenix King Access</span>
               <span>Restricted Authentication</span>
             </div>
 
-            <div class="auth-title">Restricted Authentication</div>
-            <div class="auth-copy">Enter nine-character executive sequence to proceed.</div>
+            <div class="auth-title">Executive Authorization</div>
+            <div class="auth-copy">Enter command or passkey to initiate access.</div>
 
-            <div class="code-row">
-              <input maxlength="1" inputmode="text" aria-label="Code character 1">
-              <input maxlength="1" inputmode="text" aria-label="Code character 2">
-              <input maxlength="1" inputmode="text" aria-label="Code character 3">
-              <input maxlength="1" inputmode="text" aria-label="Code character 4">
-              <input maxlength="1" inputmode="text" aria-label="Code character 5">
-              <input maxlength="1" inputmode="text" aria-label="Code character 6">
-              <input maxlength="1" inputmode="text" aria-label="Code character 7">
-              <input maxlength="1" inputmode="text" aria-label="Code character 8">
-              <input maxlength="1" inputmode="text" aria-label="Code character 9">
+            <div class="command-field-wrap">
+              <div class="command-prefix">&gt;</div>
+              <input
+                id="commandInput"
+                class="command-input"
+                type="password"
+                inputmode="text"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                aria-label="Executive command or passkey"
+                placeholder="ENTER COMMAND OR PASSKEY"
+              />
             </div>
 
-            <button class="enter" id="enterButton" type="button">Enter Command Center</button>
+            <div class="command-hint">Single-field sovereign input · protected sequence</div>
+
+            <button class="enter" id="enterButton" type="button">Authorize Access</button>
             <div class="auth-status" id="authStatus" aria-live="polite"></div>
           </section>
         </div>
 
         <div class="right">
-          <div class="seal-mount">
+          <div class="seal-mount" id="sealMount">
             <div class="seal-shadow"></div>
             <img class="seal" src="rpe_seal_logo.png" alt="RPE Seal">
           </div>
@@ -629,141 +732,84 @@
   <script>
     (function () {
       const REQUIRED_CODE = "PHNX_Kkng";
-      const MASK = "*";
-      const inputs = Array.from(document.querySelectorAll(".code-row input"));
+      const REDIRECT_TARGET = "command-floor.html";
+
+      const commandInput = document.getElementById("commandInput");
       const enterButton = document.getElementById("enterButton");
       const authStatus = document.getElementById("authStatus");
+      const sealMount = document.getElementById("sealMount");
+
+      let voicePrimed = false;
 
       function setStatus(message, type) {
         authStatus.textContent = message || "";
         authStatus.className = "auth-status" + (type ? " " + type : "");
       }
 
-      function getStoredCode() {
-        return inputs.map(input => input.dataset.real || "").join("");
+      function normalizeInput(value) {
+        return (value || "").trim();
       }
 
-      function validateAndEnter() {
-        const enteredCode = getStoredCode();
+      function primeVoiceLayer() {
+        if (voicePrimed) return;
+        voicePrimed = true;
+        // Reserved for future authoritative voice binding.
+        // Keep silent for now to avoid autoplay/browser issues.
+      }
 
-        if (enteredCode.length !== REQUIRED_CODE.length) {
-          setStatus("Enter the full access code.", "error");
+      function denyAccess(message) {
+        setStatus(message || "Authorization denied.", "error");
+        commandInput.focus();
+        commandInput.select();
+      }
+
+      function authorizeAccess() {
+        const enteredCode = normalizeInput(commandInput.value);
+
+        if (!enteredCode) {
+          denyAccess("Enter command or passkey.");
           return;
         }
 
         if (enteredCode !== REQUIRED_CODE) {
-          setStatus("Access denied.", "error");
+          denyAccess("Authorization denied.");
           return;
         }
 
-        setStatus("Access granted. Opening Command Floor…", "success");
-        window.location.href = "command-floor.html";
+        setStatus("Authorization confirmed · Initiating Command Layer…", "success");
+        document.body.classList.add("authorized");
+        enterButton.disabled = true;
+        commandInput.disabled = true;
+
+        setTimeout(() => {
+          window.location.href = REDIRECT_TARGET;
+        }, 1200);
       }
 
-      inputs.forEach((input, index) => {
-        input.autocomplete = "off";
-        input.spellcheck = false;
+      commandInput.addEventListener("focus", primeVoiceLayer);
 
-        input.addEventListener("input", (e) => {
-          let value = e.target.value;
-          if (!value) {
-            input.dataset.real = "";
-            input.value = "";
-            setStatus("", "");
-            return;
-          }
-
-          value = value.slice(-1);
-          input.dataset.real = value;
-          input.value = value;
-
-          setTimeout(() => {
-            if (input.dataset.real === value) {
-              input.value = MASK;
-            }
-          }, 220);
-
-          setStatus("", "");
-
-          if (index < inputs.length - 1) {
-            inputs[index + 1].focus();
-          }
-        });
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Backspace") {
-            e.preventDefault();
-
-            if (input.dataset.real) {
-              input.dataset.real = "";
-              input.value = "";
-            } else if (index > 0) {
-              const prev = inputs[index - 1];
-              prev.dataset.real = "";
-              prev.value = "";
-              prev.focus();
-            }
-
-            setStatus("", "");
-            return;
-          }
-
-          if (e.key === "ArrowLeft" && index > 0) {
-            e.preventDefault();
-            inputs[index - 1].focus();
-            return;
-          }
-
-          if (e.key === "ArrowRight" && index < inputs.length - 1) {
-            e.preventDefault();
-            inputs[index + 1].focus();
-            return;
-          }
-
-          if (e.key === "Enter") {
-            e.preventDefault();
-            validateAndEnter();
-            return;
-          }
-
-          if (e.key.length === 1) {
-            setStatus("", "");
-          }
-        });
-
-        input.addEventListener("focus", () => {
-          input.select();
-        });
-
-        input.addEventListener("paste", (e) => {
-          e.preventDefault();
-          const pasted = (e.clipboardData || window.clipboardData).getData("text");
-          if (!pasted) return;
-
-          const chars = pasted.split("").slice(0, inputs.length);
-
-          inputs.forEach((box, i) => {
-            if (chars[i]) {
-              box.dataset.real = chars[i];
-              box.value = chars[i];
-              setTimeout(() => {
-                if (box.dataset.real === chars[i]) {
-                  box.value = MASK;
-                }
-              }, 220);
-            } else {
-              box.dataset.real = "";
-              box.value = "";
-            }
-          });
-
-          const nextIndex = Math.min(chars.length, inputs.length - 1);
-          inputs[nextIndex].focus();
-          setStatus("", "");
-        });
+      commandInput.addEventListener("input", () => {
+        setStatus("", "");
       });
 
-      enterButton.addEventListener("click", validateAndEnter);
+      commandInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          authorizeAccess();
+        }
+      });
+
+      enterButton.addEventListener("click", authorizeAccess);
+
+      sealMount.addEventListener("mouseenter", () => {
+        sealMount.style.transform = "scale(1.012)";
+      });
+
+      sealMount.addEventListener("mouseleave", () => {
+        if (!document.body.classList.contains("authorized")) {
+          sealMount.style.transform = "";
+        }
+      });
     })();
   </script>
 </body>
