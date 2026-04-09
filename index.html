@@ -1,580 +1,189 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#05080d;
-      --bg2:#09111a;
-      --panel:#0d1520;
-      --panel2:#111c28;
-      --gold:#c7a15b;
-      --gold2:#e2bf7d;
-      --text:#f5efe6;
-      --muted:rgba(245,239,230,.74);
-      --line:rgba(199,161,91,.16);
-      --lineStrong:rgba(199,161,91,.28);
-      --cyan:#69d5ff;
-      --green:#31d67a;
-      --amber:#efba45;
-      --red:#f06262;
-      --shadow:0 28px 90px rgba(0,0,0,.42);
-      --radius:20px;
-      --content:1460px;
-    }*{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phoenix Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"><style>
+:root{
+--bg:#05080d;
+--gold:#c7a15b;
+--gold2:#e2bf7d;
+--text:#f5efe6;
+--muted:rgba(245,239,230,.75);
+--line:rgba(199,161,91,.18);
+}
 
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:"Inter",sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(circle at top center, rgba(199,161,91,.08), transparent 22%),
-    radial-gradient(circle at right 18%, rgba(105,213,255,.05), transparent 20%),
-    linear-gradient(180deg, #06090f 0%, #05080d 100%);
-  overflow-x:hidden;
-  overflow-y:auto;
+font-family:"Inter",sans-serif;
+background:linear-gradient(180deg,#05080d,#03060a);
+color:var(--text);
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  opacity:.14;
-  background:
-    linear-gradient(rgba(105,213,255,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(105,213,255,.04) 1px, transparent 1px);
-  background-size:64px 64px;
-  mask-image:radial-gradient(circle at center, black 38%, transparent 88%);
+.gate{
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px 20px;
 }
 
-.screen{display:none;min-height:100vh;position:relative}
-.screen.active{display:block}
-.mono{font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.16em}
-
-.panel{
-  background:linear-gradient(180deg, rgba(15,22,32,.9), rgba(8,13,20,.94));
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  position:relative;
-  overflow:hidden;
+.container{
+width:1400px;
+max-width:100%;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:40px;
+align-items:center;
 }
 
-.panel::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:linear-gradient(135deg, rgba(199,161,91,.06), transparent 28%, transparent 72%, rgba(105,213,255,.05));
+/* LEFT SIDE FIX */
+.left{
+max-width:640px;
+}
+
+h1{
+font-family:"Playfair Display",serif;
+font-size:clamp(3rem,5vw,5.2rem);
+line-height:.95;
+letter-spacing:-.02em;
+margin-bottom:18px;
+text-shadow:0 0 25px rgba(199,161,91,.08);
+}
+
+.subline{
+font-size:12px;
+letter-spacing:.18em;
+margin-bottom:20px;
+color:var(--gold);
+}
+
+p{
+color:var(--muted);
+line-height:1.6;
+margin-bottom:24px;
+font-size:1rem;
+}
+
+.metrics{
+display:flex;
+gap:12px;
+margin-bottom:26px;
+}
+
+.metric{
+flex:1;
+padding:14px;
+border:1px solid var(--line);
+border-radius:14px;
+background:rgba(255,255,255,.02);
+}
+
+.metric strong{
+font-size:.95rem;
+display:block;
+margin-top:6px;
+}
+
+/* ACCESS BOX */
+.access{
+padding:18px;
+border-radius:16px;
+border:1px solid var(--line);
+background:rgba(255,255,255,.03);
+}
+
+.access h2{
+font-size:1rem;
+margin-bottom:10px;
+}
+
+.code{
+display:grid;
+grid-template-columns:repeat(6,1fr);
+gap:10px;
+margin-bottom:14px;
+}
+
+.code input{
+height:44px;
+border-radius:10px;
+border:1px solid var(--line);
+background:rgba(255,255,255,.04);
+text-align:center;
+font-weight:800;
+font-size:1rem;
+color:var(--text);
+}
+
+.actions{
+display:flex;
+gap:10px;
 }
 
 .btn{
-  appearance:none;border:none;cursor:pointer;text-decoration:none;
-  min-height:44px;padding:0 16px;border-radius:14px;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.16em;
-  font-size:10px;font-weight:700;transition:transform .18s ease,border-color .18s ease,background .18s ease;
-}
-.btn:hover{transform:translateY(-1px)}
-.btn-primary{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#091018;box-shadow:0 12px 30px rgba(199,161,91,.22)}
-.btn-secondary{background:rgba(255,255,255,.03);color:var(--text);border:1px solid var(--line)}
-
-/* ENTRY GATE */
-.gate{display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden}
-.orbit,.orbit2,.orbit3,.sweep{position:absolute;border-radius:50%;pointer-events:none}
-.orbit{width:860px;height:860px;border:1px solid rgba(199,161,91,.08);animation:spinSlow 46s linear infinite}
-.orbit2{width:680px;height:680px;border:1px dashed rgba(105,213,255,.12);animation:spinReverse 34s linear infinite}
-.orbit3{width:520px;height:520px;border:1px solid rgba(199,161,91,.16)}
-.sweep{width:740px;height:740px;background:conic-gradient(from 0deg, rgba(105,213,255,0) 0deg, rgba(105,213,255,.12) 12deg, rgba(105,213,255,0) 28deg 360deg);mask-image:radial-gradient(circle at center, transparent 0 42%, black 62%, transparent 82%);filter:blur(2px);animation:spinSlow 9s linear infinite;opacity:.55}
-
-.gate-shell{
-  width:min(var(--content),100%);
-  display:grid;
-  grid-template-columns:minmax(320px,.84fr) minmax(380px,1.16fr);
-  gap:20px;
-  align-items:center;
-  position:relative;
-  z-index:1;
+flex:1;
+padding:12px;
+border-radius:12px;
+border:none;
+cursor:pointer;
+font-weight:700;
+letter-spacing:.1em;
 }
 
-.gate-copy{min-width:0}
-.gate-copy .eyebrow{font-size:11px;color:var(--gold);margin-bottom:12px}
-.gate-copy h1{font-family:"Playfair Display",serif;font-size:clamp(2.15rem,3.4vw,3.65rem);line-height:.94;letter-spacing:-.018em;max-width:8ch;margin-bottom:8px;text-shadow:0 0 1px rgba(255,255,255,.12),0 0 24px rgba(199,161,91,.08)}
-.gate-copy h1 span{display:block}
-.gate-doctrine{display:inline-flex;align-items:center;min-height:32px;padding:0 11px;border-radius:999px;border:1px solid var(--lineStrong);background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));color:var(--text);font-size:9px;margin-bottom:12px}
-.gate-copy p{max-width:500px;color:var(--muted);line-height:1.58;font-size:.88rem;margin-bottom:14px}
-
-.gate-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px;max-width:620px}
-.metric-card{padding:10px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.022)}
-.metric-card .label{font-size:9px;color:var(--muted)}
-.metric-card strong{display:block;font-size:.82rem;line-height:1.18;margin-top:6px}
-
-.access-box{max-width:500px;width:100%;padding:12px;overflow:hidden}
-.access-box h2{font-size:.9rem;margin:7px 0 6px;letter-spacing:.02em}
-.access-box p{font-size:.8rem;color:var(--muted);line-height:1.45;margin-bottom:9px}
-
-.code-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;width:100%;margin-bottom:10px}
-.code-grid input{width:100%;min-width:0;height:38px;border-radius:10px;border:1px solid rgba(199,161,91,.18);background:rgba(255,255,255,.03);color:var(--text);text-align:center;font-size:.9rem;font-weight:800;outline:none}
-.code-grid input:focus{border-color:var(--gold2);box-shadow:0 0 0 1px rgba(226,191,125,.18),0 0 14px rgba(226,191,125,.10)}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.actions .btn{flex:1 1 150px}
-.hint{margin-top:7px;color:rgba(245,239,230,.52);font-size:.7rem;line-height:1.35}
-
-.seal-side{min-height:500px;display:flex;align-items:center;justify-content:center;min-width:0}
-.seal-core{width:min(100%,560px);aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at center, rgba(199,161,91,.18), rgba(199,161,91,.04) 40%, transparent 70%);box-shadow:0 0 130px rgba(199,161,91,.10);position:relative}
-.seal-core img{width:min(90%,480px);object-fit:contain;display:block;filter:drop-shadow(0 0 32px rgba(199,161,91,.18));animation:sealPulse 4.2s ease-in-out infinite;user-select:none;-webkit-user-drag:none}
-.seal-tag{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);font-size:8px;max-width:78%;text-align:center}
-
-/* DASHBOARD */
-.dashboard{padding:18px;overflow:visible}
-.dash-shell{width:min(var(--content),100%);margin:0 auto;display:grid;gap:18px}
-.topbar{padding:14px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
-.brand{display:flex;align-items:center;gap:14px;min-width:0}
-.brand-seal{width:58px;height:58px;border-radius:50%;overflow:hidden;border:1px solid rgba(199,161,91,.22);box-shadow:0 0 24px rgba(199,161,91,.1);flex:0 0 auto}
-.brand-seal img{width:100%;height:100%;object-fit:cover}
-.brand-copy{min-width:0}
-.brand-copy .line{font-size:11px;color:var(--gold);margin-bottom:4px}
-.brand-copy h1{font-size:1.75rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.clock{justify-self:center;font-size:11px;color:var(--muted)}
-.status-row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted)}
-.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}
-.green{color:var(--green)} .amber{color:var(--amber)} .cyan{color:var(--cyan)} .red{color:var(--red)}
-
-.hero{display:grid;grid-template-columns:1.02fr .98fr;gap:18px}
-.hero-copy,.hero-telemetry,.matrix,.boards,.feed{padding:20px}
-.hero-copy .eyebrow{font-size:12px;color:var(--gold);margin-bottom:14px}
-.hero-copy h2{font-family:"Playfair Display",serif;font-size:clamp(2.45rem,3.8vw,4.2rem);line-height:.94;letter-spacing:-.02em;max-width:8ch;margin-bottom:12px;text-shadow:0 0 1px rgba(255,255,255,.14),0 0 36px rgba(199,161,91,.08)}
-.hero-copy h2 span{display:block}
-.doctrine-chip{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(105,213,255,.16);background:linear-gradient(180deg, rgba(105,213,255,.05), rgba(255,255,255,.02));color:var(--muted);font-size:10px;margin-bottom:14px}
-.hero-copy p{color:var(--muted);line-height:1.74;font-size:.98rem;max-width:62ch;margin-bottom:18px}
-.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
-.mini-card,.tele-box,.matrix-card,.board{padding:13px;background:rgba(255,255,255,.025);border-radius:16px;border:1px solid var(--line)}
-.mini-card strong,.matrix-card strong{display:block;font-size:1rem;line-height:1.2;margin-top:7px}
-.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
-.hero-actions .btn{flex:1 1 170px}
-
-.telemetry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.tele-box strong{display:block;font-size:1.6rem;line-height:1;margin:10px 0 6px}
-.tele-box p{color:var(--muted);font-size:.88rem;line-height:1.55}
-.section-title{font-size:12px;color:var(--gold);margin-bottom:12px}
-
-.ticker-wrap{padding:12px 14px;border-radius:14px;border:1px solid rgba(105,213,255,.16);background:linear-gradient(180deg, rgba(105,213,255,.06), rgba(255,255,255,.02))}
-.ticker{overflow:hidden;white-space:nowrap;position:relative}
-.ticker-track{display:inline-block;white-space:nowrap;animation:tickerMove 22s linear infinite}
-.ticker-track span{display:inline-block;margin-right:26px;color:var(--muted);font-size:10px}
-.ticker-track span::after{content:' • ';color:var(--gold);margin-left:12px}
-
-.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
-.stack{display:grid;gap:18px}
-.matrix-grid,.boards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.sub{font-size:.88rem;color:var(--muted);line-height:1.55}
-
-.bar{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:10px}
-.bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold2));animation:pulseBar 2.8s ease-in-out infinite}
-.bar.green > span{background:linear-gradient(90deg,#31d67a,#7ef3a7)}
-.bar.cyan > span{background:linear-gradient(90deg,#44caff,#8ce5ff)}
-.bar.red > span{background:linear-gradient(90deg,#f06262,#ff9b9b)}
-
-.micro-chart{height:48px;display:flex;align-items:flex-end;gap:4px;margin-top:12px;padding-top:4px}
-.micro-chart span{flex:1;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg, rgba(226,191,125,.96), rgba(226,191,125,.20));animation:bounce 2.2s ease-in-out infinite}
-.micro-chart.green span{background:linear-gradient(180deg, rgba(49,214,122,.95), rgba(49,214,122,.22))}
-.micro-chart.cyan span{background:linear-gradient(180deg, rgba(68,202,255,.96), rgba(68,202,255,.22))}
-.micro-chart.red span{background:linear-gradient(180deg, rgba(240,98,98,.96), rgba(240,98,98,.22))}
-.micro-chart.gold span{background:linear-gradient(180deg, rgba(226,191,125,.96), rgba(226,191,125,.22))}
-.micro-chart span:nth-child(2){animation-delay:.12s}.micro-chart span:nth-child(3){animation-delay:.24s}.micro-chart span:nth-child(4){animation-delay:.36s}.micro-chart span:nth-child(5){animation-delay:.48s}.micro-chart span:nth-child(6){animation-delay:.60s}.micro-chart span:nth-child(7){animation-delay:.72s}.micro-chart span:nth-child(8){animation-delay:.84s}.micro-chart span:nth-child(9){animation-delay:.96s}.micro-chart span:nth-child(10){animation-delay:1.08s}
-
-.big{font-size:2.15rem;font-weight:900;letter-spacing:-.05em;margin:8px 0 6px}
-.chart{height:62px;display:flex;align-items:flex-end;gap:5px;margin-top:12px}
-.chart span{flex:1;border-radius:8px 8px 2px 2px;background:linear-gradient(180deg, rgba(105,213,255,.95), rgba(105,213,255,.28));animation:bounce 2.4s ease-in-out infinite}
-.chart span:nth-child(2){animation-delay:.2s}.chart span:nth-child(3){animation-delay:.4s}.chart span:nth-child(4){animation-delay:.6s}.chart span:nth-child(5){animation-delay:.8s}.chart span:nth-child(6){animation-delay:1s}.chart span:nth-child(7){animation-delay:1.2s}.chart span:nth-child(8){animation-delay:1.4s}
-.chart.gold span{background:linear-gradient(180deg, rgba(226,191,125,.95), rgba(226,191,125,.28))}
-.chart.red span{background:linear-gradient(180deg, rgba(240,98,98,.95), rgba(240,98,98,.28))}
-.chart.green span{background:linear-gradient(180deg, rgba(49,214,122,.95), rgba(49,214,122,.28))}
-.signal-bar-row{display:grid;gap:8px;margin-top:12px}
-.signal-line{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
-.signal-line span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;animation:signalFlow 2.8s ease-in-out infinite}
-.signal-line.cyan span{background:linear-gradient(90deg,#44caff,#8ce5ff)}
-.signal-line.gold span{background:linear-gradient(90deg,#c7a15b,#e2bf7d)}
-.signal-line.green span{background:linear-gradient(90deg,#31d67a,#7ef3a7)}
-.signal-line.red span{background:linear-gradient(90deg,#f06262,#ff9b9b)}
-
-.feed-list{display:grid;gap:10px}
-.feed-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.022)}
-.feed-item .signal{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
-.feed-item:nth-child(2) .signal{background:var(--amber);box-shadow:0 0 12px var(--amber)}
-.feed-item:nth-child(3) .signal{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
-.feed-item:nth-child(4) .signal{background:var(--red);box-shadow:0 0 12px var(--red)}
-.footer-note{padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02);font-size:.88rem;color:var(--muted);line-height:1.65}
-
-@keyframes spinSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes spinReverse{from{transform:rotate(360deg)}to{transform:rotate(0deg)}}
-@keyframes sealPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 32px rgba(199,161,91,.18))}50%{transform:scale(1.012);filter:drop-shadow(0 0 46px rgba(199,161,91,.26))}}
-@keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@keyframes pulseBar{0%,100%{filter:brightness(.92)}50%{filter:brightness(1.18)}}
-@keyframes signalFlow{0%,100%{filter:brightness(.94);transform:scaleX(.985);transform-origin:left center}50%{filter:brightness(1.18);transform:scaleX(1);transform-origin:left center}}
-@keyframes bounce{0%,100%{transform:scaleY(.68)}50%{transform:scaleY(1)}}
-
-@media (max-width: 1220px){
-  .gate-shell,.hero,.grid{grid-template-columns:1fr}
-  .seal-side{min-height:380px}
-  .seal-core{max-width:420px;margin:0 auto}
-  .gate-copy h1{max-width:9ch}
+.primary{
+background:linear-gradient(180deg,var(--gold2),var(--gold));
+color:#000;
 }
 
-@media (max-height: 820px) and (min-width: 900px){
-  .gate{padding:12px}
-  .gate-shell{grid-template-columns:minmax(300px,.88fr) minmax(340px,1.12fr);gap:16px;align-items:start}
-  .gate-copy h1{font-size:clamp(1.8rem,2.8vw,3rem)}
-  .gate-copy p{font-size:.8rem;line-height:1.42;margin-bottom:10px;max-width:450px}
-  .gate-metrics{gap:6px;margin-bottom:10px;max-width:580px}
-  .metric-card{padding:9px}
-  .metric-card strong{font-size:.78rem}
-  .access-box{padding:10px;max-width:470px}
-  .access-box h2{font-size:.84rem}
-  .access-box p{font-size:.75rem;margin-bottom:8px}
-  .code-grid input{height:34px;font-size:.82rem}
-  .actions .btn{min-height:36px;font-size:9px}
-  .seal-side{min-height:390px}
-  .seal-core{max-width:420px}
-  .seal-core img{width:min(88%,380px)}
-  .seal-tag{bottom:14px;font-size:7px}
-  .orbit{width:620px;height:620px}
-  .orbit2{width:500px;height:500px}
-  .orbit3{width:380px;height:380px}
-  .sweep{width:560px;height:560px}
+.secondary{
+background:rgba(255,255,255,.05);
+color:var(--text);
 }
 
-@media (max-width: 860px){
-  .gate,.dashboard{padding:14px}
-  .topbar{grid-template-columns:1fr}
-  .clock{justify-self:start}
-  .status-row{justify-content:flex-start}
-  .gate-metrics,.hero-stats,.telemetry-grid,.matrix-grid,.boards-grid{grid-template-columns:1fr}
-  .brand-copy h1{white-space:normal}
-  .seal-side{min-height:300px}
-  .seal-core{max-width:320px}
-  .code-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
-  .orbit{width:520px;height:520px}
-  .orbit2{width:410px;height:410px}
-  .orbit3{width:300px;height:300px}
-  .sweep{width:460px;height:460px}
+/* RIGHT SIDE — SEAL BIG AGAIN */
+.right{
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
-  </style>
-</head>
-<body>
-  <section class="screen gate active" id="gateScreen">
-    <div class="orbit"></div>
-    <div class="orbit2"></div>
-    <div class="orbit3"></div>
-    <div class="sweep"></div><div class="gate-shell">
-  <div class="gate-copy">
-    <div class="eyebrow mono">Rising Phoenix Enterprises · Phoenix King Restricted Entry</div>
-    <h1><span>From Ashes</span><span>to Authority.</span></h1>
-    <div class="gate-doctrine mono">Command Before Visibility · Restricted Executive Layer</div>
-    <p>
-      Phoenix Command Center is not a public website and not a generic dashboard. It is the controlled authority layer above the operational systems — part mission control, part market intelligence floor, fully subordinate to executive access and system governance.
-    </p>
+.seal{
+width:560px; /* BIGGER AGAIN */
+max-width:100%;
+filter:drop-shadow(0 0 40px rgba(199,161,91,.25));
+animation:pulse 4s ease-in-out infinite;
+}
 
-    <div class="gate-metrics">
-      <div class="metric-card">
-        <div class="label mono">Authority</div>
-        <strong>Executive Sovereign Access</strong>
-      </div>
-      <div class="metric-card">
-        <div class="label mono">Environment</div>
-        <strong>Live Command Surface</strong>
-      </div>
-      <div class="metric-card">
-        <div class="label mono">Status</div>
-        <strong>Gate Locked / Ready</strong>
-      </div>
-    </div>
+@keyframes pulse{
+0%,100%{transform:scale(1)}
+50%{transform:scale(1.03)}
+}
 
-    <div class="panel access-box">
-      <div class="label mono">Phoenix King Access Code</div>
-      <h2>Authenticate to enter Command Center</h2>
-      <p>Use the six-character executive access sequence to open the live operational floor.</p>
-      <div class="code-grid">
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-        <input maxlength="1" inputmode="text" class="code-input" />
-      </div>
-      <div class="actions">
-        <button class="btn btn-primary" id="enterBtn">Enter Command Floor</button>
-        <button class="btn btn-secondary" id="demoBtn">Demo Access</button>
-      </div>
-      <div class="hint mono">Seal-authorized · receipt-backed · command-gated</div>
-    </div>
-  </div>
+@media(max-width:1000px){
+.container{grid-template-columns:1fr}
+.right{order:-1}
+.seal{width:420px}
+}
 
-  <div class="seal-side">
-    <div class="seal-core">
-      <img src="rpe_seal_logo.png" alt="RPE Seal" />
-      <div class="seal-tag mono">Piri · It Ienstrumentum · Iti Irstrumentum</div>
-    </div>
-  </div>
-</div>
-
-  </section>  <section class="screen dashboard" id="dashScreen">
-    <div class="dash-shell">
-      <header class="panel topbar">
-        <div class="brand">
-          <div class="brand-seal"><img src="rpe_seal_logo.png" alt="RPE Seal"></div>
-          <div class="brand-copy">
-            <div class="line mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
-            <h1>Phoenix Command Center</h1>
-          </div>
-        </div><div class="clock mono" id="liveClock">00:00:00 · CST</div>
-
-    <div class="status-row">
-      <div class="chip green mono"><span class="dot"></span> Command Link Active</div>
-      <div class="chip amber mono"><span class="dot"></span> Oversight Mode</div>
-      <div class="chip cyan mono"><span class="dot"></span> Market Signals Live</div>
-    </div>
-  </header>
-
-  <section class="hero">
-    <article class="panel hero-copy">
-      <div class="eyebrow mono">Layer 0 · Executive Command Surface</div>
-      <h2><span>From Ashes</span><span>to Authority.</span></h2>
-      <div class="doctrine-chip mono">Command Before Visibility · Mission Floor Active</div>
-      <p>
-        Phoenix Command Center is the sovereign control surface above the public systems. It carries the ceremonial weight of the RPE front door, but operates like a live mission floor with moving signals, active telemetry, monitored system bars, and market-grade intelligence visibility.
-      </p>
-
-      <div class="hero-stats">
-        <div class="mini-card">
-          <div class="label mono">Authority</div>
-          <strong>Executive Control</strong>
-        </div>
-        <div class="mini-card">
-          <div class="label mono">Mode</div>
-          <strong>Governed / Verified</strong>
-        </div>
-        <div class="mini-card">
-          <div class="label mono">Position</div>
-          <strong>Above All Active Systems</strong>
-        </div>
-      </div>
-
-      <div class="hero-actions">
-        <button class="btn btn-primary">Open Command Layer</button>
-        <button class="btn btn-secondary">Review Signals</button>
-      </div>
-    </article>
-
-    <aside class="panel hero-telemetry">
-      <div class="section-title mono">Oversight Telemetry</div>
-      <div class="telemetry-grid">
-        <div class="tele-box">
-          <div class="label mono">System Status</div>
-          <strong>Stable</strong>
-          <p>Governance thresholds holding.</p>
-        </div>
-        <div class="tele-box">
-          <div class="label mono">Signal Readiness</div>
-          <strong>Live</strong>
-          <p>Active surveillance across lanes.</p>
-        </div>
-        <div class="tele-box">
-          <div class="label mono">Execution Posture</div>
-          <strong>Controlled</strong>
-          <p>Human authorization required.</p>
-        </div>
-        <div class="tele-box">
-          <div class="label mono">Command Confidence</div>
-          <strong>99%</strong>
-          <p>TQL/TQM doctrine aligned.</p>
-        </div>
-      </div>
-
-      <div class="ticker-wrap">
-        <div class="ticker">
-          <div class="ticker-track mono">
-            <span>PBRS Corridor Monitored</span>
-            <span>Spider Execution Verified</span>
-            <span>Receipts Locked</span>
-            <span>PBB Continuity Stable</span>
-            <span>StatsCORE Tracking Active</span>
-            <span>Phoenix OS Governance Holding</span>
-            <span>PBRS Corridor Monitored</span>
-            <span>Spider Execution Verified</span>
-            <span>Receipts Locked</span>
-            <span>PBB Continuity Stable</span>
-            <span>StatsCORE Tracking Active</span>
-            <span>Phoenix OS Governance Holding</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </section>
-
-  <section class="grid">
-    <div class="stack">
-      <section class="panel matrix">
-        <div class="section-title mono">Command Matrix</div>
-        <div class="matrix-grid">
-          <div class="matrix-card">
-            <div class="label mono">PBS</div>
-            <strong>Operational Corridor</strong>
-            <div class="sub">Institutional surface active and monitored.</div>
-            <div class="bar green"><span style="width:92%"></span></div>
-            <div class="micro-chart green">
-              <span style="height:32%"></span><span style="height:48%"></span><span style="height:40%"></span><span style="height:62%"></span><span style="height:74%"></span><span style="height:58%"></span><span style="height:88%"></span><span style="height:70%"></span><span style="height:84%"></span><span style="height:66%"></span>
-            </div>
-          </div>
-          <div class="matrix-card">
-            <div class="label mono">PBRS</div>
-            <strong>Readiness Intake</strong>
-            <div class="sub">Qualification logic and scoring visible.</div>
-            <div class="bar cyan"><span style="width:78%"></span></div>
-            <div class="micro-chart cyan">
-              <span style="height:28%"></span><span style="height:42%"></span><span style="height:56%"></span><span style="height:46%"></span><span style="height:68%"></span><span style="height:52%"></span><span style="height:76%"></span><span style="height:64%"></span><span style="height:82%"></span><span style="height:60%"></span>
-            </div>
-          </div>
-          <div class="matrix-card">
-            <div class="label mono">PBB</div>
-            <strong>Build Continuity</strong>
-            <div class="sub">Builder flow armed for guided execution.</div>
-            <div class="bar"><span style="width:84%"></span></div>
-            <div class="micro-chart gold">
-              <span style="height:34%"></span><span style="height:50%"></span><span style="height:44%"></span><span style="height:60%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:80%"></span><span style="height:68%"></span><span style="height:86%"></span><span style="height:62%"></span>
-            </div>
-          </div>
-          <div class="matrix-card">
-            <div class="label mono">Spider</div>
-            <strong>Execution Spine</strong>
-            <div class="sub">Receipt-backed actions and live system routing.</div>
-            <div class="bar red"><span style="width:66%"></span></div>
-            <div class="micro-chart red">
-              <span style="height:24%"></span><span style="height:38%"></span><span style="height:52%"></span><span style="height:40%"></span><span style="height:70%"></span><span style="height:48%"></span><span style="height:82%"></span><span style="height:58%"></span><span style="height:74%"></span><span style="height:50%"></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel feed">
-        <div class="section-title mono">Live Command Feed</div>
-        <div class="feed-list mono">
-          <div class="feed-item"><span class="signal"></span><span>PBRS intake channel heartbeat confirmed</span><span>+00:03</span></div>
-          <div class="feed-item"><span class="signal"></span><span>PBB continuity surface flagged for review</span><span>+00:08</span></div>
-          <div class="feed-item"><span class="signal"></span><span>Spider lane observing execution receipts</span><span>+00:14</span></div>
-          <div class="feed-item"><span class="signal"></span><span>StatsCORE board awaiting next signal burst</span><span>+00:21</span></div>
-        </div>
-      </section>
-    </div>
-
-    <div class="stack">
-      <section class="panel boards">
-        <div class="section-title mono">Signal Boards</div>
-        <div class="boards-grid">
-          <div class="board">
-            <div class="label mono">Market Pulse</div>
-            <div class="big">10,753</div>
-            <div class="sub">Lead pressure across monitored corridors.</div>
-            <div class="chart">
-              <span style="height:26%"></span><span style="height:46%"></span><span style="height:38%"></span><span style="height:58%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:82%"></span><span style="height:64%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line cyan"><span style="width:82%"></span></div>
-              <div class="signal-line gold"><span style="width:61%"></span></div>
-            </div>
-          </div>
-          <div class="board">
-            <div class="label mono">Authority Index</div>
-            <div class="big">99.2%</div>
-            <div class="sub">System confidence and governance integrity.</div>
-            <div class="chart gold">
-              <span style="height:44%"></span><span style="height:56%"></span><span style="height:66%"></span><span style="height:52%"></span><span style="height:78%"></span><span style="height:62%"></span><span style="height:88%"></span><span style="height:74%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line gold"><span style="width:92%"></span></div>
-              <div class="signal-line green"><span style="width:88%"></span></div>
-            </div>
-          </div>
-          <div class="board">
-            <div class="label mono">Social Velocity</div>
-            <div class="big">312.6K</div>
-            <div class="sub">Cross-lane attention signal density.</div>
-            <div class="chart red">
-              <span style="height:22%"></span><span style="height:42%"></span><span style="height:62%"></span><span style="height:40%"></span><span style="height:78%"></span><span style="height:58%"></span><span style="height:84%"></span><span style="height:66%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line red"><span style="width:76%"></span></div>
-              <div class="signal-line cyan"><span style="width:54%"></span></div>
-            </div>
-          </div>
-          <div class="board">
-            <div class="label mono">Command Health</div>
-            <div class="big">Stable</div>
-            <div class="sub">Internal system posture and availability.</div>
-            <div class="chart green">
-              <span style="height:36%"></span><span style="height:48%"></span><span style="height:64%"></span><span style="height:52%"></span><span style="height:70%"></span><span style="height:60%"></span><span style="height:78%"></span><span style="height:68%"></span>
-            </div>
-            <div class="signal-bar-row">
-              <div class="signal-line green"><span style="width:84%"></span></div>
-              <div class="signal-line gold"><span style="width:72%"></span></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div class="footer-note mono">
-        Phoenix Command Center is the room above the rooms. Authority first. Signals second. Systems third.
-      </div>
-    </div>
-  </section>
-</div>
-
-  </section>  <script>
-    const gateScreen = document.getElementById('gateScreen');
-    const dashScreen = document.getElementById('dashScreen');
-    const enterBtn = document.getElementById('enterBtn');
-    const demoBtn = document.getElementById('demoBtn');
-    const codeInputs = document.querySelectorAll('.code-input');
-    const liveClock = document.getElementById('liveClock');
-
-    function openDashboard(){
-      gateScreen.classList.remove('active');
-      dashScreen.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-
-    function updateClock(){
-      if(!liveClock) return;
-      const now = new Date();
-      const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-      liveClock.textContent = `${time} · CST`;
-    }
-
-    codeInputs.forEach((input, index) => {
-      input.addEventListener('input', (e) => {
-        e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        if(e.target.value && index < codeInputs.length - 1){
-          codeInputs[index + 1].focus();
-        }
-      });
-      input.addEventListener('keydown', (e) => {
-        if(e.key === 'Backspace' && !e.target.value && index > 0){
-          codeInputs[index - 1].focus();
-        }
-        if(e.key === 'Enter') openDashboard();
-      });
-    });
-
-    if(enterBtn) enterBtn.addEventListener('click', openDashboard);
-    if(demoBtn) demoBtn.addEventListener('click', openDashboard);
-    updateClock();
-    setInterval(updateClock, 1000);
-  </script></body>
+</style></head><body>
+<section class="gate"><div class="container"><div class="left"><div class="subline">RISING PHOENIX ENTERPRISES · RESTRICTED ENTRY</div><h1>From Ashes<br>to Authority.</h1><p>
+Phoenix Command Center is not a public interface. It is the sovereign command layer above all operational systems — built for control, visibility, and execution.
+</p><div class="metrics">
+<div class="metric"><span>AUTHORITY</span><strong>Executive Access</strong></div>
+<div class="metric"><span>ENVIRONMENT</span><strong>Live Command</strong></div>
+<div class="metric"><span>STATUS</span><strong>Ready</strong></div>
+</div><div class="access">
+<h2>Enter Command Access Code</h2><div class="code">
+<input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1">
+</div><div class="actions">
+<button class="btn primary" onclick="enter()">ENTER</button>
+<button class="btn secondary" onclick="enter()">DEMO</button>
+</div></div></div><div class="right">
+<img src="rpe_seal_logo.png" class="seal">
+</div></div></section><script>
+function enter(){
+alert("Command Floor Coming Next — NACE will greet you here.");
+}
+</script></body>
 </html> 
