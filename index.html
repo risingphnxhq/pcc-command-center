@@ -25,8 +25,8 @@
       --glass:rgba(16,22,30,.46);
       --glass-2:rgba(13,18,25,.72);
       --shadow:rgba(0,0,0,.6);
-      --error:#e06b6b;
-      --success:#8fc29c;
+      --error:#d86a6a;
+      --success:#8bc49a;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -149,6 +149,7 @@
       padding:30px 54px 24px 64px;
     }
 
+    /* LEFT SIDE */
     .left{
       grid-area:left;
       max-width:480px;
@@ -274,15 +275,15 @@
 
     .code-row{
       display:grid;
-      grid-template-columns:repeat(9,1fr);
-      gap:8px;
+      grid-template-columns:repeat(9, 1fr);
+      gap:10px;
       margin-bottom:16px;
     }
 
     .code-row input{
+      height:54px;
       width:100%;
       min-width:0;
-      height:54px;
       border:1px solid rgba(198,161,91,.18);
       background:
         linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,.005));
@@ -290,7 +291,7 @@
       border-radius:0;
       outline:none;
       text-align:center;
-      font-size:18px;
+      font-size:20px;
       font-weight:700;
       transition:border-color .18s ease, background .18s ease, box-shadow .18s ease;
     }
@@ -329,10 +330,10 @@
     }
 
     .auth-status{
+      margin-top:12px;
       min-height:18px;
-      margin-top:10px;
       font-size:12px;
-      line-height:1.4;
+      line-height:1.45;
       color:var(--muted);
     }
 
@@ -447,19 +448,16 @@
       .viewport{height:auto;min-height:100vh}
       .layout{
         grid-template-columns:1fr;
-        grid-template-rows:auto auto auto;
-        grid-template-areas:
-          "eyebrow"
-          "right"
-          "left";
         padding:42px 28px 34px;
         gap:14px;
       }
       .left{
         max-width:100%;
+        order:2;
       }
       .right{
         min-height:360px;
+        order:1;
       }
       .seal-mount{
         width:min(78vw, 520px);
@@ -495,10 +493,23 @@
       }
       .code-row input{
         height:50px;
-        font-size:16px;
+        font-size:18px;
       }
       .enter{
         height:48px;
+      }
+      .eyebrow{
+        grid-area:eyebrow;
+        width:100%;
+        white-space:nowrap;
+        display:block;
+        font-family:"Cinzel",serif;
+        font-size:12px;
+        letter-spacing:.18em;
+        text-transform:uppercase;
+        color:var(--gold);
+        margin-bottom:6px;
+        opacity:.95;
       }
     }
   </style>
@@ -512,14 +523,15 @@
       <div class="rail-right"></div>
 
       <section class="layout">
+
         <div class="eyebrow">
-          Rising Phoenix Enterprises · Restricted Entry
+          Rising Phoenix Enterprises · Phoenix King Restricted Entry
         </div>
 
         <div class="left">
           <h1 class="title">
             <span>From Ashes</span>
-            <span>to Authority.</span>
+            <span>To Authority</span>
           </h1>
 
           <div class="micro-rule"></div>
@@ -573,86 +585,137 @@
 
   <script>
     (function () {
-      const REQUIRED_CODE = 'PHNX_Kkng';
-      const inputs = Array.from(document.querySelectorAll('.code-row input'));
-      const enterButton = document.getElementById('enterButton');
-      const authStatus = document.getElementById('authStatus');
+      const REQUIRED_CODE = "PHNX_Kkng";
+      const MASK = "*";
+      const inputs = Array.from(document.querySelectorAll(".code-row input"));
+      const enterButton = document.getElementById("enterButton");
+      const authStatus = document.getElementById("authStatus");
 
       function setStatus(message, type) {
-        authStatus.textContent = message || '';
-        authStatus.className = 'auth-status' + (type ? ' ' + type : '');
+        authStatus.textContent = message || "";
+        authStatus.className = "auth-status" + (type ? " " + type : "");
       }
 
-      function getCode() {
-        return inputs.map(input => input.value).join('');
+      function setStoredChar(input, value) {
+        input.dataset.real = value;
+        input.value = value ? MASK : "";
+      }
+
+      function getStoredCode() {
+        return inputs.map(input => input.dataset.real || "").join("");
+      }
+
+      function clearStatus() {
+        setStatus("", "");
       }
 
       function validateAndEnter() {
-        const code = getCode();
-        if (code.length !== REQUIRED_CODE.length) {
-          setStatus('Enter the full access code.', 'error');
+        const enteredCode = getStoredCode();
+
+        if (enteredCode.length !== REQUIRED_CODE.length) {
+          setStatus("Enter the full access code.", "error");
           return;
         }
 
-        if (code !== REQUIRED_CODE) {
-          setStatus('Access denied.', 'error');
+        if (enteredCode !== REQUIRED_CODE) {
+          setStatus("Access denied.", "error");
           return;
         }
 
-        setStatus('Access granted. Opening Command Floor…', 'success');
-        window.location.href = 'command-floor.html';
+        setStatus("Access granted. Opening Command Floor…", "success");
+        window.location.href = "command-floor.html";
       }
 
       inputs.forEach((input, index) => {
-        input.addEventListener('input', (e) => {
-          const value = e.target.value;
-          e.target.value = value.slice(-1);
-          if (e.target.value && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-            inputs[index + 1].select();
+        input.autocomplete = "off";
+        input.spellcheck = false;
+
+        input.addEventListener("input", (e) => {
+          let value = e.target.value;
+          if (!value) {
+            input.dataset.real = "";
+            input.value = "";
+            clearStatus();
+            return;
           }
-          setStatus('', '');
+
+          value = value.slice(-1);
+          input.dataset.real = value;
+          input.value = MASK;
+          clearStatus();
+
+          if (index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          }
         });
 
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Backspace' && !input.value && index > 0) {
-            inputs[index - 1].focus();
-            inputs[index - 1].select();
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Backspace") {
+            e.preventDefault();
+
+            if (input.dataset.real) {
+              input.dataset.real = "";
+              input.value = "";
+            } else if (index > 0) {
+              const prev = inputs[index - 1];
+              prev.dataset.real = "";
+              prev.value = "";
+              prev.focus();
+            }
+
+            clearStatus();
+            return;
           }
 
-          if (e.key === 'ArrowLeft' && index > 0) {
+          if (e.key === "ArrowLeft" && index > 0) {
             e.preventDefault();
             inputs[index - 1].focus();
-            inputs[index - 1].select();
+            return;
           }
 
-          if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+          if (e.key === "ArrowRight" && index < inputs.length - 1) {
             e.preventDefault();
             inputs[index + 1].focus();
-            inputs[index + 1].select();
+            return;
           }
 
-          if (e.key === 'Enter') {
+          if (e.key === "Enter") {
             e.preventDefault();
             validateAndEnter();
+            return;
+          }
+
+          if (e.key.length === 1) {
+            clearStatus();
           }
         });
 
-        input.addEventListener('paste', (e) => {
+        input.addEventListener("paste", (e) => {
           e.preventDefault();
-          const pasted = (e.clipboardData || window.clipboardData).getData('text');
-          const chars = pasted.slice(0, inputs.length).split('');
-          chars.forEach((char, i) => {
-            if (inputs[i]) inputs[i].value = char;
+          const pasted = (e.clipboardData || window.clipboardData).getData("text");
+          if (!pasted) return;
+
+          const chars = pasted.split("").slice(0, inputs.length);
+          inputs.forEach((box, i) => {
+            if (chars[i]) {
+              setStoredChar(box, chars[i]);
+            } else {
+              box.dataset.real = "";
+              box.value = "";
+            }
           });
-          const nextIndex = Math.min(chars.length, inputs.length - 1);
-          inputs[nextIndex].focus();
-          inputs[nextIndex].select();
-          setStatus('', '');
+
+          const focusIndex = Math.min(chars.length, inputs.length - 1);
+          inputs[focusIndex].focus();
+          clearStatus();
+        });
+
+        input.addEventListener("focus", () => {
+          input.select();
         });
       });
 
-      enterButton.addEventListener('click', validateAndEnter);
+      enterButton.addEventListener("click", validateAndEnter);
     })();
   </script>
 </body>
