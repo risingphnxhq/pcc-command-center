@@ -25,6 +25,8 @@
       --glass:rgba(16,22,30,.46);
       --glass-2:rgba(13,18,25,.72);
       --shadow:rgba(0,0,0,.6);
+      --error:#e06b6b;
+      --success:#8fc29c;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -132,34 +134,38 @@
     .rail-right{right:56px}
 
     .layout{
-  position:relative;
-  z-index:3;
-  width:100%;
-  height:100%;
-  display:grid;
-  grid-template-columns:minmax(360px, 490px) minmax(560px, 1fr);
-  grid-template-rows:auto 1fr;
-  grid-template-areas:
-    "eyebrow eyebrow"
-    "left right";
-  gap:8px 18px;
-  align-items:center;
-  padding:30px 54px 24px 64px;
-}
-    /* LEFT SIDE */
+      position:relative;
+      z-index:3;
+      width:100%;
+      height:100%;
+      display:grid;
+      grid-template-columns:minmax(360px, 490px) minmax(560px, 1fr);
+      grid-template-rows:auto 1fr;
+      grid-template-areas:
+        "eyebrow eyebrow"
+        "left right";
+      gap:8px 18px;
+      align-items:center;
+      padding:30px 54px 24px 64px;
+    }
+
     .left{
-  grid-area:left;
-  max-width:480px;
-  align-self:center;
-}
-   
+      grid-area:left;
+      max-width:480px;
+      align-self:center;
+    }
+
     .eyebrow{
+      grid-area:eyebrow;
+      width:100%;
+      white-space:nowrap;
+      display:block;
       font-family:"Cinzel",serif;
       font-size:12px;
       letter-spacing:.18em;
       text-transform:uppercase;
       color:var(--gold);
-      margin-bottom:28px;
+      margin-bottom:6px;
       opacity:.95;
     }
 
@@ -268,12 +274,14 @@
 
     .code-row{
       display:grid;
-      grid-template-columns:repeat(6,1fr);
-      gap:10px;
+      grid-template-columns:repeat(9,1fr);
+      gap:8px;
       margin-bottom:16px;
     }
 
     .code-row input{
+      width:100%;
+      min-width:0;
       height:54px;
       border:1px solid rgba(198,161,91,.18);
       background:
@@ -282,7 +290,7 @@
       border-radius:0;
       outline:none;
       text-align:center;
-      font-size:20px;
+      font-size:18px;
       font-weight:700;
       transition:border-color .18s ease, background .18s ease, box-shadow .18s ease;
     }
@@ -320,15 +328,26 @@
       box-shadow:0 0 24px rgba(198,161,91,.06);
     }
 
+    .auth-status{
+      min-height:18px;
+      margin-top:10px;
+      font-size:12px;
+      line-height:1.4;
+      color:var(--muted);
+    }
+
+    .auth-status.error{color:var(--error)}
+    .auth-status.success{color:var(--success)}
+
     /* RIGHT SIDE / SOVEREIGN MOUNT */
     .right{
-  grid-area:right;
-  position:relative;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+      grid-area:right;
+      position:relative;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
 
     .seal-mount{
       position:relative;
@@ -428,16 +447,19 @@
       .viewport{height:auto;min-height:100vh}
       .layout{
         grid-template-columns:1fr;
+        grid-template-rows:auto auto auto;
+        grid-template-areas:
+          "eyebrow"
+          "right"
+          "left";
         padding:42px 28px 34px;
         gap:14px;
       }
       .left{
         max-width:100%;
-        order:2;
       }
       .right{
         min-height:360px;
-        order:1;
       }
       .seal-mount{
         width:min(78vw, 520px);
@@ -473,23 +495,12 @@
       }
       .code-row input{
         height:50px;
+        font-size:16px;
       }
       .enter{
         height:48px;
       }
-.eyebrow{
-  grid-area:eyebrow;
-  width:100%;
-  white-space:nowrap;
-  display:block;
-  font-family:"Cinzel",serif;
-  font-size:12px;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color:var(--gold);
-  margin-bottom:6px;
-  opacity:.95;
-}
+    }
   </style>
 </head>
 <body>
@@ -501,23 +512,22 @@
       <div class="rail-right"></div>
 
       <section class="layout">
-       
-          <div class="eyebrow">
-           Rising Phoenix Enterprises · Phoenix King Restricted Entry
-          </div>
-       
-          <div class="left">
+        <div class="eyebrow">
+          Rising Phoenix Enterprises · Restricted Entry
+        </div>
+
+        <div class="left">
           <h1 class="title">
             <span>From Ashes</span>
-            <span>To Authority</span>
+            <span>to Authority.</span>
           </h1>
 
           <div class="micro-rule"></div>
 
-          <div class="doctrine">Command Before Visibility · Executive Layer</div>
+          <div class="doctrine">Command Before Visibility · Sovereign Executive Layer</div>
 
           <p class="desc">
-            Phoenix Command Center is a sovereign control surface. Entry is not public. Access is restricted and authenticated.
+            Phoenix Command Center is not a public interface. It is the sovereign command layer above all operational systems — built for control, visibility, and execution.
           </p>
 
           <section class="auth-shell" aria-label="Restricted Authentication">
@@ -527,7 +537,7 @@
             </div>
 
             <div class="auth-title">Restricted Authentication</div>
-            <div class="auth-copy">Enter six-character executive sequence to proceed.</div>
+            <div class="auth-copy">Enter nine-character executive sequence to proceed.</div>
 
             <div class="code-row">
               <input maxlength="1" inputmode="text" aria-label="Code character 1">
@@ -536,9 +546,13 @@
               <input maxlength="1" inputmode="text" aria-label="Code character 4">
               <input maxlength="1" inputmode="text" aria-label="Code character 5">
               <input maxlength="1" inputmode="text" aria-label="Code character 6">
+              <input maxlength="1" inputmode="text" aria-label="Code character 7">
+              <input maxlength="1" inputmode="text" aria-label="Code character 8">
+              <input maxlength="1" inputmode="text" aria-label="Code character 9">
             </div>
 
-            <button class="enter">Enter Command Center</button>
+            <button class="enter" id="enterButton" type="button">Enter Command Center</button>
+            <div class="auth-status" id="authStatus" aria-live="polite"></div>
           </section>
         </div>
 
@@ -556,6 +570,90 @@
       </div>
     </main>
   </div>
+
+  <script>
+    (function () {
+      const REQUIRED_CODE = 'PHNX_Kkng';
+      const inputs = Array.from(document.querySelectorAll('.code-row input'));
+      const enterButton = document.getElementById('enterButton');
+      const authStatus = document.getElementById('authStatus');
+
+      function setStatus(message, type) {
+        authStatus.textContent = message || '';
+        authStatus.className = 'auth-status' + (type ? ' ' + type : '');
+      }
+
+      function getCode() {
+        return inputs.map(input => input.value).join('');
+      }
+
+      function validateAndEnter() {
+        const code = getCode();
+        if (code.length !== REQUIRED_CODE.length) {
+          setStatus('Enter the full access code.', 'error');
+          return;
+        }
+
+        if (code !== REQUIRED_CODE) {
+          setStatus('Access denied.', 'error');
+          return;
+        }
+
+        setStatus('Access granted. Opening Command Floor…', 'success');
+        window.location.href = 'command-floor.html';
+      }
+
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          const value = e.target.value;
+          e.target.value = value.slice(-1);
+          if (e.target.value && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+            inputs[index + 1].select();
+          }
+          setStatus('', '');
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !input.value && index > 0) {
+            inputs[index - 1].focus();
+            inputs[index - 1].select();
+          }
+
+          if (e.key === 'ArrowLeft' && index > 0) {
+            e.preventDefault();
+            inputs[index - 1].focus();
+            inputs[index - 1].select();
+          }
+
+          if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+            e.preventDefault();
+            inputs[index + 1].focus();
+            inputs[index + 1].select();
+          }
+
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            validateAndEnter();
+          }
+        });
+
+        input.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const pasted = (e.clipboardData || window.clipboardData).getData('text');
+          const chars = pasted.slice(0, inputs.length).split('');
+          chars.forEach((char, i) => {
+            if (inputs[i]) inputs[i].value = char;
+          });
+          const nextIndex = Math.min(chars.length, inputs.length - 1);
+          inputs[nextIndex].focus();
+          inputs[nextIndex].select();
+          setStatus('', '');
+        });
+      });
+
+      enterButton.addEventListener('click', validateAndEnter);
+    })();
+  </script>
 </body>
 </html> 
-
