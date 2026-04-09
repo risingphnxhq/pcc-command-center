@@ -2,324 +2,1122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center — Enterprise Mode</title>
+  <title>Phoenix Command Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:#05080c; --bg2:#08111a; --panel:#0b1118cc; --panel2:#0e1620e6; --line:#c7a15b2e; --line2:#c7a15b55;
-      --gold:#c7a15b; --gold-soft:#e7d2a5; --ivory:#f3ede3; --muted:#9ea7b3; --muted2:#748091;
-      --green:#38c172; --amber:#e0a43a; --red:#d76464; --blue:#78a7ff;
-      --radius:18px; --shadow:0 30px 80px rgba(0,0,0,.45);
-      --nav-w:300px; --header-h:80px;
-    }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:'Inter',sans-serif;color:var(--ivory);background:linear-gradient(180deg,var(--bg),var(--bg2));overflow:hidden}.app{display:grid;grid-template-columns:var(--nav-w) 1fr;grid-template-rows:var(--header-h) 1fr;grid-template-areas:"side head" "side main";height:100vh}
+    :root{
+      --bg:#05080d;
+      --bg2:#0a1119;
+      --panel:#0b121add;
+      --panel2:#101924ee;
+      --panel3:#131d29;
+      --line:rgba(199,161,91,.16);
+      --line2:rgba(199,161,91,.33);
+      --gold:#c7a15b;
+      --goldSoft:#ead8b3;
+      --ivory:#f2ede4;
+      --muted:#a5afba;
+      --muted2:#6f7d91;
+      --red:#d76666;
+      --amber:#e0a43a;
+      --green:#3ec46d;
+      --blue:#77a8ff;
+      --shadow:0 28px 80px rgba(0,0,0,.42);
+      --radius-xl:28px;
+      --radius-lg:20px;
+      --radius-md:14px;
+      --header-h:84px;
+      --nav-w:310px;
+    }*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  color:var(--ivory);
+  background:
+    radial-gradient(circle at top left, rgba(199,161,91,.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(119,168,255,.08), transparent 22%),
+    linear-gradient(180deg,var(--bg),var(--bg2) 42%,var(--bg));
+  overflow:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.024) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+  background-size:54px 54px;
+  opacity:.14;
+  mask-image:radial-gradient(circle at center, rgba(0,0,0,1), rgba(0,0,0,.32));
+}
+.hidden{display:none !important}
 
-header{grid-area:head;display:flex;justify-content:space-between;align-items:center;padding:0 24px;border-bottom:1px solid var(--line);background:#0a0f15f2}
-.brand{display:flex;align-items:center;gap:14px}
-.seal{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle,#e7d2a5,#c7a15b,#4f3818)}
-.title{font-weight:800;letter-spacing:.15em;text-transform:uppercase}
-.sub{font-size:.7rem;color:var(--gold-soft);letter-spacing:.2em}
-.doctrine{font-family:'Cormorant Garamond';color:var(--gold-soft)}
+/* ENTRY GATE */
+#gate{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:28px;
+}
+.gate-shell{
+  width:min(1180px,100%);
+  min-height:700px;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  border:1px solid var(--line);
+  border-radius:34px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 15% 18%, rgba(199,161,91,.11), transparent 24%),
+    linear-gradient(180deg, rgba(8,12,18,.98), rgba(9,13,19,.95));
+  box-shadow:var(--shadow);
+  position:relative;
+}
+.gate-shell::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg, rgba(255,255,255,.03), transparent 18%, transparent 80%, rgba(255,255,255,.02));
+}
+.gate-left,.gate-right{padding:40px 42px; position:relative; z-index:1}
+.gate-left{display:flex;flex-direction:column;justify-content:center;gap:20px;border-right:1px solid rgba(255,255,255,.05)}
+.gate-topline{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--goldSoft)}
+.gate-left h1{
+  margin:0;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3rem, 5vw, 5.4rem);
+  line-height:.9;
+  letter-spacing:-.04em;
+  max-width:540px;
+  text-wrap:balance;
+}
+.gate-rule{width:160px;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+.gate-sub{font-size:.92rem;letter-spacing:.18em;text-transform:uppercase;color:#c9d2db;font-weight:800}
+.gate-copy{max-width:580px;color:#c7d0d8;font-size:1.08rem;line-height:1.7}
+.gate-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:6px}
+.gate-kpi{border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.03);border-radius:16px;padding:14px}
+.gate-kpi .k{font-size:.64rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.18em}
+.gate-kpi .v{margin-top:8px;font-size:1.25rem;font-weight:900}
 
-aside{grid-area:side;background:#070c12;border-right:1px solid var(--line);padding:18px;overflow:auto}
-.nav-group{margin-bottom:18px}
-.nav-label{font-size:.65rem;color:var(--muted2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
-.nav{display:flex;flex-direction:column;gap:6px}
-.nav button{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--ivory);cursor:pointer}
-.nav button:hover{background:#ffffff08}
-.nav button.active{background:#c7a15b22;border-color:#c7a15b55}
+.seal-wrap{display:grid;place-items:center;height:100%;position:relative}
+.seal-large{
+  width:min(480px,100%);
+  aspect-ratio:1/1;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 28%, #f2dfba 0%, #d9b878 22%, #9f763c 56%, #4f3818 100%);
+  box-shadow:
+    inset 0 10px 24px rgba(255,255,255,.18),
+    inset 0 -24px 44px rgba(0,0,0,.34),
+    0 20px 70px rgba(0,0,0,.44),
+    0 0 0 1px rgba(255,255,255,.06);
+  display:grid;
+  place-items:center;
+  position:relative;
+  overflow:hidden;
+}
+.seal-large::before{
+  content:'✦';
+  color:#291706;
+  font-size:4.3rem;
+  font-weight:900;
+  opacity:.75;
+  text-shadow:0 1px 0 rgba(255,255,255,.2);
+}
+.seal-ring{
+  position:absolute;
+  inset:7%;
+  border-radius:50%;
+  border:2px solid rgba(255,247,230,.48);
+  box-shadow:inset 0 0 0 2px rgba(64,38,10,.22);
+}
+.seal-badge{
+  position:absolute;
+  bottom:26px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:10px 16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(8,12,18,.48);
+  backdrop-filter:blur(10px);
+  border-radius:999px;
+  font-size:.7rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--goldSoft);
+  font-weight:800;
+}
 
-main{grid-area:main;overflow:auto;padding:22px}
-.page{display:none}
+.gate-card{
+  position:absolute;
+  left:42px;
+  right:42px;
+  bottom:42px;
+  border:1px solid var(--line2);
+  background:linear-gradient(180deg, rgba(15,22,32,.92), rgba(9,14,21,.94));
+  border-radius:22px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+.gate-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.gate-card-top .mini-title{font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;color:var(--goldSoft);font-weight:800}
+.gate-card h2{margin:0 0 8px;font-size:1.22rem}
+.gate-card p{margin:0 0 18px;color:var(--muted);line-height:1.6}
+.code-row{display:grid;grid-template-columns:repeat(6, minmax(0,1fr));gap:10px;margin-bottom:14px}
+.codeBox{
+  width:100%;
+  min-height:62px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.03);
+  color:var(--ivory);
+  text-align:center;
+  font-size:1.7rem;
+  font-weight:800;
+  outline:none;
+  transition:.18s ease;
+}
+.codeBox:focus{border-color:rgba(199,161,91,.45);box-shadow:0 0 0 3px rgba(199,161,91,.08)}
+.gate-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{
+  appearance:none;
+  border:none;
+  cursor:pointer;
+  border-radius:14px;
+  min-height:52px;
+  padding:0 18px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-size:.76rem;
+  transition:.18s ease;
+}
+.btn.primary{background:linear-gradient(180deg, rgba(199,161,91,.22), rgba(199,161,91,.08)); color:var(--ivory); border:1px solid rgba(199,161,91,.36)}
+.btn.ghost{background:rgba(255,255,255,.03); color:var(--ivory); border:1px solid rgba(255,255,255,.08)}
+.btn:hover{transform:translateY(-1px)}
+#gateError{min-height:20px;font-size:.9rem;color:var(--red);margin-top:10px}
+
+/* APP */
+#pcc{height:100vh}
+.app{
+  display:grid;
+  grid-template-columns:var(--nav-w) 1fr;
+  grid-template-rows:var(--header-h) 1fr;
+  grid-template-areas:'side head' 'side main';
+  height:100vh;
+}
+.header{
+  grid-area:head;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(9,13,19,.96), rgba(9,13,19,.84));
+  backdrop-filter:blur(10px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:0 24px;
+}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.seal-small{
+  width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 30% 28%, #f2dfba 0%, #d9b878 22%, #9f763c 56%, #4f3818 100%);
+  color:#2a1807;font-weight:900;box-shadow:0 10px 24px rgba(0,0,0,.34)
+}
+.brand-title{font-size:1.04rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
+.brand-sub{font-size:.72rem;color:var(--goldSoft);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:flex-end}
+.doctrine{font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:var(--goldSoft);white-space:nowrap}
+.header-identity{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.header-identity strong{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
+.header-identity span{font-size:.66rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
+.nace-btn{min-height:46px;padding:0 16px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));color:var(--ivory);border:1px solid rgba(255,255,255,.08);cursor:pointer;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+
+.sidebar{
+  grid-area:side;
+  border-right:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(7,11,17,.98), rgba(6,10,15,.98));
+  overflow:auto;
+  padding:18px 14px;
+}
+.side-intro{padding:10px 10px 16px;border-bottom:1px solid rgba(199,161,91,.12);margin-bottom:14px}
+.side-intro h2{margin:0;font-size:.76rem;letter-spacing:.22em;text-transform:uppercase;color:var(--goldSoft)}
+.side-intro p{margin:10px 0 0;font-size:.84rem;line-height:1.6;color:var(--muted)}
+.nav-group{margin-bottom:14px}
+.nav-label{padding:8px 10px;font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted2);font-weight:800}
+.nav-btn{
+  width:100%;
+  display:grid;
+  grid-template-columns:36px 1fr auto;
+  align-items:center;
+  gap:10px;
+  text-align:left;
+  margin-bottom:6px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--ivory);
+  cursor:pointer;
+  transition:.18s ease;
+}
+.nav-btn:hover{background:rgba(255,255,255,.03);border-color:rgba(199,161,91,.12);transform:translateX(2px)}
+.nav-btn.active{background:linear-gradient(180deg, rgba(199,161,91,.14), rgba(199,161,91,.06));border-color:rgba(199,161,91,.26)}
+.nav-ico{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);color:var(--goldSoft);font-size:1rem}
+.nav-copy strong{display:block;font-size:.92rem;margin-bottom:3px}
+.nav-copy span{display:block;font-size:.75rem;color:var(--muted);line-height:1.35}
+.dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 14px currentColor}
+.redDot{background:var(--red);color:var(--red)}
+.amberDot{background:var(--amber);color:var(--amber)}
+.greenDot{background:var(--green);color:var(--green)}
+.blueDot{background:var(--blue);color:var(--blue)}
+.side-footer{margin-top:16px;padding-top:16px;border-top:1px solid rgba(199,161,91,.12);display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini-metric{padding:12px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.03);border-radius:14px}
+.mini-metric .k{font-size:.64rem;color:var(--muted2);letter-spacing:.16em;text-transform:uppercase}
+.mini-metric .v{margin-top:6px;font-size:1.12rem;font-weight:900}
+
+.main{grid-area:main;overflow:auto;padding:22px}
+.page{display:none;animation:fade .2s ease}
 .page.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-.hero{padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--panel2)}
-.hero h1{margin:0;font-size:2rem}
-.hero p{color:var(--muted)}
+.hero{
+  border:1px solid var(--line);
+  border-radius:var(--radius-xl);
+  background:
+    radial-gradient(circle at top left, rgba(199,161,91,.10), transparent 28%),
+    linear-gradient(180deg, rgba(13,19,28,.95), rgba(9,14,21,.94));
+  box-shadow:var(--shadow);
+  padding:28px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg, rgba(255,255,255,.03), transparent 20%, transparent 80%, rgba(255,255,255,.02))}
+.hero-top{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--goldSoft);margin-bottom:12px;font-weight:800}
+.hero h1{margin:0;font-size:clamp(2rem, 3vw, 3.2rem);line-height:1.02;letter-spacing:-.04em;max-width:940px}
+.hero p{margin:14px 0 0;color:#c7d0d8;line-height:1.7;max-width:880px}
+.hero-side{display:flex;flex-direction:column;gap:10px;min-width:260px}
+.hero-chip{padding:12px 14px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);border-radius:14px}
+.hero-chip .k{font-size:.66rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.16em}
+.hero-chip .v{margin-top:4px;font-size:.92rem;font-weight:800}
 
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px}
-.card{grid-column:span 6;background:var(--panel);border:1px solid #ffffff10;border-radius:18px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;margin-top:18px}
+.card{grid-column:span 6;border:1px solid rgba(255,255,255,.06);background:var(--panel);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
 .full{grid-column:span 12}
+.span8{grid-column:span 8}
+.span7{grid-column:span 7}
+.span5{grid-column:span 5}
+.span4{grid-column:span 4}
+.span3{grid-column:span 3}
+.card-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.card-title{font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;color:var(--goldSoft);font-weight:800}
+.card-body{padding:18px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);border-radius:999px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800}
 
-.metric{font-size:1.6rem;font-weight:800}
-.label{font-size:.7rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.metric{border:1px solid rgba(255,255,255,.05);background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));border-radius:18px;padding:16px;min-height:116px;position:relative;overflow:hidden}
+.metric::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent 72%);opacity:.62}
+.metric .k{font-size:.66rem;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+.metric .v{margin-top:10px;font-size:1.92rem;font-weight:900;letter-spacing:-.04em}
+.metric .m{margin-top:8px;font-size:.8rem;color:var(--muted);line-height:1.45}
 
-.list{display:flex;flex-direction:column;gap:10px}
-.row{padding:10px;border:1px solid #ffffff10;border-radius:12px}
+.rows{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.025)}
+.row strong{display:block;font-size:.92rem;margin-bottom:4px}
+.row p{margin:0;font-size:.82rem;color:var(--muted);line-height:1.55}
 
-.pill{font-size:.7rem;border:1px solid #ffffff20;padding:4px 8px;border-radius:999px}
+.signal-board{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+.bars{display:flex;align-items:end;gap:8px;height:140px;padding-top:6px}
+.bar{flex:1;min-width:12px;border-radius:999px 999px 10px 10px;background:linear-gradient(180deg, rgba(199,161,91,.95), rgba(199,161,91,.14));box-shadow:0 0 18px rgba(199,161,91,.24);animation:pulse 4.6s ease-in-out infinite}
+.bar:nth-child(2n){animation-duration:5.2s}
+.bar:nth-child(3n){animation-duration:5.9s}
+@keyframes pulse{0%,100%{transform:scaleY(.92);opacity:.76}50%{transform:scaleY(1);opacity:1}}
+.spark-list{display:flex;flex-direction:column;gap:10px}
+.spark{padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+.spark strong{display:block;font-size:.86rem;margin-bottom:4px}
+.spark span{font-size:.78rem;color:var(--muted);line-height:1.45}
 
-@media(max-width:1000px){.app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;grid-template-areas:"head" "side" "main"}}
+.nodes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.node{border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:15px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015))}
+.node-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.node small{display:block;margin-top:4px;color:var(--muted);font-size:.78rem}
+.progress{height:10px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin:12px 0 10px}
+.progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg, rgba(199,161,91,.95), rgba(119,168,255,.78))}
+
+.action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.action-btn{min-height:58px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));color:var(--ivory);cursor:pointer;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;padding:0 14px}
+.action-btn:hover{border-color:rgba(199,161,91,.32)}
+
+.queue-table{width:100%;border-collapse:collapse}
+.queue-table th,.queue-table td{padding:12px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-size:.84rem}
+.queue-table th{font-size:.66rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.18em}
+.queue-table td{color:#d7dde3}
+
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field label{font-size:.66rem;color:var(--muted2);letter-spacing:.18em;text-transform:uppercase;font-weight:800}
+.input,.select,.textarea{width:100%;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--ivory);border-radius:14px;padding:14px;outline:none;font:inherit}
+.textarea{min-height:122px;resize:vertical}
+
+.manual-list{display:grid;gap:12px}
+.manual-row{border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.025);border-radius:16px;padding:16px}
+.manual-row strong{display:block;margin-bottom:6px}
+.manual-row span{display:block;color:var(--muted);line-height:1.6;font-size:.86rem}
+
+.status-green{color:var(--green)}
+.status-amber{color:var(--amber)}
+.status-red{color:var(--red)}
+.status-blue{color:var(--blue)}
+
+#nacePanel{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  width:380px;
+  max-width:calc(100vw - 32px);
+  border:1px solid rgba(199,161,91,.36);
+  background:linear-gradient(180deg, rgba(10,15,23,.98), rgba(8,12,18,.97));
+  box-shadow:var(--shadow);
+  border-radius:22px;
+  padding:16px;
+  display:none;
+  z-index:9999;
+  backdrop-filter:blur(10px);
+}
+.nace-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.nace-head h3{margin:0;font-size:1rem}
+.nace-head .k{font-size:.68rem;color:var(--goldSoft);letter-spacing:.18em;text-transform:uppercase;font-weight:800}
+#naceMode{font-size:.68rem;color:var(--muted2);letter-spacing:.18em;text-transform:uppercase;font-weight:800;margin-bottom:10px}
+#naceOutput{min-height:118px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:16px;padding:14px;color:#dce2e7;line-height:1.6;margin-bottom:10px}
+.nace-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.nace-quick button{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--ivory);cursor:pointer;font-size:.72rem;font-weight:800}
+.nace-input-row{display:flex;gap:8px}
+#naceInput{flex:1;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--ivory);border-radius:14px;padding:12px;outline:none}
+#naceSend,#naceClose{border:none;cursor:pointer;border-radius:14px;padding:0 14px;font-weight:800;background:linear-gradient(180deg, rgba(199,161,91,.22), rgba(199,161,91,.08));color:var(--ivory);border:1px solid rgba(199,161,91,.28)}
+
+#voiceAudio{display:none}
+
+@media (max-width: 1180px){
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .signal-board,.nodes,.form-grid{grid-template-columns:1fr}
+  .action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gate-shell{grid-template-columns:1fr}
+  .gate-left{padding-bottom:240px;border-right:none;border-bottom:1px solid rgba(255,255,255,.05)}
+  .gate-right{min-height:420px}
+}
+@media (max-width: 980px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;grid-template-areas:'head' 'side' 'main'}
+  .sidebar{max-height:320px}
+  .action-grid{grid-template-columns:1fr}
+}
+@media (max-width: 640px){
+  .code-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .gate-kpis{grid-template-columns:1fr}
+  .metric-grid{grid-template-columns:1fr}
+  .header{padding:12px 16px;height:auto;min-height:var(--header-h)}
+  .main{padding:16px}
+  #nacePanel{right:12px;left:12px;bottom:12px;max-width:none;width:auto}
+}
 
   </style>
 </head>
 <body>
-<div class="app"><header>
-  <div class="brand">
-    <div class="seal"></div>
-    <div>
-      <div class="title">Phoenix Command Center</div>
-      <div class="sub">Enterprise Interface Layer</div>
+  <audio id="voiceAudio" preload="none"></audio>  <section id="gate">
+    <div class="gate-shell">
+      <div class="gate-left">
+        <div class="gate-topline">Rising Phoenix Enterprises · Phoenix King Restricted Entry</div>
+        <h1>From Ashes<br>to Authority</h1>
+        <div class="gate-rule"></div>
+        <div class="gate-sub">Command Before Visibility · Executive Layer</div>
+        <div class="gate-copy">
+          Phoenix Command Center is a sovereign control surface. Entry is not public. Access is restricted, authenticated, and tied to executive system continuity across the full enterprise environment.
+        </div>
+        <div class="gate-kpis">
+          <div class="gate-kpi"><div class="k">Shell Status</div><div class="v">Active</div></div>
+          <div class="gate-kpi"><div class="k">Authority Layer</div><div class="v">Locked</div></div>
+          <div class="gate-kpi"><div class="k">Execution State</div><div class="v">Ready</div></div>
+        </div>
+      </div><div class="gate-right seal-wrap">
+    <div class="seal-large">
+      <div class="seal-ring"></div>
+      <div class="seal-badge">Per Manus et Instrumentum</div>
     </div>
-  </div>
-  <div class="doctrine">From Ashes to Authority</div>
-  <button id="naceToggle" style="margin-left:14px;border:1px solid #c7a15b55;background:#c7a15b22;color:#f3ede3;padding:10px 14px;border-radius:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">🎧 NACE</button>
-</header><aside>  <div class="nav-group">
-    <div class="nav-label">Executive</div>
-    <div class="nav">
-      <button data-page="exec" class="active">Executive Overview</button>
-      <button data-page="command">Command Floor</button>
-      <button data-page="strategy">Strategy</button>
-    </div>
-  </div>  <div class="nav-group">
-    <div class="nav-label">Products</div>
-    <div class="nav">
-      <button data-page="products">Product Portfolio</button>
-      <button data-page="registry">System Registry</button>
-    </div>
-  </div>  <div class="nav-group">
-    <div class="nav-label">Enterprise</div>
-    <div class="nav">
-      <button data-page="operations">Operations</button>
-      <button data-page="personnel">AI Staff</button>
-    </div>
-  </div>  <div class="nav-group">
-    <div class="nav-label">Execution</div>
-    <div class="nav">
-      <button data-page="execution">Command Execution</button>
-      <button data-page="receipts">Receipts</button>
-    </div>
-  </div></aside><main><section id="exec" class="page active">
-  <div class="hero">
-    <h1>Enterprise Overview</h1>
-    <p>Real-time view of RPE. What matters, what moves, what needs attention.</p>
-  </div>
-  <div class="grid">
-    <div class="card"><div class="label">Systems Active</div><div class="metric">9</div></div>
-    <div class="card"><div class="label">Priority (Red)</div><div class="metric">3</div></div>
-    <div class="card full">
-      <div class="label">Executive Focus</div>
-      <div class="list">
-        <div class="row">PCC Wiring → ACTIVE</div>
-        <div class="row">Phoenix Media → BUILD</div>
-        <div class="row">StatsCore → NEXT</div>
+
+    <div class="gate-card">
+      <div class="gate-card-top">
+        <div class="mini-title">Phoenix King Access Code</div>
+        <div class="mini-title">Restricted Authentication</div>
       </div>
+      <h2>Restricted Authentication</h2>
+      <p>Enter six-character executive sequence to proceed.</p>
+      <div class="code-row">
+        <input class="codeBox" maxlength="1" inputmode="numeric" />
+        <input class="codeBox" maxlength="1" inputmode="numeric" />
+        <input class="codeBox" maxlength="1" inputmode="numeric" />
+        <input class="codeBox" maxlength="1" inputmode="numeric" />
+        <input class="codeBox" maxlength="1" inputmode="numeric" />
+        <input class="codeBox" maxlength="1" inputmode="numeric" />
+      </div>
+      <div class="gate-actions">
+        <button class="btn primary" id="enterBtn">Enter Command Center</button>
+        <button class="btn ghost" id="playOperatorBtn">Hear Operator</button>
+      </div>
+      <div id="gateError"></div>
     </div>
   </div>
-</section><section id="command" class="page">
-  <div class="hero"><h1>Command Floor</h1><p>Control surface for system-wide operations.</p></div>
-</section><section id="strategy" class="page">
-  <div class="hero"><h1>Strategy Layer</h1><p>Priority, sequencing, and enterprise direction.</p></div>
-</section><section id="products" class="page">
-  <div class="hero"><h1>Product Portfolio</h1><p>All Phoenix OS products.</p></div>
-</section><section id="registry" class="page">
-  <div class="hero"><h1>System Registry</h1><p>System mapping and variables.</p></div>
-</section><section id="operations" class="page">
-  <div class="hero"><h1>Operations</h1><p>Enterprise-level oversight.</p></div>
-</section><section id="personnel" class="page">
-  <div class="hero"><h1>AI Staff / War Room</h1><p>Executive interaction layer.</p></div>
-</section><section id="execution" class="page">
-  <div class="hero"><h1>Execution</h1><p>Command routing and control.</p></div>
-</section><section id="receipts" class="page">
-  <div class="hero"><h1>Receipts</h1><p>Proof and audit layer.</p></div>
-</section><section id="manual" class="page">
-  <div class="hero">
-    <h1>Operator Manual</h1>
-    <p>How to operate PCC and run Rising Phoenix Enterprises.</p>
-  </div>
-  <div class="grid">
-    <div class="card full">
-      <div class="label">Core Function</div>
-      <div class="list">
-        <div class="row">Observe → What is happening</div>
-        <div class="row">Prioritize → What matters now</div>
-        <div class="row">Execute → Trigger system action</div>
-        <div class="row">Verify → Confirm with receipts</div>
+</div>
+
+  </section>  <section id="pcc" class="hidden">
+    <div class="app">
+      <header class="header">
+        <div class="brand">
+          <div class="seal-small">✦</div>
+          <div>
+            <div class="brand-title">Phoenix Command Center</div>
+            <div class="brand-sub">Control Surface · Oversight Layer · Authority Shell</div>
+          </div>
+        </div><div class="header-right">
+      <div class="doctrine">From Ashes to Authority</div>
+      <div class="header-identity">
+        <strong>Executive Chairman / Founder</strong>
+        <span>Rising Phoenix Enterprises</span>
       </div>
+      <button class="nace-btn" id="naceToggle">🎧 NACE</button>
     </div>
-    <div class="card">
-      <div class="label">Daily Flow</div>
-      <div class="list">
-        <div class="row">1. Check Executive Overview</div>
-        <div class="row">2. Identify priority</div>
-        <div class="row">3. Execute action</div>
-        <div class="row">4. Verify receipts</div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="side-intro">
+      <h2>PCC Navigation</h2>
+      <p>Phoenix Command Center is a controlled multi-page shell for observation, authority, routing, execution, and verification.</p>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Core Command</div>
+      <button class="nav-btn active" data-page="overview">
+        <div class="nav-ico">⌘</div>
+        <div class="nav-copy"><strong>Executive Overview</strong><span>Primary command overview</span></div>
+        <div class="dot redDot"></div>
+      </button>
+      <button class="nav-btn" data-page="commandFloor">
+        <div class="nav-ico">◉</div>
+        <div class="nav-copy"><strong>Command Floor</strong><span>System pressure and lanes</span></div>
+        <div class="dot amberDot"></div>
+      </button>
+      <button class="nav-btn" data-page="registry">
+        <div class="nav-ico">◎</div>
+        <div class="nav-copy"><strong>System Registry</strong><span>Master system map and variables</span></div>
+        <div class="dot amberDot"></div>
+      </button>
+      <button class="nav-btn" data-page="execution">
+        <div class="nav-ico">➜</div>
+        <div class="nav-copy"><strong>Command Execution</strong><span>Trigger, route, authorize</span></div>
+        <div class="dot greenDot"></div>
+      </button>
+      <button class="nav-btn" data-page="receipts">
+        <div class="nav-ico">▣</div>
+        <div class="nav-copy"><strong>Receipts & Logs</strong><span>Proof, audit, truth layer</span></div>
+        <div class="dot blueDot"></div>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Enterprise</div>
+      <button class="nav-btn" data-page="strategy">
+        <div class="nav-ico">△</div>
+        <div class="nav-copy"><strong>Strategy Layer</strong><span>Priority, sequencing, direction</span></div>
+        <div class="dot blueDot"></div>
+      </button>
+      <button class="nav-btn" data-page="operations">
+        <div class="nav-ico">◫</div>
+        <div class="nav-copy"><strong>Operations</strong><span>Enterprise watch layer</span></div>
+        <div class="dot amberDot"></div>
+      </button>
+      <button class="nav-btn" data-page="warRoom">
+        <div class="nav-ico">♜</div>
+        <div class="nav-copy"><strong>AI Staff / War Room</strong><span>Executive interaction layer</span></div>
+        <div class="dot redDot"></div>
+      </button>
+      <button class="nav-btn" data-page="manual">
+        <div class="nav-ico">☰</div>
+        <div class="nav-copy"><strong>Operator Manual</strong><span>System training and use flow</span></div>
+        <div class="dot blueDot"></div>
+      </button>
+    </div>
+
+    <div class="side-footer">
+      <div class="mini-metric"><div class="k">Systems</div><div class="v">09</div></div>
+      <div class="mini-metric"><div class="k">Queue</div><div class="v">17</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section id="overview" class="page active">
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">Executive Overview · Enterprise Interface</div>
+            <h1>Observe the system. Control the environment. Verify the outcome.</h1>
+            <p>Phoenix Command Center is the operator shell for your enterprise. This surface is built for live oversight, structured command action, and receipt-backed continuity across the full Phoenix ecosystem.</p>
+          </div>
+          <div class="hero-side">
+            <div class="hero-chip"><div class="k">System Status</div><div class="v status-green">Operational Authority · Stable</div></div>
+            <div class="hero-chip"><div class="k">Command Priority</div><div class="v status-amber">Media / Registry / Spider · Active</div></div>
+            <div class="hero-chip"><div class="k">Receipt Policy</div><div class="v status-blue">Enforced · Locked</div></div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="card">
-      <div class="label">Rules</div>
-      <div class="list">
-        <div class="row">No receipt = no action</div>
-        <div class="row">Do not execute without intent</div>
-        <div class="row">One priority at a time</div>
-        <div class="row">PCC is for control, not exploration</div>
+
+      <div class="grid">
+        <div class="card full">
+          <div class="card-body">
+            <div class="metric-grid">
+              <div class="metric"><div class="k">Systems Active</div><div class="v">09</div><div class="m">Core command surfaces available and shell-visible.</div></div>
+              <div class="metric"><div class="k">Execution Queue</div><div class="v">17</div><div class="m">Commands currently staged or awaiting governed release.</div></div>
+              <div class="metric"><div class="k">Media Pipeline</div><div class="v">05</div><div class="m">Narrative, render, distribution, QA, signal loops active.</div></div>
+              <div class="metric"><div class="k">Receipts Today</div><div class="v">128</div><div class="m">Immutable output proofs registered across observed lanes.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card span8">
+          <div class="card-head"><div class="card-title">Signal Board</div><div class="pill">Watched</div></div>
+          <div class="card-body signal-board">
+            <div>
+              <div class="bars">
+                <div class="bar" style="height:46%"></div>
+                <div class="bar" style="height:62%"></div>
+                <div class="bar" style="height:58%"></div>
+                <div class="bar" style="height:70%"></div>
+                <div class="bar" style="height:78%"></div>
+                <div class="bar" style="height:60%"></div>
+                <div class="bar" style="height:82%"></div>
+                <div class="bar" style="height:68%"></div>
+                <div class="bar" style="height:88%"></div>
+              </div>
+            </div>
+            <div class="spark-list">
+              <div class="spark"><strong>PCC Shell Completion</strong><span>Full multi-page shell active. Next phase is live wiring to data surfaces.</span></div>
+              <div class="spark"><strong>Phoenix Media Stack</strong><span>Script, render, quality gate, and queue pages prepared for governed integration.</span></div>
+              <div class="spark"><strong>Master Registry</strong><span>System mapping surface in place for variable and dependency alignment.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card span4">
+          <div class="card-head"><div class="card-title">Priority Lanes</div><div class="pill">Institutional View</div></div>
+          <div class="card-body rows">
+            <div class="row"><div><strong>PCC Wiring</strong><p>Final system behavior layer and execution hooks.</p></div><div class="status-red">RED</div></div>
+            <div class="row"><div><strong>Voice Layer</strong><p>NACE and operator voice assets now structured and ready.</p></div><div class="status-green">READY</div></div>
+            <div class="row"><div><strong>Media Stack</strong><p>Control surfaces prepared for escalation into live content ops.</p></div><div class="status-amber">ACTIVE</div></div>
+          </div>
+        </div>
+
+        <div class="card full">
+          <div class="card-head"><div class="card-title">System Nodes</div><div class="pill">Observed</div></div>
+          <div class="card-body nodes">
+            <div class="node">
+              <div class="node-top"><div><strong>PBRS</strong><small>Readiness / scoring / intake</small></div><div class="status-amber">RSL: Yellow</div></div>
+              <div class="progress"><span style="width:86%"></span></div>
+              <small>Status: Shell-ready</small>
+            </div>
+            <div class="node">
+              <div class="node-top"><div><strong>PBB</strong><small>Builder pathway / continuation lane</small></div><div class="status-amber">Observed</div></div>
+              <div class="progress"><span style="width:78%"></span></div>
+              <small>Status: Build-active</small>
+            </div>
+            <div class="node">
+              <div class="node-top"><div><strong>StatsCore</strong><small>Athlete lifecycle / eligibility</small></div><div class="status-green">Tracked</div></div>
+              <div class="progress"><span style="width:71%"></span></div>
+              <small>Status: Wiring layer</small>
+            </div>
+            <div class="node">
+              <div class="node-top"><div><strong>Phoenix Media</strong><small>Production / render / signal</small></div><div class="status-red">Priority</div></div>
+              <div class="progress"><span style="width:89%"></span></div>
+              <small>Status: Elite stack planning</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card full">
+          <div class="card-head"><div class="card-title">Command Actions</div><div class="pill">Quick Access</div></div>
+          <div class="card-body">
+            <div class="action-grid">
+              <button class="action-btn" data-jump="registry">Open Registry</button>
+              <button class="action-btn" data-jump="execution">Execute Command</button>
+              <button class="action-btn" id="playNaceBtn">Play NACE</button>
+              <button class="action-btn" id="playChadBtn">Play Chad</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</section></main>  <div id="nacePanel" style="position:fixed;right:22px;bottom:22px;width:360px;max-width:calc(100vw - 32px);background:#091019f5;border:1px solid #c7a15b55;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45);padding:14px;display:none;z-index:9999;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
+    </section>
+
+    <section id="commandFloor" class="page">
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">Primary Surface · Command Floor</div>
+            <h1>Pressure, flow, signal, and execution converge here.</h1>
+            <p>This surface is built for live command posture. Use it to read system pressure, monitor pipeline movement, and decide what moves next across the enterprise.</p>
+          </div>
+          <div class="hero-side">
+            <div class="hero-chip"><div class="k">Authority State</div><div class="v status-green">Control Preserved</div></div>
+            <div class="hero-chip"><div class="k">Signal State</div><div class="v status-amber">High Observation</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card span7">
+          <div class="card-head"><div class="card-title">Lane Pressure</div><div class="pill">Live Feel</div></div>
+          <div class="card-body rows">
+            <div class="row"><div><strong>Registry Lane</strong><p>Dependencies and variable alignment under active review.</p></div><div class="status-amber">WATCH</div></div>
+            <div class="row"><div><strong>Execution Lane</strong><p>Command surface prepared for action trigger and receipt verification.</p></div><div class="status-green">READY</div></div>
+            <div class="row"><div><strong>Media Lane</strong><p>Voice layer and persona routing available for controlled expansion.</p></div><div class="status-red">PRIORITY</div></div>
+          </div>
+        </div>
+        <div class="card span5">
+          <div class="card-head"><div class="card-title">Immediate Actions</div><div class="pill">Operate</div></div>
+          <div class="card-body">
+            <div class="action-grid" style="grid-template-columns:1fr 1fr;">
+              <button class="action-btn" data-jump="execution">Go Execute</button>
+              <button class="action-btn" data-jump="receipts">View Receipts</button>
+              <button class="action-btn" id="playOperatorBtn2">Play Operator</button>
+              <button class="action-btn" data-jump="manual">Open Manual</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="registry" class="page">
+      <div class="hero">
+        <div class="eyebrow">Master System Map</div>
+        <h1>System Registry</h1>
+        <p>This page exists to clarify what systems exist, what each system does, and how they connect under Phoenix OS.</p>
+      </div>
+      <div class="grid">
+        <div class="card full">
+          <div class="card-head"><div class="card-title">Registry Table</div><div class="pill">Controlled</div></div>
+          <div class="card-body">
+            <table class="queue-table">
+              <thead>
+                <tr><th>System</th><th>Role</th><th>Status</th><th>Notes</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>PCC</td><td>Control surface</td><td class="status-green">Active</td><td>Master interface layer above all product shells.</td></tr>
+                <tr><td>PBRS</td><td>Readiness engine</td><td class="status-amber">Yellow</td><td>Assessment, qualification, and routing gateway.</td></tr>
+                <tr><td>PBB</td><td>Builder system</td><td class="status-amber">Active</td><td>Structured continuation lane after readiness.</td></tr>
+                <tr><td>StatsCore</td><td>Athlete system</td><td class="status-green">Tracked</td><td>Eligibility, performance, and lifecycle layer.</td></tr>
+                <tr><td>Phoenix Media</td><td>Production system</td><td class="status-red">Priority</td><td>Voice, render, signal, and release control.</td></tr>
+                <tr><td>Spider</td><td>Execution engine</td><td class="status-blue">Ready</td><td>Deterministic command claim, run, and receipt flow.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="execution" class="page">
+      <div class="hero">
+        <div class="eyebrow">Execution Layer</div>
+        <h1>Command Execution</h1>
+        <p>Trigger structured commands, review intent, and keep action flow governed. This page is designed to connect later into live execution lanes without changing the shell.</p>
+      </div>
+      <div class="grid">
+        <div class="card span7">
+          <div class="card-head"><div class="card-title">Command Builder</div><div class="pill">Governed</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Target System</label>
+                <select class="select" id="cmdSystem">
+                  <option>PCC</option>
+                  <option>PBRS</option>
+                  <option>PBB</option>
+                  <option>StatsCore</option>
+                  <option>Phoenix Media</option>
+                  <option>Spider</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Action</label>
+                <select class="select" id="cmdAction">
+                  <option>test_heartbeat</option>
+                  <option>visible_test_1</option>
+                  <option>goldwords_execute</option>
+                  <option>refresh_registry</option>
+                </select>
+              </div>
+              <div class="field" style="grid-column:1 / -1;">
+                <label>Command Notes</label>
+                <textarea class="textarea" id="cmdNotes">{"meta":{"source":"pcc","mode":"manual","lane":"core"}}</textarea>
+              </div>
+            </div>
+            <div class="action-grid" style="margin-top:14px;grid-template-columns:repeat(3,minmax(0,1fr));">
+              <button class="action-btn" id="simulateCommandBtn">Simulate Command</button>
+              <button class="action-btn" id="chadConfirmBtn">Chad Confirm</button>
+              <button class="action-btn" data-jump="receipts">Go To Receipts</button>
+            </div>
+          </div>
+        </div>
+        <div class="card span5">
+          <div class="card-head"><div class="card-title">Execution Queue</div><div class="pill">Observed</div></div>
+          <div class="card-body rows" id="queueList">
+            <div class="row"><div><strong>phoenix_builder_runner</strong><p>Core heartbeat lane · awaiting instruction</p></div><div class="status-green">READY</div></div>
+            <div class="row"><div><strong>Render / Voice</strong><p>PCC voice hooks are available through structured audio registry.</p></div><div class="status-blue">HOOKED</div></div>
+            <div class="row"><div><strong>Receipt Layer</strong><p>Shell supports proof-first verification model.</p></div><div class="status-amber">WATCH</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="receipts" class="page">
+      <div class="hero">
+        <div class="eyebrow">Truth Layer</div>
+        <h1>Receipts & Logs</h1>
+        <p>No receipt means no action. This surface preserves proof, confirms behavior, and keeps operator awareness grounded in what the system can verify.</p>
+      </div>
+      <div class="grid">
+        <div class="card full">
+          <div class="card-head"><div class="card-title">Receipt Stream</div><div class="pill">Immutable Feel</div></div>
+          <div class="card-body">
+            <table class="queue-table">
+              <thead>
+                <tr><th>Time</th><th>System</th><th>Action</th><th>Status</th><th>Note</th></tr>
+              </thead>
+              <tbody id="receiptTable">
+                <tr><td>08:11</td><td>PCC</td><td>shell_load</td><td class="status-green">Completed</td><td>Command floor loaded into active session.</td></tr>
+                <tr><td>08:15</td><td>Voice Engine</td><td>registry_ready</td><td class="status-blue">Verified</td><td>NACE / Chad / Operator files available.</td></tr>
+                <tr><td>08:19</td><td>Operator</td><td>manual_access</td><td class="status-amber">Viewed</td><td>Training lane available for command guidance.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="strategy" class="page">
+      <div class="hero">
+        <div class="eyebrow">Priority · Sequencing · Direction</div>
+        <h1>Strategy Layer</h1>
+        <p>This surface keeps the enterprise aligned. Use it to stay focused on what advances the organization rather than what merely distracts it.</p>
+      </div>
+      <div class="grid">
+        <div class="card full">
+          <div class="card-body rows">
+            <div class="row"><div><strong>Priority 1 — PCC Activation</strong><p>Control panel density, execution behavior, and voice hooks completed first.</p></div><div class="status-red">RED</div></div>
+            <div class="row"><div><strong>Priority 2 — Phoenix Media</strong><p>Voice, render, and distribution control should remain the next major expansion lane.</p></div><div class="status-amber">ACTIVE</div></div>
+            <div class="row"><div><strong>Priority 3 — StatsCore Shell Continuation</strong><p>Use the same full-shell doctrine for the next system build.</p></div><div class="status-green">NEXT</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="operations" class="page">
+      <div class="hero">
+        <div class="eyebrow">Enterprise Watch</div>
+        <h1>Operations</h1>
+        <p>Operational visibility across systems, lanes, and enterprise obligations belongs here. This page is designed to watch movement, not over-explain it.</p>
+      </div>
+      <div class="grid">
+        <div class="card full">
+          <div class="card-body rows">
+            <div class="row"><div><strong>Communications</strong><p>Phone operator voice reserved for front-desk and call-routing layer.</p></div><div class="status-blue">Hooked</div></div>
+            <div class="row"><div><strong>Product Build Streams</strong><p>PBRS, PBB, StatsCore, and Phoenix Media remain aligned under full-shell doctrine.</p></div><div class="status-green">Aligned</div></div>
+            <div class="row"><div><strong>Governance</strong><p>Assembly line build protocol remains active and controlling build behavior.</p></div><div class="status-green">Locked</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="warRoom" class="page">
+      <div class="hero">
+        <div class="eyebrow">Executive Interaction Layer</div>
+        <h1>AI Staff / War Room</h1>
+        <p>This page is reserved for guided interaction with executive personas, strategic review, and escalated decision support across the enterprise.</p>
+      </div>
+      <div class="grid">
+        <div class="card full">
+          <div class="card-head"><div class="card-title">Primary Voices</div><div class="pill">Phase 1</div></div>
+          <div class="card-body">
+            <div class="action-grid">
+              <button class="action-btn" id="warNace">Play NACE</button>
+              <button class="action-btn" id="warChad">Play Chad</button>
+              <button class="action-btn" id="warOperator">Play Operator</button>
+              <button class="action-btn" data-jump="manual">Open Manual</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="manual" class="page">
+      <div class="hero">
+        <div class="eyebrow">Operator Doctrine</div>
+        <h1>Operator Manual</h1>
+        <p>You do not “use” PCC. You operate through it. This manual exists to keep the command surface practical, disciplined, and easy to run under pressure.</p>
+      </div>
+      <div class="grid">
+        <div class="card span7">
+          <div class="card-head"><div class="card-title">Core Flow</div><div class="pill">Daily Use</div></div>
+          <div class="card-body manual-list">
+            <div class="manual-row"><strong>1. Observe</strong><span>Open Executive Overview first. Read what is active, what is red, and what requires attention now.</span></div>
+            <div class="manual-row"><strong>2. Prioritize</strong><span>Choose one priority lane. Do not scatter your attention across every surface.</span></div>
+            <div class="manual-row"><strong>3. Execute</strong><span>Go to Command Execution and trigger only purposeful actions.</span></div>
+            <div class="manual-row"><strong>4. Verify</strong><span>Move to Receipts and confirm system truth. No receipt means no action.</span></div>
+          </div>
+        </div>
+        <div class="card span5">
+          <div class="card-head"><div class="card-title">Rules</div><div class="pill">Locked</div></div>
+          <div class="card-body manual-list">
+            <div class="manual-row"><strong>No receipt = no action</strong><span>Everything important must be verifiable.</span></div>
+            <div class="manual-row"><strong>One priority at a time</strong><span>PCC exists to concentrate action, not scatter it.</span></div>
+            <div class="manual-row"><strong>NACE is guidance, not clutter</strong><span>Use NACE to explain, route, and train.</span></div>
+            <div class="manual-row"><strong>System first</strong><span>Keep the shell stable. Add layers without collapsing structure.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+  </section>  <div id="nacePanel">
+    <div class="nace-head">
       <div>
-        <div style="font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:#e7d2a5;">NACE</div>
-        <div style="font-weight:800;color:#f3ede3;">Phoenix OS Guidance Layer</div>
+        <div class="k">NACE</div>
+        <h3>Phoenix OS Guidance Layer</h3>
       </div>
-      <button id="naceClose" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:10px;padding:6px 10px;cursor:pointer;">Close</button>
+      <button id="naceClose">Close</button>
     </div>
-    <div id="naceMode" style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#9ea7b3;margin-bottom:10px;">Mode: Operator / Conversion</div>
-    <div id="naceOutput" style="min-height:112px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff05;padding:12px;color:#d8dde4;line-height:1.55;margin-bottom:10px;">I am NACE. I can explain this page, guide your next step, or help route you to the right Phoenix OS system.</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <button class="naceQuick" data-q="Explain this page" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:999px;padding:8px 10px;cursor:pointer;">Explain this page</button>
-      <button class="naceQuick" data-q="What should I do next?" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:999px;padding:8px 10px;cursor:pointer;">What next?</button>
-      <button class="naceQuick" data-q="Where should this lead?" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:999px;padding:8px 10px;cursor:pointer;">Routing</button>
+    <div id="naceMode">Mode: Operator / Training</div>
+    <div id="naceOutput">I am NACE. I can explain this page, guide your next action, and route you to the correct Phoenix OS surface.</div>
+    <div class="nace-quick">
+      <button data-q="Explain this page">Explain this page</button>
+      <button data-q="What should I do next?">What next?</button>
+      <button data-q="Where should this lead?">Routing</button>
+      <button data-q="Play NACE">Play NACE</button>
     </div>
-    <div style="display:flex;gap:8px;">
-      <input id="naceInput" placeholder="Ask NACE..." style="flex:1;border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:12px;padding:12px;outline:none;" />
-      <button id="naceSend" style="border:1px solid #c7a15b55;background:#c7a15b22;color:#f3ede3;border-radius:12px;padding:0 14px;cursor:pointer;font-weight:700;">Send</button>
+    <div class="nace-input-row">
+      <input id="naceInput" placeholder="Ask NACE..." />
+      <button id="naceSend">Send</button>
     </div>
-  </div>
-</div><script>
-const buttons=document.querySelectorAll('.nav button');
-const pages=document.querySelectorAll('.page');
-let currentPage = 'exec';
-buttons.forEach(btn=>{
-  btn.onclick=()=>{
-    pages.forEach(p=>p.classList.remove('active'));
-    buttons.forEach(b=>b.classList.remove('active'));
-    currentPage = btn.dataset.page;
-    document.getElementById(currentPage).classList.add('active');
-    btn.classList.add('active');
-  }
-});
+  </div>  <script>
+    const VALID_CODE = '777777';
+    const VOICES = {
+      nace: 'VOICE_ENGINE/nace.mp3',
+      chad: 'VOICE_ENGINE/chad.mp3',
+      operator: 'VOICE_ENGINE/phone_system_operator.mp3'
+    };
 
-const naceToggle = document.getElementById('naceToggle');
-const nacePanel = document.getElementById('nacePanel');
-const naceClose = document.getElementById('naceClose');
-const naceInput = document.getElementById('naceInput');
-const naceSend = document.getElementById('naceSend');
-const naceOutput = document.getElementById('naceOutput');
-const naceMode = document.getElementById('naceMode');
-const naceQuick = document.querySelectorAll('.naceQuick');
+    const gate = document.getElementById('gate');
+    const pcc = document.getElementById('pcc');
+    const codeBoxes = [...document.querySelectorAll('.codeBox')];
+    const gateError = document.getElementById('gateError');
+    const enterBtn = document.getElementById('enterBtn');
+    const voiceAudio = document.getElementById('voiceAudio');
 
-const pageProfiles = {
-  exec: {
-    name: 'Executive Overview',
-    explain: 'This page is your enterprise snapshot. Use it first to see what is active, what is urgent, and what deserves executive attention today.',
-    next: 'Identify one red or high-priority item, then move to Command Floor or Command Execution to act on it.',
-    route: 'If the priority is product-related, go to Product Portfolio or System Registry. If it needs action now, go to Command Execution.'
-  },
-  command: {
-    name: 'Command Floor',
-    explain: 'This is the control surface for system-wide activity. It is where you monitor what is moving and what needs to move next.',
-    next: 'Use this page to orient yourself, then move into Execution when you are ready to trigger an action.',
-    route: 'Use this surface to decide whether the next lane is product control, operations, or execution.'
-  },
-  strategy: {
-    name: 'Strategy Layer',
-    explain: 'This page holds enterprise direction, sequencing, and priority logic.',
-    next: 'Clarify today’s focus, then move to the page responsible for carrying that priority forward.',
-    route: 'Strategy usually routes into Product Portfolio, Operations, or Command Execution.'
-  },
-  products: {
-    name: 'Product Portfolio',
-    explain: 'This is the portfolio view of Phoenix OS products. It helps you see the product ecosystem as one connected enterprise.',
-    next: 'Select the product that needs attention, then move to its registry, shell, or execution path.',
-    route: 'If a user needs progression, NACE should route them from one product to the next based on readiness and need.'
-  },
-  registry: {
-    name: 'System Registry',
-    explain: 'This page maps systems, variables, and dependencies. It tells you what exists and how it connects.',
-    next: 'Use this when you need structural clarity before building or wiring.',
-    route: 'Registry work usually routes into product build, execution wiring, or enterprise oversight.'
-  },
-  operations: {
-    name: 'Operations',
-    explain: 'This page is for company-wide oversight, including workflows, departments, and operational watch.',
-    next: 'Review what is blocked, what is overdue, and what needs administrative follow-through.',
-    route: 'Operational issues may route to AI Staff, Execution, or Governance depending on the issue.'
-  },
-  personnel: {
-    name: 'AI Staff / War Room',
-    explain: 'This page is the interaction layer for AI executives and support personas inside RPE.',
-    next: 'Use this area when you need role-based support, strategic discussion, or guided collaboration.',
-    route: 'This is where internal requests should be interpreted and routed to the correct system or executive function.'
-  },
-  execution: {
-    name: 'Command Execution',
-    explain: 'This page is where actions are triggered. It is for sending governed commands into Phoenix OS systems.',
-    next: 'Execute only with intent, then immediately verify in Receipts.',
-    route: 'Execution should hand off to Spider, Render, or the relevant system command lane.'
-  },
-  receipts: {
-    name: 'Receipts',
-    explain: 'This is the truth layer. It confirms what happened, what failed, and what the system can prove.',
-    next: 'Check this after every critical action.',
-    route: 'If there is no receipt, route back to Execution or the originating system for review.'
-  },
-  manual: {
-    name: 'Operator Manual',
-    explain: 'This page teaches the operator how to use PCC with discipline and clarity.',
-    next: 'Use it whenever you need to reset, orient, or train on system usage.',
-    route: 'From here, move to Executive Overview first, then choose one clear next action.'
-  }
-};
+    const pages = [...document.querySelectorAll('.page')];
+    const navBtns = [...document.querySelectorAll('.nav-btn')];
+    const jumpBtns = [...document.querySelectorAll('[data-jump]')];
+    let currentPage = 'overview';
 
-function speak(text){
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 1;
-  utter.pitch = 1;
-  window.speechSynthesis.speak(utter);
-}
+    const nacePanel = document.getElementById('nacePanel');
+    const naceToggle = document.getElementById('naceToggle');
+    const naceClose = document.getElementById('naceClose');
+    const naceMode = document.getElementById('naceMode');
+    const naceOutput = document.getElementById('naceOutput');
+    const naceInput = document.getElementById('naceInput');
+    const naceSend = document.getElementById('naceSend');
+    const naceQuickBtns = [...document.querySelectorAll('.nace-quick button')];
 
-function routeRecommendation(question){
-  const q = question.toLowerCase();
-  if (q.includes('pbrs')) return 'For readiness assessment and qualification, the next correct Phoenix OS lane is PBRS. From PBRS, NACE can determine whether the user should remain in guidance, move into PBB, or later route toward PNC.';
-  if (q.includes('pbb')) return 'For structured build progression, the next correct lane is PBB. NACE should bring the user here once readiness is confirmed and a build path is appropriate.';
-  if (q.includes('statscore')) return 'For athlete profile, eligibility, and performance management, the correct lane is StatsCore.';
-  if (q.includes('media')) return 'For scripting, rendering, content review, and distribution, the correct lane is Phoenix Media.';
-  return pageProfiles[currentPage]?.route || 'NACE routing determines the next Phoenix OS system based on intent, readiness, and what the user needs next.';
-}
+    const pageProfiles = {
+      overview: {
+        explain: 'Executive Overview is your primary enterprise snapshot. It tells you what is active, what is under pressure, and where leadership attention belongs first.',
+        next: 'Review the system metrics, read the signal board, then move to Command Execution or System Registry based on what requires action.',
+        route: 'If the matter is structural, route to Registry. If it requires action now, route to Command Execution. If it requires training, route to Operator Manual.'
+      },
+      commandFloor: {
+        explain: 'Command Floor is the pressure and movement surface. It helps you read where energy, urgency, and operational focus are accumulating.',
+        next: 'Use this page to identify the lane under pressure, then jump into Execution or Strategy.',
+        route: 'Command Floor typically routes to Execution, Strategy, or Receipts.'
+      },
+      registry: {
+        explain: 'System Registry clarifies what systems exist and what function each system performs under Phoenix OS.',
+        next: 'Use it when you need structural clarity before building, wiring, or routing.',
+        route: 'Registry work routes to build work, execution work, or product oversight.'
+      },
+      execution: {
+        explain: 'Command Execution is where governed actions begin. Use it to stage intent, simulate commands, and prepare for later live wiring.',
+        next: 'Set the target system and action, simulate the command, then verify in Receipts.',
+        route: 'Execution routes into Receipts and later into Spider or other execution lanes.'
+      },
+      receipts: {
+        explain: 'Receipts and Logs is the truth layer. This page exists so you can verify what the system can actually prove.',
+        next: 'Review the latest entries and confirm action trace before trusting any reported outcome.',
+        route: 'If you need new action, route back to Command Execution. If you need clarity, route to Operator Manual.'
+      },
+      strategy: {
+        explain: 'Strategy Layer preserves sequencing, priority, and enterprise direction.',
+        next: 'Use it to decide what deserves focus this cycle, then route that decision to the relevant control surface.',
+        route: 'Strategy often routes to Overview, Operations, or Execution.'
+      },
+      operations: {
+        explain: 'Operations keeps the enterprise watch layer visible, including system posture, communications, and governance alignment.',
+        next: 'Check operational watch items, then move to the surface responsible for action.',
+        route: 'Operational issues route into Execution, War Room, or Registry.'
+      },
+      warRoom: {
+        explain: 'AI Staff and War Room is the interaction layer for executive support personas and guided escalation.',
+        next: 'Use it when you need voice support, executive perspective, or guided system posture.',
+        route: 'War Room routes into Strategy, Execution, or Manual depending on need.'
+      },
+      manual: {
+        explain: 'Operator Manual is the training surface. It exists to keep use disciplined, repeatable, and easy under pressure.',
+        next: 'Reset here whenever you need to simplify your next move.',
+        route: 'Manual routes back to Overview first, then to whichever system surface actually needs action.'
+      }
+    };
 
-function answerNace(question){
-  const q = question.toLowerCase();
-  const profile = pageProfiles[currentPage] || pageProfiles.exec;
-  let response = `You are currently on ${profile.name}. ${profile.explain}`;
+    function playVoice(key) {
+      const src = VOICES[key];
+      if (!src) return;
+      voiceAudio.pause();
+      voiceAudio.currentTime = 0;
+      voiceAudio.src = src;
+      voiceAudio.play().catch(() => {});
+    }
 
-  if (q.includes('explain this page') || q.includes('explain')) {
-    response = profile.explain;
-  } else if (q.includes('what next') || q.includes('what should i do next') || q.includes('next')) {
-    response = profile.next;
-  } else if (q.includes('route') || q.includes('routing') || q.includes('where should this lead') || q.includes('where do i go')) {
-    response = routeRecommendation(question);
-  } else if (q.includes('what is nace')) {
-    response = 'NACE is the embedded intelligence, training, and conversion layer of Phoenix OS. NACE explains systems, guides actions, and routes people to the right next system based on need.';
-  } else if (q.includes('how do i use pcc') || q.includes('use pcc')) {
-    response = 'Use PCC in five steps: observe, prioritize, authorize, execute, and verify. Start in Executive Overview, choose one priority, act in Execution, then confirm in Receipts.';
-  } else if (q.includes('receipt')) {
-    response = 'Receipts are the proof layer. If there is no receipt, the action is not considered complete.';
-  } else if (q.includes('war room') || q.includes('ai staff')) {
-    response = 'The AI Staff and War Room layer is where you interact with RPE’s AI executives and support personas for guided collaboration and decision support.';
-  }
+    function getCode() {
+      return codeBoxes.map(box => box.value.trim()).join('');
+    }
 
-  naceOutput.textContent = response;
-  speak(response);
-}
+    function focusNext(index) {
+      if (index < codeBoxes.length - 1) codeBoxes[index + 1].focus();
+    }
 
-naceToggle.onclick = ()=> {
-  nacePanel.style.display = nacePanel.style.display === 'block' ? 'none' : 'block';
-  if (nacePanel.style.display === 'block') {
-    const profile = pageProfiles[currentPage] || pageProfiles.exec;
-    naceMode.textContent = `Mode: ${currentPage === 'exec' || currentPage === 'command' || currentPage === 'execution' || currentPage === 'receipts' || currentPage === 'manual' ? 'Operator / Training' : 'Guidance / Conversion'}`;
-    naceOutput.textContent = `NACE active on ${profile.name}. Ask me to explain this page, tell you what to do next, or help route to the correct Phoenix OS system.`;
-  }
-};
+    codeBoxes.forEach((box, index) => {
+      box.addEventListener('input', () => {
+        box.value = box.value.replace(/[^0-9a-zA-Z]/g, '').slice(0, 1);
+        if (box.value) focusNext(index);
+      });
+      box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && index > 0) {
+          codeBoxes[index - 1].focus();
+        }
+        if (e.key === 'Enter') enterGate();
+      });
+    });
 
-naceClose.onclick = ()=> nacePanel.style.display = 'none';
-naceSend.onclick = ()=> { if (naceInput.value.trim()) { answerNace(naceInput.value.trim()); naceInput.value=''; } };
-naceInput.addEventListener('keydown', e => { if (e.key === 'Enter' && naceInput.value.trim()) { answerNace(naceInput.value.trim()); naceInput.value=''; } });
-naceQuick.forEach(btn => btn.addEventListener('click', ()=> answerNace(btn.dataset.q)));
-</script></body>
+    function enterGate() {
+      if (getCode() === VALID_CODE) {
+        sessionStorage.setItem('PCC_AUTH', 'true');
+        gate.classList.add('hidden');
+        pcc.classList.remove('hidden');
+        gateError.textContent = '';
+        setTimeout(() => playVoice('nace'), 250);
+      } else {
+        gateError.textContent = 'Invalid Access Code';
+      }
+    }
+
+    enterBtn.addEventListener('click', enterGate);
+    document.getElementById('playOperatorBtn').addEventListener('click', () => playVoice('operator'));
+    document.getElementById('playOperatorBtn2').addEventListener('click', () => playVoice('operator'));
+
+    if (sessionStorage.getItem('PCC_AUTH') === 'true') {
+      gate.classList.add('hidden');
+      pcc.classList.remove('hidden');
+    }
+
+    function setPage(pageId) {
+      currentPage = pageId;
+      pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+      navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageId));
+      const modeText = ['overview','commandFloor','execution','receipts','manual'].includes(pageId) ? 'Mode: Operator / Training' : 'Mode: Guidance / Conversion';
+      naceMode.textContent = modeText;
+    }
+
+    navBtns.forEach(btn => btn.addEventListener('click', () => setPage(btn.dataset.page)));
+    jumpBtns.forEach(btn => btn.addEventListener('click', () => setPage(btn.dataset.jump)));
+
+    function addReceipt(system, action, status, note) {
+      const tbody = document.getElementById('receiptTable');
+      const row = document.createElement('tr');
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      row.innerHTML = `<td>${hh}:${mm}</td><td>${system}</td><td>${action}</td><td>${status}</td><td>${note}</td>`;
+      tbody.prepend(row);
+    }
+
+    document.getElementById('simulateCommandBtn').addEventListener('click', () => {
+      const system = document.getElementById('cmdSystem').value;
+      const action = document.getElementById('cmdAction').value;
+      addReceipt(system, action, 'Simulated', 'Command staged inside PCC shell.');
+      setPage('receipts');
+    });
+
+    document.getElementById('chadConfirmBtn').addEventListener('click', () => playVoice('chad'));
+    document.getElementById('playNaceBtn').addEventListener('click', () => playVoice('nace'));
+    document.getElementById('playChadBtn').addEventListener('click', () => playVoice('chad'));
+    document.getElementById('warNace').addEventListener('click', () => playVoice('nace'));
+    document.getElementById('warChad').addEventListener('click', () => playVoice('chad'));
+    document.getElementById('warOperator').addEventListener('click', () => playVoice('operator'));
+
+    function naceAnswer(question) {
+      const q = question.toLowerCase();
+      const profile = pageProfiles[currentPage] || pageProfiles.overview;
+      let answer = profile.explain;
+
+      if (q.includes('play nace')) {
+        playVoice('nace');
+        answer = 'Playing NACE voice now.';
+      } else if (q.includes('what next') || q.includes('next')) {
+        answer = profile.next;
+      } else if (q.includes('route') || q.includes('where should this lead')) {
+        answer = profile.route;
+      } else if (q.includes('explain')) {
+        answer = profile.explain;
+      } else if (q.includes('chad')) {
+        playVoice('chad');
+        answer = 'Playing Chad voice now. Use Chad for execution confirmation and operational tone.';
+      } else if (q.includes('operator') || q.includes('phone')) {
+        playVoice('operator');
+        answer = 'Playing operator voice now. This voice is reserved for external front-desk and intake behavior.';
+      } else if (q.includes('what is nace')) {
+        answer = 'NACE is the guidance, training, and routing layer of Phoenix OS. NACE explains surfaces, guides action, and moves users toward the correct next system.';
+      } else if (q.includes('how do i use pcc')) {
+        answer = 'Start in Executive Overview. Identify one priority. Move to the correct surface. Execute only with intent. Verify everything in Receipts.';
+      }
+
+      naceOutput.textContent = answer;
+    }
+
+    naceToggle.addEventListener('click', () => {
+      const isOpen = nacePanel.style.display === 'block';
+      nacePanel.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        naceOutput.textContent = 'I am NACE. I can explain this page, guide your next action, and route you to the correct Phoenix OS surface.';
+      }
+    });
+    naceClose.addEventListener('click', () => nacePanel.style.display = 'none');
+    naceSend.addEventListener('click', () => {
+      if (naceInput.value.trim()) {
+        naceAnswer(naceInput.value.trim());
+        naceInput.value = '';
+      }
+    });
+    naceInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && naceInput.value.trim()) {
+        naceAnswer(naceInput.value.trim());
+        naceInput.value = '';
+      }
+    });
+    naceQuickBtns.forEach(btn => btn.addEventListener('click', () => naceAnswer(btn.dataset.q)));
+  </script></body>
 </html> 
