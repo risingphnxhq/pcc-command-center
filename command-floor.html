@@ -66,6 +66,7 @@ main{grid-area:main;overflow:auto;padding:22px}
     </div>
   </div>
   <div class="doctrine">From Ashes to Authority</div>
+  <button id="naceToggle" style="margin-left:14px;border:1px solid #c7a15b55;background:#c7a15b22;color:#f3ede3;padding:10px 14px;border-radius:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">🎧 NACE</button>
 </header><aside>  <div class="nav-group">
     <div class="nav-label">Executive</div>
     <div class="nav">
@@ -158,16 +159,167 @@ main{grid-area:main;overflow:auto;padding:22px}
       </div>
     </div>
   </div>
-</section></main></div><script>
+</section></main>  <div id="nacePanel" style="position:fixed;right:22px;bottom:22px;width:360px;max-width:calc(100vw - 32px);background:#091019f5;border:1px solid #c7a15b55;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45);padding:14px;display:none;z-index:9999;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
+      <div>
+        <div style="font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:#e7d2a5;">NACE</div>
+        <div style="font-weight:800;color:#f3ede3;">Phoenix OS Guidance Layer</div>
+      </div>
+      <button id="naceClose" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:10px;padding:6px 10px;cursor:pointer;">Close</button>
+    </div>
+    <div id="naceMode" style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#9ea7b3;margin-bottom:10px;">Mode: Operator / Conversion</div>
+    <div id="naceOutput" style="min-height:112px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff05;padding:12px;color:#d8dde4;line-height:1.55;margin-bottom:10px;">I am NACE. I can explain this page, guide your next step, or help route you to the right Phoenix OS system.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="naceQuick" data-q="Explain this page" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:999px;padding:8px 10px;cursor:pointer;">Explain this page</button>
+      <button class="naceQuick" data-q="What should I do next?" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:999px;padding:8px 10px;cursor:pointer;">What next?</button>
+      <button class="naceQuick" data-q="Where should this lead?" style="border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:999px;padding:8px 10px;cursor:pointer;">Routing</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input id="naceInput" placeholder="Ask NACE..." style="flex:1;border:1px solid #ffffff18;background:#ffffff08;color:#f3ede3;border-radius:12px;padding:12px;outline:none;" />
+      <button id="naceSend" style="border:1px solid #c7a15b55;background:#c7a15b22;color:#f3ede3;border-radius:12px;padding:0 14px;cursor:pointer;font-weight:700;">Send</button>
+    </div>
+  </div>
+</div><script>
 const buttons=document.querySelectorAll('.nav button');
 const pages=document.querySelectorAll('.page');
+let currentPage = 'exec';
 buttons.forEach(btn=>{
   btn.onclick=()=>{
     pages.forEach(p=>p.classList.remove('active'));
     buttons.forEach(b=>b.classList.remove('active'));
-    document.getElementById(btn.dataset.page).classList.add('active');
+    currentPage = btn.dataset.page;
+    document.getElementById(currentPage).classList.add('active');
     btn.classList.add('active');
   }
 });
+
+const naceToggle = document.getElementById('naceToggle');
+const nacePanel = document.getElementById('nacePanel');
+const naceClose = document.getElementById('naceClose');
+const naceInput = document.getElementById('naceInput');
+const naceSend = document.getElementById('naceSend');
+const naceOutput = document.getElementById('naceOutput');
+const naceMode = document.getElementById('naceMode');
+const naceQuick = document.querySelectorAll('.naceQuick');
+
+const pageProfiles = {
+  exec: {
+    name: 'Executive Overview',
+    explain: 'This page is your enterprise snapshot. Use it first to see what is active, what is urgent, and what deserves executive attention today.',
+    next: 'Identify one red or high-priority item, then move to Command Floor or Command Execution to act on it.',
+    route: 'If the priority is product-related, go to Product Portfolio or System Registry. If it needs action now, go to Command Execution.'
+  },
+  command: {
+    name: 'Command Floor',
+    explain: 'This is the control surface for system-wide activity. It is where you monitor what is moving and what needs to move next.',
+    next: 'Use this page to orient yourself, then move into Execution when you are ready to trigger an action.',
+    route: 'Use this surface to decide whether the next lane is product control, operations, or execution.'
+  },
+  strategy: {
+    name: 'Strategy Layer',
+    explain: 'This page holds enterprise direction, sequencing, and priority logic.',
+    next: 'Clarify today’s focus, then move to the page responsible for carrying that priority forward.',
+    route: 'Strategy usually routes into Product Portfolio, Operations, or Command Execution.'
+  },
+  products: {
+    name: 'Product Portfolio',
+    explain: 'This is the portfolio view of Phoenix OS products. It helps you see the product ecosystem as one connected enterprise.',
+    next: 'Select the product that needs attention, then move to its registry, shell, or execution path.',
+    route: 'If a user needs progression, NACE should route them from one product to the next based on readiness and need.'
+  },
+  registry: {
+    name: 'System Registry',
+    explain: 'This page maps systems, variables, and dependencies. It tells you what exists and how it connects.',
+    next: 'Use this when you need structural clarity before building or wiring.',
+    route: 'Registry work usually routes into product build, execution wiring, or enterprise oversight.'
+  },
+  operations: {
+    name: 'Operations',
+    explain: 'This page is for company-wide oversight, including workflows, departments, and operational watch.',
+    next: 'Review what is blocked, what is overdue, and what needs administrative follow-through.',
+    route: 'Operational issues may route to AI Staff, Execution, or Governance depending on the issue.'
+  },
+  personnel: {
+    name: 'AI Staff / War Room',
+    explain: 'This page is the interaction layer for AI executives and support personas inside RPE.',
+    next: 'Use this area when you need role-based support, strategic discussion, or guided collaboration.',
+    route: 'This is where internal requests should be interpreted and routed to the correct system or executive function.'
+  },
+  execution: {
+    name: 'Command Execution',
+    explain: 'This page is where actions are triggered. It is for sending governed commands into Phoenix OS systems.',
+    next: 'Execute only with intent, then immediately verify in Receipts.',
+    route: 'Execution should hand off to Spider, Render, or the relevant system command lane.'
+  },
+  receipts: {
+    name: 'Receipts',
+    explain: 'This is the truth layer. It confirms what happened, what failed, and what the system can prove.',
+    next: 'Check this after every critical action.',
+    route: 'If there is no receipt, route back to Execution or the originating system for review.'
+  },
+  manual: {
+    name: 'Operator Manual',
+    explain: 'This page teaches the operator how to use PCC with discipline and clarity.',
+    next: 'Use it whenever you need to reset, orient, or train on system usage.',
+    route: 'From here, move to Executive Overview first, then choose one clear next action.'
+  }
+};
+
+function speak(text){
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1;
+  utter.pitch = 1;
+  window.speechSynthesis.speak(utter);
+}
+
+function routeRecommendation(question){
+  const q = question.toLowerCase();
+  if (q.includes('pbrs')) return 'For readiness assessment and qualification, the next correct Phoenix OS lane is PBRS. From PBRS, NACE can determine whether the user should remain in guidance, move into PBB, or later route toward PNC.';
+  if (q.includes('pbb')) return 'For structured build progression, the next correct lane is PBB. NACE should bring the user here once readiness is confirmed and a build path is appropriate.';
+  if (q.includes('statscore')) return 'For athlete profile, eligibility, and performance management, the correct lane is StatsCore.';
+  if (q.includes('media')) return 'For scripting, rendering, content review, and distribution, the correct lane is Phoenix Media.';
+  return pageProfiles[currentPage]?.route || 'NACE routing determines the next Phoenix OS system based on intent, readiness, and what the user needs next.';
+}
+
+function answerNace(question){
+  const q = question.toLowerCase();
+  const profile = pageProfiles[currentPage] || pageProfiles.exec;
+  let response = `You are currently on ${profile.name}. ${profile.explain}`;
+
+  if (q.includes('explain this page') || q.includes('explain')) {
+    response = profile.explain;
+  } else if (q.includes('what next') || q.includes('what should i do next') || q.includes('next')) {
+    response = profile.next;
+  } else if (q.includes('route') || q.includes('routing') || q.includes('where should this lead') || q.includes('where do i go')) {
+    response = routeRecommendation(question);
+  } else if (q.includes('what is nace')) {
+    response = 'NACE is the embedded intelligence, training, and conversion layer of Phoenix OS. NACE explains systems, guides actions, and routes people to the right next system based on need.';
+  } else if (q.includes('how do i use pcc') || q.includes('use pcc')) {
+    response = 'Use PCC in five steps: observe, prioritize, authorize, execute, and verify. Start in Executive Overview, choose one priority, act in Execution, then confirm in Receipts.';
+  } else if (q.includes('receipt')) {
+    response = 'Receipts are the proof layer. If there is no receipt, the action is not considered complete.';
+  } else if (q.includes('war room') || q.includes('ai staff')) {
+    response = 'The AI Staff and War Room layer is where you interact with RPE’s AI executives and support personas for guided collaboration and decision support.';
+  }
+
+  naceOutput.textContent = response;
+  speak(response);
+}
+
+naceToggle.onclick = ()=> {
+  nacePanel.style.display = nacePanel.style.display === 'block' ? 'none' : 'block';
+  if (nacePanel.style.display === 'block') {
+    const profile = pageProfiles[currentPage] || pageProfiles.exec;
+    naceMode.textContent = `Mode: ${currentPage === 'exec' || currentPage === 'command' || currentPage === 'execution' || currentPage === 'receipts' || currentPage === 'manual' ? 'Operator / Training' : 'Guidance / Conversion'}`;
+    naceOutput.textContent = `NACE active on ${profile.name}. Ask me to explain this page, tell you what to do next, or help route to the correct Phoenix OS system.`;
+  }
+};
+
+naceClose.onclick = ()=> nacePanel.style.display = 'none';
+naceSend.onclick = ()=> { if (naceInput.value.trim()) { answerNace(naceInput.value.trim()); naceInput.value=''; } };
+naceInput.addEventListener('keydown', e => { if (e.key === 'Enter' && naceInput.value.trim()) { answerNace(naceInput.value.trim()); naceInput.value=''; } });
+naceQuick.forEach(btn => btn.addEventListener('click', ()=> answerNace(btn.dataset.q)));
 </script></body>
 </html> 
