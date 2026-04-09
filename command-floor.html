@@ -2,1426 +2,405 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center — Command Floor</title>
+  <title>Phoenix Command Center — Command Floor v2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg-0:#030507;
-      --bg-1:#06090d;
-      --bg-2:#0b1016;
-      --bg-3:#111821;
-      --panel:#101720;
-      --panel-2:#131b26;
-      --panel-3:#17202c;
+      --bg0:#04070b;
+      --bg1:#08111a;
+      --bg2:#0d1621;
+      --bg3:#121e2b;
+      --panel:#111a26;
+      --panel2:#172332;
+      --panel3:#1c2a3b;
       --gold:#c6a15b;
-      --gold-2:#e2c27f;
+      --gold2:#e2c27f;
       --ivory:#f4efe5;
       --muted:rgba(244,239,229,.68);
-      --line:rgba(198,161,91,.18);
-      --line-2:rgba(198,161,91,.34);
-      --cyan:#6ad8ff;
-      --green:#46d18f;
+      --line:rgba(198,161,91,.14);
+      --line2:rgba(198,161,91,.28);
+      --cyan:#63d9ff;
+      --blue:#70adff;
+      --green:#49d391;
       --amber:#f0bc56;
-      --red:#ef7070;
-      --shadow:rgba(0,0,0,.62);
-      --radius:18px;
-      --rail-w:220px;
-      --top-h:84px;
-      --nace-w:320px;
+      --red:#ea7474;
+      --topH:84px;
+      --railW:246px;
+      --naceW:340px;
     }*{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-
 body{
   font-family:"Inter",sans-serif;
   color:var(--ivory);
-  overflow:hidden;
   background:
-    radial-gradient(circle at 76% 18%, rgba(198,161,91,.08), transparent 0 20%, transparent 20%),
-    radial-gradient(circle at 20% 0%, rgba(106,216,255,.05), transparent 0 18%, transparent 18%),
-    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 100%);
+    radial-gradient(circle at 82% 14%, rgba(198,161,91,.08), transparent 0 18%, transparent 18%),
+    radial-gradient(circle at 18% 0%, rgba(99,217,255,.05), transparent 0 16%, transparent 16%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
+  overflow:hidden;
 }
-
 body::before{
   content:"";
   position:fixed;
   inset:0;
+  pointer-events:none;
+  opacity:.07;
   background:
     linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
-  background-size:72px 72px;
-  opacity:.07;
-  pointer-events:none;
-  mask-image:radial-gradient(circle at center, black 28%, transparent 84%);
+  background-size:64px 64px;
+  mask-image:radial-gradient(circle at center, black 28%, transparent 86%);
 }
-
 body::after{
   content:"";
   position:fixed;
   inset:0;
-  background:radial-gradient(circle at center, transparent 56%, rgba(0,0,0,.28) 100%);
   pointer-events:none;
+  background:radial-gradient(circle at center, transparent 58%, rgba(0,0,0,.28) 100%);
 }
 
 .mono{font-family:"IBM Plex Mono",monospace}
 .cinzel{font-family:"Cinzel",serif}
 
-.shell{
+.shell{position:relative;width:100%;height:100vh;padding:18px}
+.floor{
   position:relative;
-  width:100%;
-  height:100vh;
-  padding:20px;
-}
-
-.command-floor{
-  position:relative;
-  width:100%;
-  height:100%;
+  width:100%;height:100%;
   border-radius:24px;
   overflow:hidden;
-  background:linear-gradient(180deg, rgba(8,12,17,.96), rgba(4,7,11,.98));
-  border:1px solid rgba(198,161,91,.22);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.025),
-    inset 0 0 140px rgba(0,0,0,.42),
-    0 28px 90px rgba(0,0,0,.46);
+  border:1px solid rgba(198,161,91,.2);
+  background:linear-gradient(180deg, rgba(9,14,20,.97), rgba(5,8,12,.99));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.02), inset 0 0 140px rgba(0,0,0,.38), 0 28px 88px rgba(0,0,0,.42);
 }
-
-.command-floor::before{
-  content:"";
-  position:absolute;
-  inset:14px;
-  border-radius:18px;
-  border:1px solid rgba(198,161,91,.09);
-  pointer-events:none;
-}
-
-.command-floor::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(circle at 85% 50%, rgba(198,161,91,.08), transparent 0 18%, transparent 18%),
-    linear-gradient(90deg, transparent 0%, rgba(255,255,255,.018) 50%, transparent 100%);
-  pointer-events:none;
-}
+.floor::before{content:"";position:absolute;inset:12px;border-radius:18px;border:1px solid rgba(198,161,91,.08);pointer-events:none}
+.floor::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 84% 50%, rgba(198,161,91,.08), transparent 0 18%, transparent 18%),linear-gradient(90deg, transparent 0%, rgba(255,255,255,.02) 52%, transparent 100%)}
 
 .topbar{
-  position:absolute;
-  top:0;
-  left:0;
-  right:0;
-  height:var(--top-h);
-  display:grid;
-  grid-template-columns:auto 1fr auto auto;
-  gap:18px;
-  align-items:center;
-  padding:18px 24px 16px 24px;
-  z-index:30;
-  background:linear-gradient(180deg, rgba(10,14,20,.88), rgba(10,14,20,.52));
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid rgba(198,161,91,.14);
+  position:absolute;top:0;left:0;right:0;height:var(--topH);z-index:40;
+  display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:14px;
+  padding:16px 20px;background:linear-gradient(180deg, rgba(10,15,21,.92), rgba(10,15,21,.58));
+  border-bottom:1px solid rgba(198,161,91,.12);backdrop-filter:blur(10px)
 }
+.topbar::after{content:"";position:absolute;left:22px;right:22px;bottom:0;height:1px;background:linear-gradient(90deg, transparent, rgba(198,161,91,.24), transparent)}
 
-.topbar::after{
-  content:"";
-  position:absolute;
-  left:26px;
-  right:26px;
-  bottom:0;
-  height:1px;
-  background:linear-gradient(90deg, transparent, rgba(198,161,91,.26), transparent);
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  min-width:0;
-}
-
-.brand-seal{
-  width:52px;
-  height:52px;
-  border-radius:50%;
-  overflow:hidden;
-  border:1px solid rgba(198,161,91,.24);
-  background:rgba(255,255,255,.02);
-  box-shadow:0 0 18px rgba(198,161,91,.08);
-  flex:0 0 auto;
-}
-
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.brand-seal{width:48px;height:48px;border-radius:50%;overflow:hidden;flex:0 0 auto;border:1px solid rgba(198,161,91,.22);box-shadow:0 0 16px rgba(198,161,91,.08);background:rgba(255,255,255,.02)}
 .brand-seal img{width:100%;height:100%;object-fit:cover}
-
 .brand-copy{min-width:0}
+.brand-copy .kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.brand-copy h1{font-family:"Cinzel",serif;font-size:1.15rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.motto{justify-self:center;font-family:"Cinzel",serif;font-size:.98rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
 
-.brand-copy .eyebrow{
-  font-size:10px;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color:var(--gold);
-  margin-bottom:4px;
-}
+.statusbar{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.024);color:var(--muted);font-size:10px;letter-spacing:.15em;text-transform:uppercase;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}
+.green{color:var(--green)} .amber{color:var(--amber)} .red{color:var(--red)} .cyan{color:var(--cyan)} .blue{color:var(--blue)}
+.nace-top{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(99,217,255,.18);background:linear-gradient(180deg, rgba(99,217,255,.08), rgba(255,255,255,.02));color:var(--ivory);font-size:10px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
 
-.brand-copy h1{
-  font-family:"Cinzel",serif;
-  font-size:1.2rem;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+.layout{position:absolute;inset:var(--topH) 0 0 0;display:grid;grid-template-columns:var(--railW) 1fr;min-height:0}
+.rail{position:relative;z-index:12;padding:18px 16px 18px 18px;border-right:1px solid rgba(198,161,91,.12);background:linear-gradient(180deg, rgba(10,15,21,.68), rgba(8,12,17,.58))}
+.rail::after{content:"";position:absolute;top:18px;bottom:18px;right:0;width:1px;background:linear-gradient(180deg, transparent, rgba(198,161,91,.18), transparent)}
+.rail-title{font-family:"Cinzel",serif;color:var(--gold);font-size:.88rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:16px}
+.rail-list{display:grid;gap:10px}
+.rail-btn{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid rgba(198,161,91,.08);background:rgba(255,255,255,.018);color:var(--ivory);cursor:pointer;font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-align:left;transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.rail-btn:hover{transform:translateX(2px);border-color:rgba(198,161,91,.18);background:rgba(255,255,255,.03)}
+.rail-btn.active{border-color:rgba(198,161,91,.28);background:linear-gradient(180deg, rgba(198,161,91,.09), rgba(255,255,255,.02));box-shadow:0 0 22px rgba(198,161,91,.06)}
+.rail-btn .mini-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex:0 0 auto}
 
-.bar-center{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-width:0;
-}
+.main-wrap{position:relative;min-width:0;display:grid;grid-template-rows:1fr auto;height:100%}
+.main-scroll{min-height:0;overflow:auto;padding:18px 18px 22px;scrollbar-width:thin;scrollbar-color:rgba(198,161,91,.28) transparent}
+.main-scroll::-webkit-scrollbar{width:10px;height:10px}.main-scroll::-webkit-scrollbar-thumb{background:rgba(198,161,91,.2);border-radius:999px}
 
-.motto{
-  font-family:"Cinzel",serif;
-  font-size:1rem;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:var(--ivory);
-  opacity:.94;
-  text-align:center;
-  white-space:nowrap;
-}
-
-.top-status{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  justify-content:flex-end;
-  flex-wrap:wrap;
-}
-
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  min-height:38px;
-  padding:0 12px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.025);
-  font-size:10px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:var(--muted);
-  white-space:nowrap;
-}
-
-.dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:currentColor;
-  box-shadow:0 0 12px currentColor;
-}
-
-.green{color:var(--green)}
-.amber{color:var(--amber)}
-.red{color:var(--red)}
-.cyan{color:var(--cyan)}
-
-.nace-top{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  height:40px;
-  padding:0 14px;
-  border-radius:999px;
-  border:1px solid rgba(106,216,255,.18);
-  background:linear-gradient(180deg, rgba(106,216,255,.08), rgba(255,255,255,.02));
-  color:var(--ivory);
-  font-size:10px;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  cursor:pointer;
-  white-space:nowrap;
-}
-
-.layout{
-  position:absolute;
-  inset:var(--top-h) 0 0 0;
-  display:grid;
-  grid-template-columns:var(--rail-w) 1fr;
-  min-height:0;
-}
-
-.rail{
-  position:relative;
-  padding:20px 16px 20px 20px;
-  border-right:1px solid rgba(198,161,91,.14);
-  background:linear-gradient(180deg, rgba(10,14,20,.68), rgba(7,11,16,.58));
-  z-index:10;
-}
-
-.rail::after{
-  content:"";
-  position:absolute;
-  top:18px;
-  bottom:18px;
-  right:0;
-  width:1px;
-  background:linear-gradient(180deg, transparent, rgba(198,161,91,.18), transparent);
-}
-
-.rail-title{
-  font-family:"Cinzel",serif;
-  font-size:.84rem;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color:var(--gold);
-  margin-bottom:18px;
-}
-
-.rail-list{
-  display:grid;
-  gap:10px;
-}
-
-.rail-item{
-  position:relative;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  min-height:46px;
-  padding:0 12px;
-  border:1px solid rgba(198,161,91,.08);
-  border-radius:12px;
-  background:rgba(255,255,255,.018);
-  color:var(--ivory);
-  text-decoration:none;
-  font-size:11px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  cursor:pointer;
-  transition:transform .16s ease, border-color .16s ease, background .16s ease;
-}
-
-.rail-item:hover{
-  transform:translateX(2px);
-  border-color:rgba(198,161,91,.18);
-  background:rgba(255,255,255,.03);
-}
-
-.rail-item.active{
-  border-color:rgba(198,161,91,.28);
-  background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.02));
-  box-shadow:0 0 22px rgba(198,161,91,.06);
-}
-
-.rail-item .mini-dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:var(--gold);
-  opacity:.9;
-  flex:0 0 auto;
-}
-
-.main-wrap{
-  position:relative;
-  min-width:0;
-  display:grid;
-  grid-template-rows:1fr auto;
-  height:100%;
-}
-
-.main-scroll{
-  min-height:0;
-  overflow:auto;
-  padding:18px 18px 24px 18px;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(198,161,91,.28) transparent;
-}
-
-.main-scroll::-webkit-scrollbar{width:10px;height:10px}
-.main-scroll::-webkit-scrollbar-thumb{background:rgba(198,161,91,.2);border-radius:999px}
-.main-scroll::-webkit-scrollbar-track{background:transparent}
-
-.view{display:none}
+.view{display:none;opacity:0;transform:translateY(10px)}
 .view.active{display:block}
+.view.enter{opacity:1;transform:translateY(0);transition:opacity .38s ease, transform .38s ease}
 
-.section-grid{display:grid;gap:18px}
-.top-metrics{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:14px}
+.stack{display:grid;gap:18px}
+.card{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg, rgba(16,24,34,.90), rgba(11,17,24,.95));box-shadow:0 22px 56px rgba(0,0,0,.24)}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg, rgba(198,161,91,.06), transparent 34%, transparent 70%, rgba(99,217,255,.05))}
+.pad{padding:18px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.card-title{font-family:"Cinzel",serif;font-size:.92rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.card-copy,.muted{font-size:13px;line-height:1.6;color:var(--muted)}
+.small{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 
-.card{
-  position:relative;
-  background:linear-gradient(180deg, rgba(16,23,32,.90), rgba(10,15,21,.94));
-  border:1px solid var(--line);
-  border-radius:18px;
-  box-shadow:0 22px 54px rgba(0,0,0,.24);
-  overflow:hidden;
-}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.metric{padding:16px 16px 18px}
+.metric .value{display:block;font-size:2rem;font-weight:800;line-height:1;letter-spacing:-.05em;margin:10px 0 8px;transition:color .35s ease}
 
-.card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:linear-gradient(135deg, rgba(198,161,91,.06), transparent 34%, transparent 70%, rgba(106,216,255,.05));
-}
+.ticker-band{overflow:hidden;white-space:nowrap;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);padding:12px 14px}
+.ticker-track{display:inline-block;white-space:nowrap;animation:ticker 26s linear infinite;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ticker-track span{display:inline-block;margin-right:30px}.ticker-track span::after{content:' • ';color:var(--gold);margin-left:12px}
 
-.metric-card{padding:16px 16px 18px}
-.metric-card .label,
-.card-title,
-.sub-label,
-.log-time,
-.small-kicker{
-  font-size:10px;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:var(--muted);
-}
+.hero-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 
-.metric-value{
-  display:block;
-  font-size:2rem;
-  font-weight:800;
-  line-height:1;
-  margin:10px 0 8px;
-  letter-spacing:-.05em;
-}
+.cluster{padding:14px;border:1px solid rgba(198,161,91,.1);border-radius:14px;background:rgba(255,255,255,.02)}
+.bars{height:120px;display:flex;align-items:flex-end;gap:6px;margin-top:12px}
+.bars span{flex:1;min-width:0;border-radius:8px 8px 2px 2px;background:linear-gradient(180deg, rgba(99,217,255,.96), rgba(99,217,255,.26));animation:bounce 2.5s ease-in-out infinite;transform-origin:bottom center;transition:height .8s ease, filter .35s ease}
+.bars.gold span{background:linear-gradient(180deg, rgba(226,194,127,.96), rgba(226,194,127,.26))}
+.bars.red span{background:linear-gradient(180deg, rgba(236,116,116,.96), rgba(236,116,116,.26))}
+.bars.green span{background:linear-gradient(180deg, rgba(74,211,143,.96), rgba(74,211,143,.26))}
+.bars.blue span{background:linear-gradient(180deg, rgba(104,173,255,.96), rgba(104,173,255,.26))}
+.bars span:nth-child(2){animation-delay:.14s}.bars span:nth-child(3){animation-delay:.28s}.bars span:nth-child(4){animation-delay:.42s}.bars span:nth-child(5){animation-delay:.56s}.bars span:nth-child(6){animation-delay:.70s}.bars span:nth-child(7){animation-delay:.84s}.bars span:nth-child(8){animation-delay:.98s}
 
-.metric-sub{
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.55;
-}
-
-.primary-board{
-  display:grid;
-  grid-template-columns:1.18fr .82fr;
-  gap:18px;
-}
-
-.signal-board{padding:18px}
-.signal-header,
-.priority-header,
-.nodes-header,
-.matrix-header,
-.receipts-header,
-.panel-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:14px;
-}
-
-.card-title{
-  font-family:"Cinzel",serif;
-  font-size:.92rem;
-  color:var(--gold);
-  letter-spacing:.16em;
-}
-
-.signal-board .subtext,
-.priority-board .subtext,
-.nodes-board .subtext,
-.matrix-board .subtext,
-.panel-copy,
-.receipt-note{
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.6;
-}
-
-.signal-chart{
-  margin-top:14px;
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:12px;
-}
-
-.signal-cluster{
-  padding:14px;
-  border:1px solid rgba(198,161,91,.10);
-  border-radius:14px;
-  background:rgba(255,255,255,.02);
-}
-
-.bars{
-  height:112px;
-  display:flex;
-  align-items:flex-end;
-  gap:6px;
-  margin-top:12px;
-}
-
-.bars span{
-  flex:1;
-  min-width:0;
-  border-radius:8px 8px 2px 2px;
-  background:linear-gradient(180deg, rgba(106,216,255,.95), rgba(106,216,255,.28));
-  animation:bounce 2.5s ease-in-out infinite;
-  transform-origin:bottom center;
-}
-
-.bars.gold span{background:linear-gradient(180deg, rgba(226,194,127,.95), rgba(226,194,127,.28))}
-.bars.red span{background:linear-gradient(180deg, rgba(239,112,112,.95), rgba(239,112,112,.28))}
-.bars.green span{background:linear-gradient(180deg, rgba(70,209,143,.95), rgba(70,209,143,.28))}
-.bars span:nth-child(2){animation-delay:.16s}
-.bars span:nth-child(3){animation-delay:.32s}
-.bars span:nth-child(4){animation-delay:.48s}
-.bars span:nth-child(5){animation-delay:.64s}
-.bars span:nth-child(6){animation-delay:.80s}
-.bars span:nth-child(7){animation-delay:.96s}
-.bars span:nth-child(8){animation-delay:1.12s}
-
-.flow-lines{margin-top:14px;display:grid;gap:10px}
-.flow-row{display:grid;grid-template-columns:110px 1fr 54px;gap:10px;align-items:center}
+.flow{display:grid;gap:10px;margin-top:14px}
+.flow-row{display:grid;grid-template-columns:120px 1fr 54px;gap:10px;align-items:center}
 .flow-row label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.line-track{position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}
-.line-track span{position:absolute;inset:0 auto 0 0;border-radius:999px;animation:flowPulse 2.8s ease-in-out infinite}
-.line-track.cyan span{background:linear-gradient(90deg, #48ccff, #92e7ff)}
-.line-track.gold span{background:linear-gradient(90deg, #c6a15b, #e2c27f)}
-.line-track.green span{background:linear-gradient(90deg, #46d18f, #8df0bc)}
-.line-track.red span{background:linear-gradient(90deg, #ef7070, #ffabab)}
+.line{position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}
+.line span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;animation:glow 2.6s ease-in-out infinite;transition:width .8s ease}
+.line.cyan span{background:linear-gradient(90deg,#63d9ff,#97ecff)} .line.gold span{background:linear-gradient(90deg,#c6a15b,#e2c27f)} .line.green span{background:linear-gradient(90deg,#49d391,#93f0bf)} .line.red span{background:linear-gradient(90deg,#ea7474,#ffb0b0)} .line.blue span{background:linear-gradient(90deg,#68aaff,#9bc4ff)}
 .flow-row strong{font-size:12px;color:var(--ivory);justify-self:end}
 
-.right-stack{display:grid;gap:18px}
+.priority-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.priority-col,.node,.persona{padding:14px;border:1px solid rgba(198,161,91,.1);border-radius:14px;background:rgba(255,255,255,.02)}
+.priority-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.priority-list{display:grid;gap:10px}
+.priority-item{padding:10px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)}
+.priority-item strong{display:block;font-size:13px;margin-bottom:4px}.priority-item span{display:block;font-size:12px;color:var(--muted);line-height:1.45}
 
-.priority-board,
-.nodes-board,
-.matrix-board,
-.receipts-band,
-.overview-grid .card,
-.panel-page,
-.war-grid .card,
-.comm-grid .card,
-.finance-grid .card,
-.nhce-grid .card,
-.rd-grid .card{
-  padding:18px;
-}
-
-.priority-columns{
-  margin-top:12px;
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-}
-
-.priority-column{
-  padding:12px;
-  border-radius:14px;
-  border:1px solid rgba(198,161,91,.10);
-  background:rgba(255,255,255,.02);
-}
-
-.priority-column .head{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:10px;
-  font-size:11px;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-}
-
-.priority-list{display:grid;gap:9px}
-.priority-item{
-  padding:10px 10px 11px;
-  border-radius:12px;
-  background:rgba(255,255,255,.025);
-  border:1px solid rgba(255,255,255,.04);
-}
-.priority-item strong{display:block;font-size:13px;margin-bottom:4px}
-.priority-item span{font-size:12px;color:var(--muted);line-height:1.45}
-
-.nodes-grid{
-  margin-top:12px;
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:12px;
-}
-
-.node{
-  padding:14px;
-  border-radius:14px;
-  border:1px solid rgba(198,161,91,.10);
-  background:rgba(255,255,255,.02);
-}
-
+.node-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .node-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.node-top strong{font-size:15px}
-.node small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-bottom:10px}
-.progress{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}
-.progress span{position:absolute;inset:0 auto 0 0;border-radius:999px;animation:flowPulse 2.6s ease-in-out infinite}
-.progress.green span{background:linear-gradient(90deg,#46d18f,#8df0bc)}
-.progress.cyan span{background:linear-gradient(90deg,#48ccff,#92e7ff)}
-.progress.gold span{background:linear-gradient(90deg,#c6a15b,#e2c27f)}
-.progress.red span{background:linear-gradient(90deg,#ef7070,#ffabab)}
-
+.node-top strong{font-size:15px}.node small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-bottom:10px}
+.progress{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}.progress span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;animation:glow 2.4s ease-in-out infinite;transition:width .8s ease}
+.progress.green span{background:linear-gradient(90deg,#49d391,#93f0bf)} .progress.cyan span{background:linear-gradient(90deg,#63d9ff,#97ecff)} .progress.gold span{background:linear-gradient(90deg,#c6a15b,#e2c27f)} .progress.red span{background:linear-gradient(90deg,#ea7474,#ffb0b0)} .progress.blue span{background:linear-gradient(90deg,#68aaff,#9bc4ff)}
 .node-meta{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
 
-.matrix-grid{
-  margin-top:12px;
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:12px;
-}
+.table-list{display:grid;gap:10px}.table-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid rgba(198,161,91,.08);background:rgba(255,255,255,.02)}.table-row strong{font-size:13px}.table-row span{font-size:12px;color:var(--muted)}
 
-.action-btn{
-  min-height:70px;
-  border-radius:14px;
-  border:1px solid rgba(198,161,91,.16);
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  color:var(--ivory);
-  text-align:left;
-  padding:14px 14px 12px;
-  cursor:pointer;
-  transition:transform .18s ease, border-color .18s ease, background .18s ease;
-}
+.receipt-band{position:sticky;bottom:0;z-index:16;padding:16px 18px 18px;border-top:1px solid rgba(198,161,91,.12);background:linear-gradient(180deg, rgba(11,17,24,.94), rgba(8,12,17,.98))}
+.receipt-wrap{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg, rgba(16,24,34,.92), rgba(11,17,24,.96));box-shadow:0 18px 44px rgba(0,0,0,.22)}
+.receipt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px}
+.receipt-list{display:grid;gap:10px;padding:0 18px 18px}
+.receipt-row{display:grid;grid-template-columns:100px 140px 1fr 110px;gap:12px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)}
+.receipt-row strong{font-size:12px;letter-spacing:.08em;text-transform:uppercase}.receipt-row span{font-size:12px;color:var(--muted);line-height:1.45}.ok{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
 
-.action-btn:hover{
-  transform:translateY(-1px);
-  border-color:rgba(198,161,91,.30);
-  background:linear-gradient(180deg, rgba(198,161,91,.08), rgba(255,255,255,.02));
-}
+.nace-panel{position:absolute;right:18px;bottom:18px;width:var(--naceW);z-index:30}
+.nace-card{position:relative;border-radius:18px;border:1px solid rgba(99,217,255,.18);background:linear-gradient(180deg, rgba(16,23,32,.88), rgba(10,15,21,.96));box-shadow:0 22px 54px rgba(0,0,0,.28);overflow:hidden}
+.nace-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg, rgba(99,217,255,.08), transparent 55%);pointer-events:none}
+.nace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 14px 10px;border-bottom:1px solid rgba(99,217,255,.10)}
+.nace-head strong{font-family:"Cinzel",serif;font-size:.92rem;letter-spacing:.14em;text-transform:uppercase}
+.nace-body{padding:12px 14px 14px}.nace-message{min-height:72px;font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px}.nace-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.nace-btn{min-height:40px;border-radius:12px;border:1px solid rgba(99,217,255,.14);background:rgba(255,255,255,.03);color:var(--ivory);font-size:10px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 
-.action-btn strong{display:block;font-family:"Cinzel",serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}
-.action-btn span{display:block;font-size:12px;line-height:1.5;color:var(--muted)}
+@keyframes bounce{0%,100%{transform:scaleY(.68)}50%{transform:scaleY(1)}}
+@keyframes glow{0%,100%{filter:brightness(.92)}50%{filter:brightness(1.18)}}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-.receipts-band{
-  margin-top:18px;
-  position:sticky;
-  bottom:0;
-  z-index:12;
-  background:linear-gradient(180deg, rgba(14,19,27,.95), rgba(9,13,19,.98));
-  border:1px solid rgba(198,161,91,.14);
-  border-radius:18px;
-  box-shadow:0 16px 38px rgba(0,0,0,.24);
-}
-
-.receipts-table{margin-top:12px;display:grid;gap:10px}
-.receipt-row{
-  display:grid;
-  grid-template-columns:110px 140px 1fr 110px;
-  gap:12px;
-  align-items:center;
-  padding:12px 12px;
-  border-radius:12px;
-  background:rgba(255,255,255,.022);
-  border:1px solid rgba(255,255,255,.04);
-}
-
-.receipt-row strong{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-.receipt-row span{font-size:12px;color:var(--muted);line-height:1.45}
-.success{color:var(--green)}
-.warn{color:var(--amber)}
-.crit{color:var(--red)}
-
-.overview-grid,
-.comm-grid,
-.nhce-grid,
-.rd-grid,
-.finance-grid,
-.war-grid{
-  display:grid;
-  gap:18px;
-}
-
-.overview-grid{grid-template-columns:1fr 1fr}
-.comm-grid{grid-template-columns:1.05fr .95fr}
-.nhce-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.rd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-.finance-grid{grid-template-columns:1.1fr .9fr}
-.war-grid{grid-template-columns:1fr 1fr}
-
-.table-list{display:grid;gap:10px;margin-top:12px}
-.table-row{
-  display:grid;
-  grid-template-columns:1fr auto auto;
-  gap:12px;
-  align-items:center;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid rgba(198,161,91,.08);
-  background:rgba(255,255,255,.02);
-}
-
-.table-row strong{font-size:13px}
-.table-row span{font-size:12px;color:var(--muted)}
-
-.council-grid{
-  margin-top:12px;
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-}
-
-.persona{
-  padding:12px;
-  border-radius:12px;
-  border:1px solid rgba(198,161,91,.08);
-  background:rgba(255,255,255,.02);
-}
-
-.persona strong{display:block;font-size:13px;margin-bottom:4px}
-.persona span{font-size:12px;color:var(--muted);line-height:1.5}
-
-.ticker-band{
-  margin-top:12px;
-  overflow:hidden;
-  white-space:nowrap;
-  border-top:1px solid rgba(198,161,91,.10);
-  padding-top:12px;
-}
-
-.ticker-track{
-  display:inline-block;
-  white-space:nowrap;
-  animation:ticker 24s linear infinite;
-  font-size:11px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:var(--muted);
-}
-
-.ticker-track span{display:inline-block;margin-right:28px}
-.ticker-track span::after{content:' • ';color:var(--gold);margin-left:12px}
-
-.floating-nace{
-  position:absolute;
-  right:18px;
-  bottom:18px;
-  width:var(--nace-w);
-  z-index:40;
-}
-
-.nace-card{
-  position:relative;
-  border:1px solid rgba(106,216,255,.18);
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(16,22,30,.86), rgba(10,14,19,.94));
-  box-shadow:0 22px 54px rgba(0,0,0,.28);
-  overflow:hidden;
-}
-
-.nace-card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(106,216,255,.08), transparent 55%);
-  pointer-events:none;
-}
-
-.nace-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:14px 14px 10px;
-  border-bottom:1px solid rgba(106,216,255,.10);
-}
-
-.nace-head strong{
-  font-family:"Cinzel",serif;
-  font-size:.92rem;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:var(--ivory);
-}
-
-.nace-body{padding:12px 14px 14px}
-.nace-message{
-  font-size:13px;
-  line-height:1.6;
-  color:var(--muted);
-  margin-bottom:12px;
-  min-height:64px;
-}
-
-.nace-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.nace-btn{
-  min-height:40px;
-  border-radius:12px;
-  border:1px solid rgba(106,216,255,.14);
-  background:rgba(255,255,255,.03);
-  color:var(--ivory);
-  font-size:10px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  cursor:pointer;
-}
-
-.panel-page .page-grid{display:grid;gap:18px}
-.panel-page .page-grid.cols-2{grid-template-columns:1fr 1fr}
-.panel-page .page-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-
-.small-stat{display:grid;gap:6px}
-.small-stat strong{font-size:1.6rem;letter-spacing:-.04em}
-.small-stat span{font-size:12px;color:var(--muted)}
-
-@keyframes bounce{
-  0%,100%{transform:scaleY(.68)}
-  50%{transform:scaleY(1)}
-}
-
-@keyframes flowPulse{
-  0%,100%{filter:brightness(.92)}
-  50%{filter:brightness(1.18)}
-}
-
-@keyframes ticker{
-  from{transform:translateX(0)}
-  to{transform:translateX(-50%)}
-}
-
-@media (max-width: 1380px){
-  .top-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .primary-board,
-  .overview-grid,
-  .comm-grid,
-  .finance-grid,
-  .war-grid,
-  .panel-page .page-grid.cols-2,
-  .panel-page .page-grid.cols-3,
-  .nhce-grid,
-  .rd-grid,
-  .nodes-grid,
-  .matrix-grid,
-  .signal-chart,
-  .priority-columns{grid-template-columns:1fr}
-  .floating-nace{position:fixed;width:min(320px, calc(100vw - 24px));right:12px;bottom:12px}
-}
-
-@media (max-width: 1080px){
-  body{overflow:auto}
-  .shell{height:auto;min-height:100vh;padding:14px}
-  .command-floor{min-height:100vh;height:auto}
-  .layout{position:relative;inset:auto;grid-template-columns:1fr;min-height:auto}
-  .rail{padding:14px}
-  .main-wrap{height:auto}
-  .main-scroll{overflow:visible;padding:14px 14px 140px}
-  .topbar{position:relative;height:auto;grid-template-columns:1fr;gap:12px;padding:14px}
-  .bar-center{justify-content:flex-start}
-  .motto{white-space:normal;text-align:left}
-  .receipt-row{grid-template-columns:1fr}
-}
+@media (max-width:1450px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-grid,.grid-2,.grid-3,.priority-grid,.node-grid{grid-template-columns:1fr}}
+@media (max-width:1080px){body{overflow:auto}.shell{height:auto;min-height:100vh;padding:12px}.floor{min-height:100vh;height:auto}.topbar{position:relative;height:auto;grid-template-columns:1fr;gap:12px;padding:14px}.motto{justify-self:start;white-space:normal}.layout{position:relative;inset:auto;grid-template-columns:1fr;min-height:auto}.rail{padding:14px}.main-wrap{height:auto}.main-scroll{overflow:visible;padding:14px 14px 180px}.receipt-band{position:relative;bottom:auto;padding:0;background:none;border-top:none}.receipt-row,.table-row{grid-template-columns:1fr}.nace-panel{position:fixed;width:min(340px, calc(100vw - 24px));right:12px;bottom:12px}}
 
   </style>
 </head>
 <body>
   <div class="shell">
-    <main class="command-floor">
+    <main class="floor">
       <header class="topbar">
         <div class="brand">
-          <div class="brand-seal">
-            <img src="rpe_seal_logo.png" alt="RPE Seal">
-          </div>
+          <div class="brand-seal"><img src="rpe_seal_logo.png" alt="RPE Seal"></div>
           <div class="brand-copy">
-            <div class="eyebrow mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
+            <div class="kicker mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
             <h1>Phoenix Command Center</h1>
           </div>
-        </div><div class="bar-center">
-      <div class="motto">From Ashes to Authority</div>
-    </div>
-
-    <div class="top-status">
-      <div class="pill green mono"><span class="dot"></span> Stable</div>
-      <div class="pill amber mono"><span class="dot"></span> Queue Active</div>
-      <div class="pill cyan mono"><span class="dot"></span> Session: Phoenix King</div>
-    </div>
-
-    <button class="nace-top mono" id="naceTopButton" type="button">🎧 NACE Active</button>
-  </header>
-
-  <section class="layout">
+        </div>
+        <div class="motto">From Ashes to Authority</div>
+        <div class="statusbar">
+          <div class="pill green mono"><span class="dot"></span> Stable</div>
+          <div class="pill amber mono"><span class="dot"></span> Queue Active</div>
+          <div class="pill cyan mono"><span class="dot"></span> Session: Phoenix King</div>
+        </div>
+        <button class="nace-top mono" id="naceTop" type="button">🎧 NACE Active</button>
+      </header><section class="layout">
     <aside class="rail">
       <div class="rail-title">Control Lanes</div>
-      <nav class="rail-list" id="railList">
-        <button class="rail-item active" data-view="overview"><span class="mini-dot"></span>Overview</button>
-        <button class="rail-item" data-view="command"><span class="mini-dot"></span>Command Floor</button>
-        <button class="rail-item" data-view="registry"><span class="mini-dot"></span>Registry</button>
-        <button class="rail-item" data-view="execution"><span class="mini-dot"></span>Execution</button>
-        <button class="rail-item" data-view="receipts"><span class="mini-dot"></span>Receipts</button>
-        <button class="rail-item" data-view="strategy"><span class="mini-dot"></span>Strategy</button>
-        <button class="rail-item" data-view="operations"><span class="mini-dot"></span>Operations</button>
-        <button class="rail-item" data-view="warroom"><span class="mini-dot"></span>War Room</button>
-        <button class="rail-item" data-view="communications"><span class="mini-dot"></span>Council + Staff</button>
-        <button class="rail-item" data-view="nhce"><span class="mini-dot"></span>NHCE Monitor</button>
-        <button class="rail-item" data-view="rnd"><span class="mini-dot"></span>R&D</button>
-        <button class="rail-item" data-view="finance"><span class="mini-dot"></span>Financial Tracking</button>
+      <nav class="rail-list">
+        <button class="rail-btn active" data-view="overview"><span class="mini-dot"></span>Overview</button>
+        <button class="rail-btn" data-view="admin"><span class="mini-dot"></span>Admin Oversight</button>
+        <button class="rail-btn" data-view="council"><span class="mini-dot"></span>Council + Staff</button>
+        <button class="rail-btn" data-view="nhce"><span class="mini-dot"></span>NHCE Monitor</button>
+        <button class="rail-btn" data-view="rnd"><span class="mini-dot"></span>R&D</button>
+        <button class="rail-btn" data-view="finance"><span class="mini-dot"></span>Financial Tracking</button>
+        <button class="rail-btn" data-view="war"><span class="mini-dot"></span>War Room</button>
+        <button class="rail-btn" data-view="execution"><span class="mini-dot"></span>Execution</button>
+        <button class="rail-btn" data-view="receipts"><span class="mini-dot"></span>Receipts</button>
+        <button class="rail-btn" data-view="registry"><span class="mini-dot"></span>Registry</button>
+        <button class="rail-btn" data-view="strategy"><span class="mini-dot"></span>Strategy</button>
+        <button class="rail-btn" data-view="operations"><span class="mini-dot"></span>Operations</button>
       </nav>
     </aside>
 
     <section class="main-wrap">
       <div class="main-scroll">
-        <div class="view active" id="view-overview">
-          <div class="section-grid">
-            <section class="top-metrics">
-              <article class="card metric-card">
-                <div class="label mono">Systems Active</div>
-                <span class="metric-value" data-live-number="18">18</span>
-                <div class="metric-sub">Enterprise surfaces, engines, and command layers currently monitored.</div>
-              </article>
-              <article class="card metric-card">
-                <div class="label mono">Execution Queue</div>
-                <span class="metric-value" data-live-number="42">42</span>
-                <div class="metric-sub">Pending governed actions across media, product, and command lanes.</div>
-              </article>
-              <article class="card metric-card">
-                <div class="label mono">Media Pipeline</div>
-                <span class="metric-value" data-live-number="27">27</span>
-                <div class="metric-sub">Assets active across Phoenix Media, GoldWords, ShadowFrame, and Studios.</div>
-              </article>
-              <article class="card metric-card">
-                <div class="label mono">Receipts Today</div>
-                <span class="metric-value" data-live-number="163">163</span>
-                <div class="metric-sub">Verification artifacts confirming execution truth and system continuity.</div>
-              </article>
-            </section>
+        <section class="view active" id="view-overview">
+          <div class="stack">
+            <div class="metrics">
+              <article class="card metric"><div class="small mono">Systems Active</div><span class="value" data-live="18">18</span><div class="muted">Core systems and command lanes currently monitored.</div></article>
+              <article class="card metric"><div class="small mono">Execution Queue</div><span class="value" data-live="42">42</span><div class="muted">Pending governed actions across media, command, and ops.</div></article>
+              <article class="card metric"><div class="small mono">Media Pipeline</div><span class="value" data-live="27">27</span><div class="muted">Assets moving through Phoenix Media and render lanes.</div></article>
+              <article class="card metric"><div class="small mono">Receipts Today</div><span class="value" data-live="163">163</span><div class="muted">Verification artifacts proving system truth.</div></article>
+            </div>
 
-            <section class="primary-board">
-              <article class="card signal-board">
-                <div class="signal-header">
+            <div class="ticker-band">
+              <div class="ticker-track mono" id="masterTicker">
+                <span>Mercury Intake Stable</span><span>NHCE Pressure Rising</span><span>Registry Healthy</span><span>Council Brief Queue Active</span><span>Media Review Pending</span><span>Receipts Layer Locked</span>
+                <span>Mercury Intake Stable</span><span>NHCE Pressure Rising</span><span>Registry Healthy</span><span>Council Brief Queue Active</span><span>Media Review Pending</span><span>Receipts Layer Locked</span>
+              </div>
+            </div>
+
+            <div class="hero-grid">
+              <article class="card pad">
+                <div class="card-head">
                   <div>
                     <div class="card-title">Signal Board</div>
-                    <div class="subtext">Live activity visualization across enterprise pressure, execution, and system movement.</div>
+                    <div class="card-copy">Live activity across command pressure, system load, capital flow, and media throughput.</div>
                   </div>
                   <div class="pill cyan mono"><span class="dot"></span> Live Feed</div>
                 </div>
-
-                <div class="signal-chart">
-                  <div class="signal-cluster">
-                    <div class="sub-label mono">Enterprise Load</div>
-                    <div class="bars gold">
-                      <span style="height:32%"></span><span style="height:48%"></span><span style="height:44%"></span><span style="height:62%"></span><span style="height:72%"></span><span style="height:54%"></span><span style="height:82%"></span><span style="height:68%"></span>
-                    </div>
+                <div class="grid-3">
+                  <div class="cluster">
+                    <div class="small mono">Enterprise Load</div>
+                    <div class="bars gold live-bars" data-mode="gold"><span style="height:34%"></span><span style="height:48%"></span><span style="height:42%"></span><span style="height:66%"></span><span style="height:72%"></span><span style="height:58%"></span><span style="height:84%"></span><span style="height:64%"></span></div>
                   </div>
-                  <div class="signal-cluster">
-                    <div class="sub-label mono">Execution Velocity</div>
-                    <div class="bars">
-                      <span style="height:26%"></span><span style="height:42%"></span><span style="height:38%"></span><span style="height:58%"></span><span style="height:76%"></span><span style="height:52%"></span><span style="height:84%"></span><span style="height:64%"></span>
-                    </div>
+                  <div class="cluster">
+                    <div class="small mono">Execution Velocity</div>
+                    <div class="bars blue live-bars" data-mode="blue"><span style="height:26%"></span><span style="height:44%"></span><span style="height:40%"></span><span style="height:62%"></span><span style="height:78%"></span><span style="height:54%"></span><span style="height:88%"></span><span style="height:70%"></span></div>
                   </div>
-                  <div class="signal-cluster">
-                    <div class="sub-label mono">Attention Risk</div>
-                    <div class="bars red">
-                      <span style="height:22%"></span><span style="height:36%"></span><span style="height:48%"></span><span style="height:40%"></span><span style="height:68%"></span><span style="height:46%"></span><span style="height:80%"></span><span style="height:58%"></span>
-                    </div>
+                  <div class="cluster">
+                    <div class="small mono">Attention Risk</div>
+                    <div class="bars red live-bars" data-mode="red"><span style="height:24%"></span><span style="height:34%"></span><span style="height:46%"></span><span style="height:42%"></span><span style="height:68%"></span><span style="height:48%"></span><span style="height:80%"></span><span style="height:56%"></span></div>
                   </div>
                 </div>
-
-                <div class="flow-lines">
-                  <div class="flow-row">
-                    <label>Capital Flow</label>
-                    <div class="line-track gold"><span style="width:84%"></span></div>
-                    <strong>84%</strong>
-                  </div>
-                  <div class="flow-row">
-                    <label>Media Throughput</label>
-                    <div class="line-track cyan"><span style="width:72%"></span></div>
-                    <strong>72%</strong>
-                  </div>
-                  <div class="flow-row">
-                    <label>Ops Stability</label>
-                    <div class="line-track green"><span style="width:91%"></span></div>
-                    <strong>91%</strong>
-                  </div>
-                  <div class="flow-row">
-                    <label>Intervention Need</label>
-                    <div class="line-track red"><span style="width:39%"></span></div>
-                    <strong>39%</strong>
-                  </div>
+                <div class="flow">
+                  <div class="flow-row"><label>Capital Flow</label><div class="line gold"><span style="width:84%"></span></div><strong data-line-value>84%</strong></div>
+                  <div class="flow-row"><label>Media Throughput</label><div class="line cyan"><span style="width:72%"></span></div><strong data-line-value>72%</strong></div>
+                  <div class="flow-row"><label>Ops Stability</label><div class="line green"><span style="width:91%"></span></div><strong data-line-value>91%</strong></div>
+                  <div class="flow-row"><label>Intervention Need</label><div class="line red"><span style="width:39%"></span></div><strong data-line-value>39%</strong></div>
                 </div>
               </article>
 
-              <div class="right-stack">
-                <article class="card priority-board">
-                  <div class="priority-header">
+              <div class="stack">
+                <article class="card pad">
+                  <div class="card-head">
                     <div>
                       <div class="card-title">Priority Panel</div>
-                      <div class="subtext">Immediate enterprise attention routing by criticality.</div>
+                      <div class="card-copy">Immediate enterprise attention routing by severity.</div>
                     </div>
                   </div>
-
-                  <div class="priority-columns">
-                    <div class="priority-column">
-                      <div class="head red"><span class="dot"></span> Red</div>
+                  <div class="priority-grid">
+                    <div class="priority-col">
+                      <div class="priority-head red"><span class="dot"></span> Red</div>
                       <div class="priority-list">
-                        <div class="priority-item">
-                          <strong>Media Approval Queue</strong>
-                          <span>PHXN Studios assets awaiting executive release signoff.</span>
-                        </div>
-                        <div class="priority-item">
-                          <strong>Registry Sync Drift</strong>
-                          <span>One internal registry lane marked for validation review.</span>
-                        </div>
+                        <div class="priority-item"><strong>Media Approval Queue</strong><span>PHXN Studios release package awaiting signoff.</span></div>
+                        <div class="priority-item"><strong>Registry Drift Review</strong><span>One lane requires structural confirmation.</span></div>
                       </div>
                     </div>
-
-                    <div class="priority-column">
-                      <div class="head amber"><span class="dot"></span> Yellow</div>
+                    <div class="priority-col">
+                      <div class="priority-head amber"><span class="dot"></span> Yellow</div>
                       <div class="priority-list">
-                        <div class="priority-item">
-                          <strong>NHCE Load Increase</strong>
-                          <span>Lead pressure rising across active cash engines.</span>
-                        </div>
-                        <div class="priority-item">
-                          <strong>R&D Review Window</strong>
-                          <span>Pending assessment on new control-surface concepts.</span>
-                        </div>
+                        <div class="priority-item"><strong>NHCE Load Increase</strong><span>Lead pressure rising across active engines.</span></div>
+                        <div class="priority-item"><strong>R&D Review Window</strong><span>Prototype surface evaluation in progress.</span></div>
                       </div>
                     </div>
-
-                    <div class="priority-column">
-                      <div class="head green"><span class="dot"></span> Green</div>
+                    <div class="priority-col">
+                      <div class="priority-head green"><span class="dot"></span> Green</div>
                       <div class="priority-list">
-                        <div class="priority-item">
-                          <strong>PBS Corridor Stable</strong>
-                          <span>Readiness stack holding controlled operational posture.</span>
-                        </div>
-                        <div class="priority-item">
-                          <strong>Receipts Layer Healthy</strong>
-                          <span>Verification continuity intact across monitored lanes.</span>
-                        </div>
+                        <div class="priority-item"><strong>PBS Corridor Stable</strong><span>Operational readiness stack holding posture.</span></div>
+                        <div class="priority-item"><strong>Receipts Layer Healthy</strong><span>Verification continuity intact.</span></div>
                       </div>
                     </div>
                   </div>
                 </article>
 
-                <article class="card matrix-board">
-                  <div class="matrix-header">
+                <article class="card pad">
+                  <div class="card-head">
                     <div>
                       <div class="card-title">Command Matrix</div>
-                      <div class="subtext">Convert observation into governed action.</div>
+                      <div class="card-copy">Observation to action conversion zone.</div>
                     </div>
                   </div>
-
-                  <div class="matrix-grid">
-                    <button class="action-btn" data-view-target="execution">
-                      <strong>Execute Command</strong>
-                      <span>Open active execution lane and dispatch controlled actions.</span>
-                    </button>
-                    <button class="action-btn" data-view-target="registry">
-                      <strong>Open Registry</strong>
-                      <span>Review core system registry and structural truth mapping.</span>
-                    </button>
-                    <button class="action-btn" data-view-target="communications">
-                      <strong>Open Council</strong>
-                      <span>View Council of 12 and AI staff communication posture.</span>
-                    </button>
-                    <button class="action-btn" data-view-target="finance">
-                      <strong>Financial Tracking</strong>
-                      <span>Review capital position, intake flow, and control metrics.</span>
-                    </button>
-                    <button class="action-btn" data-view-target="nhce">
-                      <strong>Monitor NHCE</strong>
-                      <span>Observe non-human cashflow engines and opportunity pressure.</span>
-                    </button>
-                    <button class="action-btn" data-view-target="warroom">
-                      <strong>Open War Room</strong>
-                      <span>Move into strategic pressure, threat, and campaign management.</span>
-                    </button>
+                  <div class="grid-3">
+                    <button class="rail-btn" data-goto="execution"><span class="mini-dot"></span>Execute</button>
+                    <button class="rail-btn" data-goto="registry"><span class="mini-dot"></span>Registry</button>
+                    <button class="rail-btn" data-goto="finance"><span class="mini-dot"></span>Finance</button>
+                    <button class="rail-btn" data-goto="council"><span class="mini-dot"></span>Council</button>
+                    <button class="rail-btn" data-goto="nhce"><span class="mini-dot"></span>NHCE</button>
+                    <button class="rail-btn" data-goto="war"><span class="mini-dot"></span>War Room</button>
                   </div>
                 </article>
               </div>
-            </section>
+            </div>
 
-            <section class="card nodes-board">
-              <div class="nodes-header">
+            <article class="card pad">
+              <div class="card-head">
                 <div>
                   <div class="card-title">System Nodes</div>
-                  <div class="subtext">Enterprise-level visibility across core operating systems.</div>
+                  <div class="card-copy">Enterprise visibility across core operating systems.</div>
                 </div>
               </div>
-
-              <div class="nodes-grid">
-                <div class="node">
-                  <div class="node-top"><strong>PBRS</strong><span class="pill amber mono"><span class="dot"></span> Monitor</span></div>
-                  <small>Readiness qualification and snapshot lane.</small>
-                  <div class="progress cyan"><span style="width:78%"></span></div>
-                  <div class="node-meta"><span>progress</span><span>78%</span></div>
-                </div>
-                <div class="node">
-                  <div class="node-top"><strong>PBB</strong><span class="pill green mono"><span class="dot"></span> Ready</span></div>
-                  <small>Builder continuity and guided execution lane.</small>
-                  <div class="progress gold"><span style="width:84%"></span></div>
-                  <div class="node-meta"><span>progress</span><span>84%</span></div>
-                </div>
-                <div class="node">
-                  <div class="node-top"><strong>StatsCORE</strong><span class="pill amber mono"><span class="dot"></span> Active</span></div>
-                  <small>Athlete lifecycle truth and monitoring system.</small>
-                  <div class="progress cyan"><span style="width:74%"></span></div>
-                  <div class="node-meta"><span>progress</span><span>74%</span></div>
-                </div>
-                <div class="node">
-                  <div class="node-top"><strong>Phoenix Media</strong><span class="pill red mono"><span class="dot"></span> Queue</span></div>
-                  <small>Creative, render, voice, and distribution command lanes.</small>
-                  <div class="progress red"><span style="width:66%"></span></div>
-                  <div class="node-meta"><span>progress</span><span>66%</span></div>
-                </div>
-                <div class="node">
-                  <div class="node-top"><strong>Spider</strong><span class="pill green mono"><span class="dot"></span> Linked</span></div>
-                  <small>Deterministic execution and receipt-backed action spine.</small>
-                  <div class="progress green"><span style="width:91%"></span></div>
-                  <div class="node-meta"><span>progress</span><span>91%</span></div>
-                </div>
-                <div class="node">
-                  <div class="node-top"><strong>NHCE</strong><span class="pill amber mono"><span class="dot"></span> Scaling</span></div>
-                  <small>Non-human cashflow engine cluster and revenue watch.</small>
-                  <div class="progress gold"><span style="width:81%"></span></div>
-                  <div class="node-meta"><span>progress</span><span>81%</span></div>
-                </div>
+              <div class="node-grid">
+                <div class="node"><div class="node-top"><strong>PBRS</strong><div class="pill amber mono"><span class="dot"></span> Monitor</div></div><small>Readiness qualification and snapshot lane.</small><div class="progress cyan"><span style="width:78%"></span></div><div class="node-meta"><span>Progress</span><span>78%</span></div></div>
+                <div class="node"><div class="node-top"><strong>PBB</strong><div class="pill green mono"><span class="dot"></span> Ready</div></div><small>Builder continuity and guided execution lane.</small><div class="progress gold"><span style="width:84%"></span></div><div class="node-meta"><span>Progress</span><span>84%</span></div></div>
+                <div class="node"><div class="node-top"><strong>StatsCORE</strong><div class="pill amber mono"><span class="dot"></span> Active</div></div><small>Athlete lifecycle truth and monitoring system.</small><div class="progress blue"><span style="width:74%"></span></div><div class="node-meta"><span>Progress</span><span>74%</span></div></div>
+                <div class="node"><div class="node-top"><strong>Phoenix Media</strong><div class="pill red mono"><span class="dot"></span> Queue</div></div><small>Creative, render, voice, and release operations.</small><div class="progress red"><span style="width:66%"></span></div><div class="node-meta"><span>Progress</span><span>66%</span></div></div>
+                <div class="node"><div class="node-top"><strong>Spider</strong><div class="pill green mono"><span class="dot"></span> Linked</div></div><small>Execution and receipt-backed action spine.</small><div class="progress green"><span style="width:91%"></span></div><div class="node-meta"><span>Progress</span><span>91%</span></div></div>
+                <div class="node"><div class="node-top"><strong>NHCE</strong><div class="pill amber mono"><span class="dot"></span> Scaling</div></div><small>Automated cashflow engine cluster and revenue watch.</small><div class="progress gold"><span style="width:81%"></span></div><div class="node-meta"><span>Progress</span><span>81%</span></div></div>
               </div>
-            </section>
+            </article>
           </div>
-        </div>
+        </section>
 
-        <div class="view" id="view-command">
-          <div class="section-grid">
-            <section class="card panel-page">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Command Floor</div>
-                  <div class="panel-copy">Primary operator surface for live command, routing, and enterprise awareness.</div>
-                </div>
-              </div>
+        <section class="view" id="view-admin"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Admin Oversight</div><div class="card-copy">Administrative posture across subscriptions, documents, systems, and support layers.</div></div></div><div class="grid-2"><div class="card pad"><div class="small mono">System Services</div><div class="flow"><div class="flow-row"><label>Docs</label><div class="line gold"><span style="width:86%"></span></div><strong>86%</strong></div><div class="flow-row"><label>Cloud</label><div class="line cyan"><span style="width:82%"></span></div><strong>82%</strong></div><div class="flow-row"><label>Support</label><div class="line green"><span style="width:79%"></span></div><strong>79%</strong></div></div></div><div class="card pad"><div class="small mono">Admin Tasks</div><div class="table-list"><div class="table-row"><div><strong>Subscription Review</strong><span>Microsoft 365 + cloud utilities</span></div><span>Open</span><span>Tracked</span></div><div class="table-row"><div><strong>Document Access</strong><span>Controlled and mirrored</span></div><span>Stable</span><span>Healthy</span></div><div class="table-row"><div><strong>Command Support</strong><span>Executive assistance / queue management</span></div><span>Ready</span><span>Live</span></div></div></div></div></article></div></section>
 
-              <div class="page-grid cols-3">
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Observe</div>
-                  <div class="small-stat"><strong>Immediate</strong><span>All critical system pressure is surfaced without requiring hidden drill-down.</span></div>
-                </div>
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Command</div>
-                  <div class="small-stat"><strong>Governed</strong><span>Action lanes remain controlled, deliberate, and subordinate to operator intent.</span></div>
-                </div>
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Verify</div>
-                  <div class="small-stat"><strong>Receipted</strong><span>Truth is enforced through visible receipts, logs, and result-state visibility.</span></div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-council"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Council of 12 + AI Staff Communications</div><div class="card-copy">Executive and staff communication visibility layer.</div></div></div><div class="grid-2"><div class="card pad"><div class="small mono">Executive Layer</div><div class="table-list"><div class="table-row"><div><strong>Alexis Vale</strong><span>Council Lead · Governance oversight</span></div><span>Brief Ready</span><span>Stable</span></div><div class="table-row"><div><strong>Michael Carrington</strong><span>CEO · Enterprise operations</span></div><span>Live</span><span>Aligned</span></div><div class="table-row"><div><strong>Chad G. Pennington</strong><span>COO / Consultant · Systems execution</span></div><span>Active</span><span>Driving</span></div><div class="table-row"><div><strong>Oliver Grant</strong><span>CFO · Finance authority</span></div><span>Review</span><span>Controlled</span></div></div></div><div class="card pad"><div class="small mono">AI Staff Layer</div><div class="table-list"><div class="table-row"><div><strong>NACE</strong><span>Guide / trainer / conversion intelligence</span></div><span>Voice Ready</span><span>Live</span></div><div class="table-row"><div><strong>Rebecca Lawson</strong><span>Corporate command / legal posture</span></div><span>Watching</span><span>Stable</span></div><div class="table-row"><div><strong>Aiden Mercer</strong><span>System audit and continuity</span></div><span>Monitoring</span><span>Green</span></div><div class="table-row"><div><strong>Operator Layer</strong><span>Outbound / intake / relay lanes</span></div><span>Armed</span><span>Ready</span></div></div></div></div></article></div></section>
 
-        <div class="view" id="view-registry">
-          <div class="section-grid">
-            <section class="card panel-page">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">System Registry</div>
-                  <div class="panel-copy">Core enterprise system map, current class, purpose, and command status.</div>
-                </div>
-              </div>
-              <div class="table-list">
-                <div class="table-row"><div><strong>Phoenix Business System</strong><span>Operational readiness stack</span></div><span>Class: Core</span><span>Active</span></div>
-                <div class="table-row"><div><strong>PCC</strong><span>Sovereign oversight environment</span></div><span>Class: Command</span><span>Active</span></div>
-                <div class="table-row"><div><strong>Spider</strong><span>Execution and distribution spine</span></div><span>Class: Engine</span><span>Linked</span></div>
-                <div class="table-row"><div><strong>PHNX Media</strong><span>Generation, render, and release chain</span></div><span>Class: Media</span><span>Queued</span></div>
-                <div class="table-row"><div><strong>NHCE Cluster</strong><span>Automated revenue engines</span></div><span>Class: Cashflow</span><span>Scaling</span></div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-nhce"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">NHCE Monitor</div><div class="card-copy">Non-human cashflow engine watchboard.</div></div><div class="pill amber mono"><span class="dot"></span> Revenue Pressure</div></div><div class="grid-3"><div class="card pad"><div class="small mono">ShadowFrame</div><div class="bars blue live-bars"><span style="height:28%"></span><span style="height:38%"></span><span style="height:52%"></span><span style="height:48%"></span><span style="height:70%"></span><span style="height:58%"></span><span style="height:82%"></span><span style="height:66%"></span></div><div class="flow"><div class="flow-row"><label>Load</label><div class="line gold"><span style="width:72%"></span></div><strong>72%</strong></div></div></div><div class="card pad"><div class="small mono">GoldMind</div><div class="bars gold live-bars"><span style="height:26%"></span><span style="height:44%"></span><span style="height:36%"></span><span style="height:60%"></span><span style="height:74%"></span><span style="height:56%"></span><span style="height:86%"></span><span style="height:68%"></span></div><div class="flow"><div class="flow-row"><label>Load</label><div class="line cyan"><span style="width:81%"></span></div><strong>81%</strong></div></div></div><div class="card pad"><div class="small mono">Phoenix Kitchen</div><div class="bars green live-bars"><span style="height:24%"></span><span style="height:34%"></span><span style="height:42%"></span><span style="height:40%"></span><span style="height:64%"></span><span style="height:46%"></span><span style="height:74%"></span><span style="height:52%"></span></div><div class="flow"><div class="flow-row"><label>Load</label><div class="line green"><span style="width:63%"></span></div><strong>63%</strong></div></div></div></div></article></div></section>
 
-        <div class="view" id="view-execution">
-          <div class="section-grid">
-            <section class="card panel-page">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Execution Lane</div>
-                  <div class="panel-copy">Simulated command dispatch zone for controlled enterprise actions.</div>
-                </div>
-              </div>
-              <div class="matrix-grid">
-                <button class="action-btn"><strong>Run Media Engine</strong><span>Queue content assembly and release simulation.</span></button>
-                <button class="action-btn"><strong>Trigger Registry Audit</strong><span>Review structural drift and registry truth.</span></button>
-                <button class="action-btn"><strong>Simulate Council Brief</strong><span>Prepare executive communication package.</span></button>
-                <button class="action-btn"><strong>Dispatch NHCE Pulse</strong><span>Review live engine signals and strain.</span></button>
-                <button class="action-btn"><strong>Open Receipt Review</strong><span>Verify recent command results and logs.</span></button>
-                <button class="action-btn"><strong>Prepare War Sequence</strong><span>Move into response and pressure allocation.</span></button>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-rnd"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">R&D Department</div><div class="card-copy">Prototype review, system refinement, and platform experimentation.</div></div></div><div class="grid-2"><div class="card pad"><div class="small mono">Active Tracks</div><div class="table-list"><div class="table-row"><div><strong>Command Surface Refinement</strong><span>PCC density and fidelity upgrade</span></div><span>Phase 2</span><span>Active</span></div><div class="table-row"><div><strong>Voice Integration</strong><span>NACE / Chad / operator layer refinement</span></div><span>Phase 1</span><span>Ready</span></div><div class="table-row"><div><strong>Entry Gate Library</strong><span>Reusable gate doctrine expansion</span></div><span>Canon</span><span>Live</span></div></div></div><div class="card pad"><div class="small mono">Prototype Energy</div><div class="bars green live-bars"><span style="height:30%"></span><span style="height:42%"></span><span style="height:38%"></span><span style="height:56%"></span><span style="height:66%"></span><span style="height:54%"></span><span style="height:80%"></span><span style="height:62%"></span></div><div class="flow"><div class="flow-row"><label>R&D Load</label><div class="line blue"><span style="width:77%"></span></div><strong>77%</strong></div></div></div></div></article></div></section>
 
-        <div class="view" id="view-receipts">
-          <div class="section-grid">
-            <section class="card panel-page">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Receipt Archive</div>
-                  <div class="panel-copy">Expanded truth layer for reviewed, indexed, and staged execution receipts.</div>
-                </div>
-              </div>
-              <div class="receipts-table">
-                <div class="receipt-row"><div class="log-time mono">12:41</div><strong>PBRS</strong><span>Snapshot Generated and archived to ledger.</span><strong class="success mono">Success</strong></div>
-                <div class="receipt-row"><div class="log-time mono">12:43</div><strong>Spider</strong><span>X distribution queued and verified through execution contract.</span><strong class="success mono">Success</strong></div>
-                <div class="receipt-row"><div class="log-time mono">12:48</div><strong>Phoenix Media</strong><span>Render pipeline holding for executive review.</span><strong class="warn mono">Review</strong></div>
-                <div class="receipt-row"><div class="log-time mono">12:55</div><strong>Registry</strong><span>One system classification awaiting confirmation.</span><strong class="crit mono">Flagged</strong></div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-finance"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Financial Tracking</div><div class="card-copy">Capital, reserves, controlled intake, and financial authority watch.</div></div><div class="pill green mono"><span class="dot"></span> Discipline Holding</div></div><div class="grid-2"><div class="card pad"><div class="small mono">Capital Structure</div><div class="flow"><div class="flow-row"><label>Tax Reserve</label><div class="line gold"><span style="width:25%"></span></div><strong>25%</strong></div><div class="flow-row"><label>Ops Reserve</label><div class="line cyan"><span style="width:10%"></span></div><strong>10%</strong></div><div class="flow-row"><label>Retained</label><div class="line green"><span style="width:15%"></span></div><strong>15%</strong></div><div class="flow-row"><label>Operating</label><div class="line blue"><span style="width:50%"></span></div><strong>50%</strong></div></div></div><div class="card pad"><div class="small mono">Market / Capital Ticker</div><div class="ticker-band" style="margin-top:12px"><div class="ticker-track mono"><span>Mercury Intake Stable</span><span>Reserve Discipline Holding</span><span>Media Spend Controlled</span><span>NHCE Pressure Rising</span><span>Receipt Volume Healthy</span><span>Capital Readiness Improving</span><span>Mercury Intake Stable</span><span>Reserve Discipline Holding</span><span>Media Spend Controlled</span><span>NHCE Pressure Rising</span><span>Receipt Volume Healthy</span><span>Capital Readiness Improving</span></div></div></div></div></article></div></section>
 
-        <div class="view" id="view-strategy">
-          <div class="section-grid">
-            <section class="card panel-page">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Strategy Layer</div>
-                  <div class="panel-copy">Top-line posture across enterprise growth, pressure, and sequencing.</div>
-                </div>
-              </div>
-              <div class="overview-grid">
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Primary Vector</div>
-                  <div class="small-stat"><strong>Authority First</strong><span>Preserve perception, control, and structural superiority across all system surfaces.</span></div>
-                </div>
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Current Focus</div>
-                  <div class="small-stat"><strong>Build Then Scale</strong><span>Finish command reliability, then expand automation and revenue capture.</span></div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-war"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">War Room</div><div class="card-copy">Threat posture, strategic response, and attention concentration layer.</div></div><div class="pill red mono"><span class="dot"></span> High Awareness</div></div><div class="grid-2"><div class="card pad"><div class="small mono">Immediate Pressure</div><div class="priority-list"><div class="priority-item"><strong>Platform Dependency Risk</strong><span>Watch external delays that impact execution timing.</span></div><div class="priority-item"><strong>Perception Integrity</strong><span>Maintain elite surface quality across all command lanes.</span></div></div></div><div class="card pad"><div class="small mono">Response Readiness</div><div class="flow"><div class="flow-row"><label>Pressure</label><div class="line red"><span style="width:58%"></span></div><strong>58%</strong></div><div class="flow-row"><label>Control</label><div class="line green"><span style="width:86%"></span></div><strong>86%</strong></div><div class="flow-row"><label>Response</label><div class="line cyan"><span style="width:79%"></span></div><strong>79%</strong></div></div></div></div></article></div></section>
 
-        <div class="view" id="view-operations">
-          <div class="section-grid">
-            <section class="card panel-page">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Operations</div>
-                  <div class="panel-copy">Operational readiness, admin coordination, and system management posture.</div>
-                </div>
-              </div>
-              <div class="overview-grid">
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Admin</div>
-                  <div class="small-stat"><strong>Stable</strong><span>Core admin lanes, storage, and enterprise service stack available.</span></div>
-                </div>
-                <div class="card" style="padding:16px;">
-                  <div class="small-kicker mono">Command Support</div>
-                  <div class="small-stat"><strong>Active</strong><span>Support services prepared for task routing, review, and continuity.</span></div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-execution"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Execution</div><div class="card-copy">Controlled action zone for dispatch, release, and verification.</div></div></div><div class="grid-3"><button class="rail-btn" data-goto="finance"><span class="mini-dot"></span>Capital Action</button><button class="rail-btn" data-goto="council"><span class="mini-dot"></span>Brief Council</button><button class="rail-btn" data-goto="receipts"><span class="mini-dot"></span>Open Receipts</button><button class="rail-btn" data-goto="nhce"><span class="mini-dot"></span>Pulse NHCE</button><button class="rail-btn" data-goto="registry"><span class="mini-dot"></span>Verify Registry</button><button class="rail-btn" data-goto="war"><span class="mini-dot"></span>Enter War Room</button></div></article></div></section>
 
-        <div class="view" id="view-warroom">
-          <div class="section-grid war-grid">
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">War Room</div>
-                  <div class="panel-copy">Threat posture, response readiness, and campaign escalation management.</div>
-                </div>
-              </div>
-              <div class="priority-columns" style="grid-template-columns:1fr;">
-                <div class="priority-column">
-                  <div class="head red"><span class="dot"></span> Immediate</div>
-                  <div class="priority-list">
-                    <div class="priority-item"><strong>External Delay Risk</strong><span>Monitor platform-side dependencies affecting rollout timing.</span></div>
-                    <div class="priority-item"><strong>Perception Integrity</strong><span>Maintain elite surface quality across public and command lanes.</span></div>
-                  </div>
-                </div>
-              </div>
-            </section>
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Campaign Readiness</div>
-                  <div class="panel-copy">Preparedness across launch sequences, messaging control, and routing.</div>
-                </div>
-              </div>
-              <div class="flow-lines">
-                <div class="flow-row"><label>Pressure</label><div class="line-track red"><span style="width:58%"></span></div><strong>58%</strong></div>
-                <div class="flow-row"><label>Control</label><div class="line-track green"><span style="width:86%"></span></div><strong>86%</strong></div>
-                <div class="flow-row"><label>Response</label><div class="line-track cyan"><span style="width:79%"></span></div><strong>79%</strong></div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-receipts"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Receipts Archive</div><div class="card-copy">Expanded truth layer for reviewed execution outcomes.</div></div></div><div class="table-list"><div class="table-row"><div><strong>12:41 · PBRS</strong><span>Snapshot generated and archived.</span></div><span>Artifact</span><span class="ok">Success</span></div><div class="table-row"><div><strong>12:43 · Spider</strong><span>Distribution queued and contract verified.</span></div><span>Execution</span><span class="ok">Success</span></div><div class="table-row"><div><strong>12:48 · Media</strong><span>Render completed, release awaiting approval.</span></div><span>Review</span><span class="warn">Review</span></div><div class="table-row"><div><strong>12:55 · Registry</strong><span>Classification check required on one lane.</span></div><span>Flag</span><span class="bad">Flagged</span></div></div></article></div></section>
 
-        <div class="view" id="view-communications">
-          <div class="section-grid comm-grid">
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Council of 12 + AI Staff</div>
-                  <div class="panel-copy">Command communications layer across executive and staff intelligence roles.</div>
-                </div>
-              </div>
-              <div class="council-grid">
-                <div class="persona"><strong>Alexis Vale</strong><span>Council Lead · Governance oversight and canon control.</span></div>
-                <div class="persona"><strong>Michael Carrington</strong><span>CEO · Enterprise operations and scaling alignment.</span></div>
-                <div class="persona"><strong>Chad G. Pennington</strong><span>COO / Consultant · System execution and build continuity.</span></div>
-                <div class="persona"><strong>Oliver Grant</strong><span>CFO · Financial authority and discipline layer.</span></div>
-                <div class="persona"><strong>NACE</strong><span>AI Representative · Trainer, guide, explainer, conversion intelligence.</span></div>
-                <div class="persona"><strong>Rebecca Lawson</strong><span>Corporate Command · Governance, legal, and structural protection.</span></div>
-              </div>
-            </section>
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Communication Status</div>
-                  <div class="panel-copy">Current posture across executive briefings, alerts, and routed conversations.</div>
-                </div>
-              </div>
-              <div class="table-list">
-                <div class="table-row"><div><strong>Executive Briefs</strong><span>Prepared and staged</span></div><span>12 pending</span><span>Stable</span></div>
-                <div class="table-row"><div><strong>Ops Notifications</strong><span>Delivery layer healthy</span></div><span>31 active</span><span>Healthy</span></div>
-                <div class="table-row"><div><strong>Voice Layer</strong><span>NACE + command prompts armed</span></div><span>Phase 1</span><span>Ready</span></div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-registry"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">System Registry</div><div class="card-copy">Core enterprise system map, class, purpose, and command status.</div></div></div><div class="table-list"><div class="table-row"><div><strong>Phoenix Business System</strong><span>Operational readiness stack</span></div><span>Class: Core</span><span>Active</span></div><div class="table-row"><div><strong>PCC</strong><span>Sovereign oversight environment</span></div><span>Class: Command</span><span>Active</span></div><div class="table-row"><div><strong>Spider</strong><span>Execution and distribution spine</span></div><span>Class: Engine</span><span>Linked</span></div><div class="table-row"><div><strong>Phoenix Media</strong><span>Render and release command lane</span></div><span>Class: Media</span><span>Queued</span></div><div class="table-row"><div><strong>NHCE Cluster</strong><span>Automated revenue engines</span></div><span>Class: Cashflow</span><span>Scaling</span></div></div></article></div></section>
 
-        <div class="view" id="view-nhce">
-          <div class="section-grid nhce-grid">
-            <section class="card">
-              <div class="panel-header"><div><div class="card-title">ShadowFrame</div><div class="panel-copy">Faceless content and monetization surface.</div></div></div>
-              <div class="small-stat"><strong>72%</strong><span>Active signal volume and content pipeline pressure.</span></div>
-              <div class="flow-lines"><div class="flow-row"><label>Load</label><div class="line-track gold"><span style="width:72%"></span></div><strong>72%</strong></div></div>
-            </section>
-            <section class="card">
-              <div class="panel-header"><div><div class="card-title">GoldMind</div><div class="panel-copy">Knowledge monetization and premium content engine.</div></div></div>
-              <div class="small-stat"><strong>81%</strong><span>Offer readiness and traffic conversion pressure.</span></div>
-              <div class="flow-lines"><div class="flow-row"><label>Load</label><div class="line-track cyan"><span style="width:81%"></span></div><strong>81%</strong></div></div>
-            </section>
-            <section class="card">
-              <div class="panel-header"><div><div class="card-title">Phoenix Kitchen</div><div class="panel-copy">Productized content and commerce-adjacent lane.</div></div></div>
-              <div class="small-stat"><strong>63%</strong><span>Moderate load, staged for expansion.</span></div>
-              <div class="flow-lines"><div class="flow-row"><label>Load</label><div class="line-track green"><span style="width:63%"></span></div><strong>63%</strong></div></div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-strategy"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Strategy</div><div class="card-copy">Long-range posture, sequencing, and authority maintenance layer.</div></div></div><div class="grid-2"><div class="card pad"><div class="small mono">Primary Vector</div><div class="muted" style="margin-top:10px">Authority first. Preserve perception, control, and structural superiority across all RPE surfaces.</div></div><div class="card pad"><div class="small mono">Current Focus</div><div class="muted" style="margin-top:10px">Complete command reliability, then scale automation and cashflow execution across system lanes.</div></div></div></article></div></section>
 
-        <div class="view" id="view-rnd">
-          <div class="section-grid rd-grid">
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">R&D Department</div>
-                  <div class="panel-copy">Prototype review, system refinement, and doctrine-driven innovation.</div>
-                </div>
-              </div>
-              <div class="table-list">
-                <div class="table-row"><div><strong>Control Surface Refinement</strong><span>PCC fidelity upgrades under review</span></div><span>Phase 2</span><span>Active</span></div>
-                <div class="table-row"><div><strong>Voice Integration Logic</strong><span>Layered guidance and audio triggers</span></div><span>Phase 1</span><span>Ready</span></div>
-                <div class="table-row"><div><strong>Entry Gate Library</strong><span>Template doctrine expansion</span></div><span>Initiated</span><span>Live</span></div>
-              </div>
-            </section>
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Experiment Signals</div>
-                  <div class="panel-copy">Visual activity channel for live concept evaluation.</div>
-                </div>
-              </div>
-              <div class="signal-chart" style="grid-template-columns:1fr;">
-                <div class="signal-cluster">
-                  <div class="sub-label mono">Prototype Energy</div>
-                  <div class="bars green">
-                    <span style="height:32%"></span><span style="height:44%"></span><span style="height:40%"></span><span style="height:58%"></span><span style="height:66%"></span><span style="height:50%"></span><span style="height:78%"></span><span style="height:62%"></span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <div class="view" id="view-finance">
-          <div class="section-grid finance-grid">
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Financial Tracking</div>
-                  <div class="panel-copy">Capital monitoring, intake discipline, reserves, and controlled enterprise allocation.</div>
-                </div>
-              </div>
-              <div class="top-metrics" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0;">
-                <article class="metric-card" style="background:none;border:none;padding:0;box-shadow:none;">
-                  <div class="label mono">Operating Position</div>
-                  <span class="metric-value" data-live-number="326">326</span>
-                  <div class="metric-sub">Tracked operating units (x $1k simulation view).</div>
-                </article>
-                <article class="metric-card" style="background:none;border:none;padding:0;box-shadow:none;">
-                  <div class="label mono">Reserve Discipline</div>
-                  <span class="metric-value" data-live-number="88">88</span>
-                  <div class="metric-sub">Current reserve control posture.</div>
-                </article>
-              </div>
-              <div class="flow-lines">
-                <div class="flow-row"><label>Tax Reserve</label><div class="line-track gold"><span style="width:25%"></span></div><strong>25%</strong></div>
-                <div class="flow-row"><label>Operating Reserve</label><div class="line-track cyan"><span style="width:10%"></span></div><strong>10%</strong></div>
-                <div class="flow-row"><label>Retained Earnings</label><div class="line-track green"><span style="width:15%"></span></div><strong>15%</strong></div>
-                <div class="flow-row"><label>Operating Available</label><div class="line-track gold"><span style="width:50%"></span></div><strong>50%</strong></div>
-              </div>
-            </section>
-
-            <section class="card">
-              <div class="panel-header">
-                <div>
-                  <div class="card-title">Capital Ticker</div>
-                  <div class="panel-copy">Wall Street-inspired movement band for finance and enterprise control signals.</div>
-                </div>
-              </div>
-              <div class="ticker-band">
-                <div class="ticker-track mono">
-                  <span>Mercury Intake Stable</span>
-                  <span>Reserve Discipline Holding</span>
-                  <span>NHCE Pressure Rising</span>
-                  <span>Media Spend Controlled</span>
-                  <span>Receipt Volume Healthy</span>
-                  <span>Capital Readiness Improving</span>
-                  <span>Mercury Intake Stable</span>
-                  <span>Reserve Discipline Holding</span>
-                  <span>NHCE Pressure Rising</span>
-                  <span>Media Spend Controlled</span>
-                  <span>Receipt Volume Healthy</span>
-                  <span>Capital Readiness Improving</span>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="view" id="view-operations"><div class="stack"><article class="card pad"><div class="card-head"><div><div class="card-title">Operations</div><div class="card-copy">Readiness, continuity, and support posture across enterprise operations.</div></div></div><div class="grid-2"><div class="card pad"><div class="small mono">Ops Status</div><div class="flow"><div class="flow-row"><label>Command Support</label><div class="line cyan"><span style="width:82%"></span></div><strong>82%</strong></div><div class="flow-row"><label>Platform Stability</label><div class="line green"><span style="width:89%"></span></div><strong>89%</strong></div><div class="flow-row"><label>Issue Queue</label><div class="line gold"><span style="width:41%"></span></div><strong>41%</strong></div></div></div><div class="card pad"><div class="small mono">Ops Queue</div><div class="table-list"><div class="table-row"><div><strong>Launch Review</strong><span>Pending final packaging check</span></div><span>Open</span><span>Live</span></div><div class="table-row"><div><strong>System Maintenance</strong><span>Minor adjustments pending</span></div><span>Queued</span><span>Stable</span></div><div class="table-row"><div><strong>Comms Routing</strong><span>Active staff coordination</span></div><span>Running</span><span>Green</span></div></div></div></div></article></div></section>
       </div>
 
-      <section class="receipts-band card">
-        <div class="receipts-header">
-          <div>
-            <div class="card-title">Receipts Feed</div>
-            <div class="receipt-note">Truth layer enforcement — no action exists without verification.</div>
+      <section class="receipt-band">
+        <div class="receipt-wrap">
+          <div class="receipt-head">
+            <div>
+              <div class="card-title">Receipts Feed</div>
+              <div class="card-copy">Truth layer enforcement — no action exists without verification.</div>
+            </div>
+            <div class="pill green mono"><span class="dot"></span> Ledger Healthy</div>
           </div>
-          <div class="pill green mono"><span class="dot"></span> Ledger Healthy</div>
-        </div>
-
-        <div class="receipts-table">
-          <div class="receipt-row"><div class="log-time mono">12:41</div><strong>PBRS</strong><span>Snapshot Generated — authoritative artifact created.</span><strong class="success mono">Success</strong></div>
-          <div class="receipt-row"><div class="log-time mono">12:43</div><strong>Spider</strong><span>Distribution queued — execution contract verified.</span><strong class="success mono">Success</strong></div>
-          <div class="receipt-row"><div class="log-time mono">12:48</div><strong>Phoenix Media</strong><span>Render completed — release awaiting approval.</span><strong class="warn mono">Review</strong></div>
-          <div class="receipt-row"><div class="log-time mono">12:55</div><strong>Registry</strong><span>Classification check required on one system lane.</span><strong class="crit mono">Flagged</strong></div>
+          <div class="receipt-list">
+            <div class="receipt-row"><div class="small mono">12:41</div><strong>PBRS</strong><span>Snapshot Generated — authoritative artifact created.</span><strong class="ok mono">Success</strong></div>
+            <div class="receipt-row"><div class="small mono">12:43</div><strong>Spider</strong><span>Distribution queued — execution contract verified.</span><strong class="ok mono">Success</strong></div>
+            <div class="receipt-row"><div class="small mono">12:48</div><strong>Phoenix Media</strong><span>Render completed — release awaiting approval.</span><strong class="warn mono">Review</strong></div>
+            <div class="receipt-row"><div class="small mono">12:55</div><strong>Registry</strong><span>Classification check required on one system lane.</span><strong class="bad mono">Flagged</strong></div>
+          </div>
         </div>
       </section>
     </section>
   </section>
 
-  <aside class="floating-nace">
+  <aside class="nace-panel">
     <div class="nace-card">
       <div class="nace-head">
-        <strong>NACE</strong>
+        <strong class="cinzel">NACE</strong>
         <div class="pill cyan mono"><span class="dot"></span> Guide</div>
       </div>
       <div class="nace-body">
-        <div class="nace-message" id="naceMessage">
-          Hello, Phoenix King. I am NACE, your Command Center intelligence layer. I’m here to guide you, direct you through each step, and answer any questions across your systems.
-        </div>
+        <div class="nace-message" id="naceMessage">Hello Phoenix King. I am NACE, your Command Center intelligence layer. If you need any assistance, please let me know and I will guide or direct you through each step and answer any systems related questions.</div>
         <div class="nace-actions">
           <button class="nace-btn mono" type="button" id="naceExplain">Explain Page</button>
           <button class="nace-btn mono" type="button" id="naceNext">Next Step</button>
@@ -1433,116 +412,128 @@ body::after{
   </aside>
 
   <audio id="naceGreeting" preload="auto">
-    <source src="VOICE_ENGINE/nace.mp3" type="audio/mpeg">
+    <source src="VOICE_ENGINE/nace-greeting.mp3" type="audio/mpeg">
   </audio>
 </main>
 
   </div>  <script>
     (function(){
       const views = document.querySelectorAll('.view');
-      const railItems = document.querySelectorAll('.rail-item');
-      const actionButtons = document.querySelectorAll('[data-view-target]');
+      const railBtns = document.querySelectorAll('.rail-btn[data-view]');
+      const gotoBtns = document.querySelectorAll('[data-goto]');
+      const liveNumbers = document.querySelectorAll('[data-live]');
       const naceMessage = document.getElementById('naceMessage');
-      const greetingAudio = document.getElementById('naceGreeting');
-      let nacePlayed = false;
+      const naceAudio = document.getElementById('naceGreeting');
+      const masterTicker = document.getElementById('masterTicker');
+      let greeted = false;
 
-      const naceLines = {
-        overview: 'Overview is active. Scan live metrics, signal movement, system nodes, command actions, and receipts in one controlled surface.',
-        command: 'Command Floor is the primary operator surface. Observe first, then route action deliberately.',
-        registry: 'Registry shows the structural truth of the enterprise. Use it to verify what exists and what commands it serves.',
-        execution: 'Execution lane is where observation converts into governed action. Treat every command as receipted and deliberate.',
-        receipts: 'Receipts are the truth layer. Review them to confirm what actually happened, not what was assumed.',
-        strategy: 'Strategy maintains the long-range posture of RPE. This is where sequencing, timing, and control stay aligned.',
-        operations: 'Operations monitors administrative health, readiness, and continuity across the system.',
-        warroom: 'War Room manages pressure, response, and campaign posture when attention must narrow.',
-        communications: 'Council and staff communication status is visible here. Use this lane to understand who is guiding which part of the enterprise.',
-        nhce: 'NHCE Monitor tracks non-human cashflow engines and their current operational pressure.',
-        rnd: 'R and D captures experimental lanes, prototype review, and future system refinement.',
-        finance: 'Financial Tracking concentrates capital discipline, intake posture, reserves, and enterprise control signals.'
+      const naceCopy = {
+        overview:'Overview is active. All command pressure, system movement, live metrics, and truth signals are visible here.',
+        admin:'Admin Oversight is active. Review service posture, support readiness, and operational continuity.',
+        council:'Council and staff communication visibility is active. This lane shows executive and AI staff alignment.',
+        nhce:'NHCE Monitor is active. Track cashflow engine pressure, throughput, and current operating demand.',
+        rnd:'R and D is active. Review prototypes, experimentation, and system refinement signals.',
+        finance:'Financial Tracking is active. Monitor capital flow, reserves, intake, and fiscal command posture.',
+        war:'War Room is active. Pressure, response readiness, and escalation posture are concentrated here.',
+        execution:'Execution is active. Move deliberately and verify every action through receipts.',
+        receipts:'Receipts is active. This is the truth layer. Confirm what happened, not what was assumed.',
+        registry:'Registry is active. Structural truth, system classes, and enterprise mapping are visible here.',
+        strategy:'Strategy is active. Preserve sequencing, authority, and controlled growth posture.',
+        operations:'Operations is active. Review readiness, support flow, and enterprise continuity.'
       };
 
-      function setActiveView(name){
-        views.forEach(view => {
-          view.classList.toggle('active', view.id === `view-${name}`);
+      function setView(name){
+        views.forEach(v => {
+          const active = v.id === `view-${name}`;
+          v.classList.toggle('active', active);
+          v.classList.remove('enter');
+          if(active){ requestAnimationFrame(() => v.classList.add('enter')); }
         });
-
-        railItems.forEach(item => {
-          item.classList.toggle('active', item.dataset.view === name);
-        });
-
-        if (naceLines[name]) {
-          naceMessage.textContent = naceLines[name];
-        }
+        railBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+        if(naceCopy[name]) naceMessage.textContent = naceCopy[name];
       }
 
-      railItems.forEach(item => {
-        item.addEventListener('click', () => setActiveView(item.dataset.view));
-      });
+      railBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+      gotoBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.goto)));
 
-      actionButtons.forEach(button => {
-        button.addEventListener('click', () => setActiveView(button.dataset.viewTarget));
-      });
-
-      function playNaceGreeting(){
-        if (!greetingAudio || nacePlayed) return;
-        greetingAudio.volume = 0.6;
-        const playPromise = greetingAudio.play();
-        if (playPromise && typeof playPromise.catch === 'function') {
-          playPromise.catch(() => {
-            const fallback = () => {
-              greetingAudio.play().catch(() => {});
-              document.removeEventListener('click', fallback);
-            };
-            document.addEventListener('click', fallback, { once:true });
-          });
-        }
-        nacePlayed = true;
+      function startGreeting(force){
+        if(!naceAudio) return;
+        const play = () => {
+          naceAudio.currentTime = 0;
+          naceAudio.volume = 0.85;
+          naceAudio.play().catch(()=>{});
+          greeted = true;
+        };
+        if(force){ play(); return; }
+        if(greeted) return;
+        const unlock = () => {
+          play();
+          document.removeEventListener('click', unlock);
+          document.removeEventListener('keydown', unlock);
+        };
+        document.addEventListener('click', unlock, { once:true });
+        document.addEventListener('keydown', unlock, { once:true });
       }
 
-      document.getElementById('naceReplay').addEventListener('click', () => {
-        if (!greetingAudio) return;
-        greetingAudio.currentTime = 0;
-        greetingAudio.play().catch(() => {});
-      });
-
+      document.getElementById('naceReplay').addEventListener('click', () => startGreeting(true));
+      document.getElementById('naceTop').addEventListener('click', () => startGreeting(true));
       document.getElementById('naceExplain').addEventListener('click', () => {
-        const active = document.querySelector('.rail-item.active');
-        if (active) setActiveView(active.dataset.view);
+        const active = document.querySelector('.rail-btn.active');
+        if(active) setView(active.dataset.view);
       });
-
       document.getElementById('naceNext').addEventListener('click', () => {
-        const sequence = Array.from(railItems).map(item => item.dataset.view);
-        const active = document.querySelector('.rail-item.active');
-        const current = active ? active.dataset.view : 'overview';
-        const idx = sequence.indexOf(current);
-        const next = sequence[(idx + 1) % sequence.length];
-        setActiveView(next);
+        const seq = Array.from(railBtns).map(b => b.dataset.view);
+        const active = document.querySelector('.rail-btn.active');
+        const idx = Math.max(0, seq.indexOf(active ? active.dataset.view : 'overview'));
+        setView(seq[(idx + 1) % seq.length]);
       });
-
       document.getElementById('naceRoute').addEventListener('click', () => {
-        setActiveView('execution');
-        naceMessage.textContent = 'I have routed you to the Execution lane. Review the action matrix and dispatch only what you intend to verify.';
+        setView('execution');
+        naceMessage.textContent = 'I have routed you to Execution. Review the action zone and move only what you intend to verify.';
       });
 
-      document.getElementById('naceTopButton').addEventListener('click', () => {
-        document.getElementById('naceReplay').click();
-      });
-
-      const liveNumbers = document.querySelectorAll('[data-live-number]');
       setInterval(() => {
-        liveNumbers.forEach(node => {
-          const base = parseInt(node.dataset.liveNumber, 10);
-          const delta = Math.floor(Math.random() * 3);
-          const direction = Math.random() > 0.55 ? 1 : -1;
-          const next = Math.max(1, base + (delta * direction));
-          node.textContent = next;
-          node.dataset.liveNumber = String(next);
+        liveNumbers.forEach(n => {
+          const current = parseInt(n.dataset.live || n.textContent, 10);
+          const delta = Math.floor(Math.random()*5);
+          const dir = Math.random() > 0.5 ? 1 : -1;
+          const next = Math.max(1, current + delta * dir);
+          n.dataset.live = String(next);
+          n.textContent = next;
+          n.style.color = dir > 0 ? '#49d391' : '#ea7474';
+          setTimeout(() => n.style.color = '', 450);
         });
-      }, 3200);
+      }, 1800);
 
-      setTimeout(playNaceGreeting, 900);
-      setActiveView('overview');
+      const barSets = document.querySelectorAll('.live-bars');
+      setInterval(() => {
+        barSets.forEach(set => {
+          set.querySelectorAll('span').forEach(bar => {
+            const h = Math.floor(Math.random()*60) + 24;
+            bar.style.height = `${h}%`;
+          });
+        });
+        document.querySelectorAll('.line span').forEach(line => {
+          const w = Math.floor(Math.random()*45) + 35;
+          line.style.width = `${w}%`;
+          const label = line.parentElement.nextElementSibling;
+          if(label) label.textContent = `${w}%`;
+        });
+      }, 2200);
+
+      const tickerSets = [
+        ['Mercury Intake Stable','NHCE Pressure Rising','Registry Healthy','Council Brief Queue Active','Media Review Pending','Receipts Layer Locked'],
+        ['Capital Discipline Holding','Spider Queue Moving','War Room Watching','NACE Routing Armed','PBRS Stable','PBB Progressing'],
+        ['R&D Active','Council Briefing Live','Finance Control Strong','Command Support Ready','Phoenix Media Review','Operational Readiness High']
+      ];
+      let tickerIndex = 0;
+      setInterval(() => {
+        tickerIndex = (tickerIndex + 1) % tickerSets.length;
+        masterTicker.innerHTML = tickerSets[tickerIndex].concat(tickerSets[tickerIndex]).map(item => `<span>${item}</span>`).join('');
+      }, 9000);
+
+      startGreeting(false);
+      setView('overview');
     })();
   </script></body>
-</html>
-```#+#+#+#+assistant to=canmore.comment_textdoc კომენტary  ส่งเงินบาทไทยjson  微信的天天中彩票ුව{ 
+</html> 
