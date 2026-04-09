@@ -2,1057 +2,1525 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center — Command Floor</title>  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <title>Phoenix Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">  <style>
-    :root{
-      --bg:#04070c;
-      --bg2:#08111a;
-      --panel:#0b131d;
-      --panel2:#0f1823;
-      --panel3:#132131;
-      --line:rgba(102,211,255,.12);
-      --line-gold:rgba(199,161,91,.18);
-      --text:#eef4fb;
-      --muted:rgba(238,244,251,.62);
-      --gold:#c7a15b;
-      --cyan:#66d3ff;
-      --cyan2:#92e4ff;
-      --green:#2fd37a;
-      --amber:#f1b841;
-      --red:#ef5f5f;
-      --blue:#5c8dff;
-      --purple:#9f7cff;
-      --shadow:0 18px 50px rgba(0,0,0,.38);
-      --radius:16px;
-    }
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-
-    body{
-      font-family:"Inter",sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at top center, rgba(102,211,255,.08), transparent 20%),
-        radial-gradient(circle at 80% 18%, rgba(92,141,255,.08), transparent 20%),
-        radial-gradient(circle at 20% 80%, rgba(159,124,255,.06), transparent 22%),
-        linear-gradient(180deg,#050910 0%,#04070c 100%);
-      overflow:auto;
-    }
-
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      background:
-        linear-gradient(rgba(102,211,255,.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(102,211,255,.03) 1px, transparent 1px);
-      background-size:42px 42px;
-      opacity:.15;
-      pointer-events:none;
-      mask-image:radial-gradient(circle at center, black 40%, transparent 88%);
-    }
-
-    .mono{
-      font-family:"IBM Plex Mono",monospace;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-    }
-
-    .app{
-      min-height:100vh;
-      padding:10px;
-      display:grid;
-      grid-template-rows:auto auto minmax(0,1fr) auto;
-      gap:10px;
-    }
-
-    .topbar{
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(11,19,29,.92), rgba(7,12,18,.96));
-      box-shadow:var(--shadow);
-      padding:10px 14px;
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:14px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-
-    .brand img{
-      width:38px;
-      height:38px;
-      object-fit:cover;
-      border-radius:50%;
-      border:1px solid var(--line-gold);
-      box-shadow:0 0 22px rgba(199,161,91,.12);
-      background:#0a1016;
-      flex:0 0 auto;
-    }
-
-    .brand-copy .kicker{
-      color:var(--gold);
-      font-size:9px;
-      margin-bottom:3px;
-    }
-
-    .brand-copy h1{
-      font-size:1.05rem;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .center-status{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .chip{
-      min-height:30px;
-      padding:0 10px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      background:rgba(255,255,255,.02);
-      color:var(--muted);
-      font-size:9px;
-    }
-
-    .dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:currentColor;
-      box-shadow:0 0 12px currentColor;
-    }
-
-    .green{color:var(--green)}
-    .amber{color:var(--amber)}
-    .red{color:var(--red)}
-    .cyan{color:var(--cyan)}
-
-    .clock{
-      text-align:right;
-      font-size:10px;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-
-    .ticker{
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:linear-gradient(180deg, rgba(10,16,24,.9), rgba(7,12,18,.94));
-      padding:8px 12px;
-      overflow:hidden;
-      white-space:nowrap;
-      box-shadow:var(--shadow);
-    }
-
-    .ticker-track{
-      display:inline-block;
-      white-space:nowrap;
-      animation:tickerMove 28s linear infinite;
-    }
-
-    .ticker-track span{
-      display:inline-block;
-      margin-right:24px;
-      color:var(--muted);
-      font-size:9px;
-    }
-
-    .ticker-track span::after{
-      content:" • ";
-      color:var(--gold);
-      margin-left:10px;
-    }
-
-    .main{
-      min-height:0;
-      display:grid;
-      grid-template-columns:200px 1fr 290px;
-      gap:10px;
-      align-items:start;
-    }
-
-    .panel{
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:linear-gradient(180deg, rgba(11,19,29,.9), rgba(7,12,18,.96));
-      box-shadow:var(--shadow);
-      position:relative;
-      overflow:hidden;
-    }
-
-    .panel::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:linear-gradient(135deg, rgba(102,211,255,.05), transparent 30%, transparent 70%, rgba(92,141,255,.04));
-      pointer-events:none;
-    }
-
-    .panel-head{
-      padding:9px 12px;
-      border-bottom:1px solid rgba(102,211,255,.08);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-    }
-
-    .panel-title{
-      color:var(--cyan2);
-      font-size:10px;
-    }
-
-    .panel-body{
-      padding:10px 12px;
-    }
-
-    .left-rail,
-    .right-rail,
-    .center-core{
-      min-height:0;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      align-self:start;
-    }
-
-    .left-rail > .panel,
-    .right-rail > .panel,
-    .center-core > .panel{
-      flex:0 0 auto;
-    }
-
-    .nav-list{
-      display:flex;
-      flex-direction:column;
-      gap:7px;
-    }
-
-    .nav-item{
-      min-height:38px;
-      border:1px solid rgba(102,211,255,.08);
-      border-radius:10px;
-      padding:0 10px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      background:rgba(255,255,255,.02);
-      color:var(--text);
-      font-size:11px;
-    }
-
-    .nav-item.active{
-      border-color:rgba(102,211,255,.22);
-      box-shadow:inset 0 0 0 1px rgba(102,211,255,.12);
-      background:linear-gradient(180deg, rgba(102,211,255,.08), rgba(255,255,255,.02));
-    }
-
-    .nav-item small{
-      color:var(--muted);
-      font-size:9px;
-      margin-left:8px;
-    }
-
-    .metric-grid{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:8px;
-    }
-
-    .metric-card{
-      min-height:88px;
-      border:1px solid rgba(102,211,255,.08);
-      border-radius:12px;
-      padding:10px 12px;
-      background:rgba(255,255,255,.02);
-    }
-
-    .metric-card .label{
-      font-size:9px;
-      color:var(--muted);
-    }
-
-    .metric-card .value{
-      margin:8px 0 4px;
-      font-size:1.65rem;
-      font-weight:900;
-      line-height:1;
-      letter-spacing:-.04em;
-    }
-
-    .metric-card .sub{
-      font-size:10px;
-      color:var(--muted);
-      line-height:1.3;
-    }
-
-    .chart-grid{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:10px;
-    }
-
-    .chart-box{
-      min-height:160px;
-      border:1px solid rgba(102,211,255,.08);
-      border-radius:12px;
-      padding:10px 12px;
-      background:rgba(255,255,255,.02);
-    }
-
-    .chart-box svg{
-      width:100%;
-      height:120px;
-      display:block;
-      margin-top:6px;
-    }
-
-    .legend{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:6px;
-      font-size:9px;
-      color:var(--muted);
-    }
-
-    .legend span{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .legend i{
-      width:9px;
-      height:9px;
-      border-radius:999px;
-      display:inline-block;
-    }
-
-    .system-grid{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:8px;
-    }
-
-    .system-card{
-      min-height:118px;
-      border:1px solid rgba(102,211,255,.08);
-      border-radius:12px;
-      padding:10px 12px;
-      background:rgba(255,255,255,.02);
-    }
-
-    .system-card h4{
-      font-size:12px;
-      margin-bottom:6px;
-    }
-
-    .system-card .meta{
-      font-size:10px;
-      color:var(--muted);
-      line-height:1.4;
-    }
-
-    .status-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      min-height:24px;
-      padding:0 8px;
-      border-radius:999px;
-      border:1px solid rgba(102,211,255,.10);
-      font-size:9px;
-      margin-bottom:8px;
-    }
-
-    .bar{
-      position:relative;
-      height:7px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      overflow:hidden;
-      margin-top:10px;
-    }
-
-    .bar > span{
-      position:absolute;
-      top:0;
-      left:0;
-      bottom:0;
-      border-radius:999px;
-      animation:pulseBar 2.6s ease-in-out infinite;
-    }
-
-    .bar.cyan > span{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}
-    .bar.green > span{background:linear-gradient(90deg,var(--green),#7df0ab)}
-    .bar.gold > span{background:linear-gradient(90deg,var(--gold),#e1c07d)}
-    .bar.red > span{background:linear-gradient(90deg,var(--red),#ff9f9f)}
-    .bar.blue > span{background:linear-gradient(90deg,var(--blue),#8eadff)}
-    .bar.purple > span{background:linear-gradient(90deg,var(--purple),#ccb9ff)}
-
-    .input-grid{
-      display:grid;
-      grid-template-columns:1.05fr .95fr;
-      gap:10px;
-    }
-
-    .field-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    .field.full{
-      grid-column:1 / -1;
-    }
-
-    .field label{
-      font-size:9px;
-      color:var(--cyan2);
-    }
-
-    .field input,
-    .field select,
-    .field textarea{
-      width:100%;
-      border:1px solid rgba(102,211,255,.12);
-      background:rgba(255,255,255,.02);
-      color:var(--text);
-      border-radius:10px;
-      padding:10px;
-      font:inherit;
-      font-size:12px;
-      outline:none;
-    }
-
-    .field textarea{
-      min-height:88px;
-      resize:vertical;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
-    .btn{
-      min-height:38px;
-      padding:0 12px;
-      border-radius:10px;
-      border:1px solid rgba(102,211,255,.14);
-      background:rgba(255,255,255,.03);
-      color:var(--text);
-      font-family:"IBM Plex Mono",monospace;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      font-size:9px;
-      cursor:pointer;
-    }
-
-    .btn.primary{
-      background:linear-gradient(180deg, rgba(102,211,255,.18), rgba(102,211,255,.06));
-      color:var(--cyan2);
-    }
-
-    .voice-box{
-      min-height:100%;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .voice-visual{
-      min-height:92px;
-      border:1px solid rgba(102,211,255,.14);
-      border-radius:12px;
-      background:
-        radial-gradient(circle at center, rgba(102,211,255,.12), transparent 58%),
-        rgba(255,255,255,.02);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .voice-bars{
-      height:48px;
-      display:flex;
-      align-items:flex-end;
-      gap:5px;
-    }
-
-    .voice-bars span{
-      width:7px;
-      border-radius:999px;
-      background:linear-gradient(180deg,var(--cyan2),rgba(102,211,255,.18));
-      animation:voiceBounce 1.2s ease-in-out infinite;
-    }
-
-    .voice-bars span:nth-child(2){animation-delay:.08s}
-    .voice-bars span:nth-child(3){animation-delay:.16s}
-    .voice-bars span:nth-child(4){animation-delay:.24s}
-    .voice-bars span:nth-child(5){animation-delay:.32s}
-    .voice-bars span:nth-child(6){animation-delay:.40s}
-    .voice-bars span:nth-child(7){animation-delay:.48s}
-    .voice-bars span:nth-child(8){animation-delay:.56s}
-    .voice-bars span:nth-child(9){animation-delay:.64s}
-    .voice-bars span:nth-child(10){animation-delay:.72s}
-
-    .feed-list,
-    .council-list{
-      display:grid;
-      gap:8px;
-    }
-
-    .feed-item,
-    .council-item{
-      border:1px solid rgba(102,211,255,.08);
-      border-radius:10px;
-      padding:10px;
-      background:rgba(255,255,255,.02);
-    }
-
-    .feed-item{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      gap:8px;
-      align-items:center;
-      font-size:10px;
-    }
-
-    .signal{
-      width:9px;
-      height:9px;
-      border-radius:50%;
-      background:var(--green);
-      box-shadow:0 0 10px var(--green);
-    }
-
-    .signal.warn{background:var(--amber);box-shadow:0 0 10px var(--amber)}
-    .signal.alert{background:var(--red);box-shadow:0 0 10px var(--red)}
-    .signal.info{background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
-
-    .council-item h4{
-      font-size:11px;
-      margin-bottom:4px;
-    }
-
-    .council-item p{
-      font-size:10px;
-      color:var(--muted);
-      line-height:1.45;
-    }
-
-    .footer{
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:linear-gradient(180deg, rgba(10,16,24,.88), rgba(7,12,18,.94));
-      padding:8px 12px;
-      font-size:9px;
-      color:var(--muted);
-      box-shadow:var(--shadow);
-    }
-
-    @keyframes tickerMove{
-      from{transform:translateX(0)}
-      to{transform:translateX(-50%)}
-    }
-
-    @keyframes pulseBar{
-      0%,100%{filter:brightness(.92)}
-      50%{filter:brightness(1.18)}
-    }
-
-    @keyframes voiceBounce{
-      0%,100%{height:14px}
-      50%{height:44px}
-    }
-
-    @media (max-width: 1450px){
-      .main{
-        grid-template-columns:190px 1fr;
-      }
-
-      .right-rail{
-        grid-column:1 / -1;
-        display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-      }
-    }
-
-    @media (max-width: 1120px){
-      body{overflow:auto}
-      .main{
-        grid-template-columns:1fr;
-      }
-
-      .metric-grid,
-      .chart-grid,
-      .system-grid,
-      .input-grid,
-      .field-grid,
-      .right-rail{
-        grid-template-columns:1fr;
-      }
-
-      .topbar{
-        grid-template-columns:1fr;
-      }
-
-      .clock{
-        text-align:left;
-      }
-    }
-  </style></head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06090d;
+      --bg-elev-1: #0a1017;
+      --bg-elev-2: #0d141d;
+      --bg-elev-3: rgba(255,255,255,0.04);
+      --panel: rgba(10, 16, 23, 0.78);
+      --panel-strong: rgba(12, 18, 26, 0.94);
+      --line: rgba(199, 161, 91, 0.18);
+      --line-strong: rgba(199, 161, 91, 0.35);
+      --gold: #c7a15b;
+      --gold-soft: #e7d2a5;
+      --ivory: #f3ede3;
+      --muted: #9ea7b3;
+      --muted-2: #748091;
+      --green: #38c172;
+      --amber: #e0a43a;
+      --red: #d76464;
+      --blue: #78a7ff;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --header-h: 76px;
+      --nav-w: 290px;
+    }* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--ivory);
+  background:
+    radial-gradient(circle at top left, rgba(199,161,91,0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(120,167,255,0.10), transparent 22%),
+    linear-gradient(180deg, #05070a 0%, #08111a 42%, #05080c 100%);
+  overflow: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,1), rgba(0,0,0,.3));
+  opacity: .24;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: var(--nav-w) 1fr;
+  grid-template-rows: var(--header-h) 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  height: 100vh;
+}
+
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(10,14,20,.96), rgba(9,13,19,.82));
+  backdrop-filter: blur(14px);
+  position: relative;
+  z-index: 4;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.seal {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  position: relative;
+  background:
+    radial-gradient(circle at 30% 30%, #f2dfba 0%, #d4b072 18%, #9d7339 52%, #4f3818 100%);
+  box-shadow:
+    inset 0 3px 8px rgba(255,255,255,.24),
+    inset 0 -10px 16px rgba(0,0,0,.34),
+    0 0 0 1px rgba(255,255,255,.10),
+    0 10px 24px rgba(0,0,0,.35);
+}
+
+.seal::before {
+  content: "✦";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(39, 24, 8, .92);
+  font-size: 19px;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255,255,255,.2);
+}
+
+.brand-copy { min-width: 0; }
+.brand-title {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ivory);
+  white-space: nowrap;
+}
+
+.brand-sub {
+  margin-top: 3px;
+  font-size: .72rem;
+  color: var(--gold-soft);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: .95;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.identity strong {
+  font-size: .84rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ivory);
+}
+
+.identity span {
+  font-size: .7rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.doctrine {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  color: var(--gold-soft);
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  background:
+    linear-gradient(180deg, rgba(8,12,18,0.98) 0%, rgba(6,10,15,0.98) 100%);
+  border-right: 1px solid var(--line);
+  padding: 24px 16px 18px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 5;
+}
+
+.sidebar::-webkit-scrollbar,
+.main::-webkit-scrollbar,
+.page-body::-webkit-scrollbar { width: 10px; }
+.sidebar::-webkit-scrollbar-thumb,
+.main::-webkit-scrollbar-thumb,
+.page-body::-webkit-scrollbar-thumb {
+  background: rgba(199,161,91,.18);
+  border-radius: 20px;
+}
+
+.side-top {
+  padding: 8px 12px 18px;
+  border-bottom: 1px solid rgba(199,161,91,.12);
+  margin-bottom: 18px;
+}
+
+.side-top h2 {
+  margin: 0;
+  font-size: .78rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+.side-top p {
+  margin: 10px 0 0;
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.nav-section {
+  margin-bottom: 16px;
+}
+
+.nav-label {
+  padding: 10px 12px 8px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+
+.nav-btn {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ivory);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  transition: .22s ease;
+  margin-bottom: 6px;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,.03);
+  border-color: rgba(199,161,91,.12);
+  transform: translateX(2px);
+}
+
+.nav-btn.active {
+  background: linear-gradient(180deg, rgba(199,161,91,.14), rgba(199,161,91,.06));
+  border-color: rgba(199,161,91,.26);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+}
+
+.nav-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+  color: var(--gold-soft);
+  font-size: 1rem;
+}
+
+.nav-copy strong {
+  display: block;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--ivory);
+  margin-bottom: 3px;
+}
+
+.nav-copy span {
+  display: block;
+  font-size: .76rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.nav-rsl {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+  opacity: .9;
+}
+
+.rsl-green { color: var(--green); background: var(--green); }
+.rsl-amber { color: var(--amber); background: var(--amber); }
+.rsl-red { color: var(--red); background: var(--red); }
+.rsl-blue { color: var(--blue); background: var(--blue); }
+
+.side-foot {
+  margin-top: 22px;
+  padding: 14px 12px 6px;
+  border-top: 1px solid rgba(199,161,91,.12);
+}
+
+.small-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mini {
+  padding: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 14px;
+}
+
+.mini .k {
+  font-size: .68rem;
+  color: var(--muted-2);
+  text-transform: uppercase;
+  letter-spacing: .18em;
+}
+
+.mini .v {
+  margin-top: 6px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ivory);
+}
+
+.main {
+  grid-area: main;
+  overflow-y: auto;
+  padding: 26px;
+}
+
+.page {
+  display: none;
+  animation: fadeUp .24s ease;
+}
+
+.page.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero {
+  position: relative;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at top left, rgba(199,161,91,.12), transparent 24%),
+    linear-gradient(180deg, rgba(12,18,26,.94), rgba(8,12,18,.92));
+  border-radius: 28px;
+  padding: 30px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255,255,255,.04), transparent 18%, transparent 80%, rgba(255,255,255,.03));
+}
+
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .72rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: 14px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(199,161,91,.9), transparent);
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 900px;
+  font-size: clamp(2rem, 3vw, 3.2rem);
+  line-height: 1.02;
+  letter-spacing: -.04em;
+  font-weight: 800;
+  color: var(--ivory);
+}
+
+.hero p {
+  margin: 16px 0 0;
+  max-width: 820px;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #c1c8d0;
+}
+
+.hero-right {
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.signal-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.03);
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.signal-chip strong {
+  display: block;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.signal-chip span {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--ivory);
+}
+
+.content-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.card-head {
+  padding: 18px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+
+.card-title {
+  font-size: .86rem;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+.card-body {
+  padding: 18px 20px 20px;
+}
+
+.span-12 { grid-column: span 12; }
+.span-8 { grid-column: span 8; }
+.span-7 { grid-column: span 7; }
+.span-6 { grid-column: span 6; }
+.span-5 { grid-column: span 5; }
+.span-4 { grid-column: span 4; }
+.span-3 { grid-column: span 3; }
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 14px;
+}
+
+.metric {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 18px;
+  padding: 16px;
+  min-height: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent 70%);
+  opacity: .55;
+}
+
+.metric .label {
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metric .value {
+  margin-top: 10px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.04em;
+}
+
+.metric .meta {
+  margin-top: 8px;
+  font-size: .8rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.bars {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  height: 120px;
+  padding-top: 14px;
+}
+
+.bar {
+  flex: 1;
+  border-radius: 999px 999px 8px 8px;
+  background: linear-gradient(180deg, rgba(199,161,91,.95), rgba(199,161,91,.18));
+  box-shadow: 0 0 18px rgba(199,161,91,.22);
+  animation: pulseBar 4s ease-in-out infinite;
+  min-width: 12px;
+}
+
+.bar:nth-child(2n) { animation-duration: 4.8s; }
+.bar:nth-child(3n) { animation-duration: 5.4s; }
+
+@keyframes pulseBar {
+  0%, 100% { transform: scaleY(.92); opacity: .75; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+.matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px;
+}
+
+.node {
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+}
+
+.node-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.node strong {
+  font-size: .95rem;
+  color: var(--ivory);
+}
+
+.node small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.progress {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  overflow: hidden;
+  margin: 12px 0 10px;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(199,161,91,.95), rgba(120,167,255,.7));
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  vertical-align: top;
+}
+
+.table th {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--muted-2);
+  font-weight: 800;
+}
+
+.table td {
+  font-size: .9rem;
+  color: var(--ivory);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  color: var(--ivory);
+  white-space: nowrap;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 16px;
+  background: rgba(255,255,255,.025);
+}
+
+.list-row strong {
+  display: block;
+  font-size: .9rem;
+  margin-bottom: 4px;
+}
+
+.list-row p {
+  margin: 0;
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid rgba(199,161,91,.22);
+  background: linear-gradient(180deg, rgba(199,161,91,.16), rgba(199,161,91,.07));
+  color: var(--ivory);
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-size: .74rem;
+  cursor: pointer;
+  transition: .18s ease;
+}
+
+.btn:hover { transform: translateY(-1px); border-color: rgba(199,161,91,.36); }
+
+.btn.ghost {
+  background: rgba(255,255,255,.03);
+  border-color: rgba(255,255,255,.08);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--muted-2);
+  font-weight: 700;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  color: var(--ivory);
+  border-radius: 14px;
+  padding: 14px 14px;
+  font: inherit;
+  outline: none;
+}
+
+.textarea { min-height: 130px; resize: vertical; }
+.input::placeholder, .textarea::placeholder { color: #6f7a88; }
+
+.page-body {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-size: .78rem;
+  color: var(--gold-soft);
+  text-transform: uppercase;
+  letter-spacing: .22em;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 18px;
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(199,161,91,.45), rgba(255,255,255,.08));
+}
+
+.tick {
+  position: relative;
+  padding-left: 30px;
+}
+
+.tick::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffe8ba, #c7a15b 58%, #6d4d1d);
+  box-shadow: 0 0 20px rgba(199,161,91,.25);
+}
+
+.tick strong { display: block; font-size: .9rem; margin-bottom: 4px; }
+.tick p { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.55; }
+
+.footer-note {
+  margin-top: 20px;
+  padding: 14px 18px;
+  border: 1px solid rgba(199,161,91,.14);
+  border-radius: 16px;
+  background: rgba(199,161,91,.05);
+  color: #d2c6b0;
+  font-size: .84rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 1400px) {
+  .metric-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .span-8, .span-7, .span-6, .span-5, .span-4, .span-3 { grid-column: span 12; }
+  .two-col, .three-col, .matrix-grid, .form-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 1080px) {
+  body { overflow: auto; }
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "header"
+      "sidebar"
+      "main";
+    height: auto;
+    min-height: 100vh;
+  }
+  .sidebar {
+    max-height: none;
+    overflow: visible;
+  }
+  .main { overflow: visible; }
+  .doctrine { display: none; }
+}
+
+@media (max-width: 720px) {
+  .header { padding: 16px; height: auto; }
+  .main { padding: 16px; }
+  .hero { padding: 22px 18px; }
+  .brand-title { font-size: .88rem; }
+  .brand-sub { font-size: .64rem; }
+  .metric-grid { grid-template-columns: 1fr; }
+  .small-stat-grid { grid-template-columns: 1fr; }
+}
+
+  </style>
+</head>
 <body>
-  <div class="app" id="pccApp" data-system="phoenix-command-center" data-layer="command-floor"><header class="topbar" id="pccTopbar" data-module="command-header">
-  <div class="brand" id="brandBlock">
-    <img src="rpe_seal_logo.png" alt="RPE Seal" id="pccSeal">
-    <div class="brand-copy">
-      <div class="kicker mono">Rising Phoenix Enterprises · Sovereign Command Layer</div>
-      <h1 id="pccTitle">Phoenix Command Center</h1>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="side-top">
+        <h2>PCC Navigation</h2>
+        <p>Phoenix Command Center is a controlled multi-page shell for observation, authority, routing, execution, and verification.</p>
+      </div><div class="nav-section">
+    <div class="nav-label">Core Command</div>
+    <button class="nav-btn active" data-page="command-floor">
+      <div class="nav-ico">⌘</div>
+      <div class="nav-copy"><strong>Command Floor</strong><span>Primary command overview</span></div>
+      <div class="nav-rsl rsl-red"></div>
+    </button>
+    <button class="nav-btn" data-page="system-registry">
+      <div class="nav-ico">◎</div>
+      <div class="nav-copy"><strong>System Registry</strong><span>Master system map + variables</span></div>
+      <div class="nav-rsl rsl-amber"></div>
+    </button>
+    <button class="nav-btn" data-page="command-execution">
+      <div class="nav-ico">➜</div>
+      <div class="nav-copy"><strong>Command Execution</strong><span>Trigger, route, authorize</span></div>
+      <div class="nav-rsl rsl-green"></div>
+    </button>
+    <button class="nav-btn" data-page="receipts-logs">
+      <div class="nav-ico">▣</div>
+      <div class="nav-copy"><strong>Receipts & Logs</strong><span>Proof, audit, truth layer</span></div>
+      <div class="nav-rsl rsl-blue"></div>
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Phoenix Media</div>
+    <button class="nav-btn" data-page="media-control">
+      <div class="nav-ico">◈</div>
+      <div class="nav-copy"><strong>Media Control</strong><span>Production command surface</span></div>
+      <div class="nav-rsl rsl-red"></div>
+    </button>
+    <button class="nav-btn" data-page="render-control">
+      <div class="nav-ico">◫</div>
+      <div class="nav-copy"><strong>Render Control</strong><span>Assembly + output monitoring</span></div>
+      <div class="nav-rsl rsl-amber"></div>
+    </button>
+    <button class="nav-btn" data-page="distribution-queue">
+      <div class="nav-ico">⇆</div>
+      <div class="nav-copy"><strong>Distribution Queue</strong><span>Spider routing + platform queue</span></div>
+      <div class="nav-rsl rsl-green"></div>
+    </button>
+    <button class="nav-btn" data-page="quality-gate">
+      <div class="nav-ico">✦</div>
+      <div class="nav-copy"><strong>Quality Gate</strong><span>Score, block, protect brand</span></div>
+      <div class="nav-rsl rsl-red"></div>
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Signals & Governance</div>
+    <button class="nav-btn" data-page="signal-board">
+      <div class="nav-ico">▤</div>
+      <div class="nav-copy"><strong>Signal Board</strong><span>Performance intelligence layer</span></div>
+      <div class="nav-rsl rsl-blue"></div>
+    </button>
+    <button class="nav-btn" data-page="strategy-layer">
+      <div class="nav-ico">△</div>
+      <div class="nav-copy"><strong>Strategy Layer</strong><span>Campaigns, priorities, doctrine</span></div>
+      <div class="nav-rsl rsl-amber"></div>
+    </button>
+    <button class="nav-btn" data-page="settings-access">
+      <div class="nav-ico">⚙</div>
+      <div class="nav-copy"><strong>Settings & Access</strong><span>System configuration + roles</span></div>
+      <div class="nav-rsl rsl-blue"></div>
+    </button>
+  </div>
+
+  <div class="side-foot">
+    <div class="small-stat-grid">
+      <div class="mini"><div class="k">Systems</div><div class="v">12</div></div>
+      <div class="mini"><div class="k">Live Watch</div><div class="v">08</div></div>
+      <div class="mini"><div class="k">RSL Red</div><div class="v">03</div></div>
+      <div class="mini"><div class="k">Receipts</div><div class="v">1,284</div></div>
     </div>
   </div>
+</aside>
 
-  <div class="center-status" id="systemStatusChips" data-module="system-status">
-    <div class="chip green mono" id="chipSystemLink" data-status="active"><span class="dot"></span>System Link Active</div>
-    <div class="chip amber mono" id="chipOversightMode" data-status="oversight"><span class="dot"></span>Oversight Mode</div>
-    <div class="chip cyan mono" id="chipSignalsLive" data-status="signals-live"><span class="dot"></span>Signals Live</div>
+<header class="header">
+  <div class="brand">
+    <div class="seal"></div>
+    <div class="brand-copy">
+      <div class="brand-title">Phoenix Command Center</div>
+      <div class="brand-sub">Control Surface · Oversight Layer · Authority Shell</div>
+    </div>
   </div>
-
-  <div class="clock mono" id="liveClock" data-role="live-clock">00:00:00 CST</div>
+  <div class="header-right">
+    <div class="doctrine">From Ashes to Authority</div>
+    <div class="identity">
+      <strong>Executive Chairman / Founder</strong>
+      <span>Rising Phoenix Enterprises</span>
+    </div>
+  </div>
 </header>
 
-<section class="ticker" id="commandTicker" data-module="signal-ticker">
-  <div class="ticker-track mono" id="tickerTrack">
-    <span>Phoenix OS Governance Holding</span>
-    <span>PBRS Corridor Monitored</span>
-    <span>Spider Execution Verified</span>
-    <span>Receipts Locked</span>
-    <span>Financial Controls Stable</span>
-    <span>StatsCORE Tracking Active</span>
-    <span>PHXN Studios Monitored</span>
-    <span>Council Oversight Live</span>
-    <span>Voice Intake Ready</span>
-    <span>Phoenix OS Governance Holding</span>
-    <span>PBRS Corridor Monitored</span>
-    <span>Spider Execution Verified</span>
-    <span>Receipts Locked</span>
-    <span>Financial Controls Stable</span>
-    <span>StatsCORE Tracking Active</span>
-    <span>PHXN Studios Monitored</span>
-    <span>Council Oversight Live</span>
-    <span>Voice Intake Ready</span>
-  </div>
-</section>
-
-<section class="main" id="commandMainGrid">
-  <aside class="left-rail" id="leftRail" data-region="left-rail">
-    <section class="panel" id="navigationPanel" data-module="navigation">
-      <div class="panel-head">
-        <div class="panel-title mono">Navigation</div>
-      </div>
-      <div class="panel-body">
-        <div class="nav-list" id="navigationList">
-          <div class="nav-item active" data-nav="executive-overview"><span>Executive Overview</span><small>Live</small></div>
-          <div class="nav-item" data-nav="engine-monitoring"><span>Engine Monitoring</span><small>12</small></div>
-          <div class="nav-item" data-nav="command-queue"><span>Command Queue</span><small>Active</small></div>
-          <div class="nav-item" data-nav="system-health"><span>System Health</span><small>Stable</small></div>
-          <div class="nav-item" data-nav="financial-strength"><span>Financial Strength</span><small>Visible</small></div>
-          <div class="nav-item" data-nav="council-layer"><span>Council Layer</span><small>12</small></div>
-          <div class="nav-item" data-nav="receipts-audit"><span>Receipts / Audit</span><small>Tracked</small></div>
-          <div class="nav-item" data-nav="voice-intake"><span>Voice Intake</span><small>Ready</small></div>
+<main class="main">
+  <section class="page active" id="command-floor">
+    <div class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Primary Surface · Command Floor</div>
+          <h1>Observe the system. Control the environment. Verify the outcome.</h1>
+          <p>
+            Phoenix Command Center is the operator shell for your enterprise. This surface is built for live oversight,
+            immediate status awareness, structured command action, and receipt-backed continuity across the full Phoenix ecosystem.
+          </p>
         </div>
-      </div>
-    </section>
-
-    <section class="panel" id="missionStatePanel" data-module="mission-state">
-      <div class="panel-head">
-        <div class="panel-title mono">Mission State</div>
-      </div>
-      <div class="panel-body">
-        <div class="feed-list" id="missionStateList">
-          <div class="feed-item" data-mission-state="enterprise-aligned">
-            <span class="signal"></span>
-            <span>Enterprise state aligned</span>
-            <span>Green</span>
+        <div class="hero-right">
+          <div class="signal-chip">
+            <div><strong>System Status</strong><span>Operational Authority</span></div>
+            <div class="pill"><span class="nav-rsl rsl-green"></span> Stable</div>
           </div>
-          <div class="feed-item" data-mission-state="builder-review">
-            <span class="signal warn"></span>
-            <span>Builder lane under review</span>
-            <span>Watch</span>
+          <div class="signal-chip">
+            <div><strong>Command Priority</strong><span>Media / Registry / Spider</span></div>
+            <div class="pill"><span class="nav-rsl rsl-red"></span> Active</div>
           </div>
-          <div class="feed-item" data-mission-state="voice-ready">
-            <span class="signal info"></span>
-            <span>Voice channel standing by</span>
-            <span>Ready</span>
+          <div class="signal-chip">
+            <div><strong>Receipt Policy</strong><span>Enforced</span></div>
+            <div class="pill"><span class="nav-rsl rsl-blue"></span> Locked</div>
           </div>
         </div>
       </div>
-    </section>
-  </aside>
+    </div>
 
-  <main class="center-core" id="centerCore" data-region="center-core">
-    <section class="panel" id="enterpriseMetricsPanel" data-module="enterprise-metrics">
-      <div class="panel-head">
-        <div class="panel-title mono">Enterprise Metrics</div>
-      </div>
-      <div class="panel-body">
-        <div class="metric-grid" id="enterpriseMetricsGrid">
-          <div class="metric-card" data-metric-card="engine-health">
-            <div class="label mono">Engine Health</div>
-            <div class="value" id="metricEngineHealth" data-metric="engine-health" style="color:var(--green)">96%</div>
-            <div class="sub">Cross-system readiness</div>
-          </div>
-          <div class="metric-card" data-metric-card="active-commands">
-            <div class="label mono">Active Commands</div>
-            <div class="value" id="metricActiveCommands" data-metric="active-commands" style="color:var(--cyan)">148</div>
-            <div class="sub">Governed active queue</div>
-          </div>
-          <div class="metric-card" data-metric-card="financial-strength">
-            <div class="label mono">Financial Strength</div>
-            <div class="value" id="metricFinancialStrength" data-metric="financial-strength" style="color:var(--gold)">88</div>
-            <div class="sub">Liquidity / stability index</div>
-          </div>
-          <div class="metric-card" data-metric-card="receipt-success">
-            <div class="label mono">Receipt Success</div>
-            <div class="value" id="metricReceiptSuccess" data-metric="receipt-success" style="color:var(--blue)">92%</div>
-            <div class="sub">Completed execution ratio</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel" id="signalBoardsPanel" data-module="signal-boards">
-      <div class="panel-head">
-        <div class="panel-title mono">Signal Boards</div>
-      </div>
-      <div class="panel-body">
-        <div class="chart-grid" id="signalBoardsGrid">
-          <div class="chart-box" id="enginePerformanceTrendBox" data-chart="engine-performance-trend">
-            <div class="panel-title mono">Engine Performance Trend</div>
-            <svg viewBox="0 0 600 180" preserveAspectRatio="none" id="enginePerformanceTrendChart">
-              <defs>
-                <linearGradient id="trend1" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#66d3ff"/>
-                  <stop offset="100%" stop-color="#92e4ff"/>
-                </linearGradient>
-                <linearGradient id="trend2" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#5c8dff"/>
-                  <stop offset="100%" stop-color="#9f7cff"/>
-                </linearGradient>
-              </defs>
-              <g opacity=".15" stroke="#66d3ff" stroke-width="1">
-                <line x1="0" y1="28" x2="600" y2="28"/>
-                <line x1="0" y1="68" x2="600" y2="68"/>
-                <line x1="0" y1="108" x2="600" y2="108"/>
-                <line x1="0" y1="148" x2="600" y2="148"/>
-              </g>
-              <polyline id="trendCommandStrength" fill="none" stroke="url(#trend1)" stroke-width="4"
-                points="10,144 70,136 120,122 180,126 240,102 300,108 360,86 420,92 480,66 540,72 590,50"/>
-              <polyline id="trendSystemPressure" fill="none" stroke="url(#trend2)" stroke-width="3"
-                points="10,156 70,150 120,146 180,138 240,130 300,120 360,114 420,104 480,100 540,92 590,84"/>
-            </svg>
-            <div class="legend" id="enginePerformanceLegend">
-              <span><i style="background:var(--cyan)"></i>command strength</span>
-              <span><i style="background:var(--blue)"></i>system pressure</span>
+    <div class="content-grid">
+      <div class="card span-12">
+        <div class="card-head"><div class="card-title">Command Matrix</div><div class="pill">Live System Surface</div></div>
+        <div class="card-body">
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="label">Systems Online</div>
+              <div class="value">09</div>
+              <div class="meta">Core command surfaces available and shell-visible.</div>
             </div>
-          </div>
-
-          <div class="chart-box" id="financialStrengthGaugeBox" data-chart="financial-strength-gauge">
-            <div class="panel-title mono">Financial Strength Gauge</div>
-            <svg viewBox="0 0 320 180" id="financialStrengthGaugeChart">
-              <defs>
-                <linearGradient id="gauge" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#ef5f5f"/>
-                  <stop offset="50%" stop-color="#f1b841"/>
-                  <stop offset="100%" stop-color="#2fd37a"/>
-                </linearGradient>
-              </defs>
-              <path d="M40 140 A120 120 0 0 1 280 140" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="18" stroke-linecap="round"/>
-              <path d="M40 140 A120 120 0 0 1 280 140" fill="none" stroke="url(#gauge)" stroke-width="18" stroke-linecap="round" stroke-dasharray="300 120"/>
-              <line x1="160" y1="140" x2="228" y2="76" stroke="#eef4fb" stroke-width="5" stroke-linecap="round"/>
-              <circle cx="160" cy="140" r="10" fill="#eef4fb"/>
-              <text x="160" y="106" text-anchor="middle" fill="#eef4fb" font-size="34" font-weight="800" id="financialGaugeValue">88</text>
-              <text x="160" y="126" text-anchor="middle" fill="rgba(238,244,251,.62)" font-size="11">SOVEREIGN STRENGTH</text>
-            </svg>
-            <div class="legend" id="financialGaugeLegend">
-              <span><i style="background:var(--green)"></i>strong</span>
-              <span><i style="background:var(--amber)"></i>watch</span>
-              <span><i style="background:var(--red)"></i>weak</span>
+            <div class="metric">
+              <div class="label">Execution Queue</div>
+              <div class="value">17</div>
+              <div class="meta">Commands currently staged or awaiting governed release.</div>
+            </div>
+            <div class="metric">
+              <div class="label">Media Pipeline</div>
+              <div class="value">05</div>
+              <div class="meta">Narrative, render, distribution, QA, signal loops active.</div>
+            </div>
+            <div class="metric">
+              <div class="label">Receipts Today</div>
+              <div class="value">128</div>
+              <div class="meta">Immutable output proofs registered across observed lanes.</div>
             </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <section class="panel" id="engineMonitoringPanel" data-module="engine-monitoring">
-      <div class="panel-head">
-        <div class="panel-title mono">Engine Monitoring</div>
-      </div>
-      <div class="panel-body">
-        <div class="system-grid" id="engineMonitoringGrid">
-          <div class="system-card" id="enginePhoenixOS" data-engine="phoenix-os">
-            <div class="status-pill mono"><span class="dot green"></span>Phoenix OS</div>
-            <h4>Governance Spine</h4>
-            <div class="meta">Memory, law, continuity, command discipline.</div>
-            <div class="bar gold"><span id="enginePhoenixOSBar" style="width:94%"></span></div>
+      <div class="card span-7">
+        <div class="card-head"><div class="card-title">Signal Board</div><div class="pill"><span class="nav-rsl rsl-amber"></span> Watched</div></div>
+        <div class="card-body">
+          <div class="bars">
+            <div class="bar" style="height:44%"></div>
+            <div class="bar" style="height:66%"></div>
+            <div class="bar" style="height:58%"></div>
+            <div class="bar" style="height:82%"></div>
+            <div class="bar" style="height:74%"></div>
+            <div class="bar" style="height:91%"></div>
+            <div class="bar" style="height:63%"></div>
+            <div class="bar" style="height:78%"></div>
           </div>
-          <div class="system-card" id="enginePBS" data-engine="pbs">
-            <div class="status-pill mono"><span class="dot green"></span>PBS</div>
-            <h4>Business System</h4>
-            <div class="meta">Institutional corridor and system surfaces.</div>
-            <div class="bar cyan"><span id="enginePBSBar" style="width:89%"></span></div>
-          </div>
-          <div class="system-card" id="enginePBRS" data-engine="pbrs">
-            <div class="status-pill mono"><span class="dot green"></span>PBRS</div>
-            <h4>Readiness Snapshot</h4>
-            <div class="meta">Scoring, routing, outputs, qualification flow.</div>
-            <div class="bar green"><span id="enginePBRSBar" style="width:91%"></span></div>
-          </div>
-          <div class="system-card" id="enginePBB" data-engine="pbb">
-            <div class="status-pill mono"><span class="dot amber"></span>PBB</div>
-            <h4>Business Builder</h4>
-            <div class="meta">Continuity and guided execution system.</div>
-            <div class="bar gold"><span id="enginePBBBar" style="width:73%"></span></div>
-          </div>
-          <div class="system-card" id="engineSpider" data-engine="spider">
-            <div class="status-pill mono"><span class="dot green"></span>Spider</div>
-            <h4>Execution Spine</h4>
-            <div class="meta">Receipts, posts, command routing, delivery.</div>
-            <div class="bar blue"><span id="engineSpiderBar" style="width:87%"></span></div>
-          </div>
-          <div class="system-card" id="engineFCC" data-engine="fcc">
-            <div class="status-pill mono"><span class="dot green"></span>FCC</div>
-            <h4>Financial Controls</h4>
-            <div class="meta">Liquidity, visibility, solvency monitoring.</div>
-            <div class="bar green"><span id="engineFCCBar" style="width:84%"></span></div>
-          </div>
-          <div class="system-card" id="engineStatsCORE" data-engine="statscore">
-            <div class="status-pill mono"><span class="dot green"></span>StatsCORE</div>
-            <h4>Sports Intelligence</h4>
-            <div class="meta">Athlete tracking and lifecycle monitoring.</div>
-            <div class="bar purple"><span id="engineStatsCOREBar" style="width:86%"></span></div>
-          </div>
-          <div class="system-card" id="enginePHXN" data-engine="phxn">
-            <div class="status-pill mono"><span class="dot green"></span>PHXN</div>
-            <h4>PHXN Studios</h4>
-            <div class="meta">Synthetic production and media monitoring.</div>
-            <div class="bar cyan"><span id="enginePHXNBar" style="width:81%"></span></div>
-          </div>
-          <div class="system-card" id="engineCCE" data-engine="cce">
-            <div class="status-pill mono"><span class="dot amber"></span>CCE</div>
-            <h4>Communication Layer</h4>
-            <div class="meta">Voice, routing, callbacks, oversight.</div>
-            <div class="bar red"><span id="engineCCEBar" style="width:68%"></span></div>
+          <div class="meta-row" style="margin-top:14px;">
+            <span>Media signal strength rising across content and control surfaces.</span>
+            <span>Last sync: 03:14 PM</span>
           </div>
         </div>
       </div>
-    </section>
 
-    <section class="panel" id="commandIntakePanel" data-module="command-intake">
-      <div class="panel-head">
-        <div class="panel-title mono">Command Intake</div>
-      </div>
-      <div class="panel-body">
-        <div class="input-grid" id="commandInputGrid">
-          <div class="chart-box" id="commandEntryBox" data-submodule="typed-intake">
-            <div class="field-grid" id="commandFieldGrid">
-              <div class="field">
-                <label class="mono" for="commandType">Command Type</label>
-                <select id="commandType" data-role="command-type" name="commandType">
-                  <option>Executive Directive</option>
-                  <option>System Check</option>
-                  <option>Build Order</option>
-                  <option>Signal Review</option>
-                </select>
-              </div>
-              <div class="field">
-                <label class="mono" for="targetEngine">Target Engine</label>
-                <select id="targetEngine" data-role="target-engine" name="targetEngine">
-                  <option>Phoenix OS</option>
-                  <option>PBS</option>
-                  <option>PBRS</option>
-                  <option>PBB</option>
-                  <option>Spider</option>
-                  <option>FCC</option>
-                </select>
-              </div>
-              <div class="field full">
-                <label class="mono" for="directiveTitle">Directive Title</label>
-                <input id="directiveTitle" data-role="directive-title" name="directiveTitle" type="text" placeholder="Enter directive title">
-              </div>
-              <div class="field full">
-                <label class="mono" for="directiveBody">Directive / Notes</label>
-                <textarea id="directiveBody" data-role="directive-body" name="directiveBody" placeholder="Enter governed instruction, command notes, or execution order..."></textarea>
-              </div>
-            </div>
-
-            <div class="actions" id="commandActions">
-              <button class="btn primary" id="stageCommandBtn" data-action="stage-command" type="button">Stage Command</button>
-              <button class="btn" id="saveNoteBtn" data-action="save-note" type="button">Save Note</button>
-            </div>
+      <div class="card span-5">
+        <div class="card-head"><div class="card-title">Priority Lanes</div><div class="pill"><span class="nav-rsl rsl-red"></span> Red</div></div>
+        <div class="card-body stack">
+          <div class="list-row">
+            <div><strong>PCC Shell Completion</strong><p>Full multi-page shell active. Next phase is live wiring to data surfaces.</p></div>
+            <div class="pill">Active</div>
           </div>
+          <div class="list-row">
+            <div><strong>Phoenix Media Stack</strong><p>Script, render, quality gate, and queue pages prepared for governed integration.</p></div>
+            <div class="pill">Ready</div>
+          </div>
+          <div class="list-row">
+            <div><strong>Master Registry</strong><p>System mapping surface in place for variable and dependency alignment.</p></div>
+            <div class="pill">Critical</div>
+          </div>
+        </div>
+      </div>
 
-          <div class="voice-box" id="voiceAndFeedColumn" data-submodule="voice-and-feed">
-            <div class="chart-box" id="voiceIntakeBox" data-module="voice-intake">
-              <div class="panel-title mono">Voice Intake</div>
-              <div class="voice-visual" id="voiceVisualizer" style="margin-top:10px;">
-                <div class="voice-bars" id="voiceBars">
-                  <span style="height:18px"></span>
-                  <span style="height:28px"></span>
-                  <span style="height:42px"></span>
-                  <span style="height:22px"></span>
-                  <span style="height:54px"></span>
-                  <span style="height:34px"></span>
-                  <span style="height:46px"></span>
-                  <span style="height:24px"></span>
-                  <span style="height:38px"></span>
-                  <span style="height:20px"></span>
-                </div>
-              </div>
-              <div class="legend" id="voiceLegend" style="margin-top:12px;">
-                <span><i style="background:var(--cyan)"></i>dictation ready</span>
-                <span><i style="background:var(--blue)"></i>transcription queue</span>
-              </div>
-              <div class="actions" id="voiceActions">
-                <button class="btn primary" id="beginVoiceIntakeBtn" data-action="begin-voice-intake" type="button">Begin Voice Intake</button>
-                <button class="btn" id="transcriptionQueueBtn" data-action="open-transcription-queue" type="button">Transcription Queue</button>
-              </div>
+      <div class="card span-8">
+        <div class="card-head"><div class="card-title">System Nodes</div><div class="pill">Institutional View</div></div>
+        <div class="card-body">
+          <div class="matrix-grid">
+            <div class="node">
+              <div class="node-top"><div><strong>PBRS</strong><small>Readiness / scoring / intake</small></div><div class="pill">Observed</div></div>
+              <div class="progress"><span style="width:86%"></span></div>
+              <div class="meta-row"><span>Status: Shell-ready</span><span>RSL: Yellow</span></div>
             </div>
-
-            <div class="chart-box" id="liveFeedBox" data-module="live-feed">
-              <div class="panel-title mono">Live Feed</div>
-              <div class="feed-list" id="liveFeedList" data-role="live-feed-list" style="margin-top:10px;">
-                <div class="feed-item" data-feed-item="heartbeat-confirmed">
-                  <span class="signal"></span>
-                  <span>PBRS intake channel heartbeat confirmed</span>
-                  <span>+00:03</span>
-                </div>
-                <div class="feed-item" data-feed-item="pbb-review">
-                  <span class="signal warn"></span>
-                  <span>PBB continuity surface flagged for review</span>
-                  <span>+00:08</span>
-                </div>
-                <div class="feed-item" data-feed-item="spider-receipts">
-                  <span class="signal info"></span>
-                  <span>Spider lane observing execution receipts</span>
-                  <span>+00:14</span>
-                </div>
-                <div class="feed-item" data-feed-item="audit-watch">
-                  <span class="signal alert"></span>
-                  <span>Audit watch issued for content engine drift</span>
-                  <span>+00:21</span>
-                </div>
-              </div>
+            <div class="node">
+              <div class="node-top"><div><strong>PBB</strong><small>Builder pathway / continuation lane</small></div><div class="pill">Observed</div></div>
+              <div class="progress"><span style="width:79%"></span></div>
+              <div class="meta-row"><span>Status: Build-active</span><span>RSL: Yellow</span></div>
+            </div>
+            <div class="node">
+              <div class="node-top"><div><strong>StatsCore</strong><small>Athlete lifecycle / eligibility</small></div><div class="pill">Tracked</div></div>
+              <div class="progress"><span style="width:72%"></span></div>
+              <div class="meta-row"><span>Status: Wiring layer</span><span>RSL: Green</span></div>
+            </div>
+            <div class="node">
+              <div class="node-top"><div><strong>Phoenix Media</strong><small>Production / render / signal</small></div><div class="pill">Priority</div></div>
+              <div class="progress"><span style="width:91%"></span></div>
+              <div class="meta-row"><span>Status: Elite stack planning</span><span>RSL: Red</span></div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-  </main>
 
-  <aside class="right-rail" id="rightRail" data-region="right-rail">
-    <section class="panel" id="councilOversightPanel" data-module="council-oversight">
-      <div class="panel-head">
-        <div class="panel-title mono">Council Oversight</div>
-      </div>
-      <div class="panel-body">
-        <div class="council-list" id="councilOversightList">
-          <div class="council-item" data-council-member="alexis-vale">
-            <h4>Alexis Vale · Chairwoman</h4>
-            <p>Governance posture stable. Institutional tone and continuity aligned.</p>
+      <div class="card span-4">
+        <div class="card-head"><div class="card-title">Command Actions</div><div class="pill">Quick Access</div></div>
+        <div class="card-body">
+          <div class="btn-row">
+            <button class="btn" data-jump="system-registry">Open Registry</button>
+            <button class="btn" data-jump="media-control">Media Control</button>
+            <button class="btn ghost" data-jump="command-execution">Execute Command</button>
+            <button class="btn ghost" data-jump="receipts-logs">View Receipts</button>
           </div>
-          <div class="council-item" data-council-member="michael-carrington">
-            <h4>Michael Carrington · CEO</h4>
-            <p>Enterprise execution visibility remains strong across active corridors.</p>
-          </div>
-          <div class="council-item" data-council-member="chad-pennington">
-            <h4>Chad G. Pennington · COO</h4>
-            <p>Command floor prepared for live wiring into governed execution systems.</p>
-          </div>
-          <div class="council-item" data-council-member="oliver-grant">
-            <h4>Oliver Grant · CFO</h4>
-            <p>Financial strength remains durable; FCC should be fully wired next.</p>
-          </div>
-          <div class="council-item" data-council-member="aiden-mercer">
-            <h4>Aiden Mercer · Auditor</h4>
-            <p>Monitor drift, maintain determinism, preserve execution clarity.</p>
-          </div>
+          <div class="footer-note">This shell is intentionally built as a command environment, not a generic dashboard. Each page holds a single responsibility and supports governed expansion.</div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="panel" id="financialMonitorPanel" data-module="financial-monitor">
-      <div class="panel-head">
-        <div class="panel-title mono">Financial Monitor</div>
+  <section class="page" id="system-registry">
+    <div class="hero">
+      <div class="eyebrow">Master Registry · Variable Map</div>
+      <h1>System inventory, variable awareness, and dependency control.</h1>
+      <p>The registry defines what exists, what it does, what it depends on, and what variables drive it. This is the architectural memory surface for the Phoenix ecosystem.</p>
+    </div>
+    <div class="page-body">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Registry Table</div><div class="pill">Master Map</div></div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>System</th>
+                <th>Purpose</th>
+                <th>Core Variables</th>
+                <th>Dependencies</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>PBRS</strong></td>
+                <td>Operational readiness snapshot and scoring</td>
+                <td>client_type, revenue_band, readiness_score, routing_state</td>
+                <td>Supabase, intake worker, scoring logic</td>
+                <td><span class="pill"><span class="nav-rsl rsl-amber"></span> Active</span></td>
+              </tr>
+              <tr>
+                <td><strong>PBB</strong></td>
+                <td>Guided build continuation and structured implementation</td>
+                <td>offer_stage, priority_track, sequence_state, roadmap_status</td>
+                <td>PBRS outputs, builder logic, shell UI</td>
+                <td><span class="pill"><span class="nav-rsl rsl-amber"></span> Active</span></td>
+              </tr>
+              <tr>
+                <td><strong>Spider</strong></td>
+                <td>Deterministic execution and outbound publishing</td>
+                <td>engine, command_id, run_now, processed, terminal_state</td>
+                <td>public.commands, receipts, worker routes</td>
+                <td><span class="pill"><span class="nav-rsl rsl-green"></span> Stable</span></td>
+              </tr>
+              <tr>
+                <td><strong>Phoenix Media</strong></td>
+                <td>Script → render → quality → distribution system</td>
+                <td>content_type, script_mode, render_profile, qa_score</td>
+                <td>Script engine, render worker, Spider, QA gate</td>
+                <td><span class="pill"><span class="nav-rsl rsl-red"></span> Priority</span></td>
+              </tr>
+              <tr>
+                <td><strong>StatsCore</strong></td>
+                <td>Athlete lifecycle, ratings, eligibility, messaging</td>
+                <td>athlete_id, status_id, snapshot_id, message_type</td>
+                <td>sc_ tables, triggers, message engine</td>
+                <td><span class="pill"><span class="nav-rsl rsl-green"></span> Wired</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="panel-body" id="financialMonitorBody">
-        <div class="metric-card" id="financialLiquidityCard" data-financial-metric="liquidity" style="min-height:auto;">
-          <div class="label mono">Liquidity</div>
-          <div class="value" id="financialLiquidityValue" style="font-size:1.45rem;color:var(--green)">82</div>
-          <div class="sub">Protected operating visibility</div>
-          <div class="bar green"><span id="financialLiquidityBar" style="width:82%"></span></div>
-        </div>
-        <div class="metric-card" id="financialFlowStabilityCard" data-financial-metric="flow-stability" style="min-height:auto;margin-top:8px;">
-          <div class="label mono">Flow Stability</div>
-          <div class="value" id="financialFlowStabilityValue" style="font-size:1.45rem;color:var(--gold)">88</div>
-          <div class="sub">Capital discipline intact</div>
-          <div class="bar gold"><span id="financialFlowStabilityBar" style="width:88%"></span></div>
-        </div>
-        <div class="metric-card" id="financialBurnPressureCard" data-financial-metric="burn-pressure" style="min-height:auto;margin-top:8px;">
-          <div class="label mono">Burn Pressure</div>
-          <div class="value" id="financialBurnPressureValue" style="font-size:1.45rem;color:var(--amber)">21</div>
-          <div class="sub">Low-to-moderate system pressure</div>
-          <div class="bar red"><span id="financialBurnPressureBar" style="width:21%"></span></div>
-        </div>
-      </div>
-    </section>
-  </aside>
-</section>
 
-<footer class="footer mono" id="commandFooter" data-module="footer-doctrine">
-  Phoenix Command Center is the room above the rooms. Authority first. Signals second. Systems third.
-</footer>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Variable Groups</div><div class="pill">Structured Fields</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Identity Variables</strong><p>system_name, division, owner_surface, public_label, internal_label</p></div></div>
+            <div class="list-row"><div><strong>Execution Variables</strong><p>engine, route, payload, authorization_state, receipt_required</p></div></div>
+            <div class="list-row"><div><strong>Signal Variables</strong><p>rsl_status, confidence_score, severity, drift_flag, visibility_mode</p></div></div>
+            <div class="list-row"><div><strong>Media Variables</strong><p>tone, script_type, render_profile, duration, distribution_target</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Dependency Chain</div><div class="pill">Observed</div></div>
+          <div class="card-body timeline">
+            <div class="tick"><strong>Input Layer</strong><p>User or authorized system provides intent, variables, and operating context.</p></div>
+            <div class="tick"><strong>System Logic Layer</strong><p>Rules, workflows, and builders transform intent into structured operations.</p></div>
+            <div class="tick"><strong>Execution Layer</strong><p>Workers, render engines, queues, and processors act deterministically.</p></div>
+            <div class="tick"><strong>Receipt Layer</strong><p>Each governed action is verified, logged, and made reviewable.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="command-execution">
+    <div class="hero">
+      <div class="eyebrow">Operations · Command Execution</div>
+      <h1>Authorize actions without leaving the control surface.</h1>
+      <p>This page is the governed execution lane. It exists for deliberate triggers, routing control, workflow release, and operational command dispatch across the Phoenix environment.</p>
+    </div>
+    <div class="page-body">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Execution Console</div><div class="pill">Manual Trigger</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field"><label>System</label><select class="select"><option>Spider</option><option>Phoenix Media</option><option>PBRS</option><option>PBB</option><option>StatsCore</option></select></div>
+              <div class="field"><label>Action</label><select class="select"><option>Run Command</option><option>Generate Script</option><option>Start Render</option><option>Refresh Sync</option></select></div>
+              <div class="field"><label>Priority</label><select class="select"><option>Red</option><option>Yellow</option><option>Green</option></select></div>
+              <div class="field"><label>Authorization</label><select class="select"><option>Approved</option><option>Pending</option><option>Hold</option></select></div>
+            </div>
+            <div class="field" style="margin-top:14px;"><label>Payload / Instruction</label><textarea class="textarea" placeholder='{"action":"visible_test_1","confirm_live":false}'></textarea></div>
+            <div class="btn-row" style="margin-top:14px;">
+              <button class="btn">Authorize + Queue</button>
+              <button class="btn ghost">Save Draft</button>
+              <button class="btn ghost">Validate Payload</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Execution Rules</div><div class="pill">Canon Guard</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Single Execution Throat</strong><p>All governed command activity must resolve through the canonical execution lane.</p></div></div>
+            <div class="list-row"><div><strong>Authorization Before Action</strong><p>No command should execute without an explicit authorized state or approved operating rule.</p></div></div>
+            <div class="list-row"><div><strong>Receipt After Action</strong><p>Every attempt must land in a verifiable outcome lane with immutable proof.</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">Queued Actions</div><div class="pill">Operational Watch</div></div>
+        <div class="card-body">
+          <table class="table">
+            <thead><tr><th>Command</th><th>System</th><th>Priority</th><th>State</th><th>Next</th></tr></thead>
+            <tbody>
+              <tr><td>goldwords_execute</td><td>Phoenix Media → Spider</td><td>Red</td><td><span class="pill"><span class="nav-rsl rsl-amber"></span> Staged</span></td><td>Authorization check</td></tr>
+              <tr><td>visible_test_2</td><td>Spider</td><td>Yellow</td><td><span class="pill"><span class="nav-rsl rsl-green"></span> Ready</span></td><td>Queue release</td></tr>
+              <tr><td>registry_sync</td><td>PCC Registry</td><td>Green</td><td><span class="pill"><span class="nav-rsl rsl-blue"></span> Review</span></td><td>Variable refresh</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="receipts-logs">
+    <div class="hero">
+      <div class="eyebrow">Verification · Receipts & Logs</div>
+      <h1>Truth is not claimed here. It is proven here.</h1>
+      <p>The receipt surface exists to confirm what ran, what failed, what was rejected, and what the system can prove. This is the evidence layer of Phoenix OS discipline.</p>
+    </div>
+    <div class="page-body">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Recent Receipts</div><div class="pill">Immutable Ledger</div></div>
+        <div class="card-body">
+          <table class="table">
+            <thead><tr><th>Receipt</th><th>Command</th><th>Engine</th><th>Platform</th><th>Result</th><th>Time</th></tr></thead>
+            <tbody>
+              <tr><td>rcpt-7842</td><td>visible_test_1</td><td>phoenix_builder_runner</td><td>cloudflare-worker</td><td><span class="pill"><span class="nav-rsl rsl-green"></span> Completed</span></td><td>03:01 PM</td></tr>
+              <tr><td>rcpt-7841</td><td>registry_sync</td><td>pcc-registry</td><td>internal</td><td><span class="pill"><span class="nav-rsl rsl-blue"></span> Logged</span></td><td>02:42 PM</td></tr>
+              <tr><td>rcpt-7840</td><td>goldmind_render</td><td>render-worker</td><td>media-pipeline</td><td><span class="pill"><span class="nav-rsl rsl-amber"></span> Partial</span></td><td>02:17 PM</td></tr>
+              <tr><td>rcpt-7839</td><td>queue_release</td><td>spider-arm</td><td>x / youtube</td><td><span class="pill"><span class="nav-rsl rsl-red"></span> Rejected</span></td><td>01:58 PM</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Terminal States</div><div class="pill">Policy</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Completed</strong><p>Command executed successfully and produced the expected final result.</p></div></div>
+            <div class="list-row"><div><strong>Partial</strong><p>Command began execution but returned incomplete or downgraded output requiring review.</p></div></div>
+            <div class="list-row"><div><strong>Rejected</strong><p>Command was blocked by policy, validation, quality gate, or authorization logic.</p></div></div>
+            <div class="list-row"><div><strong>Expired</strong><p>Command no longer met its execution window or governance conditions.</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Log Insight</div><div class="pill">Review</div></div>
+          <div class="card-body timeline">
+            <div class="tick"><strong>Receipt integrity</strong><p>All execution attempts should result in one immutable receipt with canonical field alignment.</p></div>
+            <div class="tick"><strong>Schema discipline</strong><p>No guessed fields, no unofficial columns, no hidden bypass lanes.</p></div>
+            <div class="tick"><strong>Review doctrine</strong><p>When in doubt, return to receipt evidence before assuming success.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="media-control">
+    <div class="hero">
+      <div class="eyebrow">Phoenix Media · Control Panel</div>
+      <h1>Run the production stack from intent to output.</h1>
+      <p>This surface governs script generation, content class, tone control, production lane selection, and render handoff. It is the front command layer for your media system.</p>
+    </div>
+    <div class="page-body">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Script Generation</div><div class="pill">Narrative Engine</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field"><label>Content Type</label><select class="select"><option>GoldWords</option><option>GoldMind</option><option>Authority Clip</option><option>Episode</option><option>Feature Film</option></select></div>
+              <div class="field"><label>Tone</label><select class="select"><option>Executive</option><option>Controlled</option><option>Motivational</option><option>Mythic</option></select></div>
+              <div class="field"><label>Duration</label><select class="select"><option>15 sec</option><option>30 sec</option><option>60 sec</option><option>Long-form</option></select></div>
+              <div class="field"><label>Output Mode</label><select class="select"><option>Script Only</option><option>Script + Shot Notes</option><option>Script + Render Handoff</option></select></div>
+            </div>
+            <div class="field" style="margin-top:14px;"><label>Topic / Intent</label><textarea class="textarea" placeholder="Create a disciplined, executive authority script about structure over motivation."></textarea></div>
+            <div class="btn-row" style="margin-top:14px;">
+              <button class="btn">Generate Script</button>
+              <button class="btn ghost">Add Shot Plan</button>
+              <button class="btn ghost">Send to Render</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Production Lanes</div><div class="pill">Elite Stack</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Shorts Lane</strong><p>Hook-first, platform-native output for short attention windows and signal testing.</p></div><div class="pill">Fast</div></div>
+            <div class="list-row"><div><strong>Authority Lane</strong><p>Executive voice, institutional posture, controlled delivery, premium brand signal.</p></div><div class="pill">Core</div></div>
+            <div class="list-row"><div><strong>Series / Episodes</strong><p>Story architect layer, continuity memory, scene planning, and identity consistency.</p></div><div class="pill">Expand</div></div>
+            <div class="list-row"><div><strong>Feature Film</strong><p>Full-scale narrative stack: script, visual direction, scene breakdown, character control, post structure.</p></div><div class="pill">Elite</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="render-control">
+    <div class="hero">
+      <div class="eyebrow">Render Layer · Assembly Control</div>
+      <h1>Monitor assembly, output states, and render handoffs.</h1>
+      <p>Render is the execution and assembly layer—not the creative brain. This surface tracks jobs, output profiles, retries, and readiness for final distribution.</p>
+    </div>
+    <div class="page-body">
+      <div class="three-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Active Jobs</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>goldwords_visual_24</strong><p>PNG authority visual package in render queue.</p></div></div>
+            <div class="list-row"><div><strong>goldmind_voice_12</strong><p>Voice + subtitle timing alignment in progress.</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Profiles</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Executive Short</strong><p>High contrast, clean captions, premium motion restraint.</p></div></div>
+            <div class="list-row"><div><strong>Cinematic Authority</strong><p>Layered lighting, deeper tonal grading, dramatic controlled pacing.</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Actions</div></div>
+          <div class="card-body">
+            <div class="btn-row">
+              <button class="btn">Retry Render</button>
+              <button class="btn ghost">Preview Output</button>
+              <button class="btn ghost">Promote to Queue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">Render Status Board</div><div class="pill">Pipeline Watch</div></div>
+        <div class="card-body">
+          <div class="bars">
+            <div class="bar" style="height:58%"></div>
+            <div class="bar" style="height:83%"></div>
+            <div class="bar" style="height:69%"></div>
+            <div class="bar" style="height:76%"></div>
+            <div class="bar" style="height:92%"></div>
+            <div class="bar" style="height:62%"></div>
+            <div class="bar" style="height:88%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="distribution-queue">
+    <div class="hero">
+      <div class="eyebrow">Spider · Distribution Queue</div>
+      <h1>Route controlled outputs to the right platforms at the right time.</h1>
+      <p>This surface is the publication lane for staged media, scheduled release logic, platform routing, and execution queue clarity.</p>
+    </div>
+    <div class="page-body">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Platform Queue</div><div class="pill">Spider Surface</div></div>
+        <div class="card-body">
+          <table class="table">
+            <thead><tr><th>Asset</th><th>Platform</th><th>Route</th><th>Status</th><th>Window</th></tr></thead>
+            <tbody>
+              <tr><td>GoldWords / Post 014</td><td>X / TikTok</td><td>visual + caption</td><td><span class="pill"><span class="nav-rsl rsl-green"></span> Ready</span></td><td>Today</td></tr>
+              <tr><td>GoldMind / Clip 003</td><td>YouTube Shorts</td><td>video + subtitles</td><td><span class="pill"><span class="nav-rsl rsl-amber"></span> Review</span></td><td>Today</td></tr>
+              <tr><td>Authority Clip / Draft A</td><td>Instagram</td><td>video + CTA</td><td><span class="pill"><span class="nav-rsl rsl-red"></span> Hold</span></td><td>Pending</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="quality-gate">
+    <div class="hero">
+      <div class="eyebrow">Quality Gate · Enforcement Layer</div>
+      <h1>Nothing weak leaves the system.</h1>
+      <p>The quality gate scores content, blocks cheap output, flags drift, and protects Phoenix-level perception across media releases.</p>
+    </div>
+    <div class="page-body">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Scoring Framework</div><div class="pill">Mandatory</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Voice Authenticity</strong><p>Reject robotic cadence, cheap tonality, clipped or unnatural delivery.</p></div><div class="pill">25%</div></div>
+            <div class="list-row"><div><strong>Visual Quality</strong><p>Reject generic imagery, low-grade motion, weak character consistency.</p></div><div class="pill">25%</div></div>
+            <div class="list-row"><div><strong>Brand Alignment</strong><p>Reject anything that feels random, noisy, startup-like, or unstructured.</p></div><div class="pill">25%</div></div>
+            <div class="list-row"><div><strong>Execution Integrity</strong><p>Reject outputs that break timing, subtitles, framing, or output cohesion.</p></div><div class="pill">25%</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Gate Actions</div><div class="pill">Enforced</div></div>
+          <div class="card-body">
+            <div class="btn-row">
+              <button class="btn">Approve</button>
+              <button class="btn ghost">Reject</button>
+              <button class="btn ghost">Return to Render</button>
+            </div>
+            <div class="footer-note">Phoenix Media does not launch cheap content. It launches controlled, high-quality outputs, then scales from that foundation.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="signal-board">
+    <div class="hero">
+      <div class="eyebrow">Signals · Intelligence Layer</div>
+      <h1>See what is landing, rising, failing, and worth scaling.</h1>
+      <p>Signals convert activity into strategic awareness. This page is where performance, traction, response, and system momentum become visible.</p>
+    </div>
+    <div class="page-body">
+      <div class="three-col">
+        <div class="card"><div class="card-head"><div class="card-title">Engagement Pulse</div></div><div class="card-body"><div class="metric"><div class="label">Signal Strength</div><div class="value">74%</div><div class="meta">Momentum building on short-form authority content.</div></div></div></div>
+        <div class="card"><div class="card-head"><div class="card-title">System Attention</div></div><div class="card-body"><div class="metric"><div class="label">Watch Level</div><div class="value">High</div><div class="meta">Media, PCC, and registry pages should remain in active iteration.</div></div></div></div>
+        <div class="card"><div class="card-head"><div class="card-title">Scale Trigger</div></div><div class="card-body"><div class="metric"><div class="label">Readiness</div><div class="value">Near</div><div class="meta">One high-quality lane can be scaled after proof remains stable.</div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="strategy-layer">
+    <div class="hero">
+      <div class="eyebrow">Strategy · Governance Layer</div>
+      <h1>Set direction before velocity.</h1>
+      <p>This surface exists for campaign priorities, sequencing, operating doctrine, and control of what gets attention first.</p>
+    </div>
+    <div class="page-body">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Strategic Priorities</div><div class="pill">Current</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>1. PCC Live Wiring</strong><p>Connect shell surfaces to real data, queue insight, and receipt visibility.</p></div></div>
+            <div class="list-row"><div><strong>2. Phoenix Media Minimum Elite Lane</strong><p>Script → render → QA → Spider for one controlled channel.</p></div></div>
+            <div class="list-row"><div><strong>3. Registry Consolidation</strong><p>Capture system names, purposes, variable maps, and dependencies in one place.</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Doctrine</div><div class="pill">Locked</div></div>
+          <div class="card-body timeline">
+            <div class="tick"><strong>Build control surfaces first</strong><p>Do not scatter function across unrelated screens or patchwork interfaces.</p></div>
+            <div class="tick"><strong>One responsibility per page</strong><p>Multi-page shell is the correct model because command authority requires separation of concerns.</p></div>
+            <div class="tick"><strong>Quality before volume</strong><p>Prove one controlled lane, then scale. Never flood low-grade output.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="settings-access">
+    <div class="hero">
+      <div class="eyebrow">Settings · Access Control</div>
+      <h1>Configuration, identity, and permission discipline.</h1>
+      <p>This page exists for environment-level controls, operator role separation, and settings visibility needed to keep the system organized and governable.</p>
+    </div>
+    <div class="page-body">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Environment Panels</div><div class="pill">Config</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>API / Connectors</strong><p>Cloudflare, Supabase, GitHub, Stripe, distribution channels.</p></div></div>
+            <div class="list-row"><div><strong>UI Preferences</strong><p>Command visibility, display density, module surfacing, watch settings.</p></div></div>
+            <div class="list-row"><div><strong>Notification Rules</strong><p>Alerts, thresholds, red-state routing, operator reminders.</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Role Bands</div><div class="pill">Access</div></div>
+          <div class="card-body stack">
+            <div class="list-row"><div><strong>Executive Authority</strong><p>Final review, overrides, strategic direction, canonical approval.</p></div></div>
+            <div class="list-row"><div><strong>Systems Operations</strong><p>Build alignment, workflow execution, monitored system maintenance.</p></div></div>
+            <div class="list-row"><div><strong>Observed Agent Layers</strong><p>Restricted surfaces, task-specific modules, no uncontrolled authority.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 
   </div>  <script>
-    function updateClock(){
-      const el = document.getElementById('liveClock');
-      if(!el) return;
-      const now = new Date();
-      const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-      el.textContent = `${time} CST`;
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const pages = document.querySelectorAll('.page');
+    const jumpButtons = document.querySelectorAll('[data-jump]');
+
+    function activatePage(id) {
+      pages.forEach(page => page.classList.toggle('active', page.id === id));
+      navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.page === id));
+      const main = document.querySelector('.main');
+      if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    updateClock();
-    setInterval(updateClock, 1000);
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => activatePage(btn.dataset.page));
+    });
+
+    jumpButtons.forEach(btn => {
+      btn.addEventListener('click', () => activatePage(btn.dataset.jump));
+    });
   </script></body>
 </html> 
