@@ -35,7 +35,8 @@
     body{
       font-family:"Inter",sans-serif;
       color:var(--ivory);
-      overflow:hidden;
+      overflow-x:hidden;
+      overflow-y:auto;
       background:
         radial-gradient(circle at 72% 42%, rgba(198,161,91,.12), transparent 0 18%, transparent 18%),
         radial-gradient(circle at 50% 0%, rgba(198,161,91,.07), transparent 0 26%, transparent 26%),
@@ -67,7 +68,8 @@
     .viewport{
       position:relative;
       width:100%;
-      height:100vh;
+      min-height:100vh;
+      height:auto;
       padding:24px;
     }
 
@@ -75,7 +77,8 @@
     .chamber{
       position:relative;
       width:100%;
-      height:100%;
+      min-height:calc(100vh - 48px);
+      height:auto;
       border-radius:22px;
       overflow:hidden;
       background:
@@ -137,7 +140,8 @@
       position:relative;
       z-index:3;
       width:100%;
-      height:100%;
+      min-height:calc(100vh - 96px);
+      height:auto;
       display:grid;
       grid-template-columns:minmax(360px, 490px) minmax(560px, 1fr);
       grid-template-rows:auto 1fr;
@@ -444,72 +448,111 @@
 
     /* responsive */
     @media (max-width: 1160px){
-      body{overflow:auto}
-      .viewport{height:auto;min-height:100vh}
+      .viewport{
+        height:auto;
+      }
+
       .layout{
         grid-template-columns:1fr;
+        grid-template-rows:auto auto auto;
+        grid-template-areas:
+          "eyebrow"
+          "right"
+          "left";
         padding:42px 28px 34px;
         gap:14px;
       }
+
       .left{
         max-width:100%;
-        order:2;
       }
+
       .right{
         min-height:360px;
-        order:1;
       }
+
       .seal-mount{
         width:min(78vw, 520px);
       }
+
       .desc,
       .auth-shell{
         max-width:100%;
       }
+
       .rail-top,.rail-bottom,.rail-left,.rail-right,.datum,.datum-caps{
         display:none;
       }
     }
 
     @media (max-height: 840px) and (min-width: 1161px){
+      body{
+        overflow-y:auto;
+      }
+
+      .viewport{
+        min-height:100vh;
+        height:auto;
+      }
+
+      .chamber{
+        min-height:calc(100vh - 48px);
+        height:auto;
+      }
+
       .layout{
-        padding-top:40px;
-        padding-bottom:40px;
+        height:auto;
+        min-height:calc(100vh - 96px);
+        padding-top:34px;
+        padding-bottom:34px;
+        align-items:start;
       }
-      .eyebrow{margin-bottom:20px}
+
+      .eyebrow{margin-bottom:12px}
+
       .title{
-        font-size:clamp(2.2rem, 3.9vw, 4.25rem);
+        font-size:clamp(2.05rem, 3.3vw, 3.8rem);
+        margin-bottom:12px;
+      }
+
+      .micro-rule{margin-bottom:12px}
+
+      .doctrine{
         margin-bottom:14px;
+        font-size:11px;
       }
-      .micro-rule{margin-bottom:14px}
-      .doctrine{margin-bottom:16px}
+
       .desc{
-        font-size:14px;
-        line-height:1.58;
-        margin-bottom:20px;
+        font-size:13px;
+        line-height:1.5;
+        margin-bottom:16px;
       }
+
       .auth-shell{
-        padding:16px 16px 18px;
+        padding:14px 14px 16px;
       }
-      .code-row input{
-        height:50px;
+
+      .auth-title{
         font-size:18px;
       }
-      .enter{
-        height:48px;
+
+      .auth-copy{
+        font-size:13px;
+        margin-bottom:12px;
       }
-      .eyebrow{
-        grid-area:eyebrow;
-        width:100%;
-        white-space:nowrap;
-        display:block;
-        font-family:"Cinzel",serif;
-        font-size:12px;
-        letter-spacing:.18em;
-        text-transform:uppercase;
-        color:var(--gold);
-        margin-bottom:6px;
-        opacity:.95;
+
+      .code-row{
+        gap:8px;
+        margin-bottom:12px;
+      }
+
+      .code-row input{
+        height:44px;
+        font-size:16px;
+      }
+
+      .enter{
+        height:44px;
       }
     }
   </style>
@@ -596,17 +639,8 @@
         authStatus.className = "auth-status" + (type ? " " + type : "");
       }
 
-      function setStoredChar(input, value) {
-        input.dataset.real = value;
-        input.value = value ? MASK : "";
-      }
-
       function getStoredCode() {
         return inputs.map(input => input.dataset.real || "").join("");
-      }
-
-      function clearStatus() {
-        setStatus("", "");
       }
 
       function validateAndEnter() {
@@ -635,14 +669,21 @@
           if (!value) {
             input.dataset.real = "";
             input.value = "";
-            clearStatus();
+            setStatus("", "");
             return;
           }
 
           value = value.slice(-1);
           input.dataset.real = value;
-          input.value = MASK;
-          clearStatus();
+          input.value = value;
+
+          setTimeout(() => {
+            if (input.dataset.real === value) {
+              input.value = MASK;
+            }
+          }, 220);
+
+          setStatus("", "");
 
           if (index < inputs.length - 1) {
             inputs[index + 1].focus();
@@ -663,7 +704,7 @@
               prev.focus();
             }
 
-            clearStatus();
+            setStatus("", "");
             return;
           }
 
@@ -686,8 +727,12 @@
           }
 
           if (e.key.length === 1) {
-            clearStatus();
+            setStatus("", "");
           }
+        });
+
+        input.addEventListener("focus", () => {
+          input.select();
         });
 
         input.addEventListener("paste", (e) => {
@@ -696,22 +741,25 @@
           if (!pasted) return;
 
           const chars = pasted.split("").slice(0, inputs.length);
+
           inputs.forEach((box, i) => {
             if (chars[i]) {
-              setStoredChar(box, chars[i]);
+              box.dataset.real = chars[i];
+              box.value = chars[i];
+              setTimeout(() => {
+                if (box.dataset.real === chars[i]) {
+                  box.value = MASK;
+                }
+              }, 220);
             } else {
               box.dataset.real = "";
               box.value = "";
             }
           });
 
-          const focusIndex = Math.min(chars.length, inputs.length - 1);
-          inputs[focusIndex].focus();
-          clearStatus();
-        });
-
-        input.addEventListener("focus", () => {
-          input.select();
+          const nextIndex = Math.min(chars.length, inputs.length - 1);
+          inputs[nextIndex].focus();
+          setStatus("", "");
         });
       });
 
