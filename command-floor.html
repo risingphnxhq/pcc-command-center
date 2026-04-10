@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -32,7 +32,7 @@
       --radius-md:16px;
       --radius-lg:22px;
       --radius-xl:28px;
-      --topH:90px;
+      --topH:120px;
       --leftW:280px;
       --rightW:360px;
       --container:1680px;
@@ -87,17 +87,17 @@
       overflow:hidden;
     }
 
-   .topbar{
-  grid-area:top;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  align-items:center;
-  gap:18px;
-  padding:16px 20px;
-  position:sticky;
-  top:14px;
-  z-index:20;
-} 
+    .topbar{
+      grid-area:top;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:18px;
+      padding:16px 20px;
+      position:sticky;
+      top:14px;
+      z-index:20;
+    }
 
     .brand{
       display:flex;
@@ -127,7 +127,11 @@
       display:block;
     }
 
-    .brand-copy{min-width:0;flex:1;} 
+    .brand-copy{
+      min-width:0;
+      flex:1;
+    }
+
     .brand-kicker{
       font-size:11px;
       letter-spacing:.24em;
@@ -141,47 +145,43 @@
 
     .brand-title{
       font-family:Cinzel,serif;
-      font-size:clamp(24px,2vw,36px);
+      font-size:clamp(22px,2vw,36px);
       letter-spacing:.08em;
       white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
     }
 
-    .doctrine{
-      text-align:center;
-      font-family:Cinzel,serif;
-      font-size:clamp(14px,1.35vw,22px);
-      letter-spacing:.16em;
-      color:#f2e6cf;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    .topbar-right{
+      display:grid;
+      gap:10px;
+      justify-items:end;
+      min-width:0;
     }
 
-    .top-pills{
+    .top-status-rail{
       display:flex;
       flex-wrap:wrap;
       justify-content:flex-end;
       gap:10px;
+      min-width:0;
     }
 
-    .pill{
+    .status-chip{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:10px 14px;
+      padding:9px 12px;
       border-radius:999px;
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--line);
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
       font-size:11px;
       font-weight:800;
-      letter-spacing:.14em;
+      letter-spacing:.12em;
       text-transform:uppercase;
+      color:var(--text);
       white-space:nowrap;
     }
 
-    .dot{
+    .status-chip .dot{
       width:8px;
       height:8px;
       border-radius:50%;
@@ -190,9 +190,60 @@
       flex:0 0 auto;
     }
 
-    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:118px;height:calc(100vh - 132px)}
+    .status-chip.green{color:var(--green)}
+    .status-chip.cyan{color:var(--cyan)}
+    .status-chip.amber{color:var(--amber)}
+    .status-chip.red{color:var(--red)}
+
+    .top-microbars{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(120px, 1fr));
+      gap:10px;
+      width:min(460px, 100%);
+    }
+
+    .micro-card{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+      padding:10px 12px;
+      min-width:0;
+    }
+
+    .micro-label{
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+
+    .micro-value{
+      font-family:"IBM Plex Mono", monospace;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .micro-track{
+      height:8px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+
+    .micro-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+    }
+
+    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
     .center{grid-area:center;display:flex;flex-direction:column;min-width:0}
-    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:118px;height:calc(100vh - 132px)}
+    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
 
     .pane-head{
       padding:18px 18px 12px;
@@ -332,14 +383,6 @@
       gap:18px;
     }
 
-    .hero-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:16px;
-      flex-wrap:wrap;
-    }
-
     .hero-title{
       font-family:Cinzel,serif;
       font-size:clamp(28px,2.4vw,46px);
@@ -369,11 +412,12 @@
       text-transform:uppercase;
       letter-spacing:.14em;
       white-space:nowrap;
+      width:max-content;
     }
 
     .quick-grid{
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(2,minmax(0,1fr));
       gap:14px;
     }
 
@@ -845,65 +889,6 @@
       border:1px solid rgba(99,217,255,.20);
     }
 
-    .voice-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:10px;
-    }
-
-    .voice-btn{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
-      color:var(--text);
-      padding:14px 12px;
-      text-align:left;
-      transition:.16s ease;
-    }
-
-    .voice-btn:hover{
-      border-color:rgba(198,161,91,.34);
-      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.015));
-    }
-
-    .voice-btn strong{
-      display:block;
-      font-size:13px;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      margin-bottom:6px;
-    }
-
-    .voice-btn span{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.5;
-      display:block;
-    }
-
-    .log{
-      display:grid;
-      gap:10px;
-      max-height:260px;
-      overflow:auto;
-    }
-
-    .log-item{
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.02);
-      font-size:13px;
-      line-height:1.55;
-    }
-
-    .log-meta{
-      font-family:"IBM Plex Mono",monospace;
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:6px;
-    }
-
     .small{
       font-size:12px;
       line-height:1.6;
@@ -912,7 +897,6 @@
 
     @media (max-width: 1520px){
       .app{grid-template-columns:270px minmax(0,1fr) 340px}
-      .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media (max-width: 1180px){
@@ -927,10 +911,17 @@
           "left";
       }
       .topbar{
-        position:static;
         grid-template-columns:1fr;
       }
-      .top-pills{justify-content:flex-start}
+      .topbar-right{
+        justify-items:start;
+      }
+      .top-status-rail{
+        justify-content:flex-start;
+      }
+      .top-microbars{
+        width:100%;
+      }
       .grid-two,.war-room-grid{grid-template-columns:1fr}
     }
 
@@ -938,62 +929,63 @@
       .app{padding:10px;gap:10px}
       .topbar,.left,.center,.right{border-radius:20px}
       .quick-grid{grid-template-columns:1fr}
-      .doctrine{white-space:normal;text-align:left}
-      .brand-title{white-space:normal}
       .receipt-row{grid-template-columns:1fr}
-      .voice-grid,.nace-actions{grid-template-columns:1fr}
+      .nace-actions{grid-template-columns:1fr}
       .command-row{grid-template-columns:1fr}
       .btn-stack{
         grid-template-columns:1fr 1fr;
         grid-template-rows:none;
         width:100%;
       }
+      .top-microbars{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app">
-   <header class="topbar glass">
-  <div class="brand">
-    <div class="brand-mark">
-      <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
-    </div>
+    <header class="topbar glass">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
+        </div>
 
-    <div class="brand-copy">
-      <div class="brand-kicker">Rising Phoenix Enterprises</div>
-      <div class="brand-title">Phoenix Command Center</div>
-    </div>
-  </div>
-
-  <div class="topbar-right">
-    <div class="top-status-rail">
-      <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
-      <div class="status-chip cyan"><span class="dot"></span> Mode: Command Floor</div>
-      <div class="status-chip amber"><span class="dot"></span> Route: NACE</div>
-      <div class="status-chip green"><span class="dot"></span> Queue: 66</div>
-    </div>
-
-    <div class="top-microbars">
-      <div class="micro-card">
-        <div class="micro-label">Voice Readiness</div>
-        <div class="micro-value">92%</div>
-        <div class="micro-track"><div class="micro-fill" style="width:92%"></div></div>
+        <div class="brand-copy">
+          <div class="brand-kicker">Rising Phoenix Enterprises</div>
+          <div class="brand-title">Phoenix Command Center</div>
+        </div>
       </div>
 
-      <div class="micro-card">
-        <div class="micro-label">Execution Pressure</div>
-        <div class="micro-value">71%</div>
-        <div class="micro-track"><div class="micro-fill" style="width:71%"></div></div>
-      </div>
+      <div class="topbar-right">
+        <div class="top-status-rail">
+          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
+          <div class="status-chip cyan"><span class="dot"></span> Mode: Command Floor</div>
+          <div class="status-chip amber"><span class="dot"></span> Route: NACE</div>
+          <div class="status-chip green"><span class="dot"></span> Queue: 66</div>
+        </div>
 
-      <div class="micro-card">
-        <div class="micro-label">War Room</div>
-        <div class="micro-value">Standby</div>
-        <div class="micro-track"><div class="micro-fill" style="width:64%"></div></div>
+        <div class="top-microbars">
+          <div class="micro-card">
+            <div class="micro-label">Voice Readiness</div>
+            <div class="micro-value">92%</div>
+            <div class="micro-track"><div class="micro-fill" style="width:92%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Execution Pressure</div>
+            <div class="micro-value">71%</div>
+            <div class="micro-track"><div class="micro-fill" style="width:71%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">War Room</div>
+            <div class="micro-value">Standby</div>
+            <div class="micro-track"><div class="micro-fill" style="width:64%"></div></div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</header> 
+    </header>
 
     <aside class="left glass">
       <div class="pane-head">
@@ -1056,32 +1048,17 @@
             </div>
           </div>
         </div>
-
-        <div class="section-card">
-          <div class="section-label">Command Doctrine</div>
-          <div class="small">Command Floor = executive overview. Console = dense telemetry. War Room = strategic chamber. Voice Engine = communication layer.</div>
-        </div>
       </div>
     </aside>
 
     <main class="center glass">
       <div class="center-scroll">
         <section class="hero">
-          <div class="hero-top">
-            <div>
-              <div class="hero-title">Command Floor</div>
-              <div class="hero-copy">
-                The sovereign overview surface of Phoenix OS. This floor is designed to signal institutional authority,
-                system visibility, executive readiness, voice-layer presence, queue pressure, war-room posture, and the
-                broader capacity of the command environment.
-              </div>
-            </div>
-
-            <div class="hero-badge">
-              <span class="dot" style="color:var(--cyan)"></span>
-              Session: Phoenix King
-            </div>
+          <div class="hero-title">Command Floor</div>
+          <div class="hero-copy">
+            The sovereign overview surface of Phoenix OS. This floor is designed to signal institutional authority, system visibility, executive readiness, voice-layer presence, queue pressure, war-room posture, and the broader capacity of the command environment.
           </div>
+          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Session: Phoenix King</div>
 
           <div class="quick-grid">
             <div class="quick-card">
@@ -1366,62 +1343,6 @@
             <button>Open Console</button>
             <button>Route Me</button>
             <button>Open War Room</button>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">Voice Engine</div>
-              <div class="panel-sub">Direct persona launch points.</div>
-            </div>
-          </div>
-
-          <div class="panel-body">
-            <div class="voice-grid">
-              <div class="voice-btn">
-                <strong>NACE</strong>
-                <span>British old-money intake voice</span>
-              </div>
-              <div class="voice-btn">
-                <strong>Chad</strong>
-                <span>Executive systems voice</span>
-              </div>
-              <div class="voice-btn">
-                <strong>Alexis</strong>
-                <span>Governance / chairwoman voice</span>
-              </div>
-              <div class="voice-btn">
-                <strong>Operator</strong>
-                <span>Phone and support layer</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">Command Log</div>
-              <div class="panel-sub">Narrative of floor-state movement.</div>
-            </div>
-          </div>
-
-          <div class="panel-body">
-            <div class="log">
-              <div class="log-item">
-                <div class="log-meta">BOOT • SYSTEM</div>
-                Command Floor loaded with scrollable, multipage PCC tower architecture.
-              </div>
-              <div class="log-item">
-                <div class="log-meta">VOICE • REGISTRY</div>
-                Executive and staff voice assignments recognized in command doctrine.
-              </div>
-              <div class="log-item">
-                <div class="log-meta">BUILD • CONSOLE</div>
-                Dense dashboard burden routed to Console page to preserve Command Floor authority.
-              </div>
-            </div>
           </div>
         </div>
 
