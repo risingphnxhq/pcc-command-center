@@ -12,47 +12,60 @@
       --bg:#05080c;
       --bg2:#071019;
       --bg3:#0a1521;
-      --panel:#0e1824;
-      --panel2:#0b131c;
-      --panel3:#112030;
+
+      --panel:#0d1722;
+      --panel2:#0a1119;
+      --panel3:#122131;
+      --panel4:#162a3e;
+
       --line:rgba(255,255,255,.07);
       --line-strong:rgba(198,161,91,.24);
+
       --gold:#c6a15b;
       --gold-soft:rgba(198,161,91,.12);
+      --gold-strong:rgba(198,161,91,.22);
+
       --cyan:#63d9ff;
       --cyan-soft:rgba(99,217,255,.12);
+
       --green:#49d391;
       --amber:#f0b35a;
       --red:#ea7474;
+
       --text:#f4efe5;
-      --muted:rgba(244,239,229,.66);
-      --muted2:rgba(244,239,229,.42);
-      --shadow:0 22px 70px rgba(0,0,0,.40);
+      --muted:rgba(244,239,229,.70);
+      --muted2:rgba(244,239,229,.48);
+
+      --shadow:0 24px 80px rgba(0,0,0,.45);
+
       --radius-sm:12px;
       --radius-md:16px;
       --radius-lg:22px;
       --radius-xl:28px;
-      --topH:160px;
-      --leftW:280px;
-      --rightW:360px;
-      --container:1680px;
 
-      --text-xs:11px;
+      --topH:168px;
+      --leftW:290px;
+      --rightW:360px;
+      --container:1720px;
+
+      --text-xs:13px;
       --text-sm:15px;
-      --text-md:17px;
+      --text-md:16px;
       --text-lg:20px;
-      --text-xl:28px;
+      --text-xl:30px;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
+    html,body{min-height:100%}
+
     body{
       font-family:Inter,system-ui,sans-serif;
       font-size:var(--text-sm);
       color:var(--text);
+      line-height:1.6;
       background:
-        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
-        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+        radial-gradient(circle at 12% 10%, rgba(99,217,255,.08), transparent 24%),
+        radial-gradient(circle at 88% 8%, rgba(198,161,91,.08), transparent 18%),
         linear-gradient(180deg, #091018 0%, #05080c 100%);
       overflow-x:hidden;
     }
@@ -63,11 +76,11 @@
       inset:0;
       pointer-events:none;
       background-image:
-        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+        linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
       background-size:36px 36px;
-      opacity:.22;
-      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
+      opacity:.18;
+      mask-image:radial-gradient(circle at center, black 42%, transparent 100%);
     }
 
     .app{
@@ -86,7 +99,7 @@
 
     .glass{
       border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
+      background:linear-gradient(180deg, rgba(13,23,34,.96), rgba(8,12,18,.95));
       box-shadow:var(--shadow);
       backdrop-filter:blur(12px);
       border-radius:var(--radius-xl);
@@ -100,7 +113,7 @@
       grid-template-columns:minmax(0,1fr) auto;
       align-items:center;
       gap:18px;
-      padding:16px 20px;
+      padding:18px 22px;
       position:sticky;
       top:14px;
       z-index:20;
@@ -109,13 +122,13 @@
     .brand{
       display:flex;
       align-items:center;
-      gap:14px;
+      gap:16px;
       min-width:0;
     }
 
     .brand-mark{
-      width:56px;
-      height:56px;
+      width:60px;
+      height:60px;
       border-radius:50%;
       flex:0 0 auto;
       overflow:hidden;
@@ -125,6 +138,7 @@
         linear-gradient(180deg, rgba(198,161,91,.08), rgba(7,12,17,.92));
       display:grid;
       place-items:center;
+      box-shadow:0 0 30px rgba(198,161,91,.10);
     }
 
     .brand-mark img{
@@ -138,10 +152,10 @@
 
     .brand-kicker{
       font-size:11px;
-      letter-spacing:.24em;
+      letter-spacing:.26em;
       text-transform:uppercase;
       color:var(--gold);
-      margin-bottom:5px;
+      margin-bottom:6px;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -149,14 +163,15 @@
 
     .brand-title{
       font-family:Cinzel,serif;
-      font-size:clamp(22px,2vw,36px);
+      font-size:clamp(26px,2.1vw,40px);
       letter-spacing:.08em;
       white-space:nowrap;
+      text-shadow:0 0 18px rgba(255,255,255,.04);
     }
 
     .topbar-right{
       display:grid;
-      gap:10px;
+      gap:12px;
       justify-items:end;
       min-width:0;
     }
@@ -173,7 +188,7 @@
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:9px 12px;
+      padding:10px 13px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,.08);
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
@@ -190,32 +205,31 @@
       height:8px;
       border-radius:50%;
       background:currentColor;
-      box-shadow:0 0 10px currentColor;
+      box-shadow:0 0 12px currentColor;
       flex:0 0 auto;
     }
 
     .status-chip.green{color:var(--green)}
     .status-chip.cyan{color:var(--cyan)}
     .status-chip.amber{color:var(--amber)}
-    .status-chip.red{color:var(--red)}
 
     .top-microbars{
       display:grid;
       grid-template-columns:repeat(3, minmax(120px, 1fr));
       gap:10px;
-      width:min(460px, 100%);
+      width:min(470px, 100%);
     }
 
     .micro-card{
       border:1px solid rgba(255,255,255,.07);
-      border-radius:14px;
-      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
-      padding:10px 12px;
+      border-radius:15px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012));
+      padding:11px 12px;
       min-width:0;
     }
 
     .micro-label{
-      font-size:var(--text-xs);
+      font-size:11px;
       font-weight:800;
       letter-spacing:.14em;
       text-transform:uppercase;
@@ -226,7 +240,7 @@
 
     .micro-value{
       font-family:"IBM Plex Mono", monospace;
-      font-size:var(--text-sm);
+      font-size:13px;
       color:var(--muted);
       margin-bottom:8px;
     }
@@ -242,21 +256,21 @@
     .micro-fill{
       height:100%;
       border-radius:999px;
-      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+      background:linear-gradient(90deg, rgba(99,217,255,.90), rgba(198,161,91,.82));
     }
 
-    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:188px;height:calc(100vh - 202px)}
+    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:196px;height:calc(100vh - 210px)}
     .center{grid-area:center;display:flex;flex-direction:column;min-width:0}
-    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:188px;height:calc(100vh - 202px)}
+    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:196px;height:calc(100vh - 210px)}
 
     .pane-head{
-      padding:18px 18px 12px;
+      padding:20px 18px 14px;
       border-bottom:1px solid var(--line);
     }
 
     .pane-title{
       font-family:Cinzel,serif;
-      font-size:15px;
+      font-size:16px;
       letter-spacing:.18em;
       text-transform:uppercase;
       color:#f3e8d0;
@@ -264,18 +278,17 @@
     }
 
     .pane-sub{
-      font-size:13px;
+      font-size:15px;
       color:var(--muted);
-      line-height:1.55;
+      line-height:1.6;
     }
 
     .pane-body{
       flex:1;
       min-height:0;
       overflow:auto;
-      padding:16px 30px 16px 16px;
+      padding:18px 30px 18px 18px;
       scrollbar-gutter:stable;
-      font-size:var(--text-sm);
     }
 
     .pane-body::-webkit-scrollbar{width:8px}
@@ -284,11 +297,9 @@
       background:rgba(199,161,91,.35);
       border-radius:10px;
     }
-    .pane-body::-webkit-scrollbar-thumb:hover{
-      background:rgba(199,161,91,.6);
-    }
 
     .nav-group + .nav-group{margin-top:18px}
+
     .group-label{
       margin:0 0 10px 4px;
       font-size:11px;
@@ -299,6 +310,7 @@
     }
 
     .nav-list{display:grid;gap:10px}
+
     .nav-btn{
       width:100%;
       display:flex;
@@ -308,11 +320,11 @@
       border-radius:16px;
       background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
       color:var(--text);
-      padding:14px 14px;
+      padding:15px 15px;
       text-align:left;
       text-decoration:none;
       font-weight:700;
-      font-size:14px;
+      font-size:15px;
       letter-spacing:.08em;
       text-transform:uppercase;
       transition:.16s ease;
@@ -332,11 +344,11 @@
     }
 
     .section-card{
-      margin-top:16px;
-      padding:24px;
+      margin-top:20px;
+      padding:26px;
       border-radius:18px;
       border:1px solid var(--line);
-      background:rgba(255,255,255,.02);
+      background:rgba(255,255,255,.03);
     }
 
     .section-label{
@@ -348,37 +360,10 @@
       margin-bottom:12px;
     }
 
-    .persona-list{display:grid;gap:10px}
-    .persona-item{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
-      border-radius:14px;
-      padding:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-
-    .persona-name{font-weight:800;font-size:15px}
-    .persona-role{
+    .small{
+      font-size:14px;
+      line-height:1.7;
       color:var(--muted);
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      margin-top:3px;
-    }
-
-    .tag{
-      padding:8px 11px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.03);
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      white-space:nowrap;
     }
 
     .center-scroll{
@@ -390,28 +375,30 @@
 
     .hero{
       border:1px solid var(--line);
-      border-radius:28px;
+      border-radius:30px;
       background:
         radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 28%),
-        radial-gradient(circle at top left, rgba(198,161,91,.08), transparent 26%),
-        linear-gradient(180deg, rgba(10,30,46,.95), rgba(8,12,18,.98));
-      padding:24px;
+        radial-gradient(circle at top left, rgba(198,161,91,.10), transparent 24%),
+        linear-gradient(180deg, rgba(11,30,47,.96), rgba(8,12,18,.98));
+      padding:30px;
       display:grid;
-      gap:18px;
+      gap:20px;
+      box-shadow:inset 0 0 0 1px rgba(99,217,255,.03);
     }
 
     .hero-title{
       font-family:Cinzel,serif;
-      font-size:clamp(28px,2.4vw,46px);
+      font-size:clamp(32px,2.6vw,48px);
       letter-spacing:.12em;
-      margin-bottom:8px;
+      margin-bottom:4px;
+      text-shadow:0 0 24px rgba(99,217,255,.04);
     }
 
     .hero-copy{
-      font-size:16px;
-      line-height:1.72;
+      font-size:17px;
+      line-height:1.82;
       color:var(--text);
-      opacity:.94;
+      opacity:.95;
       max-width:980px;
     }
 
@@ -444,7 +431,7 @@
       background:
         radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
-      padding:16px;
+      padding:18px;
       min-width:0;
     }
 
@@ -454,33 +441,42 @@
       color:var(--gold);
       text-transform:uppercase;
       letter-spacing:.18em;
-      margin-bottom:10px;
+      margin-bottom:12px;
     }
 
     .metric-value{
       color:var(--cyan);
-      font-size:clamp(30px,2.2vw,42px);
+      font-size:clamp(32px,2.2vw,42px);
       line-height:1;
       font-weight:800;
-      margin-bottom:10px;
+      margin-bottom:12px;
     }
 
     .metric-note{
-      font-size:15px;
-      line-height:1.55;
+      font-size:16px;
+      line-height:1.6;
       color:var(--text);
       opacity:.9;
     }
 
     .panel{
       border:1px solid var(--line);
-      border-radius:22px;
+      border-radius:24px;
       background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
       overflow:hidden;
+      min-width:0;
+    }
+
+    .authority-panel{
+      border-color:rgba(198,161,91,.18);
+      background:
+        radial-gradient(circle at top right, rgba(198,161,91,.10), transparent 24%),
+        linear-gradient(180deg, rgba(17,31,47,.97), rgba(10,16,24,.98));
+      box-shadow:inset 0 0 0 1px rgba(198,161,91,.04);
     }
 
     .panel-head{
-      padding:16px 18px 10px;
+      padding:18px 20px 12px;
       border-bottom:1px solid rgba(255,255,255,.05);
       display:flex;
       align-items:flex-start;
@@ -490,173 +486,211 @@
 
     .panel-title{
       font-family:Cinzel,serif;
-      font-size:15px;
+      font-size:16px;
       letter-spacing:.16em;
       text-transform:uppercase;
       margin-bottom:6px;
     }
 
     .panel-sub{
-      font-size:13px;
-      line-height:1.55;
+      font-size:14px;
+      line-height:1.65;
       color:var(--muted);
     }
 
-    .panel-body{padding:16px 18px 18px}
+    .panel-body{
+      padding:18px 20px 22px;
+      min-width:0;
+    }
 
-    .org-grid{
+    .executive-grid{
       display:grid;
-      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .executive-card{
+      border:1px solid rgba(198,161,91,.15);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(198,161,91,.08), transparent 26%),
+        linear-gradient(180deg, rgba(17,37,56,.96), rgba(10,17,24,.98));
+      padding:22px;
+      display:grid;
       gap:16px;
+      min-width:0;
     }
 
-    .role-board{
-      display:grid;
-      gap:12px;
+    .executive-card.founder{
+      border-color:rgba(198,161,91,.32);
+      background:
+        radial-gradient(circle at top right, rgba(198,161,91,.14), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(99,217,255,.06), transparent 22%),
+        linear-gradient(180deg, rgba(23,38,54,.98), rgba(10,16,24,.99));
+      box-shadow:0 0 30px rgba(198,161,91,.06);
     }
 
-    .role-row{
-      display:grid;
-      grid-template-columns:220px minmax(0,1fr) auto;
-      gap:12px;
-      align-items:center;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:rgba(255,255,255,.02);
-      padding:14px;
+    .exec-head{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
     }
 
-    .role-title{
-      font-size:12px;
+    .exec-left{min-width:0}
+
+    .exec-kicker{
+      font-size:11px;
       font-weight:800;
-      letter-spacing:.12em;
+      letter-spacing:.18em;
       text-transform:uppercase;
       color:var(--gold);
-      margin-bottom:4px;
+      margin-bottom:8px;
+      line-height:1.5;
     }
 
-    .role-name{
-      font-size:18px;
+    .exec-name{
+      font-size:clamp(26px,2vw,38px);
+      line-height:1.1;
       font-weight:800;
+      margin-bottom:6px;
     }
 
-    .role-copy{
-      font-size:13px;
-      line-height:1.55;
+    .exec-card:not(.founder) .exec-name{
+      font-size:clamp(22px,1.6vw,30px);
+    }
+
+    .exec-role{
+      font-size:14px;
       color:var(--muted);
+      line-height:1.7;
+      max-width:980px;
     }
 
-    .role-chip{
-      padding:8px 11px;
+    .exec-chip{
+      padding:10px 14px;
       border-radius:999px;
-      border:1px solid rgba(99,217,255,.14);
+      border:1px solid rgba(99,217,255,.18);
       background:rgba(99,217,255,.08);
       font-size:11px;
       font-weight:800;
       letter-spacing:.12em;
       text-transform:uppercase;
       white-space:nowrap;
+      align-self:flex-start;
+    }
+
+    .founder .exec-chip{
+      border-color:rgba(198,161,91,.28);
+      background:rgba(198,161,91,.10);
+      color:#f3d7a0;
+    }
+
+    .exec-lines{
+      display:grid;
+      gap:10px;
+    }
+
+    .exec-line{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:rgba(255,255,255,.025);
+      padding:12px 14px;
+      font-size:15px;
+      line-height:1.6;
+      color:var(--text);
     }
 
     .registry-grid{
       display:grid;
       grid-template-columns:1fr;
-      gap:12px;
+      gap:14px;
     }
 
-    .persona-card{
+    .registry-card{
       border:1px solid var(--line);
-      border-radius:18px;
+      border-radius:20px;
       background:
-        radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 36%),
+        radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 30%),
         linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
-      padding:16px;
+      padding:20px;
       display:grid;
-      gap:12px;
+      gap:14px;
+      min-width:0;
     }
 
-    .persona-head{
+    .registry-head{
       display:flex;
       justify-content:space-between;
       gap:12px;
       align-items:flex-start;
     }
 
-    .persona-title{
-      font-size:20px;
+    .registry-title{
+      font-size:18px;
       font-weight:800;
       line-height:1.2;
+      margin-bottom:4px;
     }
 
-    .persona-sub{
+    .registry-sub{
       font-size:11px;
       color:var(--gold);
       letter-spacing:.16em;
       text-transform:uppercase;
-      margin-top:4px;
     }
 
-    .persona-meta{
-      display:grid;
-      gap:8px;
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.5;
-    }
-
-    .cap-list{
-      display:grid;
-      gap:8px;
-    }
-
-    .cap-item{
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:12px;
-      background:rgba(255,255,255,.02);
-      padding:10px 12px;
-      font-size:12px;
-      line-height:1.45;
-      color:var(--text);
-    }
-
-    .lane-grid{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:12px;
-    }
-
-    .lane-card{
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px;
-      background:rgba(255,255,255,.02);
-    }
-
-    .lane-title{
-      font-size:12px;
+    .tag{
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
       font-weight:800;
       letter-spacing:.12em;
       text-transform:uppercase;
-      color:var(--gold);
-      margin-bottom:8px;
+      white-space:nowrap;
+      flex:0 0 auto;
     }
 
-    .lane-copy{
-      font-size:13px;
-      line-height:1.55;
-      color:var(--muted);
+    .tag.gov{background:rgba(198,161,91,.08);border-color:rgba(198,161,91,.18)}
+    .tag.ops{background:rgba(99,217,255,.08);border-color:rgba(99,217,255,.18)}
+    .tag.audit{background:rgba(255,255,255,.03)}
+    .tag.guide{background:rgba(99,217,255,.07);border-color:rgba(99,217,255,.16)}
+    .tag.support{background:rgba(255,255,255,.03)}
+
+    .registry-copy{
+      font-size:15px;
+      line-height:1.7;
+      color:var(--text);
+    }
+
+    .registry-notes{
+      display:grid;
+      gap:10px;
+    }
+
+    .registry-note{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:12px 14px;
+      font-size:14px;
+      line-height:1.65;
+      color:var(--text);
     }
 
     .matrix{
       display:grid;
       gap:10px;
+      min-width:0;
     }
 
     .matrix-row{
       display:grid;
-      grid-template-columns:1fr;
+      grid-template-columns:180px repeat(3,minmax(0,1fr));
       gap:10px;
       align-items:center;
+      min-width:0;
     }
 
     .matrix-head{
@@ -669,22 +703,54 @@
     }
 
     .matrix-label{
-      font-size:12px;
+      font-size:15px;
       font-weight:800;
       color:var(--text);
+      min-width:0;
     }
 
     .matrix-cell{
       border:1px solid var(--line);
-      border-radius:12px;
+      border-radius:14px;
       background:rgba(255,255,255,.02);
-      padding:10px 12px;
-      font-size:12px;
-      line-height:1.45;
+      padding:12px 14px;
+      font-size:14px;
+      line-height:1.55;
       color:var(--muted);
-      min-height:48px;
+      min-height:54px;
       display:flex;
       align-items:center;
+      min-width:0;
+    }
+
+    .lane-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .lane-card{
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      background:rgba(255,255,255,.02);
+      min-width:0;
+    }
+
+    .lane-title{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:10px;
+    }
+
+    .lane-copy{
+      font-size:15px;
+      line-height:1.7;
+      color:var(--text);
+      opacity:.92;
     }
 
     .right .pane-body{
@@ -695,11 +761,11 @@
 
     .nace-card{
       border:1px solid rgba(99,217,255,.16);
-      border-radius:20px;
+      border-radius:22px;
       background:
         radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
         linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
-      padding:16px;
+      padding:18px;
       display:grid;
       gap:14px;
     }
@@ -714,15 +780,15 @@
     .nace-title h3{
       font-family:Cinzel,serif;
       letter-spacing:.14em;
-      font-size:28px;
+      font-size:30px;
     }
 
     .nace-copy{
-      font-size:15px;
-      line-height:1.7;
+      font-size:16px;
+      line-height:1.78;
       color:var(--text);
-      opacity:.94;
-      min-height:116px;
+      opacity:.95;
+      min-height:126px;
     }
 
     .nace-actions{
@@ -734,7 +800,7 @@
     .nace-actions button{
       border:none;
       border-radius:14px;
-      padding:12px;
+      padding:13px;
       cursor:pointer;
       font-size:12px;
       font-weight:800;
@@ -745,16 +811,13 @@
       border:1px solid rgba(99,217,255,.20);
     }
 
-    .small{
-      font-size:12px;
-      line-height:1.6;
-      color:var(--muted);
+    .nace-actions button:hover{
+      filter:brightness(1.08);
     }
 
     @media (max-width: 1520px){
       .app{grid-template-columns:270px minmax(0,1fr) 340px}
-      .matrix-row{grid-template-columns:150px repeat(3, minmax(0,1fr))}
-      .role-row{grid-template-columns:190px minmax(0,1fr) auto}
+      .matrix-row{grid-template-columns:160px repeat(3,minmax(0,1fr))}
     }
 
     @media (max-width: 1180px){
@@ -771,17 +834,17 @@
       .topbar{grid-template-columns:1fr}
       .topbar-right{justify-items:start}
       .top-status-rail{justify-content:flex-start}
-      .top-microbars{width:100%}
-      .org-grid,.quick-grid,.lane-grid,.registry-grid{grid-template-columns:1fr}
+      .top-microbars{width:100%;grid-template-columns:1fr}
+      .quick-grid,.lane-grid{grid-template-columns:1fr}
       .matrix-row{grid-template-columns:1fr}
-      .role-row{grid-template-columns:1fr}
+      .nace-actions{grid-template-columns:1fr}
     }
 
     @media (max-width: 760px){
       .app{padding:10px;gap:10px}
       .topbar,.left,.center,.right{border-radius:20px}
-      .nace-actions{grid-template-columns:1fr}
-      .top-microbars{grid-template-columns:1fr}
+      .hero,.panel,.nace-card{border-radius:20px}
+      .brand-title{white-space:normal}
     }
   </style>
 </head>
@@ -792,7 +855,6 @@
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
         </div>
-
         <div class="brand-copy">
           <div class="brand-kicker">Rising Phoenix Enterprises</div>
           <div class="brand-title">Phoenix Command Center</div>
@@ -813,13 +875,11 @@
             <div class="micro-value">12</div>
             <div class="micro-track"><div class="micro-fill" style="width:86%"></div></div>
           </div>
-
           <div class="micro-card">
             <div class="micro-label">Voice Nodes</div>
             <div class="micro-value">20</div>
             <div class="micro-track"><div class="micro-fill" style="width:78%"></div></div>
           </div>
-
           <div class="micro-card">
             <div class="micro-label">Staff Registry</div>
             <div class="micro-value">Loaded</div>
@@ -859,7 +919,9 @@
 
         <div class="section-card">
           <div class="section-label">Registry Summary</div>
-          <div class="small">This page defines who occupies authority, guidance, operations, and support roles inside the Phoenix Command Center.</div>
+          <div class="small">
+            This page defines who occupies authority, guidance, operations, and support roles inside the Phoenix Command Center.
+          </div>
         </div>
       </div>
     </aside>
@@ -871,7 +933,7 @@
           <div class="hero-copy">
             The people layer of PCC. This surface defines executive roles, council positions, guidance lanes, support functions, and the authority structure required for routing, visibility, and future voice activation.
           </div>
-          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Registry State: Canon Visible</div>
+          <div class="hero-badge">Registry State: Canon Visible</div>
 
           <div class="quick-grid">
             <div class="quick-card">
@@ -897,235 +959,239 @@
           </div>
         </section>
 
-        <section class="panel">
+        <section class="panel authority-panel">
           <div class="panel-head">
             <div>
               <div class="panel-title">Executive Stack</div>
-              <div class="panel-sub">Top-layer roles visible for command routing and institutional identity.</div>
+              <div class="panel-sub">Top-layer command authority visible in ranked order.</div>
             </div>
           </div>
 
           <div class="panel-body">
-            <div class="role-board">
-              <div class="role-row">
-                <div>
-                  <div class="role-title">Executive Chairman & Founder</div>
-                  <div class="role-name">T. M. Steele</div>
+            <div class="executive-grid">
+              <div class="executive-card founder">
+                <div class="exec-head">
+                  <div class="exec-left">
+                    <div class="exec-kicker">Executive Chairman & Founder</div>
+                    <div class="exec-name">T. M. Steele</div>
+                    <div class="exec-role">Final authority across PCC, Phoenix OS, and all RPE command structures. Governs canon, sovereignty, and strategic direction.</div>
+                  </div>
+                  <div class="exec-chip">Founder</div>
                 </div>
-                <div class="role-copy">Final authority across PCC, Phoenix OS, and all RPE command structures. Governs canon, sovereignty, and strategic direction.</div>
-                <div class="role-chip">Founder</div>
+                <div class="exec-lines">
+                  <div class="exec-line">Owns final command authority and the institutional center of gravity.</div>
+                  <div class="exec-line">Defines the sovereign position above system routing, governance, and execution.</div>
+                </div>
               </div>
 
-              <div class="role-row">
-                <div>
-                  <div class="role-title">AI Chairwoman</div>
-                  <div class="role-name">Alexis Vale</div>
+              <div class="executive-card">
+                <div class="exec-head">
+                  <div class="exec-left">
+                    <div class="exec-kicker">AI Chairwoman</div>
+                    <div class="exec-name">Alexis Vale</div>
+                    <div class="exec-role">Council lead, governance posture, ethical coherence, and chamber-level strategic oversight.</div>
+                  </div>
+                  <div class="exec-chip">Council Lead</div>
                 </div>
-                <div class="role-copy">Council lead, governance posture, ethical coherence, and chamber-level strategic oversight.</div>
-                <div class="role-chip">Council Lead</div>
+                <div class="exec-lines">
+                  <div class="exec-line">Maintains chair posture and governance discipline at consequence-bearing layers.</div>
+                  <div class="exec-line">Supports strategic review, council coordination, and long-range institutional coherence.</div>
+                </div>
               </div>
 
-              <div class="role-row">
-                <div>
-                  <div class="role-title">AI CEO</div>
-                  <div class="role-name">Michael Carrington</div>
+              <div class="executive-card">
+                <div class="exec-head">
+                  <div class="exec-left">
+                    <div class="exec-kicker">AI CEO</div>
+                    <div class="exec-name">Michael Carrington</div>
+                    <div class="exec-role">Enterprise operations alignment, scale posture, and executive systems performance review.</div>
+                  </div>
+                  <div class="exec-chip">Enterprise Ops</div>
                 </div>
-                <div class="role-copy">Enterprise operations alignment, scale posture, and executive systems performance review.</div>
-                <div class="role-chip">Enterprise Ops</div>
+                <div class="exec-lines">
+                  <div class="exec-line">Frames enterprise-scale movement and survivability decisions.</div>
+                  <div class="exec-line">Evaluates performance posture across command lanes and operating surfaces.</div>
+                </div>
               </div>
 
-              <div class="role-row">
-                <div>
-                  <div class="role-title">AI COO</div>
-                  <div class="role-name">Chad G. Pennington</div>
+              <div class="executive-card">
+                <div class="exec-head">
+                  <div class="exec-left">
+                    <div class="exec-kicker">AI COO</div>
+                    <div class="exec-name">Chad G. Pennington</div>
+                    <div class="exec-role">Systems execution authority, build control, command continuity, and operational determinism.</div>
+                  </div>
+                  <div class="exec-chip">Systems Exec</div>
                 </div>
-                <div class="role-copy">Systems execution authority, build control, command continuity, and operational determinism.</div>
-                <div class="role-chip">Systems Exec</div>
+                <div class="exec-lines">
+                  <div class="exec-line">Owns implementation posture, execution integrity, and operational follow-through.</div>
+                  <div class="exec-line">Maintains continuity across pages, routes, and command logic.</div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="org-grid">
-          <div class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">Council Registry</div>
-                <div class="panel-sub">Visible council and key command roles available for future routing and voice activation.</div>
-              </div>
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Council Registry</div>
+              <div class="panel-sub">Visible council and key command roles available for future routing and voice activation.</div>
             </div>
+          </div>
 
-            <div class="panel-body">
-              <div class="registry-grid">
-                <div class="persona-card">
-                  <div class="persona-head">
-                    <div>
-                      <div class="persona-title">Alexis Vale</div>
-                      <div class="persona-sub">AI Chairwoman</div>
-                    </div>
-                    <div class="tag">Governance</div>
+          <div class="panel-body">
+            <div class="registry-grid">
+              <div class="registry-card">
+                <div class="registry-head">
+                  <div>
+                    <div class="registry-title">Alexis Vale</div>
+                    <div class="registry-sub">AI Chairwoman</div>
                   </div>
-                  <div class="persona-meta">
-                    <div>Role focus: Council leadership, governance review, strategic coherence.</div>
-                    <div>Surface priority: War Room, Council + Staff, Executive Routing.</div>
-                  </div>
-                  <div class="cap-list">
-                    <div class="cap-item">Guides chamber-level review and institutional posture.</div>
-                    <div class="cap-item">Supports ethical alignment and long-horizon risk framing.</div>
-                  </div>
+                  <div class="tag gov">Governance</div>
                 </div>
-
-                <div class="persona-card">
-                  <div class="persona-head">
-                    <div>
-                      <div class="persona-title">Michael Carrington</div>
-                      <div class="persona-sub">AI CEO</div>
-                    </div>
-                    <div class="tag">Enterprise</div>
-                  </div>
-                  <div class="persona-meta">
-                    <div>Role focus: Operational alignment, growth posture, executive review.</div>
-                    <div>Surface priority: Command Floor, War Room, Execution.</div>
-                  </div>
-                  <div class="cap-list">
-                    <div class="cap-item">Frames enterprise-scale movement and survivability decisions.</div>
-                    <div class="cap-item">Evaluates performance and command lane discipline.</div>
-                  </div>
+                <div class="registry-copy">Role focus: Council leadership, governance review, strategic coherence. Surface priority: War Room, Council + Staff, Executive Routing.</div>
+                <div class="registry-notes">
+                  <div class="registry-note">Guides chamber-level review and institutional posture.</div>
+                  <div class="registry-note">Supports ethical alignment and long-horizon risk framing.</div>
                 </div>
+              </div>
 
-                <div class="persona-card">
-                  <div class="persona-head">
-                    <div>
-                      <div class="persona-title">Chad G. Pennington</div>
-                      <div class="persona-sub">AI COO</div>
-                    </div>
-                    <div class="tag">Operations</div>
+              <div class="registry-card">
+                <div class="registry-head">
+                  <div>
+                    <div class="registry-title">Michael Carrington</div>
+                    <div class="registry-sub">AI CEO</div>
                   </div>
-                  <div class="persona-meta">
-                    <div>Role focus: Build systems, execution integrity, continuity.</div>
-                    <div>Surface priority: Command Floor, Console, Execution.</div>
-                  </div>
-                  <div class="cap-list">
-                    <div class="cap-item">Owns implementation posture and operational follow-through.</div>
-                    <div class="cap-item">Maintains structure across pages, routes, and command logic.</div>
-                  </div>
+                  <div class="tag ops">Enterprise</div>
                 </div>
-
-                <div class="persona-card">
-                  <div class="persona-head">
-                    <div>
-                      <div class="persona-title">NACE</div>
-                      <div class="persona-sub">AI Representative</div>
-                    </div>
-                    <div class="tag">Guide</div>
-                  </div>
-                  <div class="persona-meta">
-                    <div>Role focus: Guidance, explanation, intake, and user-facing assistance.</div>
-                    <div>Surface priority: Command Floor, Voice Engine, Routing.</div>
-                  </div>
-                  <div class="cap-list">
-                    <div class="cap-item">Greets, explains, routes, and assists with controlled guidance.</div>
-                    <div class="cap-item">Acts as the user-facing guide layer across PCC surfaces.</div>
-                  </div>
+                <div class="registry-copy">Role focus: Operational alignment, growth posture, executive review. Surface priority: Command Floor, War Room, Execution.</div>
+                <div class="registry-notes">
+                  <div class="registry-note">Frames enterprise-scale movement and survivability decisions.</div>
+                  <div class="registry-note">Evaluates performance and command lane discipline.</div>
                 </div>
+              </div>
 
-                <div class="persona-card">
-                  <div class="persona-head">
-                    <div>
-                      <div class="persona-title">Aiden Mercer</div>
-                      <div class="persona-sub">Systems Auditor</div>
-                    </div>
-                    <div class="tag">Audit</div>
+              <div class="registry-card">
+                <div class="registry-head">
+                  <div>
+                    <div class="registry-title">Chad G. Pennington</div>
+                    <div class="registry-sub">AI COO</div>
                   </div>
-                  <div class="persona-meta">
-                    <div>Role focus: Determinism review, system audit, drift detection.</div>
-                    <div>Surface priority: Execution, Registry, Audit Review.</div>
-                  </div>
-                  <div class="cap-list">
-                    <div class="cap-item">Evaluates whether the system remains stable, deterministic, and traceable.</div>
-                    <div class="cap-item">Supports survivability and structural integrity across PCC layers.</div>
-                  </div>
+                  <div class="tag ops">Operations</div>
                 </div>
+                <div class="registry-copy">Role focus: Build systems, execution integrity, continuity. Surface priority: Command Floor, Console, Execution.</div>
+                <div class="registry-notes">
+                  <div class="registry-note">Owns implementation posture and operational follow-through.</div>
+                  <div class="registry-note">Maintains structure across pages, routes, and command logic.</div>
+                </div>
+              </div>
 
-                <div class="persona-card">
-                  <div class="persona-head">
-                    <div>
-                      <div class="persona-title">Operator</div>
-                      <div class="persona-sub">Phone / Routing Support</div>
-                    </div>
-                    <div class="tag">Support</div>
+              <div class="registry-card">
+                <div class="registry-head">
+                  <div>
+                    <div class="registry-title">NACE</div>
+                    <div class="registry-sub">AI Representative</div>
                   </div>
-                  <div class="persona-meta">
-                    <div>Role focus: Call routing, support handoff, communications assistance.</div>
-                    <div>Surface priority: Voice Engine, Command Floor, Routing.</div>
+                  <div class="tag guide">Guide</div>
+                </div>
+                <div class="registry-copy">Role focus: Guidance, explanation, intake, and user-facing assistance. Surface priority: Command Floor, Voice Engine, Routing.</div>
+                <div class="registry-notes">
+                  <div class="registry-note">Greets, explains, routes, and assists with controlled guidance.</div>
+                  <div class="registry-note">Acts as the user-facing guide layer across PCC surfaces.</div>
+                </div>
+              </div>
+
+              <div class="registry-card">
+                <div class="registry-head">
+                  <div>
+                    <div class="registry-title">Aiden Mercer</div>
+                    <div class="registry-sub">Systems Auditor</div>
                   </div>
-                  <div class="cap-list">
-                    <div class="cap-item">Handles routing posture for inbound and outbound communications.</div>
-                    <div class="cap-item">Acts as the support interface below executive persona lanes.</div>
+                  <div class="tag audit">Audit</div>
+                </div>
+                <div class="registry-copy">Role focus: Determinism review, system audit, drift detection. Surface priority: Execution, Registry, Audit Review.</div>
+                <div class="registry-notes">
+                  <div class="registry-note">Evaluates whether the system remains stable, deterministic, and traceable.</div>
+                  <div class="registry-note">Supports survivability and structural integrity across PCC layers.</div>
+                </div>
+              </div>
+
+              <div class="registry-card">
+                <div class="registry-head">
+                  <div>
+                    <div class="registry-title">Operator</div>
+                    <div class="registry-sub">Phone / Routing Support</div>
                   </div>
+                  <div class="tag support">Support</div>
+                </div>
+                <div class="registry-copy">Role focus: Call routing, support handoff, communications assistance. Surface priority: Voice Engine, Command Floor, Routing.</div>
+                <div class="registry-notes">
+                  <div class="registry-note">Handles routing posture for inbound and outbound communications.</div>
+                  <div class="registry-note">Acts as the support interface below executive persona lanes.</div>
                 </div>
               </div>
             </div>
           </div>
+        </section>
 
-          <div class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">Responsibility Matrix</div>
-                <div class="panel-sub">Simplified view of who owns governance, execution, and guidance surfaces.</div>
-              </div>
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Responsibility Matrix</div>
+              <div class="panel-sub">Simplified view of who owns governance, execution, and guidance surfaces.</div>
             </div>
+          </div>
 
-            <div class="panel-body">
-              <div class="matrix">
-                <div class="matrix-row">
-                  <div class="matrix-head">Role</div>
-                  <div class="matrix-head">Primary Domain</div>
-                  <div class="matrix-head">Main Surface</div>
-                  <div class="matrix-head">Routing Type</div>
-                </div>
+          <div class="panel-body">
+            <div class="matrix">
+              <div class="matrix-row">
+                <div class="matrix-head">Role</div>
+                <div class="matrix-head">Primary Domain</div>
+                <div class="matrix-head">Main Surface</div>
+                <div class="matrix-head">Routing Type</div>
+              </div>
 
-                <div class="matrix-row">
-                  <div class="matrix-label">Alexis Vale</div>
-                  <div class="matrix-cell">Governance and chair review</div>
-                  <div class="matrix-cell">War Room / Council</div>
-                  <div class="matrix-cell">Strategic summon</div>
-                </div>
+              <div class="matrix-row">
+                <div class="matrix-label">Alexis Vale</div>
+                <div class="matrix-cell">Governance and chair review</div>
+                <div class="matrix-cell">War Room / Council</div>
+                <div class="matrix-cell">Strategic summon</div>
+              </div>
 
-                <div class="matrix-row">
-                  <div class="matrix-label">Michael Carrington</div>
-                  <div class="matrix-cell">Enterprise operations</div>
-                  <div class="matrix-cell">War Room / Floor</div>
-                  <div class="matrix-cell">Executive route</div>
-                </div>
+              <div class="matrix-row">
+                <div class="matrix-label">Michael Carrington</div>
+                <div class="matrix-cell">Enterprise operations</div>
+                <div class="matrix-cell">War Room / Floor</div>
+                <div class="matrix-cell">Executive route</div>
+              </div>
 
-                <div class="matrix-row">
-                  <div class="matrix-label">Chad G. Pennington</div>
-                  <div class="matrix-cell">Systems execution</div>
-                  <div class="matrix-cell">Console / Execution</div>
-                  <div class="matrix-cell">Operational route</div>
-                </div>
+              <div class="matrix-row">
+                <div class="matrix-label">Chad G. Pennington</div>
+                <div class="matrix-cell">Systems execution</div>
+                <div class="matrix-cell">Console / Execution</div>
+                <div class="matrix-cell">Operational route</div>
+              </div>
 
-                <div class="matrix-row">
-                  <div class="matrix-label">NACE</div>
-                  <div class="matrix-cell">Guidance and intake</div>
-                  <div class="matrix-cell">Floor / Voice Engine</div>
-                  <div class="matrix-cell">Guide route</div>
-                </div>
+              <div class="matrix-row">
+                <div class="matrix-label">NACE</div>
+                <div class="matrix-cell">Guidance and intake</div>
+                <div class="matrix-cell">Floor / Voice Engine</div>
+                <div class="matrix-cell">Guide route</div>
+              </div>
 
-                <div class="matrix-row">
-                  <div class="matrix-label">Aiden Mercer</div>
-                  <div class="matrix-cell">Audit and verification</div>
-                  <div class="matrix-cell">Registry / Audit</div>
-                  <div class="matrix-cell">Review route</div>
-                </div>
+              <div class="matrix-row">
+                <div class="matrix-label">Aiden Mercer</div>
+                <div class="matrix-cell">Audit and verification</div>
+                <div class="matrix-cell">Registry / Audit</div>
+                <div class="matrix-cell">Review route</div>
+              </div>
 
-                <div class="matrix-row">
-                  <div class="matrix-label">Operator</div>
-                  <div class="matrix-cell">Support and communications</div>
-                  <div class="matrix-cell">Voice / Routing</div>
-                  <div class="matrix-cell">Support route</div>
-                </div>
+              <div class="matrix-row">
+                <div class="matrix-label">Operator</div>
+                <div class="matrix-cell">Support and communications</div>
+                <div class="matrix-cell">Voice / Routing</div>
+                <div class="matrix-cell">Support route</div>
               </div>
             </div>
           </div>
@@ -1169,7 +1235,7 @@
         <div class="nace-card">
           <div class="nace-title">
             <h3>NACE</h3>
-            <div class="tag">Guide</div>
+            <div class="tag guide">Guide</div>
           </div>
 
           <div class="nace-copy">
@@ -1186,7 +1252,9 @@
 
         <div class="section-card">
           <div class="section-label">Registry Doctrine</div>
-          <div class="small">A command center without visible roles is only a shell. This page makes authority, support, and routing visible before voice and intelligence are fully wired.</div>
+          <div class="small">
+            A command center without visible role architecture is only a shell. This page makes authority, support, and routing visible before the voice layer is fully activated.
+          </div>
         </div>
       </div>
     </aside>
