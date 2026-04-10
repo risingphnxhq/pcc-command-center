@@ -9,46 +9,58 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#05080c;
-      --bg2:#071019;
-      --bg3:#0a1521;
-      --panel:#0e1824;
-      --panel2:#0b131c;
-      --panel3:#112030;
-      --line:rgba(255,255,255,.07);
-      --line-strong:rgba(198,161,91,.24);
-      --gold:#c6a15b;
-      --gold-soft:rgba(198,161,91,.12);
-      --cyan:#63d9ff;
-      --cyan-soft:rgba(99,217,255,.12);
-      --green:#49d391;
-      --amber:#f0b35a;
-      --red:#ea7474;
-      --text:#f4efe5;
-      --muted:rgba(244,239,229,.66);
-      --muted2:rgba(244,239,229,.42);
-      --shadow:0 22px 70px rgba(0,0,0,.40);
-      --radius-sm:12px;
-      --radius-md:16px;
-      --radius-lg:22px;
-      --radius-xl:28px;
-      --topH:160px;
-      --leftW:280px;
-      --rightW:360px;
-      --container:1680px;
-    }
+  --bg:#05080c;
+  --bg2:#071019;
+  --bg3:#0a1521;
+  --panel:#0e1824;
+  --panel2:#0b131c;
+  --panel3:#112030;
+  --line:rgba(255,255,255,.07);
+  --line-strong:rgba(198,161,91,.24);
+  --gold:#c6a15b;
+  --gold-soft:rgba(198,161,91,.12);
+  --cyan:#63d9ff;
+  --cyan-soft:rgba(99,217,255,.12);
+  --green:#49d391;
+  --amber:#f0b35a;
+  --red:#ea7474;
+  --text:#f4efe5;
+  --muted:rgba(244,239,229,.66);
+  --muted2:rgba(244,239,229,.42);
+  --shadow:0 22px 70px rgba(0,0,0,.40);
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:22px;
+  --radius-xl:28px;
+  --topH:160px;
+  --leftW:280px;
+  --rightW:360px;
+  --container:1680px;
+
+  /* Typography Scale */
+  --text-xs:11px;
+  --text-sm:13px;
+  --text-md:14px;
+  --text-lg:18px;
+  --text-xl:28px;
+} 
+
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
-      font-family:Inter,system-ui,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
-        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
-        linear-gradient(180deg, #091018 0%, #05080c 100%);
-      overflow-x:hidden;
-    }
+  font-family:Inter,system-ui,sans-serif;
+  font-size:var(--text-sm); /* ← THIS activates your scaling */
+
+  color:var(--text);
+
+  background:
+    radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+    radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+    linear-gradient(180deg, #091018 0%, #05080c 100%);
+
+  overflow-x:hidden;
+} 
 
     body::before{
       content:"";
