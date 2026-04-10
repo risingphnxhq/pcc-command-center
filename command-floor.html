@@ -10,36 +10,41 @@
   <style>
     :root{
       --bg:#05080c;
-      --bg2:#08111a;
+      --bg-2:#09111a;
       --panel:#0f1720;
-      --panel2:#0b1219;
-      --panel3:#111c27;
+      --panel-2:#0b1218;
+      --panel-3:#112033;
       --gold:#c6a15b;
-      --goldSoft:rgba(198,161,91,.12);
+      --gold-soft:rgba(198,161,91,.12);
       --cyan:#63d9ff;
-      --cyanSoft:rgba(99,217,255,.10);
+      --cyan-soft:rgba(99,217,255,.12);
       --green:#49d391;
       --amber:#f0b35a;
       --red:#ea7474;
       --text:#f4efe5;
-      --muted:rgba(244,239,229,.64);
-      --line:rgba(255,255,255,.08);
-      --radius:18px;
-      --radiusLg:24px;
-      --top:86px;
-      --shadow:0 20px 60px rgba(0,0,0,.35);
+      --muted:rgba(244,239,229,.66);
+      --muted-2:rgba(244,239,229,.42);
+      --line:rgba(255,255,255,.07);
+      --line-strong:rgba(198,161,91,.22);
+      --radius-sm:12px;
+      --radius-md:16px;
+      --radius-lg:22px;
+      --radius-xl:28px;
+      --shadow:0 18px 60px rgba(0,0,0,.38);
+      --top-h:88px;
+      --left-w:290px;
+      --right-w:370px;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
-
     body{
       font-family:Inter,system-ui,sans-serif;
       color:var(--text);
       background:
-        radial-gradient(circle at top left, rgba(99,217,255,.10), transparent 18%),
-        radial-gradient(circle at top right, rgba(198,161,91,.08), transparent 20%),
-        linear-gradient(180deg,#091018 0%,#05080c 100%);
+        radial-gradient(circle at 12% 14%, rgba(99,217,255,.10), transparent 18%),
+        radial-gradient(circle at 80% 10%, rgba(198,161,91,.08), transparent 20%),
+        linear-gradient(180deg, #0a1017 0%, #060a10 100%);
       overflow:hidden;
     }
 
@@ -52,65 +57,74 @@
         linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
       background-size:34px 34px;
-      opacity:.25;
-      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
+      opacity:.22;
+      mask-image:radial-gradient(circle at center, black 44%, transparent 100%);
     }
 
     .app{
       height:100vh;
       display:grid;
-      grid-template-columns:280px minmax(0,1fr) 360px;
-      grid-template-rows:var(--top) minmax(0,1fr);
+      grid-template-columns:var(--left-w) minmax(0,1fr) var(--right-w);
+      grid-template-rows:var(--top-h) minmax(0,1fr);
       grid-template-areas:
         "top top top"
         "left center right";
-      gap:16px;
-      padding:16px;
+      gap:14px;
+      padding:14px;
+    }
+
+    .glass{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(15,23,32,.94), rgba(8,12,18,.92));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius-xl);
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
     }
 
     .topbar{
       grid-area:top;
       display:grid;
-      grid-template-columns:minmax(220px,420px) minmax(0,1fr) auto;
+      grid-template-columns:minmax(280px, 430px) minmax(0,1fr) auto;
+      gap:18px;
       align-items:center;
-      gap:16px;
       padding:16px 20px;
-      border:1px solid var(--line);
-      border-radius:var(--radiusLg);
-      background:linear-gradient(180deg, rgba(15,23,32,.92), rgba(8,12,18,.88));
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(14px);
-      min-width:0;
     }
 
     .brand{
-      min-width:0;
       display:flex;
       align-items:center;
       gap:14px;
+      min-width:0;
     }
 
     .brand-mark{
-      width:50px;height:50px;border-radius:50%;
-      display:grid;place-items:center;
-      border:1px solid rgba(198,161,91,.28);
-      background:
-        radial-gradient(circle at 30% 30%, rgba(198,161,91,.26), transparent 42%),
-        linear-gradient(180deg, rgba(198,161,91,.10), rgba(10,16,22,.9));
-      color:var(--gold);
-      font-family:Cinzel,serif;
-      font-size:18px;
-      font-weight:800;
+      width:54px;height:54px;border-radius:50%;
       flex:0 0 auto;
+      display:grid;place-items:center;
+      border:1px solid var(--line-strong);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(198,161,91,.26), transparent 40%),
+        linear-gradient(180deg, rgba(198,161,91,.09), rgba(9,15,22,.92));
+      font-family:Cinzel,serif;
+      font-size:20px;
+      color:var(--gold);
+      font-weight:800;
+      letter-spacing:.08em;
     }
 
-    .brand-copy{min-width:0}
+    .brand-copy{
+      min-width:0;
+    }
+
     .brand-kicker{
       font-size:11px;
       letter-spacing:.24em;
       text-transform:uppercase;
       color:var(--gold);
-      margin-bottom:4px;
+      margin-bottom:5px;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -118,7 +132,7 @@
 
     .brand-title{
       font-family:Cinzel,serif;
-      font-size:clamp(20px,2vw,30px);
+      font-size:clamp(24px,2vw,36px);
       letter-spacing:.08em;
       white-space:nowrap;
       overflow:hidden;
@@ -128,15 +142,15 @@
     .doctrine{
       text-align:center;
       font-family:Cinzel,serif;
-      font-size:clamp(14px,1.4vw,22px);
-      letter-spacing:.15em;
+      font-size:clamp(14px,1.45vw,24px);
+      letter-spacing:.14em;
       color:#f3e8d0;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
 
-    .top-status{
+    .top-pills{
       display:flex;
       flex-wrap:wrap;
       justify-content:flex-end;
@@ -149,28 +163,20 @@
       gap:8px;
       padding:10px 14px;
       border-radius:999px;
-      border:1px solid var(--line);
       background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
       font-size:11px;
-      font-weight:700;
-      letter-spacing:.14em;
+      font-weight:800;
       text-transform:uppercase;
+      letter-spacing:.14em;
       white-space:nowrap;
     }
 
     .dot{
       width:8px;height:8px;border-radius:50%;
-      flex:0 0 auto;
       box-shadow:0 0 10px currentColor;
-    }
-
-    .left,.center,.right{
-      min-height:0;
-      border:1px solid var(--line);
-      border-radius:var(--radiusLg);
-      background:linear-gradient(180deg, rgba(15,23,32,.94), rgba(8,12,18,.92));
-      box-shadow:var(--shadow);
-      overflow:hidden;
+      background:currentColor;
+      flex:0 0 auto;
     }
 
     .left{grid-area:left;display:flex;flex-direction:column}
@@ -185,7 +191,7 @@
     .pane-title{
       font-family:Cinzel,serif;
       font-size:15px;
-      letter-spacing:.16em;
+      letter-spacing:.18em;
       text-transform:uppercase;
       color:#f3e8d0;
       margin-bottom:6px;
@@ -194,7 +200,7 @@
     .pane-sub{
       font-size:13px;
       color:var(--muted);
-      line-height:1.5;
+      line-height:1.55;
     }
 
     .pane-body{
@@ -207,24 +213,27 @@
     .nav-list{display:grid;gap:12px}
     .nav-btn{
       width:100%;
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      color:var(--text);
-      padding:14px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      text-align:left;
-      font-weight:700;
-      letter-spacing:.08em;
-      text-transform:uppercase;
       display:flex;
       align-items:center;
       gap:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      color:var(--text);
+      padding:14px 14px;
+      text-align:left;
+      cursor:pointer;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      transition:.16s ease;
     }
 
     .nav-btn:hover,.nav-btn.active{
       border-color:rgba(198,161,91,.34);
-      background:linear-gradient(180deg, rgba(198,161,91,.12), rgba(255,255,255,.02));
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.02));
+      transform:translateX(2px);
     }
 
     .nav-dot{
@@ -235,52 +244,65 @@
     }
 
     .section-card{
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:rgba(255,255,255,.025);
-      padding:14px;
       margin-top:16px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
     }
 
     .section-label{
       font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.18em;
-      color:var(--gold);
-      margin-bottom:10px;
       font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:12px;
     }
 
     .persona-list{display:grid;gap:10px}
     .persona-item{
       border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
       border-radius:14px;
-      background:rgba(255,255,255,.02);
-      padding:10px 12px;
+      padding:12px 12px;
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      gap:12px;
+      align-items:center;
+      gap:10px;
     }
 
-    .persona-name{font-weight:700;font-size:14px}
+    .persona-name{font-weight:800;font-size:15px}
     .persona-role{
-      font-size:11px;
       color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-top:3px;
+    }
+
+    .tag{
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
       letter-spacing:.12em;
       text-transform:uppercase;
+      white-space:nowrap;
     }
 
-    .metrics{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:16px;
+    .center-top{
       padding:16px 16px 0;
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:14px;
     }
 
     .metric{
       border:1px solid var(--line);
-      border-radius:18px;
+      border-radius:20px;
       background:
         radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
@@ -290,25 +312,26 @@
 
     .metric-label{
       font-size:11px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:var(--gold);
-      margin-bottom:10px;
       font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      margin-bottom:10px;
     }
 
     .metric-value{
-      font-size:clamp(28px,2.4vw,42px);
+      color:var(--cyan);
+      font-size:clamp(30px,2.3vw,44px);
       line-height:1;
       font-weight:800;
-      color:var(--cyan);
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
 
     .metric-note{
-      font-size:14px;
-      color:var(--muted);
-      line-height:1.5;
+      font-size:15px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.9;
     }
 
     .center-scroll{
@@ -317,51 +340,53 @@
       overflow:auto;
       padding:16px;
       display:grid;
-      gap:16px;
+      gap:14px;
       align-content:start;
     }
 
     .panel{
       border:1px solid var(--line);
-      border-radius:20px;
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
       overflow:hidden;
     }
 
-    .panel-header{
+    .panel-head{
       padding:16px 18px 10px;
       border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
     }
 
     .panel-title{
       font-family:Cinzel,serif;
-      font-size:14px;
+      font-size:15px;
       letter-spacing:.16em;
       text-transform:uppercase;
       margin-bottom:6px;
     }
 
-    .panel-subtitle{
+    .panel-sub{
       font-size:13px;
+      line-height:1.55;
       color:var(--muted);
-      line-height:1.5;
     }
 
-    .panel-body{padding:16px 18px 18px}
-
-    .receipt-feed{
-      display:grid;
-      gap:12px;
+    .panel-body{
+      padding:16px 18px 18px;
     }
 
-    .receipt{
+    .receipt-feed{display:grid;gap:12px}
+    .receipt-row{
       display:grid;
-      grid-template-columns:84px 140px 1fr;
+      grid-template-columns:78px 140px 1fr;
       gap:12px;
       align-items:start;
+      border-radius:16px;
       border:1px solid rgba(99,217,255,.14);
       background:linear-gradient(180deg, rgba(99,217,255,.09), rgba(99,217,255,.03));
-      border-radius:16px;
       padding:14px;
       min-width:0;
     }
@@ -374,24 +399,103 @@
 
     .receipt-lane{
       font-size:12px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
       font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
     }
 
     .receipt-copy{
       font-size:14px;
-      line-height:1.5;
+      line-height:1.55;
       color:var(--text);
       opacity:.92;
     }
 
+    .mid-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);
+      gap:14px;
+    }
+
+    .bars{
+      display:grid;
+      gap:16px;
+    }
+
+    .bar-item{display:grid;gap:8px}
+    .bar-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      font-size:13px;
+    }
+    .bar-label{
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:#f3e8d0;
+    }
+    .bar-value{
+      font-family:"IBM Plex Mono",monospace;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .bar-track{
+      height:12px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.85), rgba(198,161,91,.82));
+      box-shadow:0 0 20px rgba(99,217,255,.18);
+    }
+
+    .tickler-list{
+      display:grid;
+      gap:12px;
+    }
+    .tickler{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:12px;
+      align-items:start;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      padding:14px;
+    }
+    .tickler-dot{
+      width:10px;height:10px;border-radius:50%;
+      margin-top:5px;
+      background:var(--amber);
+      box-shadow:0 0 12px rgba(240,179,90,.7);
+    }
+    .tickler.red .tickler-dot{background:var(--red);box-shadow:0 0 12px rgba(234,116,116,.75)}
+    .tickler.green .tickler-dot{background:var(--green);box-shadow:0 0 12px rgba(73,211,145,.75)}
+    .tickler-title{
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .tickler-copy{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
     .command-shell{
       border:1px solid rgba(99,217,255,.16);
-      border-radius:22px;
+      border-radius:24px;
       background:
         radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
-        linear-gradient(180deg, rgba(11,28,43,.92), rgba(7,14,21,.98));
+        linear-gradient(180deg, rgba(10,30,46,.94), rgba(7,14,21,.98));
       overflow:hidden;
     }
 
@@ -399,13 +503,13 @@
       padding:18px 18px 10px;
       display:flex;
       justify-content:space-between;
-      align-items:flex-start;
       gap:12px;
+      align-items:flex-start;
     }
 
     .command-title{
       font-family:Cinzel,serif;
-      font-size:28px;
+      font-size:clamp(24px,2vw,38px);
       letter-spacing:.12em;
       margin-bottom:6px;
     }
@@ -414,28 +518,28 @@
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 12px;
+      padding:10px 14px;
       border-radius:999px;
       border:1px solid rgba(99,217,255,.18);
-      background:rgba(99,217,255,.10);
+      background:rgba(99,217,255,.11);
+      color:#c9effb;
       font-size:11px;
       font-weight:800;
-      letter-spacing:.14em;
       text-transform:uppercase;
-      color:#c9effb;
+      letter-spacing:.14em;
       white-space:nowrap;
     }
 
-    .nace-output{
-      min-height:120px;
+    .voice-output{
+      min-height:130px;
       padding:0 18px 16px;
       font-size:16px;
-      line-height:1.75;
+      line-height:1.72;
       color:var(--text);
-      opacity:.92;
+      opacity:.95;
     }
 
-    .command-input-wrap{
+    .command-wrap{
       padding:0 18px 18px;
       display:grid;
       gap:12px;
@@ -445,52 +549,56 @@
       display:grid;
       grid-template-columns:minmax(0,1fr) auto;
       gap:12px;
-      align-items:stretch;
     }
 
     .command-input{
-      width:100%;
-      min-height:60px;
+      min-height:68px;
       resize:vertical;
-      border:none;
-      outline:none;
+      width:100%;
       border-radius:16px;
-      background:#071019;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.08);
       color:var(--text);
+      outline:none;
       padding:16px;
       font:600 15px/1.5 Inter,system-ui,sans-serif;
-      border:1px solid rgba(255,255,255,.08);
     }
 
     .btn-stack{
       display:grid;
       grid-template-rows:1fr 1fr;
       gap:10px;
-      min-width:150px;
+      width:160px;
     }
 
     .btn{
       border:none;
-      border-radius:14px;
-      padding:14px 16px;
       cursor:pointer;
-      font-weight:800;
-      font-size:12px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#08111a;
+      border-radius:14px;
+      padding:14px 14px;
       background:linear-gradient(180deg, #d8b16a, #be9250);
+      color:#0c1218;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
     }
 
     .btn.secondary{
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
       color:var(--text);
-      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.08));
       border:1px solid rgba(99,217,255,.20);
+    }
+
+    .hint{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
     }
 
     .voice-grid{
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns:repeat(2, minmax(0,1fr));
       gap:10px;
     }
 
@@ -502,6 +610,11 @@
       padding:14px 12px;
       cursor:pointer;
       text-align:left;
+      transition:.16s ease;
+    }
+    .voice-btn:hover{
+      border-color:rgba(198,161,91,.34);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.015));
     }
 
     .voice-btn strong{
@@ -513,28 +626,23 @@
     }
 
     .voice-btn span{
-      display:block;
       font-size:12px;
       color:var(--muted);
-      line-height:1.45;
-    }
-
-    .voice-btn:hover{
-      border-color:rgba(198,161,91,.32);
-      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.015));
+      line-height:1.5;
+      display:block;
     }
 
     .log{
       display:grid;
       gap:10px;
-      max-height:240px;
+      max-height:250px;
       overflow:auto;
     }
 
     .log-item{
-      border:1px solid var(--line);
-      border-radius:14px;
       padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
       background:rgba(255,255,255,.02);
       font-size:13px;
       line-height:1.55;
@@ -542,25 +650,18 @@
 
     .log-meta{
       font-family:"IBM Plex Mono",monospace;
-      color:var(--muted);
       font-size:11px;
+      color:var(--muted);
       margin-bottom:6px;
     }
 
-    .small{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.55;
-    }
-
-    @media (max-width: 1340px){
+    @media (max-width: 1450px){
       .app{
-        grid-template-columns:250px minmax(0,1fr) 320px;
+        grid-template-columns:270px minmax(0,1fr) 340px;
       }
-      .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
-    @media (max-width: 1100px){
+    @media (max-width: 1180px){
       body{overflow:auto}
       .app{
         height:auto;
@@ -575,28 +676,31 @@
       }
       .topbar{
         grid-template-columns:1fr;
-        text-align:left;
       }
-      .top-status{justify-content:flex-start}
-      .metrics{grid-template-columns:1fr}
+      .top-pills{justify-content:flex-start}
+      .center-top{grid-template-columns:1fr}
+      .mid-grid{grid-template-columns:1fr}
     }
 
-    @media (max-width: 700px){
+    @media (max-width: 740px){
       .app{padding:10px;gap:10px}
-      .topbar,.left,.center,.right{border-radius:18px}
+      .topbar,.left,.center,.right{border-radius:20px}
       .command-row{grid-template-columns:1fr}
-      .btn-stack{grid-template-columns:1fr 1fr;grid-template-rows:none;min-width:0}
+      .btn-stack{
+        grid-template-columns:1fr 1fr;
+        grid-template-rows:none;
+        width:100%;
+      }
       .voice-grid{grid-template-columns:1fr}
-      .receipt{grid-template-columns:1fr}
-      .command-title{font-size:22px}
-      .brand-title{white-space:normal}
+      .receipt-row{grid-template-columns:1fr}
       .doctrine{white-space:normal;text-align:left}
+      .brand-title{white-space:normal}
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
+    <header class="topbar glass">
       <div class="brand">
         <div class="brand-mark">PHX</div>
         <div class="brand-copy">
@@ -605,27 +709,30 @@
         </div>
       </div>
 
-      <div class="doctrine">Authority · Coordination · Voice Control</div>
+      <div class="doctrine">Authority · Coordination · Voice Command · War Room</div>
 
-      <div class="top-status">
-        <div class="pill"><span class="dot" style="color:var(--green);background:currentColor;"></span> Core Active</div>
-        <div class="pill"><span class="dot" style="color:var(--cyan);background:currentColor;"></span> Voice Layer</div>
-        <div class="pill"><span class="dot" style="color:var(--amber);background:currentColor;"></span> CCE Linked</div>
+      <div class="top-pills">
+        <div class="pill"><span class="dot" style="color:var(--green)"></span> Core Active</div>
+        <div class="pill"><span class="dot" style="color:var(--cyan)"></span> Voice Layer</div>
+        <div class="pill"><span class="dot" style="color:var(--amber)"></span> Queue Active</div>
       </div>
     </header>
 
-    <aside class="left">
+    <aside class="left glass">
       <div class="pane-head">
         <div class="pane-title">Navigation</div>
-        <div class="pane-sub">Command Floor shell with no overlap, stable scrolling, voice access, and expansion lanes.</div>
+        <div class="pane-sub">Stable command lanes. No overlap. Full scroll containment. Executive and engine visibility.</div>
       </div>
+
       <div class="pane-body">
         <div class="nav-list">
           <button class="nav-btn active"><span class="nav-dot"></span> Overview</button>
-          <button class="nav-btn"><span class="nav-dot"></span> Command Core</button>
-          <button class="nav-btn"><span class="nav-dot"></span> Voice Engine</button>
-          <button class="nav-btn"><span class="nav-dot"></span> War Room</button>
+          <button class="nav-btn"><span class="nav-dot"></span> Admin Oversight</button>
+          <button class="nav-btn"><span class="nav-dot"></span> Council + Staff</button>
           <button class="nav-btn"><span class="nav-dot"></span> NHCE Monitor</button>
+          <button class="nav-btn"><span class="nav-dot"></span> Financial Tracking</button>
+          <button class="nav-btn"><span class="nav-dot"></span> War Room</button>
+          <button class="nav-btn"><span class="nav-dot"></span> Execution</button>
           <button class="nav-btn"><span class="nav-dot"></span> Spider / Media</button>
           <button class="nav-btn"><span class="nav-dot"></span> PBRS / PBB</button>
         </div>
@@ -638,82 +745,174 @@
                 <div class="persona-name">NACE</div>
                 <div class="persona-role">AI Representative</div>
               </div>
-              <div class="pill">British</div>
+              <div class="tag">British</div>
             </div>
+
             <div class="persona-item">
               <div>
                 <div class="persona-name">Chad</div>
                 <div class="persona-role">COO / Systems</div>
               </div>
-              <div class="pill">Executive</div>
+              <div class="tag">Executive</div>
             </div>
+
             <div class="persona-item">
               <div>
                 <div class="persona-name">Alexis Vale</div>
                 <div class="persona-role">Chairwoman</div>
               </div>
-              <div class="pill">Governance</div>
+              <div class="tag">Governance</div>
             </div>
+
             <div class="persona-item">
               <div>
                 <div class="persona-name">Operator</div>
-                <div class="persona-role">Phone Layer</div>
+                <div class="persona-role">Phone / Support</div>
               </div>
-              <div class="pill">Support</div>
+              <div class="tag">Routing</div>
             </div>
           </div>
         </div>
 
         <div class="section-card">
-          <div class="section-label">Build Rule</div>
-          <div class="small">Build the full stack once. Test each feature live. Lock after proof. No redesign loop.</div>
+          <div class="section-label">Build Doctrine</div>
+          <div class="pane-sub">Build once. Install full stack. Test each feature live. Lock after proof.</div>
         </div>
       </div>
     </aside>
 
-    <main class="center">
-      <div class="metrics">
+    <main class="center glass">
+      <div class="center-top">
         <div class="metric">
           <div class="metric-label">Systems Active</div>
           <div class="metric-value">27</div>
           <div class="metric-note">Command-facing layers visible inside PCC.</div>
         </div>
+
         <div class="metric">
           <div class="metric-label">Voice Nodes</div>
           <div class="metric-value">4</div>
-          <div class="metric-note">NACE, Chad, Alexis, Operator ready for runtime speech.</div>
+          <div class="metric-note">NACE, Chad, Alexis, Operator staged for runtime speech.</div>
         </div>
+
         <div class="metric">
           <div class="metric-label">Execution Queue</div>
           <div class="metric-value">66</div>
-          <div class="metric-note">Illustrative shell data; replace later with live feeds.</div>
+          <div class="metric-note">Queue rail present and ready for live data replacement.</div>
         </div>
       </div>
 
       <div class="center-scroll">
         <section class="panel">
-          <div class="panel-header">
+          <div class="panel-head">
             <div>
               <div class="panel-title">Command Receipts</div>
-              <div class="panel-subtitle">Institutional receipt lane. This keeps the floor feeling alive even before full data hooks are added.</div>
+              <div class="panel-sub">Institutional receipt lane and continuity proof feed.</div>
             </div>
           </div>
+
           <div class="panel-body">
             <div class="receipt-feed" id="receiptFeed">
-              <div class="receipt">
+              <div class="receipt-row">
                 <div class="receipt-time">07:18</div>
                 <div class="receipt-lane">PCC CORE</div>
-                <div class="receipt-copy">Command Floor shell initialized. Voice Engine awaiting first runtime call.</div>
+                <div class="receipt-copy">Command Floor shell initialized. Voice layer staged for runtime execution.</div>
               </div>
-              <div class="receipt">
-                <div class="receipt-time">07:20</div>
+
+              <div class="receipt-row">
+                <div class="receipt-time">07:23</div>
                 <div class="receipt-lane">VOICE</div>
                 <div class="receipt-copy">Persona voice registry prepared for NACE, Chad, Alexis, and System Operator.</div>
               </div>
-              <div class="receipt">
-                <div class="receipt-time">07:21</div>
+
+              <div class="receipt-row">
+                <div class="receipt-time">07:29</div>
                 <div class="receipt-lane">CCE</div>
-                <div class="receipt-copy">Communication loop staged for text → persona → voice → playback.</div>
+                <div class="receipt-copy">Communication loop staged for text → persona → synthesis → playback.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mid-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Performance Bars</div>
+                <div class="panel-sub">Visual command-floor metrics block.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="bars">
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Voice Engine Stability</div>
+                    <div class="bar-value">92%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Command Queue Throughput</div>
+                    <div class="bar-value">71%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:71%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Media Pipeline Readiness</div>
+                    <div class="bar-value">84%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">NHCE Operational Pressure</div>
+                    <div class="bar-value">63%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:63%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Tickler / Priority Rail</div>
+                <div class="panel-sub">Immediate alerts and executive nudges.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="tickler-list">
+                <div class="tickler">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Voice Activation</div>
+                    <div class="tickler-copy">First live persona synthesis pending confirmation from NACE trigger.</div>
+                  </div>
+                </div>
+
+                <div class="tickler red">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Queue Review</div>
+                    <div class="tickler-copy">Execution backlog visible. Review lane discipline before high-volume activation.</div>
+                  </div>
+                </div>
+
+                <div class="tickler green">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">System Integrity</div>
+                    <div class="tickler-copy">Layout shell stabilized. No viewport cutoff on command-floor base build.</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -723,24 +922,24 @@
           <div class="command-head">
             <div>
               <div class="command-title">Command Core</div>
-              <div class="panel-subtitle">One entry point. Type command, message, or test line. The system will select or honor the persona and return voice.</div>
+              <div class="panel-sub">One entry point. Type command, message, or test line. The system selects or honors persona and returns voice.</div>
             </div>
             <div class="command-status">
-              <span class="dot" style="color:var(--cyan);background:currentColor;"></span>
+              <span class="dot" style="color:var(--cyan)"></span>
               Voice Ready
             </div>
           </div>
 
-          <div class="nace-output" id="naceOutput">
-            Welcome to Rising Phoenix Enterprises. Command Floor is standing by.
+          <div class="voice-output" id="voiceOutput">
+            Execution layer online. Awaiting command input.
           </div>
 
-          <div class="command-input-wrap">
+          <div class="command-wrap">
             <div class="command-row">
               <textarea
                 id="commandInput"
                 class="command-input"
-                placeholder="Enter command, briefing request, routing request, or greeting test..."
+                placeholder="Type here. Use @nace, @chad, @alexis, or @operator if you want to force a persona."
               ></textarea>
 
               <div class="btn-stack">
@@ -749,23 +948,23 @@
               </div>
             </div>
 
-            <div class="small">
-              Persona rules:
+            <div class="hint">
+              Persona tags:
               <strong>@nace</strong>,
               <strong>@chad</strong>,
               <strong>@alexis</strong>,
               <strong>@operator</strong>.
-              If no persona is tagged, NACE leads.
+              No tag = NACE leads by default.
             </div>
           </div>
         </section>
       </div>
     </main>
 
-    <aside class="right">
+    <aside class="right glass">
       <div class="pane-head">
         <div class="pane-title">Voice Engine</div>
-        <div class="pane-sub">Direct persona activation, log stream, and live status.</div>
+        <div class="pane-sub">Direct persona activation, live synthesis control, and command-side voice log.</div>
       </div>
 
       <div class="pane-body">
@@ -796,47 +995,42 @@
           <div class="log" id="voiceLog">
             <div class="log-item">
               <div class="log-meta">BOOT • SYSTEM</div>
-              Voice layer staged. Awaiting first synthesis request.
+              Voice engine loaded. Awaiting first live synthesis request.
             </div>
           </div>
         </div>
 
         <div class="section-card">
-          <div class="section-label">Testing Notes</div>
-          <div class="small">
-            First test:
-            “@nace Welcome to Rising Phoenix Enterprises. Voice Engine is now active.”
-            <br><br>
-            Then:
-            “@chad Execution layer online.”
-          </div>
+          <div class="section-label">Quick Test</div>
+          <div class="pane-sub">Press a persona button or enter: <strong>@nace Welcome to Rising Phoenix Enterprises.</strong></div>
         </div>
       </div>
     </aside>
   </div>
 
   <script>
+    // Replace this with your Cloudflare Worker URL
     const API_BASE = "https://YOUR-WORKER.your-subdomain.workers.dev";
 
-    const outputEl = document.getElementById("naceOutput");
-    const inputEl = document.getElementById("commandInput");
+    const voiceOutput = document.getElementById("voiceOutput");
+    const commandInput = document.getElementById("commandInput");
     const executeBtn = document.getElementById("executeBtn");
     const voiceOnlyBtn = document.getElementById("voiceOnlyBtn");
     const voiceLog = document.getElementById("voiceLog");
-    const voiceBtns = document.querySelectorAll(".voice-btn");
+    const voiceButtons = document.querySelectorAll(".voice-btn");
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
 
     function appendLog(meta, text) {
       const item = document.createElement("div");
       item.className = "log-item";
-      item.innerHTML = `<div class="log-meta">${meta}</div>${escapeHtml(text)}`;
+      item.innerHTML = `<div class="log-meta">${escapeHtml(meta)}</div>${escapeHtml(text)}`;
       voiceLog.prepend(item);
-    }
-
-    function escapeHtml(str) {
-      return str
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
     }
 
     function detectPersona(text) {
@@ -847,7 +1041,7 @@
       return "NACE";
     }
 
-    function stripPersonaTags(text) {
+    function stripTags(text) {
       return text
         .replace(/@nace/ig, "")
         .replace(/@chad/ig, "")
@@ -863,8 +1057,8 @@
       await audio.play();
     }
 
-    async function voiceOnly(text, persona) {
-      appendLog(`VOICE • ${persona}`, `Synth request sent.`);
+    async function sendVoiceOnly(text, persona) {
+      appendLog(`VOICE • ${persona}`, "Synthesis request sent.");
       const res = await fetch(`${API_BASE}/api/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -872,9 +1066,9 @@
       });
 
       if (!res.ok) {
-        const errText = await res.text();
-        appendLog(`ERROR • ${persona}`, errText || "Voice request failed.");
-        throw new Error(errText || "Voice request failed.");
+        const err = await res.text();
+        appendLog(`ERROR • ${persona}`, err || "Voice route failed.");
+        throw new Error(err || "Voice route failed.");
       }
 
       const blob = await res.blob();
@@ -882,87 +1076,88 @@
       appendLog(`SUCCESS • ${persona}`, text);
     }
 
-    async function executeCommand() {
-      const raw = inputEl.value.trim();
-      if (!raw) return;
-
-      const persona = detectPersona(raw);
-      const cleaned = stripPersonaTags(raw);
-
-      outputEl.textContent = "Processing command through Communication Engine...";
-      appendLog(`COMMAND • ${persona}`, cleaned);
+    async function sendCommand(text, persona) {
+      appendLog(`COMMAND • ${persona}`, text);
 
       const res = await fetch(`${API_BASE}/api/command`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: cleaned, persona })
+        body: JSON.stringify({ input: text, persona })
       });
 
       if (!res.ok) {
-        const errText = await res.text();
-        outputEl.textContent = "Command execution failed.";
-        appendLog(`ERROR • ${persona}`, errText || "Command route failed.");
-        throw new Error(errText || "Command route failed.");
+        const err = await res.text();
+        appendLog(`ERROR • ${persona}`, err || "Command route failed.");
+        throw new Error(err || "Command route failed.");
       }
 
       const payload = await res.json();
-      outputEl.textContent = payload.reply || "No reply returned.";
+      const reply = payload.reply || "No reply returned.";
+
+      voiceOutput.textContent = reply;
+      appendLog(`REPLY • ${payload.persona || persona}`, reply);
 
       if (payload.audioBase64) {
-        const byteCharacters = atob(payload.audioBase64);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: payload.mimeType || "audio/mpeg" });
+        const binary = atob(payload.audioBase64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: payload.mimeType || "audio/mpeg" });
         await playAudioBlob(blob);
       }
-
-      appendLog(`REPLY • ${payload.persona || persona}`, payload.reply || "No reply body.");
     }
 
     executeBtn.addEventListener("click", async () => {
+      const raw = commandInput.value.trim();
+      if (!raw) return;
+
       executeBtn.disabled = true;
       try {
-        await executeCommand();
+        const persona = detectPersona(raw);
+        const clean = stripTags(raw);
+        voiceOutput.textContent = "Processing command through Communication Engine...";
+        await sendCommand(clean, persona);
       } catch (err) {
         console.error(err);
+        voiceOutput.textContent = "Command route failed. Check worker URL or secrets.";
       } finally {
         executeBtn.disabled = false;
       }
     });
 
     voiceOnlyBtn.addEventListener("click", async () => {
-      const raw = inputEl.value.trim();
+      const raw = commandInput.value.trim();
       if (!raw) return;
-      const persona = detectPersona(raw);
-      const cleaned = stripPersonaTags(raw);
+
       voiceOnlyBtn.disabled = true;
       try {
-        outputEl.textContent = cleaned;
-        await voiceOnly(cleaned, persona);
+        const persona = detectPersona(raw);
+        const clean = stripTags(raw);
+        voiceOutput.textContent = clean;
+        await sendVoiceOnly(clean, persona);
       } catch (err) {
         console.error(err);
+        voiceOutput.textContent = "Voice route failed. Check worker URL or secrets.";
       } finally {
         voiceOnlyBtn.disabled = false;
       }
     });
 
-    voiceBtns.forEach(btn => {
+    voiceButtons.forEach(btn => {
       btn.addEventListener("click", async () => {
         const persona = btn.dataset.persona;
-        const presets = {
+        const samples = {
           NACE: "Welcome to Rising Phoenix Enterprises. Command Floor is now active.",
           CHAD: "Execution layer online. Awaiting command input.",
           ALEXIS: "Governance oversight is in position.",
           OPERATOR: "Routing active. Please state your request."
         };
-        outputEl.textContent = presets[persona];
+
         try {
-          await voiceOnly(presets[persona], persona);
+          voiceOutput.textContent = samples[persona];
+          await sendVoiceOnly(samples[persona], persona);
         } catch (err) {
           console.error(err);
+          voiceOutput.textContent = "Voice route failed. Check worker URL or secrets.";
         }
       });
     });
