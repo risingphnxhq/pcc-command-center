@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phoenix Command Center — Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#05080c;
+      --bg2:#08111a;
+      --panel:#0f1720;
+      --panel2:#0b1218;
+      --line:rgba(255,255,255,.07);
+      --line-strong:rgba(198,161,91,.24);
+      --gold:#c6a15b;
+      --gold-soft:rgba(198,161,91,.12);
+      --cyan:#63d9ff;
+      --cyan-soft:rgba(99,217,255,.12);
+      --green:#49d391;
+      --amber:#f0b35a;
+      --red:#ea7474;
+      --text:#f4efe5;
+      --muted:rgba(244,239,229,.66);
+      --shadow:0 22px 70px rgba(0,0,0,.40);
+      --radius-sm:12px;
+      --radius-md:16px;
+      --radius-lg:22px;
+      --radius-xl:28px;
+      --topH:90px;
+      --leftW:280px;
+      --container:1720px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:Inter,system-ui,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+        linear-gradient(180deg, #091018 0%, #05080c 100%);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size:36px 36px;
+      opacity:.22;
+      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
+    }
+
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:var(--leftW) minmax(0,1fr);
+      grid-template-rows:var(--topH) auto;
+      grid-template-areas:
+        "top top"
+        "left main";
+      gap:14px;
+      padding:14px;
+      max-width:calc(var(--container) + 28px);
+      margin:0 auto;
+    }
+
+    .glass{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius-xl);
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .topbar{
+      grid-area:top;
+      display:grid;
+      grid-template-columns:minmax(280px, 420px) minmax(0,1fr) auto;
+      align-items:center;
+      gap:18px;
+      padding:16px 20px;
+      position:sticky;
+      top:14px;
+      z-index:20;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+
+    .brand-mark{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      flex:0 0 auto;
+      overflow:hidden;
+      border:1px solid var(--line-strong);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(198,161,91,.22), transparent 40%),
+        linear-gradient(180deg, rgba(198,161,91,.08), rgba(7,12,17,.92));
+      display:grid;
+      place-items:center;
+    }
+
+    .brand-mark img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .brand-copy{min-width:0}
+    .brand-kicker{
+      font-size:11px;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .brand-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(24px,2vw,36px);
+      letter-spacing:.08em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .doctrine{
+      text-align:center;
+      font-family:Cinzel,serif;
+      font-size:clamp(14px,1.35vw,22px);
+      letter-spacing:.16em;
+      color:#f2e6cf;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .top-pills{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:currentColor;
+      box-shadow:0 0 10px currentColor;
+      flex:0 0 auto;
+    }
+
+    .left{
+      grid-area:left;
+      display:flex;
+      flex-direction:column;
+      position:sticky;
+      top:118px;
+      height:calc(100vh - 132px);
+    }
+
+    .main{
+      grid-area:main;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+
+    .pane-head{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .pane-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#f3e8d0;
+      margin-bottom:6px;
+    }
+
+    .pane-sub{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .pane-body{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      padding:16px;
+    }
+
+    .nav-group + .nav-group{margin-top:18px}
+    .group-label{
+      margin:0 0 10px 4px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .nav-list{display:grid;gap:10px}
+    .nav-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      color:var(--text);
+      padding:14px 14px;
+      text-align:left;
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      transition:.16s ease;
+    }
+
+    .nav-btn:hover,.nav-btn.active{
+      border-color:rgba(198,161,91,.34);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.02));
+      transform:translateX(2px);
+    }
+
+    .nav-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 10px rgba(240,179,90,.8);
+      flex:0 0 auto;
+    }
+
+    .section-card{
+      margin-top:16px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+    }
+
+    .section-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:12px;
+    }
+
+    .small{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    .main-scroll{
+      display:grid;
+      gap:16px;
+      align-content:start;
+      min-width:0;
+    }
+
+    .hero{
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:24px;
+      display:grid;
+      gap:18px;
+    }
+
+    .hero-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .hero-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(28px,2.4vw,46px);
+      letter-spacing:.12em;
+      margin-bottom:8px;
+    }
+
+    .hero-copy{
+      font-size:16px;
+      line-height:1.72;
+      color:var(--text);
+      opacity:.94;
+      max-width:980px;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(99,217,255,.18);
+      background:rgba(99,217,255,.10);
+      color:#c9effb;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      white-space:nowrap;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      overflow:hidden;
+      min-width:0;
+    }
+
+    .span-3{grid-column:span 3}
+    .span-4{grid-column:span 4}
+    .span-5{grid-column:span 5}
+    .span-6{grid-column:span 6}
+    .span-7{grid-column:span 7}
+    .span-8{grid-column:span 8}
+    .span-12{grid-column:span 12}
+
+    .panel-head{
+      padding:16px 18px 10px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .panel-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .panel-sub{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .panel-body{padding:16px 18px 18px}
+
+    .big{
+      color:var(--cyan);
+      font-size:40px;
+      font-weight:800;
+      line-height:1;
+      margin-bottom:10px;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .bars{display:grid;gap:16px}
+    .bar-top{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:8px;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:#f3e8d0;
+    }
+
+    .track{
+      height:12px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+
+    .fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+      box-shadow:0 0 20px rgba(99,217,255,.18);
+    }
+
+    .console-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .console-cell{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+      min-height:112px;
+    }
+
+    .console-label{
+      font-size:11px;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .console-value{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:22px;
+      color:var(--cyan);
+      margin-bottom:8px;
+    }
+
+    .log{display:grid;gap:10px}
+    .log-item{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:12px;
+      font-size:13px;
+      line-height:1.55;
+    }
+
+    .log-meta{
+      font-family:"IBM Plex Mono",monospace;
+      color:var(--muted);
+      font-size:11px;
+      margin-bottom:6px;
+    }
+
+    .mini-chart{
+      display:grid;
+      gap:10px;
+    }
+
+    .mini-line{
+      height:140px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:
+        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(99,217,255,.08), rgba(255,255,255,.01));
+      background-size:100% 24px, 36px 100%, 100% 100%;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .mini-line svg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+    }
+
+    .tower{
+      display:grid;
+      gap:10px;
+    }
+
+    .tower-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+    }
+
+    .tower-card strong{
+      display:block;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .tower-card span{
+      display:block;
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .table{
+      display:grid;
+      gap:10px;
+    }
+
+    .table-row{
+      display:grid;
+      grid-template-columns:120px 1fr 100px;
+      gap:12px;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:12px;
+      font-size:13px;
+    }
+
+    .mono{
+      font-family:"IBM Plex Mono",monospace;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .status{
+      padding:8px 10px;
+      border-radius:999px;
+      text-align:center;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+
+    .status.green{color:var(--green)}
+    .status.amber{color:var(--amber)}
+    .status.red{color:var(--red)}
+
+    @media (max-width: 1280px){
+      .grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+      .span-3,.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:span 6}
+      .console-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (max-width: 1180px){
+      .left{position:static;height:auto}
+      .app{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto auto;
+        grid-template-areas:
+          "top"
+          "main"
+          "left";
+      }
+      .topbar{
+        position:static;
+        grid-template-columns:1fr;
+      }
+      .top-pills{justify-content:flex-start}
+    }
+
+    @media (max-width: 760px){
+      .app{padding:10px;gap:10px}
+      .topbar,.left,.main{border-radius:20px}
+      .grid{grid-template-columns:1fr}
+      .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 1}
+      .console-grid{grid-template-columns:1fr}
+      .doctrine{white-space:normal;text-align:left}
+      .brand-title{white-space:normal}
+      .table-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar glass">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
+        </div>
+        <div class="brand-copy">
+          <div class="brand-kicker">Rising Phoenix Enterprises</div>
+          <div class="brand-title">Phoenix Command Center</div>
+        </div>
+      </div>
+
+      <div class="doctrine">Console · Dense Telemetry · Command Visibility</div>
+
+      <div class="top-pills">
+        <div class="pill"><span class="dot" style="color:var(--green)"></span> Console Live</div>
+        <div class="pill"><span class="dot" style="color:var(--cyan)"></span> Boards Active</div>
+        <div class="pill"><span class="dot" style="color:var(--amber)"></span> Queue Visible</div>
+      </div>
+    </header>
+
+    <aside class="left glass">
+      <div class="pane-head">
+        <div class="pane-title">PCC Tower</div>
+        <div class="pane-sub">Dense dashboard and control-board lane under the PCC shell.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="nav-group">
+          <div class="group-label">Primary</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
+            <a class="nav-btn active" href="console.html"><span class="nav-dot"></span> Console</a>
+            <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
+            <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="group-label">Systems</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
+            <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
+            <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
+            <a class="nav-btn" href="financial.html"><span class="nav-dot"></span> Financial Tracking</a>
+            <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">Console Doctrine</div>
+          <div class="small">Console carries the dense dashboard burden so Command Floor can remain sovereign, ceremonial, and readable.</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main glass">
+      <div class="pane-head">
+        <div class="pane-title">Console Layer</div>
+        <div class="pane-sub">Queue telemetry, board states, operational graphs, command logs, and dense monitoring surfaces.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="main-scroll">
+          <section class="hero">
+            <div class="hero-top">
+              <div>
+                <div class="hero-title">Console</div>
+                <div class="hero-copy">
+                  This is the dense telemetry lane of PCC. Command Floor holds authority and overview. Console holds the heavier operational readouts, graphs, queue pressure, board cells, and command-monitoring surfaces.
+                </div>
+              </div>
+
+              <div class="pill"><span class="dot" style="color:var(--cyan)"></span> System Boards</div>
+            </div>
+          </section>
+
+          <section class="grid">
+            <div class="panel span-3">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">System Load</div>
+                  <div class="panel-sub">Current multi-lane pressure</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="big">74%</div>
+                <div class="muted">Operational strain across communication, media, and execution lanes.</div>
+              </div>
+            </div>
+
+            <div class="panel span-3">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Receipts Today</div>
+                  <div class="panel-sub">Command confirmations</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="big">162</div>
+                <div class="muted">Receipt-backed visibility across queue, voice, and registry lanes.</div>
+              </div>
+            </div>
+
+            <div class="panel span-3">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Voice Queue</div>
+                  <div class="panel-sub">Persona synthesis demand</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="big">19</div>
+                <div class="muted">Current pending voice requests across executives and staff.</div>
+              </div>
+            </div>
+
+            <div class="panel span-3">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Spider Ready</div>
+                  <div class="panel-sub">Outbound posture</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="big">88%</div>
+                <div class="muted">Media, render, and distribution surfaces remain near execution-ready.</div>
+              </div>
+            </div>
+
+            <div class="panel span-8">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Operations Matrix</div>
+                  <div class="panel-sub">Dashboard cells for dense telemetry reading.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="console-grid">
+                  <div class="console-cell">
+                    <div class="console-label">Command Lane</div>
+                    <div class="console-value">GREEN</div>
+                    <div class="muted">Core rails stable</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">Voice Engine</div>
+                    <div class="console-value">READY</div>
+                    <div class="muted">IDs mapped</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">War Room</div>
+                    <div class="console-value">LIVE</div>
+                    <div class="muted">Executive chamber</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">NHCE</div>
+                    <div class="console-value">63%</div>
+                    <div class="muted">Pressure elevated</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">PBRS</div>
+                    <div class="console-value">ACTIVE</div>
+                    <div class="muted">Snapshot corridor</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">PBB</div>
+                    <div class="console-value">STAGED</div>
+                    <div class="muted">Builder lane ready</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">PCC</div>
+                    <div class="console-value">LOCKED</div>
+                    <div class="muted">Shell doctrine intact</div>
+                  </div>
+                  <div class="console-cell">
+                    <div class="console-label">Queue</div>
+                    <div class="console-value">66</div>
+                    <div class="muted">Awaiting execution</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel span-4">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Executive Tower</div>
+                  <div class="panel-sub">Quick command awareness</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="tower">
+                  <div class="tower-card">
+                    <strong>NACE</strong>
+                    <span>Guide lane standing by for command-floor intake and explanation.</span>
+                  </div>
+                  <div class="tower-card">
+                    <strong>Chad</strong>
+                    <span>Execution posture active. Systems and routing intelligence aligned.</span>
+                  </div>
+                  <div class="tower-card">
+                    <strong>Alexis Vale</strong>
+                    <span>Governance oversight visible. Institutional continuity preserved.</span>
+                  </div>
+                  <div class="tower-card">
+                    <strong>Operator</strong>
+                    <span>Phone and support layer reserved for communication engine expansion.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel span-6">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Queue Pressure Graph</div>
+                  <div class="panel-sub">Visual load lane</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="bars">
+                  <div>
+                    <div class="bar-top"><span>Command Queue</span><span>71%</span></div>
+                    <div class="track"><div class="fill" style="width:71%"></div></div>
+                  </div>
+                  <div>
+                    <div class="bar-top"><span>Voice Queue</span><span>58%</span></div>
+                    <div class="track"><div class="fill" style="width:58%"></div></div>
+                  </div>
+                  <div>
+                    <div class="bar-top"><span>Media Queue</span><span>84%</span></div>
+                    <div class="track"><div class="fill" style="width:84%"></div></div>
+                  </div>
+                  <div>
+                    <div class="bar-top"><span>Registry Tasks</span><span>36%</span></div>
+                    <div class="track"><div class="fill" style="width:36%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel span-6">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Trend Surface</div>
+                  <div class="panel-sub">System pulse chart</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="mini-chart">
+                  <div class="mini-line">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <polyline
+                        fill="none"
+                        stroke="rgba(99,217,255,.95)"
+                        stroke-width="2.4"
+                        points="0,75 8,72 16,70 24,62 32,58 40,61 48,45 56,50 64,40 72,42 80,30 88,34 96,24 100,28"
+                      />
+                      <polyline
+                        fill="none"
+                        stroke="rgba(198,161,91,.85)"
+                        stroke-width="2"
+                        points="0,82 8,78 16,76 24,73 32,70 40,68 48,64 56,62 64,58 72,55 80,52 88,50 96,46 100,44"
+                      />
+                    </svg>
+                  </div>
+                  <div class="muted">Blue = command pulse. Gold = institutional load trend.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel span-12">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Queue Table</div>
+                  <div class="panel-sub">Execution-ready table lane</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="table">
+                  <div class="table-row">
+                    <div class="mono">Q-001</div>
+                    <div>PBRS snapshot delivery queue</div>
+                    <div class="status green">Ready</div>
+                  </div>
+                  <div class="table-row">
+                    <div class="mono">Q-002</div>
+                    <div>Spider outbound media render review</div>
+                    <div class="status amber">Queued</div>
+                  </div>
+                  <div class="table-row">
+                    <div class="mono">Q-003</div>
+                    <div>NACE greeting voice activation test</div>
+                    <div class="status amber">Pending</div>
+                  </div>
+                  <div class="table-row">
+                    <div class="mono">Q-004</div>
+                    <div>NHCE pressure threshold audit</div>
+                    <div class="status red">Review</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel span-12">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Console Log</div>
+                  <div class="panel-sub">Dense board-style log lane</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="log">
+                  <div class="log-item">
+                    <div class="log-meta">07:18 • PCC CORE</div>
+                    Console lane established as the dense telemetry and command-visibility page under the PCC shell.
+                  </div>
+                  <div class="log-item">
+                    <div class="log-meta">07:23 • VOICE GRID</div>
+                    Executive and staff voice architecture recognized as part of Communication Engine infrastructure.
+                  </div>
+                  <div class="log-item">
+                    <div class="log-meta">07:29 • WAR ROOM</div>
+                    Strategic chamber is now represented as a permanent tower lane, not an afterthought.
+                  </div>
+                  <div class="log-item">
+                    <div class="log-meta">07:35 • BUILD MODE</div>
+                    Multipage architecture selected to prevent overlap and compression failure in primary Command Floor.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html> 
