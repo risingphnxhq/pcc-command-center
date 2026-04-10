@@ -115,10 +115,7 @@
       letter-spacing:.08em;
     }
 
-    .brand-copy{
-      min-width:0;
-    }
-
+    .brand-copy{min-width:0}
     .brand-kicker{
       font-size:11px;
       letter-spacing:.24em;
@@ -417,11 +414,7 @@
       gap:14px;
     }
 
-    .bars{
-      display:grid;
-      gap:16px;
-    }
-
+    .bars{display:grid;gap:16px}
     .bar-item{display:grid;gap:8px}
     .bar-top{
       display:flex;
@@ -455,10 +448,7 @@
       box-shadow:0 0 20px rgba(99,217,255,.18);
     }
 
-    .tickler-list{
-      display:grid;
-      gap:12px;
-    }
+    .tickler-list{display:grid;gap:12px}
     .tickler{
       display:grid;
       grid-template-columns:auto 1fr;
@@ -656,9 +646,7 @@
     }
 
     @media (max-width: 1450px){
-      .app{
-        grid-template-columns:270px minmax(0,1fr) 340px;
-      }
+      .app{ grid-template-columns:270px minmax(0,1fr) 340px; }
     }
 
     @media (max-width: 1180px){
@@ -674,12 +662,10 @@
           "right"
           "left";
       }
-      .topbar{
-        grid-template-columns:1fr;
-      }
-      .top-pills{justify-content:flex-start}
-      .center-top{grid-template-columns:1fr}
-      .mid-grid{grid-template-columns:1fr}
+      .topbar{ grid-template-columns:1fr; }
+      .top-pills{ justify-content:flex-start; }
+      .center-top{ grid-template-columns:1fr; }
+      .mid-grid{ grid-template-columns:1fr; }
     }
 
     @media (max-width: 740px){
@@ -709,7 +695,7 @@
         </div>
       </div>
 
-      <div class="doctrine">Authority · Coordination · Voice Command · War Room</div>
+      <div class="doctrine">NASA × Wall Street · Sovereign Command Floor</div>
 
       <div class="top-pills">
         <div class="pill"><span class="dot" style="color:var(--green)"></span> Core Active</div>
@@ -721,7 +707,7 @@
     <aside class="left glass">
       <div class="pane-head">
         <div class="pane-title">Navigation</div>
-        <div class="pane-sub">Stable command lanes. No overlap. Full scroll containment. Executive and engine visibility.</div>
+        <div class="pane-sub">Stable command lanes. Executive visibility. No overlap. Full-shell control surface.</div>
       </div>
 
       <div class="pane-body">
@@ -776,7 +762,7 @@
 
         <div class="section-card">
           <div class="section-label">Build Doctrine</div>
-          <div class="pane-sub">Build once. Install full stack. Test each feature live. Lock after proof.</div>
+          <div class="pane-sub">Build once. Install full stack. Test live. Lock after proof.</div>
         </div>
       </div>
     </aside>
@@ -839,7 +825,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Performance Bars</div>
-                <div class="panel-sub">Visual command-floor metrics block.</div>
+                <div class="panel-sub">Telemetry-style load and readiness layer.</div>
               </div>
             </div>
 
@@ -910,7 +896,7 @@
                   <div class="tickler-dot"></div>
                   <div>
                     <div class="tickler-title">System Integrity</div>
-                    <div class="tickler-copy">Layout shell stabilized. No viewport cutoff on command-floor base build.</div>
+                    <div class="tickler-copy">Layout shell stabilized. No viewport collision on this command-floor build.</div>
                   </div>
                 </div>
               </div>
@@ -1009,7 +995,6 @@
   </div>
 
   <script>
-    // Replace this with your Cloudflare Worker URL
     const API_BASE = "https://YOUR-WORKER.your-subdomain.workers.dev";
 
     const voiceOutput = document.getElementById("voiceOutput");
