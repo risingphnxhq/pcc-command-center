@@ -87,17 +87,17 @@
       overflow:hidden;
     }
 
-    .topbar{
-      grid-area:top;
-      display:grid;
-      grid-template-columns:minmax(280px, 420px) minmax(0,1fr) auto;
-      align-items:center;
-      gap:18px;
-      padding:16px 20px;
-      position:sticky;
-      top:14px;
-      z-index:20;
-    }
+   .topbar{
+  grid-area:top;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:18px;
+  padding:16px 20px;
+  position:sticky;
+  top:14px;
+  z-index:20;
+} 
 
     .brand{
       display:flex;
@@ -127,7 +127,7 @@
       display:block;
     }
 
-    .brand-copy{min-width:0}
+    .brand-copy{min-width:0;flex:1;} 
     .brand-kicker{
       font-size:11px;
       letter-spacing:.24em;
