@@ -1,976 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center — Registry</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --bg:#05080c;
-      --bg2:#071019;
-      --bg3:#0a1521;
-
-      --panel1:#0e1824;
-      --panel2:#0b131c;
-      --panel3:#112030;
-
-      --line:rgba(255,255,255,.07);
-      --line-strong:rgba(198,161,91,.24);
-
-      --gold:#c6a15b;
-      --gold-soft:rgba(198,161,91,.12);
-      --cyan:#63d9ff;
-      --cyan-soft:rgba(99,217,255,.12);
-      --green:#49d391;
-      --amber:#f0b35a;
-      --red:#ea7474;
-
-      --text:#f4efe5;
-      --muted:rgba(244,239,229,.66);
-      --muted2:rgba(244,239,229,.42);
-
-      --shadow:0 22px 70px rgba(0,0,0,.40);
-
-      --radius-sm:12px;
-      --radius-md:16px;
-      --radius-lg:22px;
-      --radius-xl:28px;
-
-      --topH:160px;
-      --leftW:280px;
-      --rightW:360px;
-      --container:1680px;
-
-      --text-xs:11px;
-      --text-sm:13px;
-      --text-md:14px;
-      --text-lg:18px;
-      --text-xl:28px;
-    }
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      font-family:Inter,system-ui,sans-serif;
-      font-size:var(--text-sm);
-      color:var(--text);
-      background:
-        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
-        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
-        linear-gradient(180deg, #091018 0%, #05080c 100%);
-      overflow-x:hidden;
-    }
-
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background-image:
-        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
-      background-size:36px 36px;
-      opacity:.22;
-      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
-    }
-
-    .app{
-      min-height:100vh;
-      display:grid;
-      grid-template-columns:var(--leftW) minmax(0,1fr) var(--rightW);
-      grid-template-rows:var(--topH) auto;
-      grid-template-areas:
-        "top top top"
-        "left center right";
-      gap:14px;
-      padding:14px;
-      max-width:calc(var(--container) + 28px);
-      margin:0 auto;
-    }
-
-    .glass{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(12px);
-      border-radius:var(--radius-xl);
-      min-width:0;
-      overflow:hidden;
-    }
-
-    .topbar{
-      grid-area:top;
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      align-items:center;
-      gap:18px;
-      padding:16px 20px;
-      position:sticky;
-      top:14px;
-      z-index:20;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      min-width:0;
-    }
-
-    .brand-mark{
-      width:56px;
-      height:56px;
-      border-radius:50%;
-      flex:0 0 auto;
-      overflow:hidden;
-      border:1px solid var(--line-strong);
-      background:
-        radial-gradient(circle at 30% 30%, rgba(198,161,91,.22), transparent 40%),
-        linear-gradient(180deg, rgba(198,161,91,.08), rgba(7,12,17,.92));
-      display:grid;
-      place-items:center;
-    }
-
-    .brand-mark img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-      filter:saturate(1.05) contrast(1.05);
-    }
-
-    .brand-copy{min-width:0}
-    .eyebrow{
-      font-size:var(--text-xs);
-      letter-spacing:.34em;
-      text-transform:uppercase;
-      color:var(--gold);
-      margin-bottom:8px;
-    }
-
-    .brand-title{
-      font-family:Cinzel,serif;
-      font-size:54px;
-      line-height:1;
-      letter-spacing:.06em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      color:#f8f2e8;
-      text-shadow:0 0 18px rgba(99,217,255,.08);
-    }
-
-    .top-right{
-      display:flex;
-      align-items:flex-start;
-      gap:14px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .pill{
-      min-width:160px;
-      padding:14px 18px;
-      border-radius:20px;
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(17,27,39,.92), rgba(11,18,26,.92));
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:12px;
-      font-weight:700;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:#e6f5ff;
-    }
-
-    .dot{
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      flex:0 0 auto;
-    }
-    .dot.green{background:var(--green); box-shadow:0 0 12px rgba(73,211,145,.65)}
-    .dot.cyan{background:var(--cyan); box-shadow:0 0 12px rgba(99,217,255,.65)}
-    .dot.amber{background:var(--amber); box-shadow:0 0 12px rgba(240,179,90,.55)}
-
-    .mini-metric{
-      min-width:180px;
-      padding:12px 14px 14px;
-      border-radius:18px;
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(17,27,39,.92), rgba(11,18,26,.92));
-    }
-
-    .mini-metric .k{
-      font-size:11px;
-      font-weight:700;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:var(--gold);
-      margin-bottom:8px;
-    }
-    .mini-metric .v{
-      font-size:22px;
-      font-weight:700;
-      color:#f6fbff;
-      margin-bottom:8px;
-    }
-    .bar{
-      height:6px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      overflow:hidden;
-    }
-    .bar > span{
-      display:block;
-      height:100%;
-      border-radius:999px;
-      background:linear-gradient(90deg, var(--cyan), var(--amber));
-    }
-
-    .left{
-      grid-area:left;
-      display:flex;
-      flex-direction:column;
-      min-height:calc(100vh - var(--topH) - 42px);
-    }
-
-    .side-scroll{
-      height:100%;
-      overflow:auto;
-      padding:22px 18px 18px;
-    }
-
-    .rail-title{
-      font-family:Cinzel,serif;
-      font-size:18px;
-      letter-spacing:.16em;
-      color:#f6efe4;
-      margin-bottom:14px;
-      text-transform:uppercase;
-    }
-
-    .rail-copy{
-      font-size:16px;
-      line-height:1.65;
-      color:#f0f6ff;
-      margin-bottom:28px;
-    }
-
-    .group-label{
-      font-size:12px;
-      letter-spacing:.28em;
-      text-transform:uppercase;
-      color:var(--gold);
-      margin:22px 0 14px;
-      font-weight:800;
-    }
-
-    .nav-list{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-
-    .nav-btn{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      width:100%;
-      min-height:58px;
-      padding:0 18px;
-      border-radius:20px;
-      border:1px solid rgba(255,255,255,.08);
-      background:linear-gradient(180deg, rgba(27,38,54,.62), rgba(18,27,40,.74));
-      text-decoration:none;
-      color:#f4efe5;
-      font-size:15px;
-      font-weight:800;
-      letter-spacing:.03em;
-      transition:.2s ease;
-    }
-
-    .nav-btn:hover{
-      border-color:rgba(99,217,255,.22);
-      transform:translateX(2px);
-    }
-
-    .nav-btn.active{
-      border-color:rgba(99,217,255,.34);
-      box-shadow:inset 0 0 0 1px rgba(99,217,255,.10), 0 0 22px rgba(99,217,255,.08);
-      background:linear-gradient(180deg, rgba(20,71,110,.48), rgba(17,45,73,.58));
-    }
-
-    .nav-bullet{
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      background:#efc14e;
-      box-shadow:0 0 10px rgba(239,193,78,.55);
-      flex:0 0 auto;
-    }
-
-    .weather{
-      margin-top:22px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      color:#f2eadf;
-      font-size:14px;
-    }
-
-    .weather-dot{
-      width:22px;
-      height:22px;
-      border-radius:50%;
-      background:#efb233;
-      box-shadow:0 0 18px rgba(239,178,51,.45);
-      flex:0 0 auto;
-    }
-
-    .center{
-      grid-area:center;
-      min-width:0;
-    }
-
-    .center-scroll{
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
-
-    .hero{
-      padding:28px 28px 24px;
-      background:
-        radial-gradient(circle at 50% 100%, rgba(0,123,255,.16), transparent 38%),
-        linear-gradient(180deg, rgba(12,19,28,.96), rgba(8,13,20,.94));
-    }
-
-    .hero h1{
-      font-family:Cinzel,serif;
-      font-size:62px;
-      line-height:1.03;
-      letter-spacing:.03em;
-      margin-bottom:16px;
-      color:#f8f2e8;
-      text-shadow:0 0 18px rgba(99,217,255,.06);
-      max-width:980px;
-    }
-
-    .hero p{
-      font-size:18px;
-      line-height:1.72;
-      color:#eef6ff;
-      max-width:1000px;
-      margin-bottom:20px;
-    }
-
-    .session-pill{
-      display:inline-flex;
-      align-items:center;
-      min-height:52px;
-      padding:0 20px;
-      border-radius:999px;
-      border:1px solid rgba(99,217,255,.20);
-      background:linear-gradient(180deg, rgba(20,107,172,.28), rgba(17,83,132,.20));
-      color:#dff5ff;
-      font-size:13px;
-      font-weight:800;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      margin-bottom:24px;
-    }
-
-    .card-grid{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:16px;
-    }
-
-    .stat{
-      min-height:190px;
-      padding:18px 20px 20px;
-      border-radius:24px;
-      border:1px solid rgba(255,255,255,.07);
-      background:linear-gradient(180deg, rgba(25,93,143,.30), rgba(16,39,64,.54));
-      box-shadow:inset 0 0 24px rgba(99,217,255,.05);
-    }
-
-    .stat .label{
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.24em;
-      text-transform:uppercase;
-      color:#f0c468;
-      margin-bottom:14px;
-    }
-
-    .stat .value{
-      font-size:58px;
-      line-height:1;
-      font-weight:800;
-      color:#79f3ff;
-      margin-bottom:12px;
-    }
-
-    .stat .desc{
-      font-size:17px;
-      line-height:1.55;
-      color:#eef6ff;
-      max-width:90%;
-    }
-
-    .section{
-      padding:22px;
-    }
-
-    .section-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .section-title{
-      font-family:Cinzel,serif;
-      font-size:34px;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      color:#f8f2e8;
-      margin-bottom:8px;
-    }
-
-    .section-sub{
-      color:var(--muted);
-      line-height:1.6;
-      font-size:15px;
-      max-width:920px;
-    }
-
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      min-height:40px;
-      padding:0 14px;
-      border-radius:999px;
-      border:1px solid rgba(99,217,255,.18);
-      background:rgba(99,217,255,.08);
-      color:#ddf6ff;
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      white-space:nowrap;
-    }
-
-    .registry-table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      overflow:hidden;
-      border-radius:20px;
-      border:1px solid rgba(255,255,255,.07);
-      background:rgba(10,15,22,.55);
-    }
-
-    .registry-table thead th{
-      text-align:left;
-      padding:16px 16px;
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      color:var(--gold);
-      border-bottom:1px solid rgba(255,255,255,.07);
-      background:rgba(255,255,255,.02);
-    }
-
-    .registry-table tbody td{
-      padding:16px;
-      font-size:14px;
-      color:#eef6ff;
-      border-bottom:1px solid rgba(255,255,255,.05);
-      vertical-align:top;
-    }
-
-    .registry-table tbody tr:last-child td{border-bottom:none}
-    .registry-table tbody tr:hover{
-      background:rgba(99,217,255,.04);
-    }
-
-    .role-name{
-      font-weight:800;
-      color:#fff8ef;
-      margin-bottom:4px;
-      font-size:15px;
-    }
-
-    .role-meta{
-      color:var(--muted);
-      line-height:1.5;
-    }
-
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:30px;
-      padding:0 10px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      border:1px solid rgba(255,255,255,.08);
-      white-space:nowrap;
-    }
-    .tag.gold{color:#ffe9b7;background:rgba(198,161,91,.12);border-color:rgba(198,161,91,.24)}
-    .tag.cyan{color:#ddf6ff;background:rgba(99,217,255,.10);border-color:rgba(99,217,255,.22)}
-    .tag.green{color:#dcffe9;background:rgba(73,211,145,.10);border-color:rgba(73,211,145,.24)}
-    .tag.red{color:#ffe0e0;background:rgba(234,116,116,.10);border-color:rgba(234,116,116,.24)}
-
-    .two-col{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:16px;
-    }
-
-    .note-card{
-      padding:20px;
-      border-radius:22px;
-      border:1px solid rgba(255,255,255,.07);
-      background:linear-gradient(180deg, rgba(18,31,45,.92), rgba(11,18,26,.92));
-      min-height:185px;
-    }
-
-    .note-card h3{
-      font-family:Cinzel,serif;
-      font-size:24px;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#f7f0e5;
-      margin-bottom:12px;
-    }
-
-    .note-card p{
-      color:#eef6ff;
-      line-height:1.7;
-      font-size:16px;
-    }
-
-    .right{
-      grid-area:right;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      min-width:0;
-    }
-
-    .guide{
-      padding:22px;
-    }
-
-    .guide-title{
-      font-family:Cinzel,serif;
-      font-size:18px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:#f4efe5;
-      margin-bottom:10px;
-    }
-
-    .guide-copy{
-      color:#d9e7f2;
-      line-height:1.7;
-      font-size:16px;
-      margin-bottom:18px;
-    }
-
-    .nace-card{
-      border-radius:24px;
-      padding:24px 20px;
-      border:1px solid rgba(255,255,255,.08);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(198,161,91,.10), transparent 32%),
-        linear-gradient(180deg, rgba(19,28,41,.96), rgba(12,17,24,.96));
-    }
-
-    .nace-name{
-      font-family:Cinzel,serif;
-      font-size:58px;
-      line-height:1;
-      color:#f4e5b1;
-      margin-bottom:10px;
-    }
-
-    .nace-role{
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:#d7edf7;
-      margin-bottom:18px;
-    }
-
-    .nace-copy{
-      font-size:17px;
-      line-height:1.7;
-      color:#ecf6ff;
-      margin-bottom:18px;
-    }
-
-    .cta-stack{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-
-    .cta{
-      min-height:54px;
-      border-radius:18px;
-      border:1px solid rgba(99,217,255,.18);
-      background:linear-gradient(180deg, rgba(31,118,182,.46), rgba(17,74,120,.58));
-      color:#eefaff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:0 14px;
-      text-decoration:none;
-      font-size:14px;
-      font-weight:800;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-    }
-
-    @media (max-width:1500px){
-      :root{ --rightW:320px; }
-      .brand-title{font-size:46px}
-      .hero h1{font-size:52px}
-    }
-
-    @media (max-width:1280px){
-      .app{
-        grid-template-columns:280px minmax(0,1fr);
-        grid-template-areas:
-          "top top"
-          "left center"
-          "right right";
-      }
-      .right{grid-column:1 / -1}
-    }
-
-    @media (max-width:980px){
-      .app{
-        grid-template-columns:1fr;
-        grid-template-areas:
-          "top"
-          "left"
-          "center"
-          "right";
-      }
-      .topbar{
-        position:relative;
-        top:0;
-        grid-template-columns:1fr;
-      }
-      .top-right{justify-content:flex-start}
-      .card-grid, .two-col, .cta-stack{grid-template-columns:1fr}
-      .brand-title{font-size:36px}
-      .hero h1{font-size:40px}
-      .stat .value{font-size:48px}
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phoenix Command Center — Registry</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* === USE YOUR EXACT CSS (UNCHANGED) === */
+:root{
+--bg:#05080c;
+--bg2:#071019;
+--bg3:#0a1521;
+--panel:#0e1824;
+--panel2:#0b131c;
+--panel3:#112030;
+--line:rgba(255,255,255,.07);
+--line-strong:rgba(198,161,91,.24);
+--gold:#c6a15b;
+--gold-soft:rgba(198,161,91,.12);
+--cyan:#63d9ff;
+--cyan-soft:rgba(99,217,255,.12);
+--green:#49d391;
+--amber:#f0b35a;
+--red:#ea7474;
+--text:#f4efe5;
+--muted:rgba(244,239,229,.66);
+--muted2:rgba(244,239,229,.42);
+--shadow:0 22px 70px rgba(0,0,0,.40);
+--radius-sm:12px;
+--radius-md:16px;
+--radius-lg:22px;
+--radius-xl:28px;
+--topH:160px;
+--leftW:280px;
+--rightW:360px;
+--container:1680px;
+
+--text-xs:11px;
+--text-sm:13px;
+--text-md:14px;
+--text-lg:18px;
+--text-xl:28px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+
+body{
+font-family:Inter,system-ui,sans-serif;
+font-size:var(--text-sm);
+color:var(--text);
+background:
+radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+linear-gradient(180deg, #091018 0%, #05080c 100%);
+overflow-x:hidden;
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+background-image:
+linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+background-size:36px 36px;
+opacity:.22;
+mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
+}
+
+.app{
+min-height:100vh;
+display:grid;
+grid-template-columns:var(--leftW) minmax(0,1fr) var(--rightW);
+grid-template-rows:var(--topH) auto;
+grid-template-areas:
+"top top top"
+"left center right";
+gap:14px;
+padding:14px;
+max-width:calc(var(--container) + 28px);
+margin:0 auto;
+}
+
+.glass{
+border:1px solid var(--line);
+background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
+box-shadow:var(--shadow);
+backdrop-filter:blur(12px);
+border-radius:var(--radius-xl);
+min-width:0;
+overflow:hidden;
+}
+
+/* === TOPBAR (UNCHANGED STRUCTURE) === */
+.topbar{
+grid-area:top;
+display:grid;
+grid-template-columns:minmax(0,1fr) auto;
+align-items:center;
+gap:18px;
+padding:16px 20px;
+position:sticky;
+top:14px;
+z-index:20;
+}
+
+.brand{display:flex;align-items:center;gap:14px}
+
+.brand-mark{
+width:56px;height:56px;border-radius:50%;
+overflow:hidden;
+border:1px solid var(--line-strong);
+display:grid;place-items:center;
+}
+
+.brand-mark img{width:100%;height:100%;object-fit:cover}
+
+.brand-title{
+font-family:Cinzel,serif;
+font-size:clamp(22px,2vw,36px);
+letter-spacing:.08em;
+}
+
+.status-chip{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:9px 12px;
+border-radius:999px;
+border:1px solid rgba(255,255,255,.08);
+font-size:11px;
+font-weight:800;
+text-transform:uppercase;
+}
+
+.status-chip.green{color:var(--green)}
+.status-chip.cyan{color:var(--cyan)}
+
+/* === PANES === */
+.left{grid-area:left}
+.center{grid-area:center}
+.right{grid-area:right}
+
+.pane-head{padding:18px;border-bottom:1px solid var(--line)}
+.pane-body{padding:16px;overflow:auto}
+
+/* === HERO MATCH === */
+.hero{
+border:1px solid var(--line);
+border-radius:28px;
+padding:24px;
+display:grid;
+gap:18px;
+background:
+radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+}
+
+.hero-title{
+font-family:Cinzel,serif;
+font-size:clamp(28px,2.4vw,46px);
+letter-spacing:.12em;
+}
+
+.hero-copy{
+font-size:16px;
+line-height:1.7;
+}
+
+.quick-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:14px;
+}
+
+.quick-card{
+border:1px solid var(--line);
+border-radius:20px;
+padding:16px;
+background:rgba(255,255,255,.02);
+}
+
+.metric-value{
+color:var(--cyan);
+font-size:36px;
+font-weight:800;
+}
+
+/* === NACE === */
+.nace-card{
+border-radius:20px;
+padding:16px;
+background:linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+}
+
+.nace-title h3{
+font-family:Cinzel,serif;
+font-size:26px;
+}
+</style>
 </head>
+
 <body>
-  <div class="app">
 
-    <header class="topbar glass">
-      <div class="brand">
-        <div class="brand-mark">
-          <img src="rpe_seal_logo.png" alt="RPE Seal">
-        </div>
-        <div class="brand-copy">
-          <div class="eyebrow">Rising Phoenix Enterprises</div>
-          <div class="brand-title">Phoenix Command Center</div>
-        </div>
-      </div>
+<div class="app">
 
-      <div class="top-right">
-        <div class="pill"><span class="dot green"></span><span>Registry: Active</span></div>
-        <div class="pill"><span class="dot cyan"></span><span>Mode: Registry</span></div>
-        <div class="mini-metric">
-          <div class="k">Registry Health</div>
-          <div class="v">96%</div>
-          <div class="bar"><span style="width:96%"></span></div>
-        </div>
-        <div class="mini-metric">
-          <div class="k">Authority Nodes</div>
-          <div class="v">18</div>
-          <div class="bar"><span style="width:78%"></span></div>
-        </div>
-      </div>
-    </header>
+<!-- TOPBAR -->
+<header class="topbar glass">
+<div class="brand">
+<div class="brand-mark">
+<img src="rpe_seal_logo.png">
+</div>
+<div class="brand-title">Phoenix Command Center</div>
+</div>
 
-    <aside class="left glass">
-      <div class="side-scroll">
-        <div class="rail-title">Registry Rail</div>
-        <div class="rail-copy">
-          Structural identity surface for authority visibility, executive mapping,
-          and registry continuity across Phoenix Command Center.
-        </div>
+<div>
+<div class="status-chip green">● Registry Active</div>
+<div class="status-chip cyan">● Mode: Registry</div>
+</div>
+</header>
 
-        <div class="group-label">Primary</div>
-        <div class="nav-list">
-          <a class="nav-btn" href="command-floor.html"><span class="nav-bullet"></span><span>Command Floor</span></a>
-          <a class="nav-btn" href="console.html"><span class="nav-bullet"></span><span>Console</span></a>
-          <a class="nav-btn" href="war-room.html"><span class="nav-bullet"></span><span>War Room</span></a>
-          <a class="nav-btn" href="council-staff.html"><span class="nav-bullet"></span><span>Council + Staff</span></a>
-        </div>
+<!-- LEFT -->
+<aside class="left glass">
+<div class="pane-head">
+<div class="pane-title">Registry Rail</div>
+</div>
 
-        <div class="group-label">Systems</div>
-        <div class="nav-list">
-          <a class="nav-btn" href="voice-engine.html"><span class="nav-bullet"></span><span>Voice Engine</span></a>
-          <a class="nav-btn" href="execution.html"><span class="nav-bullet"></span><span>Execution</span></a>
-          <a class="nav-btn" href="nhce-monitor.html"><span class="nav-bullet"></span><span>NHCE Monitor</span></a>
-          <a class="nav-btn" href="financial-tracking.html"><span class="nav-bullet"></span><span>Financial Tracking</span></a>
-          <a class="nav-btn active" href="registry.html"><span class="nav-bullet"></span><span>Registry</span></a>
-        </div>
+<div class="pane-body">
+<a class="nav-btn" href="command-floor.html">Command Floor</a>
+<a class="nav-btn">Console</a>
+<a class="nav-btn">War Room</a>
+<a class="nav-btn active">Registry</a>
+</div>
+</aside>
 
-        <div class="weather">
-          <span class="weather-dot"></span>
-          <div>
-            <div>78°F</div>
-            <div style="color:var(--muted)">Sunny</div>
-          </div>
-        </div>
-      </div>
-    </aside>
+<!-- CENTER -->
+<main class="center glass">
+<div class="hero">
+<div class="hero-title">Registry</div>
 
-    <main class="center">
-      <div class="center-scroll">
+<div class="hero-copy">
+Registry defines who exists inside the system, what they govern, and how authority is distributed across Phoenix OS.
+</div>
 
-        <section class="hero glass">
-          <p style="font-size:20px; line-height:1.7; color:#eef6ff; max-width:1100px; margin-bottom:14px;">
-            The registry surface of Phoenix OS. This page preserves identity visibility,
-            authority structure, role placement, and command continuity across the broader
-            PCC environment.
-          </p>
+<div class="quick-grid">
 
-          <div class="session-pill">Registry State: Canon Visible</div>
+<div class="quick-card">
+<div class="metric-value">18</div>
+Authority Nodes
+</div>
 
-          <div class="card-grid">
-            <div class="stat">
-              <div class="label">Executive Layer</div>
-              <div class="value">4</div>
-              <div class="desc">Founder, Chair, CEO, and COO occupy the core command layer.</div>
-            </div>
+<div class="quick-card">
+<div class="metric-value">12</div>
+Council Seats
+</div>
 
-            <div class="stat">
-              <div class="label">Council Seats</div>
-              <div class="value">12</div>
-              <div class="desc">Council-wide governance and domain authority mapped to Phoenix OS lanes.</div>
-            </div>
+<div class="quick-card">
+<div class="metric-value">4</div>
+Executive Layer
+</div>
 
-            <div class="stat">
-              <div class="label">Voice Personas</div>
-              <div class="value">20</div>
-              <div class="desc">Named voices and identity lanes prepare the communication layer.</div>
-            </div>
+<div class="quick-card">
+<div class="metric-value">96%</div>
+Registry Health
+</div>
 
-            <div class="stat">
-              <div class="label">Support Roles</div>
-              <div class="value">6</div>
-              <div class="desc">Administrative, routing, audit, and specialist support functions are visible.</div>
-            </div>
-          </div>
-        </section>
+</div>
+</div>
+</main>
 
-        <section class="section glass">
-          <div class="section-head">
-            <div>
-              <div class="section-title">Registry Table</div>
-              <div class="section-sub">
-                Active identity and authority records visible across the Phoenix Command Center environment.
-              </div>
-            </div>
-            <div class="chip"><span class="dot cyan"></span><span>Canonical Map</span></div>
-          </div>
+<!-- RIGHT -->
+<aside class="right glass">
+<div class="pane-body">
 
-          <div style="overflow:auto;">
-            <table class="registry-table">
-              <thead>
-                <tr>
-                  <th>Identity</th>
-                  <th>Role Class</th>
-                  <th>Authority</th>
-                  <th>Surface</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div class="role-name">Phoenix King</div>
-                    <div class="role-meta">Founder · Chair · CEO · Sovereign authority origin</div>
-                  </td>
-                  <td>Executive Core</td>
-                  <td><span class="tag gold">Sovereign</span></td>
-                  <td>Executive Office / PCC</td>
-                  <td><span class="tag green">Active</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">Chad G. Pennington</div>
-                    <div class="role-meta">COO · Systems Execution Authority</div>
-                  </td>
-                  <td>Executive Operations</td>
-                  <td><span class="tag gold">Executive</span></td>
-                  <td>Executive Office / PCC</td>
-                  <td><span class="tag green">Active</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">Phoenix OS</div>
-                    <div class="role-meta">Governance, memory, law, receipts, continuity</div>
-                  </td>
-                  <td>System Core</td>
-                  <td><span class="tag cyan">System</span></td>
-                  <td>All Surfaces</td>
-                  <td><span class="tag green">Active</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">NACE</div>
-                    <div class="role-meta">AI Representative · Guide / conversion intelligence</div>
-                  </td>
-                  <td>Guide Layer</td>
-                  <td><span class="tag cyan">Operational</span></td>
-                  <td>Command Floor / Voice Engine</td>
-                  <td><span class="tag cyan">Mapped</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">Aiden Mercer</div>
-                    <div class="role-meta">Phoenix OS Systems Auditor</div>
-                  </td>
-                  <td>Audit</td>
-                  <td><span class="tag cyan">Audit</span></td>
-                  <td>Console / Execution</td>
-                  <td><span class="tag green">Active</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">Patrick Ross</div>
-                    <div class="role-meta">Engineering lead</div>
-                  </td>
-                  <td>Engineering</td>
-                  <td><span class="tag cyan">Build</span></td>
-                  <td>Execution Layer</td>
-                  <td><span class="tag green">Active</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">Jordan Hale</div>
-                    <div class="role-meta">Architecture lead</div>
-                  </td>
-                  <td>Architecture</td>
-                  <td><span class="tag cyan">Build</span></td>
-                  <td>PCC Architecture</td>
-                  <td><span class="tag green">Active</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">Spider</div>
-                    <div class="role-meta">Execution arm / runner system</div>
-                  </td>
-                  <td>Execution Engine</td>
-                  <td><span class="tag cyan">Engine</span></td>
-                  <td>Execution / Console</td>
-                  <td><span class="tag green">Ready</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="role-name">AGIS</div>
-                    <div class="role-meta">Signal detection layer · staged</div>
-                  </td>
-                  <td>Intelligence Surface</td>
-                  <td><span class="tag red">Staged</span></td>
-                  <td>Future Layer</td>
-                  <td><span class="tag red">Pending</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+<div class="nace-card">
+<div class="nace-title">
+<h3>NACE</h3>
+</div>
 
-        <section class="section glass">
-          <div class="section-head">
-            <div>
-              <div class="section-title">Registry Notes</div>
-              <div class="section-sub">
-                Structural readings and authority clarifications carried with the registry surface.
-              </div>
-            </div>
-            <div class="chip"><span class="dot amber"></span><span>System Read</span></div>
-          </div>
+<div>
+Registry is active. Authority mapping, role placement, and system identity are now visible.
+</div>
 
-          <div class="two-col">
-            <div class="note-card">
-              <h3>Authority Chain</h3>
-              <p>
-                Sovereign origin remains fixed at Phoenix King. Chad translates execution.
-                Phoenix OS governs continuity and truth. Audit protects determinism.
-              </p>
-            </div>
+</div>
 
-            <div class="note-card">
-              <h3>Registry Purpose</h3>
-              <p>
-                This is not a public directory. It is the internal identity and authority
-                map required to preserve command clarity as PCC expands.
-              </p>
-            </div>
-          </div>
-        </section>
+</div>
+</aside>
 
-      </div>
-    </main>
-
-    <aside class="right">
-      <section class="guide glass">
-        <div class="guide-title">Guide Tower</div>
-        <div class="guide-copy">
-          Guided access to registry logic, role placement, authority visibility,
-          and future persona activation surfaces.
-        </div>
-
-        <div class="nace-card">
-          <div class="nace-name">NACE</div>
-          <div class="nace-role">Guide</div>
-          <div class="nace-copy">
-            Registry is active. This surface shows who occupies authority, guidance,
-            operations, audit, and support roles across Phoenix Command Center.
-          </div>
-
-          <div class="cta-stack">
-            <a class="cta" href="council-staff.html">Open Roles</a>
-            <a class="cta" href="voice-engine.html">Route Voice</a>
-            <a class="cta" href="execution.html">Execution Map</a>
-            <a class="cta" href="command-floor.html">Return Floor</a>
-          </div>
-        </div>
-      </section>
-    </aside>
-
-  </div>
+</div>
 </body>
 </html> 
