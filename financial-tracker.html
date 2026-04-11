@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phoenix Command Center — Financial Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+  --bg:#05080c;
+  --bg2:#071019;
+  --bg3:#0a1521;
+  --panel:#0e1824;
+  --panel2:#0b131c;
+  --panel3:#112030;
+  --line:rgba(255,255,255,.07);
+  --line-strong:rgba(198,161,91,.24);
+  --gold:#c6a15b;
+  --gold-soft:rgba(198,161,91,.12);
+  --cyan:#63d9ff;
+  --cyan-soft:rgba(99,217,255,.12);
+  --green:#49d391;
+  --amber:#f0b35a;
+  --red:#ea7474;
+  --text:#f4efe5;
+  --muted:rgba(244,239,229,.66);
+  --muted2:rgba(244,239,229,.42);
+  --shadow:0 22px 70px rgba(0,0,0,.40);
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:22px;
+  --radius-xl:28px;
+  --topH:160px;
+  --leftW:280px;
+  --rightW:360px;
+  --container:1680px;
+
+  /* Typography Scale */
+  --text-xs:11px;
+  --text-sm:13px;
+  --text-md:14px;
+  --text-lg:18px;
+  --text-xl:28px;
+}
+
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+  font-family:Inter,system-ui,sans-serif;
+  font-size:var(--text-sm);
+
+  color:var(--text);
+
+  background:
+    radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+    radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+    linear-gradient(180deg, #091018 0%, #05080c 100%);
+
+  overflow-x:hidden;
+}
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size:36px 36px;
+      opacity:.22;
+      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
+    }
+
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:var(--leftW) minmax(0,1fr) var(--rightW);
+      grid-template-rows:var(--topH) auto;
+      grid-template-areas:
+        "top top top"
+        "left center right";
+      gap:14px;
+      padding:14px;
+      max-width:calc(var(--container) + 28px);
+      margin:0 auto;
+    }
+
+    .glass{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius-xl);
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .topbar{
+      grid-area:top;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:18px;
+      padding:16px 20px;
+      position:sticky;
+      top:14px;
+      z-index:20;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+
+    .brand-mark{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      flex:0 0 auto;
+      overflow:hidden;
+      border:1px solid var(--line-strong);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(198,161,91,.22), transparent 40%),
+        linear-gradient(180deg, rgba(198,161,91,.08), rgba(7,12,17,.92));
+      display:grid;
+      place-items:center;
+    }
+
+    .brand-mark img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .brand-copy{
+      min-width:0;
+      flex:1;
+    }
+
+    .brand-kicker{
+      font-size:11px;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .brand-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(22px,2vw,36px);
+      letter-spacing:.08em;
+      white-space:nowrap;
+    }
+
+    .topbar-right{
+      display:grid;
+      gap:10px;
+      justify-items:end;
+      min-width:0;
+    }
+
+    .top-status-rail{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
+      min-width:0;
+    }
+
+    .status-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .status-chip .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:currentColor;
+      box-shadow:0 0 10px currentColor;
+      flex:0 0 auto;
+    }
+
+    .status-chip.green{color:var(--green)}
+    .status-chip.cyan{color:var(--cyan)}
+    .status-chip.amber{color:var(--amber)}
+    .status-chip.red{color:var(--red)}
+
+    .top-microbars{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(120px, 1fr));
+      gap:10px;
+      width:min(460px, 100%);
+    }
+
+    .micro-card{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+      padding:10px 12px;
+      min-width:0;
+    }
+
+    .micro-label{
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+
+    .micro-value{
+      font-family:"IBM Plex Mono", monospace;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .micro-track{
+      height:8px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+
+    .micro-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+    }
+
+    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+    .center{grid-area:center;display:flex;flex-direction:column;min-width:0}
+    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+
+    .pane-head{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .pane-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#f3e8d0;
+      margin-bottom:6px;
+    }
+
+    .pane-sub{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .pane-body{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+  padding:16px 30px 16px 16px;
+  scrollbar-gutter: stable;
+}
+
+    .nav-group + .nav-group{margin-top:18px}
+    .group-label{
+      margin:0 0 10px 4px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .nav-list{display:grid;gap:10px}
+    .nav-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      color:var(--text);
+      padding:14px 14px;
+      text-align:left;
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      transition:.16s ease;
+    }
+
+    .nav-btn:hover,.nav-btn.active{
+      border-color:rgba(198,161,91,.34);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.02));
+      transform:translateX(2px);
+    }
+
+    .nav-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 10px rgba(240,179,90,.8);
+      flex:0 0 auto;
+    }
+
+    .section-card{
+      margin-top:16px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+    }
+
+    .section-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:12px;
+    }
+
+    .persona-list{display:grid;gap:10px}
+    .persona-item{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .persona-name{font-weight:800;font-size:15px}
+    .persona-role{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-top:3px;
+    }
+
+    .tag{
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .center-scroll{
+      display:grid;
+      gap:16px;
+      align-content:start;
+      min-width:0;
+    }
+
+    .hero{
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:24px;
+      display:grid;
+      gap:18px;
+    }
+
+    .hero-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(28px,2.4vw,46px);
+      letter-spacing:.12em;
+      margin-bottom:8px;
+    }
+
+    .hero-copy{
+      font-size:16px;
+      line-height:1.72;
+      color:var(--text);
+      opacity:.94;
+      max-width:980px;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(99,217,255,.18);
+      background:rgba(99,217,255,.10);
+      color:#c9effb;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      white-space:nowrap;
+      width:max-content;
+    }
+
+    .quick-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .quick-card{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      padding:16px;
+      min-width:0;
+    }
+
+    .metric-label{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      margin-bottom:10px;
+    }
+
+    .metric-value{
+      color:var(--cyan);
+      font-size:clamp(30px,2.2vw,42px);
+      line-height:1;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .metric-note{
+      font-size:15px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.9;
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      overflow:hidden;
+    }
+
+    .panel-head{
+      padding:16px 18px 10px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .panel-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .panel-sub{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .panel-body{padding:16px 18px 18px}
+
+    .ticker-shell{
+      overflow:hidden;
+      border:1px solid rgba(198,161,91,.18);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.015));
+      border-radius:18px;
+    }
+
+    .ticker{
+      display:flex;
+      gap:34px;
+      align-items:center;
+      white-space:nowrap;
+      padding:14px 18px;
+      width:max-content;
+      animation:tickerMove 30s linear infinite;
+    }
+
+    @keyframes tickerMove{
+      from{transform:translateX(0)}
+      to{transform:translateX(-50%)}
+    }
+
+    .ticker-item{
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:#f3e8d0;
+    }
+
+    .receipt-feed{display:grid;gap:12px}
+    .receipt-row{
+      display:grid;
+      grid-template-columns:78px 150px 1fr;
+      gap:12px;
+      align-items:start;
+      border-radius:16px;
+      border:1px solid rgba(99,217,255,.14);
+      background:linear-gradient(180deg, rgba(99,217,255,.09), rgba(99,217,255,.03));
+      padding:14px;
+      min-width:0;
+    }
+
+    .receipt-time{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .receipt-lane{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    .receipt-copy{
+      font-size:14px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.92;
+    }
+
+    .grid-two{
+      display:grid;
+      grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);
+      gap:16px;
+    }
+
+    .bars{display:grid;gap:16px}
+    .bar-item{display:grid;gap:8px}
+    .bar-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      font-size:13px;
+    }
+    .bar-label{
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:#f3e8d0;
+    }
+    .bar-value{
+      font-family:"IBM Plex Mono",monospace;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .bar-track{
+      height:12px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+      box-shadow:0 0 20px rgba(99,217,255,.18);
+    }
+
+    .tickler-list{display:grid;gap:12px}
+    .tickler{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:12px;
+      align-items:start;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      padding:14px;
+    }
+
+    .tickler-dot{
+      width:10px;height:10px;border-radius:50%;
+      margin-top:5px;
+      background:var(--amber);
+      box-shadow:0 0 12px rgba(240,179,90,.7);
+    }
+    .tickler.red .tickler-dot{background:var(--red);box-shadow:0 0 12px rgba(234,116,116,.75)}
+    .tickler.green .tickler-dot{background:var(--green);box-shadow:0 0 12px rgba(73,211,145,.75)}
+
+    .tickler-title{
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .tickler-copy{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .command-shell{
+      border:1px solid rgba(99,217,255,.16);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      overflow:hidden;
+    }
+
+    .command-head{
+      padding:18px 18px 10px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .command-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(26px,2vw,40px);
+      letter-spacing:.12em;
+      margin-bottom:6px;
+    }
+
+    .command-status{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(99,217,255,.18);
+      background:rgba(99,217,255,.11);
+      color:#c9effb;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      white-space:nowrap;
+    }
+
+    .command-copy{
+      min-height:140px;
+      padding:0 18px 16px;
+      font-size:16px;
+      line-height:1.72;
+      color:var(--text);
+      opacity:.95;
+    }
+
+    .command-wrap{
+      padding:0 18px 18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .command-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:12px;
+    }
+
+    .command-input{
+      min-height:76px;
+      resize:vertical;
+      width:100%;
+      border-radius:16px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--text);
+      outline:none;
+      padding:16px;
+      font:600 15px/1.5 Inter,system-ui,sans-serif;
+    }
+
+    .btn-stack{
+      display:grid;
+      grid-template-rows:1fr 1fr;
+      gap:10px;
+      width:170px;
+    }
+
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:14px 14px;
+      background:linear-gradient(180deg, #d8b16a, #be9250);
+      color:#0c1218;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+
+    .btn.secondary{
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
+      color:var(--text);
+      border:1px solid rgba(99,217,255,.20);
+    }
+
+    .hint{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    .war-room-grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:16px;
+    }
+
+    .war-stage{
+      min-height:280px;
+      border:1px solid rgba(99,217,255,.14);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(99,217,255,.14), transparent 34%),
+        linear-gradient(180deg, rgba(5,12,18,.92), rgba(8,18,28,.95));
+      position:relative;
+      overflow:hidden;
+    }
+
+    .war-stage::before,
+    .war-stage::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      border:1px solid rgba(99,217,255,.18);
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+    }
+    .war-stage::before{width:220px;height:220px}
+    .war-stage::after{width:360px;height:360px;opacity:.45}
+
+    .war-core{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      width:150px;height:150px;border-radius:50%;
+      border:1px solid rgba(198,161,91,.24);
+      background:
+        radial-gradient(circle at center, rgba(198,161,91,.18), transparent 46%),
+        rgba(255,255,255,.02);
+      display:grid;
+      place-items:center;
+      font-family:Cinzel,serif;
+      letter-spacing:.16em;
+      color:#f3e8d0;
+      text-transform:uppercase;
+      font-size:14px;
+      text-align:center;
+      padding:18px;
+    }
+
+    .war-node{
+      position:absolute;
+      width:114px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(9,17,26,.92);
+      font-size:12px;
+      line-height:1.45;
+      text-align:center;
+    }
+
+    .war-node strong{
+      display:block;
+      margin-bottom:4px;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      font-size:11px;
+      color:var(--gold);
+    }
+
+    .node-1{left:8%;top:16%}
+    .node-2{right:8%;top:16%}
+    .node-3{left:6%;bottom:14%}
+    .node-4{right:6%;bottom:14%}
+
+    .war-list{display:grid;gap:12px}
+    .war-item{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:rgba(255,255,255,.02);
+    }
+
+    .war-item-title{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .war-item-copy{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .right .pane-body{
+      display:grid;
+      gap:16px;
+      align-content:start;
+    }
+
+    .nace-card{
+      border:1px solid rgba(99,217,255,.16);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+
+    .nace-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .nace-title h3{
+      font-family:Cinzel,serif;
+      letter-spacing:.14em;
+      font-size:28px;
+    }
+
+    .nace-copy{
+      font-size:15px;
+      line-height:1.7;
+      color:var(--text);
+      opacity:.94;
+      min-height:130px;
+    }
+
+    .nace-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .nace-actions button{
+      border:none;
+      border-radius:14px;
+      padding:12px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
+      border:1px solid rgba(99,217,255,.20);
+    }
+
+    .small{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    @media (max-width: 1520px){
+      .app{grid-template-columns:270px minmax(0,1fr) 340px}
+    }
+
+    @media (max-width: 1180px){
+      .left,.right{position:static;height:auto}
+      .app{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto auto auto;
+        grid-template-areas:
+          "top"
+          "center"
+          "right"
+          "left";
+      }
+      .topbar{
+        grid-template-columns:1fr;
+      }
+      .topbar-right{
+        justify-items:start;
+      }
+      .top-status-rail{
+        justify-content:flex-start;
+      }
+      .top-microbars{
+        width:100%;
+      }
+      .grid-two,.war-room-grid{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 760px){
+      .app{padding:10px;gap:10px}
+      .topbar,.left,.center,.right{border-radius:20px}
+      .quick-grid{grid-template-columns:1fr}
+      .receipt-row{grid-template-columns:1fr}
+      .nace-actions{grid-template-columns:1fr}
+      .command-row{grid-template-columns:1fr}
+      .btn-stack{
+        grid-template-columns:1fr 1fr;
+        grid-template-rows:none;
+        width:100%;
+      }
+      .top-microbars{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar glass">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
+        </div>
+
+        <div class="brand-copy">
+          <div class="brand-kicker">Rising Phoenix Enterprises</div>
+          <div class="brand-title">Phoenix Command Center</div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="top-status-rail">
+          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
+          <div class="status-chip cyan"><span class="dot"></span> Mode: Financial Tracking</div>
+          <div class="status-chip amber"><span class="dot"></span> Treasury: Active</div>
+          <div class="status-chip green"><span class="dot"></span> Cashflow: Live</div>
+        </div>
+
+        <div class="top-microbars">
+          <div class="micro-card">
+            <div class="micro-label">Revenue Visibility</div>
+            <div class="micro-value">94%</div>
+            <div class="micro-track"><div class="micro-fill" style="width:94%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Reserve Coverage</div>
+            <div class="micro-value">87%</div>
+            <div class="micro-track"><div class="micro-fill" style="width:87%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Pressure Level</div>
+            <div class="micro-value">31%</div>
+            <div class="micro-track"><div class="micro-fill" style="width:31%"></div></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="left glass">
+      <div class="pane-head">
+        <div class="pane-title">Financial Rail</div>
+        <div class="pane-sub">Scrollable finance oversight map. Revenue visibility, cash position, reserves, allocations, and pressure across financial lanes.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="nav-group">
+          <div class="group-label">Primary</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
+            <a class="nav-btn" href="console.html"><span class="nav-dot"></span> Console</a>
+            <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
+            <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="group-label">Systems</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
+            <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
+            <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
+            <a class="nav-btn active" href="financial-tracking.html"><span class="nav-dot"></span> Financial Tracking</a>
+            <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">Finance Overview</div>
+          <div class="persona-list">
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Revenue Lanes</div>
+                <div class="persona-role">Tracked income surfaces</div>
+              </div>
+              <div class="tag">8</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Reserve Buckets</div>
+                <div class="persona-role">Tax / operating / retained</div>
+              </div>
+              <div class="tag">3</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Cash Position</div>
+                <div class="persona-role">Treasury visibility</div>
+              </div>
+              <div class="tag">Strong</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Pressure State</div>
+                <div class="persona-role">Spend / allocation watch</div>
+              </div>
+              <div class="tag">Low</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="center glass">
+      <div class="center-scroll">
+        <section class="hero">
+          <div class="hero-title">Financial Tracking</div>
+          <div class="hero-copy">
+            The controlled treasury surface of Phoenix OS. Financial Tracking governs revenue visibility, reserve allocation, cash position, financial pressure, and structured performance monitoring across the broader PCC environment.
+          </div>
+          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Finance Session: Treasury Visible</div>
+
+          <div class="quick-grid">
+            <div class="quick-card">
+              <div class="metric-label">Revenue This Cycle</div>
+              <div class="metric-value">$84K</div>
+              <div class="metric-note">Tracked revenue remains visible across active intake and operating lanes.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Reserve Coverage</div>
+              <div class="metric-value">87%</div>
+              <div class="metric-note">Reserve buckets remain funded and visible for disciplined capital management.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Cash Position</div>
+              <div class="metric-value">$126K</div>
+              <div class="metric-note">Treasury posture remains strong with controlled allocation discipline across the stack.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Pressure Level</div>
+              <div class="metric-value">31%</div>
+              <div class="metric-note">Current financial pressure remains contained, with no destabilizing burn posture visible.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ticker-shell panel">
+          <div class="ticker">
+            <div class="ticker-item">Revenue Visibility Drives Control</div>
+            <div class="ticker-item">Reserves Must Remain Explicit</div>
+            <div class="ticker-item">Cash Position Must Stay Visible</div>
+            <div class="ticker-item">Allocation Discipline Preserves Stability</div>
+            <div class="ticker-item">Pressure Surfaces Must Not Be Hidden</div>
+            <div class="ticker-item">Treasury Truth Beats Assumption</div>
+            <div class="ticker-item">Revenue Visibility Drives Control</div>
+            <div class="ticker-item">Reserves Must Remain Explicit</div>
+            <div class="ticker-item">Cash Position Must Stay Visible</div>
+            <div class="ticker-item">Allocation Discipline Preserves Stability</div>
+            <div class="ticker-item">Pressure Surfaces Must Not Be Hidden</div>
+            <div class="ticker-item">Treasury Truth Beats Assumption</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Financial Feed</div>
+              <div class="panel-sub">Live treasury state movement across revenue, reserves, allocation, and performance lanes.</div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="receipt-feed">
+              <div class="receipt-row">
+                <div class="receipt-time">07:21</div>
+                <div class="receipt-lane">Revenue</div>
+                <div class="receipt-copy">Primary intake lane updated with current cycle revenue and synchronized treasury visibility.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">07:36</div>
+                <div class="receipt-lane">Reserve</div>
+                <div class="receipt-copy">Tax, operating, and retained earnings buckets refreshed under current allocation doctrine.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">07:54</div>
+                <div class="receipt-lane">Cash</div>
+                <div class="receipt-copy">Treasury position re-evaluated after controlled transfer movement across intake and reserve lanes.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">08:09</div>
+                <div class="receipt-lane">Pressure</div>
+                <div class="receipt-copy">Financial pressure remained within safe operating posture after allocation and reserve reconciliation.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-two">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Financial Signals</div>
+                <div class="panel-sub">Revenue health, reserve posture, cash tracking, and oversight across active financial lanes.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="bars">
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Revenue Visibility</div>
+                    <div class="bar-value">94%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Reserve Coverage</div>
+                    <div class="bar-value">87%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:87%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Cash Position Integrity</div>
+                    <div class="bar-value">92%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Allocation Discipline</div>
+                    <div class="bar-value">89%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:89%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Financial Pressure</div>
+                    <div class="bar-value">31%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:31%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Priority Rail</div>
+                <div class="panel-sub">Immediate treasury reminders for reserves, cash visibility, and financial oversight.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="tickler-list">
+                <div class="tickler">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Reserves First</div>
+                    <div class="tickler-copy">Treasury discipline requires reserves to remain explicit, visible, and protected before expansion pressure rises.</div>
+                  </div>
+                </div>
+
+                <div class="tickler red">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Expose Pressure Early</div>
+                    <div class="tickler-copy">Any burn acceleration, reserve erosion, or allocation imbalance must remain visible before it compounds.</div>
+                  </div>
+                </div>
+
+                <div class="tickler green">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Cash Visibility Is Control</div>
+                    <div class="tickler-copy">Financial Tracking exists to keep treasury truth visible across the system, not buried in disconnected ledgers.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="command-shell">
+          <div class="command-head">
+            <div>
+              <div class="command-title">Finance Core</div>
+              <div class="panel-sub">Primary operator field for treasury checks, allocation review, and financial-lane inspection.</div>
+            </div>
+            <div class="command-status">
+              <span class="dot" style="color:var(--cyan)"></span>
+              Treasury Ready
+            </div>
+          </div>
+
+          <div class="command-copy">
+            This finance core is the controlled intake point for treasury review, reserve checks, cash inspection, and financial performance oversight inside Phoenix OS. It exists to preserve visibility and allocation discipline, not to let financial drift hide behind summary language.
+          </div>
+
+          <div class="command-wrap">
+            <div class="command-row">
+              <textarea class="command-input" placeholder="Inspect revenue lanes, review reserve posture, check cash position, compare allocation state, or query financial pressure..."></textarea>
+              <div class="btn-stack">
+                <button class="btn">Inspect</button>
+                <button class="btn secondary">Route</button>
+              </div>
+            </div>
+
+            <div class="hint">
+              Example uses: show reserve buckets, inspect cash position, review revenue by lane, check financial pressure, compare treasury posture.
+            </div>
+          </div>
+        </section>
+
+        <section class="war-room-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Financial Map</div>
+                <div class="panel-sub">Treasury hierarchy built into the system surface, not hidden inside scattered reports.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="war-stage">
+                <div class="war-node node-1">
+                  <strong>Revenue</strong>
+                  Intake / Sales
+                </div>
+                <div class="war-node node-2">
+                  <strong>Cash</strong>
+                  Treasury / Position
+                </div>
+                <div class="war-node node-3">
+                  <strong>Reserves</strong>
+                  Tax / Operating
+                </div>
+                <div class="war-node node-4">
+                  <strong>Control</strong>
+                  Allocation / Pressure
+                </div>
+                <div class="war-core">Finance Core</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Financial Notes</div>
+                <div class="panel-sub">System-level doctrine visible inside the finance layer.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="war-list">
+                <div class="war-item">
+                  <div class="war-item-title">Meaning</div>
+                  <div class="war-item-copy">Financial Tracking is the controlled treasury lane of Phoenix OS, preserving revenue visibility, reserve clarity, cash position, and pressure awareness.</div>
+                </div>
+
+                <div class="war-item">
+                  <div class="war-item-title">Page Role</div>
+                  <div class="war-item-copy">Financial Tracking carries treasury truth, allocation posture, reserve visibility, and financial-lane continuity across the system.</div>
+                </div>
+
+                <div class="war-item">
+                  <div class="war-item-title">Build Rule</div>
+                  <div class="war-item-copy">Shell is locked. Content changes only. Financial Tracking expands the command tower without mutating the master PCC architecture.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <aside class="right glass">
+      <div class="pane-head">
+        <div class="pane-title">Executive Intelligence Tower</div>
+        <div class="pane-sub">Guide layer, treasury support, and high-level financial oversight access.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="nace-card">
+          <div class="nace-title">
+            <h3>NACE</h3>
+            <div class="tag">Guide</div>
+          </div>
+
+          <div class="nace-copy">
+            Financial Tracking is active. Revenue visibility, reserve posture, cash position, and financial pressure are available from this surface before routing deeper into treasury review or capital decisions.
+          </div>
+
+          <div class="nace-actions">
+            <button>Explain Finance</button>
+            <button>Open Treasury</button>
+            <button>Inspect Reserves</button>
+            <button>Return Floor</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">Next Move</div>
+          <div class="small">Build Voice Engine using this same locked PCC shell and keep all structure preserved.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</body>
+</html> 
