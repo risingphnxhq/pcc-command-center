@@ -9,42 +9,58 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#05080c;
-      --bg2:#08111a;
-      --panel:#0f1720;
-      --panel2:#0b1218;
-      --line:rgba(255,255,255,.07);
-      --line-strong:rgba(198,161,91,.24);
-      --gold:#c6a15b;
-      --gold-soft:rgba(198,161,91,.12);
-      --cyan:#63d9ff;
-      --cyan-soft:rgba(99,217,255,.12);
-      --green:#49d391;
-      --amber:#f0b35a;
-      --red:#ea7474;
-      --text:#f4efe5;
-      --muted:rgba(244,239,229,.66);
-      --shadow:0 22px 70px rgba(0,0,0,.40);
-      --radius-sm:12px;
-      --radius-md:16px;
-      --radius-lg:22px;
-      --radius-xl:28px;
-      --topH:90px;
-      --leftW:280px;
-      --container:1720px;
-    }
+  --bg:#05080c;
+  --bg2:#071019;
+  --bg3:#0a1521;
+  --panel:#0e1824;
+  --panel2:#0b131c;
+  --panel3:#112030;
+  --line:rgba(255,255,255,.07);
+  --line-strong:rgba(198,161,91,.24);
+  --gold:#c6a15b;
+  --gold-soft:rgba(198,161,91,.12);
+  --cyan:#63d9ff;
+  --cyan-soft:rgba(99,217,255,.12);
+  --green:#49d391;
+  --amber:#f0b35a;
+  --red:#ea7474;
+  --text:#f4efe5;
+  --muted:rgba(244,239,229,.66);
+  --muted2:rgba(244,239,229,.42);
+  --shadow:0 22px 70px rgba(0,0,0,.40);
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:22px;
+  --radius-xl:28px;
+  --topH:160px;
+  --leftW:280px;
+  --rightW:360px;
+  --container:1680px;
+
+  /* Typography Scale */
+  --text-xs:11px;
+  --text-sm:13px;
+  --text-md:14px;
+  --text-lg:18px;
+  --text-xl:28px;
+}
+
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
-      font-family:Inter,system-ui,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
-        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
-        linear-gradient(180deg, #091018 0%, #05080c 100%);
-      overflow-x:hidden;
-    }
+  font-family:Inter,system-ui,sans-serif;
+  font-size:var(--text-sm);
+
+  color:var(--text);
+
+  background:
+    radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+    radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+    linear-gradient(180deg, #091018 0%, #05080c 100%);
+
+  overflow-x:hidden;
+}
 
     body::before{
       content:"";
@@ -62,11 +78,11 @@
     .app{
       min-height:100vh;
       display:grid;
-      grid-template-columns:var(--leftW) minmax(0,1fr);
+      grid-template-columns:var(--leftW) minmax(0,1fr) var(--rightW);
       grid-template-rows:var(--topH) auto;
       grid-template-areas:
-        "top top"
-        "left main";
+        "top top top"
+        "left center right";
       gap:14px;
       padding:14px;
       max-width:calc(var(--container) + 28px);
@@ -86,7 +102,7 @@
     .topbar{
       grid-area:top;
       display:grid;
-      grid-template-columns:minmax(280px, 420px) minmax(0,1fr) auto;
+      grid-template-columns:minmax(0,1fr) auto;
       align-items:center;
       gap:18px;
       padding:16px 20px;
@@ -123,7 +139,11 @@
       display:block;
     }
 
-    .brand-copy{min-width:0}
+    .brand-copy{
+      min-width:0;
+      flex:1;
+    }
+
     .brand-kicker{
       font-size:11px;
       letter-spacing:.24em;
@@ -137,47 +157,43 @@
 
     .brand-title{
       font-family:Cinzel,serif;
-      font-size:clamp(24px,2vw,36px);
+      font-size:clamp(22px,2vw,36px);
       letter-spacing:.08em;
       white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
     }
 
-    .doctrine{
-      text-align:center;
-      font-family:Cinzel,serif;
-      font-size:clamp(14px,1.35vw,22px);
-      letter-spacing:.16em;
-      color:#f2e6cf;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    .topbar-right{
+      display:grid;
+      gap:10px;
+      justify-items:end;
+      min-width:0;
     }
 
-    .top-pills{
+    .top-status-rail{
       display:flex;
       flex-wrap:wrap;
       justify-content:flex-end;
       gap:10px;
+      min-width:0;
     }
 
-    .pill{
+    .status-chip{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:10px 14px;
+      padding:9px 12px;
       border-radius:999px;
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--line);
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
       font-size:11px;
       font-weight:800;
-      letter-spacing:.14em;
+      letter-spacing:.12em;
       text-transform:uppercase;
+      color:var(--text);
       white-space:nowrap;
     }
 
-    .dot{
+    .status-chip .dot{
       width:8px;
       height:8px;
       border-radius:50%;
@@ -186,21 +202,60 @@
       flex:0 0 auto;
     }
 
-    .left{
-      grid-area:left;
-      display:flex;
-      flex-direction:column;
-      position:sticky;
-      top:118px;
-      height:calc(100vh - 132px);
+    .status-chip.green{color:var(--green)}
+    .status-chip.cyan{color:var(--cyan)}
+    .status-chip.amber{color:var(--amber)}
+    .status-chip.red{color:var(--red)}
+
+    .top-microbars{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(120px, 1fr));
+      gap:10px;
+      width:min(460px, 100%);
     }
 
-    .main{
-      grid-area:main;
-      display:flex;
-      flex-direction:column;
+    .micro-card{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+      padding:10px 12px;
       min-width:0;
     }
+
+    .micro-label{
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+
+    .micro-value{
+      font-family:"IBM Plex Mono", monospace;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .micro-track{
+      height:8px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+
+    .micro-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+    }
+
+    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+    .center{grid-area:center;display:flex;flex-direction:column;min-width:0}
+    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
 
     .pane-head{
       padding:18px 18px 12px;
@@ -223,11 +278,12 @@
     }
 
     .pane-body{
-      flex:1;
-      min-height:0;
-      overflow:auto;
-      padding:16px;
-    }
+  flex:1;
+  min-height:0;
+  overflow:auto;
+  padding:16px 30px 16px 16px;
+  scrollbar-gutter: stable;
+}
 
     .nav-group + .nav-group{margin-top:18px}
     .group-label{
@@ -289,13 +345,40 @@
       margin-bottom:12px;
     }
 
-    .small{
-      font-size:12px;
-      line-height:1.6;
-      color:var(--muted);
+    .persona-list{display:grid;gap:10px}
+    .persona-item{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
     }
 
-    .main-scroll{
+    .persona-name{font-weight:800;font-size:15px}
+    .persona-role{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-top:3px;
+    }
+
+    .tag{
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .center-scroll{
       display:grid;
       gap:16px;
       align-content:start;
@@ -311,14 +394,6 @@
       padding:24px;
       display:grid;
       gap:18px;
-    }
-
-    .hero-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:16px;
-      flex-wrap:wrap;
     }
 
     .hero-title{
@@ -350,12 +425,47 @@
       text-transform:uppercase;
       letter-spacing:.14em;
       white-space:nowrap;
+      width:max-content;
     }
 
-    .grid{
+    .quick-grid{
       display:grid;
-      grid-template-columns:repeat(12,minmax(0,1fr));
-      gap:16px;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .quick-card{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      padding:16px;
+      min-width:0;
+    }
+
+    .metric-label{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      margin-bottom:10px;
+    }
+
+    .metric-value{
+      color:var(--cyan);
+      font-size:clamp(30px,2.2vw,42px);
+      line-height:1;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .metric-note{
+      font-size:15px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.9;
     }
 
     .panel{
@@ -363,23 +473,14 @@
       border-radius:22px;
       background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
       overflow:hidden;
-      min-width:0;
     }
-
-    .span-3{grid-column:span 3}
-    .span-4{grid-column:span 4}
-    .span-5{grid-column:span 5}
-    .span-6{grid-column:span 6}
-    .span-7{grid-column:span 7}
-    .span-8{grid-column:span 8}
-    .span-12{grid-column:span 12}
 
     .panel-head{
       padding:16px 18px 10px;
       border-bottom:1px solid rgba(255,255,255,.05);
       display:flex;
-      justify-content:space-between;
       align-items:flex-start;
+      justify-content:space-between;
       gap:12px;
     }
 
@@ -398,48 +499,6 @@
     }
 
     .panel-body{padding:16px 18px 18px}
-
-    .big{
-      color:var(--cyan);
-      font-size:40px;
-      font-weight:800;
-      line-height:1;
-      margin-bottom:10px;
-    }
-
-    .muted{
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.55;
-    }
-
-    .bars{display:grid;gap:16px}
-    .bar-top{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:8px;
-      font-size:12px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      font-weight:800;
-      color:#f3e8d0;
-    }
-
-    .track{
-      height:12px;
-      border-radius:999px;
-      background:#08111a;
-      border:1px solid rgba(255,255,255,.06);
-      overflow:hidden;
-    }
-
-    .fill{
-      height:100%;
-      border-radius:999px;
-      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
-      box-shadow:0 0 20px rgba(99,217,255,.18);
-    }
 
     .console-grid{
       display:grid;
@@ -471,30 +530,87 @@
       margin-bottom:8px;
     }
 
-    .log{display:grid;gap:10px}
-    .log-item{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:rgba(255,255,255,.02);
-      padding:12px;
+    .muted-copy{
       font-size:13px;
       line-height:1.55;
+      color:var(--muted);
     }
 
-    .log-meta{
+    .bars{display:grid;gap:16px}
+    .bar-item{display:grid;gap:8px}
+    .bar-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      font-size:13px;
+    }
+    .bar-label{
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:#f3e8d0;
+    }
+    .bar-value{
       font-family:"IBM Plex Mono",monospace;
       color:var(--muted);
-      font-size:11px;
-      margin-bottom:6px;
+      font-size:12px;
+    }
+    .bar-track{
+      height:12px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+      box-shadow:0 0 20px rgba(99,217,255,.18);
     }
 
-    .mini-chart{
+    .receipt-feed{display:grid;gap:12px}
+    .receipt-row{
       display:grid;
-      gap:10px;
+      grid-template-columns:78px 150px 1fr;
+      gap:12px;
+      align-items:start;
+      border-radius:16px;
+      border:1px solid rgba(99,217,255,.14);
+      background:linear-gradient(180deg, rgba(99,217,255,.09), rgba(99,217,255,.03));
+      padding:14px;
+      min-width:0;
+    }
+
+    .receipt-time{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .receipt-lane{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    .receipt-copy{
+      font-size:14px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.92;
+    }
+
+    .grid-two{
+      display:grid;
+      grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);
+      gap:16px;
     }
 
     .mini-line{
-      height:140px;
+      height:220px;
       border-radius:16px;
       border:1px solid var(--line);
       background:
@@ -513,39 +629,7 @@
       height:100%;
     }
 
-    .tower{
-      display:grid;
-      gap:10px;
-    }
-
-    .tower-card{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:rgba(255,255,255,.02);
-      padding:14px;
-    }
-
-    .tower-card strong{
-      display:block;
-      font-size:12px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--gold);
-      margin-bottom:8px;
-    }
-
-    .tower-card span{
-      display:block;
-      font-size:13px;
-      line-height:1.55;
-      color:var(--muted);
-    }
-
-    .table{
-      display:grid;
-      gap:10px;
-    }
-
+    .table{display:grid;gap:10px}
     .table-row{
       display:grid;
       grid-template-columns:120px 1fr 100px;
@@ -580,38 +664,138 @@
     .status.amber{color:var(--amber)}
     .status.red{color:var(--red)}
 
-    @media (max-width: 1280px){
-      .grid{grid-template-columns:repeat(6,minmax(0,1fr))}
-      .span-3,.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:span 6}
+    .tower{
+      display:grid;
+      gap:10px;
+    }
+
+    .tower-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+    }
+
+    .tower-card strong{
+      display:block;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .tower-card span{
+      display:block;
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .right .pane-body{
+      display:grid;
+      gap:16px;
+      align-content:start;
+    }
+
+    .nace-card{
+      border:1px solid rgba(99,217,255,.16);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+
+    .nace-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .nace-title h3{
+      font-family:Cinzel,serif;
+      letter-spacing:.14em;
+      font-size:28px;
+    }
+
+    .nace-copy{
+      font-size:15px;
+      line-height:1.7;
+      color:var(--text);
+      opacity:.94;
+      min-height:130px;
+    }
+
+    .nace-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .nace-actions button{
+      border:none;
+      border-radius:14px;
+      padding:12px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
+      border:1px solid rgba(99,217,255,.20);
+    }
+
+    .small{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    @media (max-width: 1520px){
+      .app{grid-template-columns:270px minmax(0,1fr) 340px}
       .console-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media (max-width: 1180px){
-      .left{position:static;height:auto}
+      .left,.right{position:static;height:auto}
       .app{
         grid-template-columns:1fr;
-        grid-template-rows:auto auto auto;
+        grid-template-rows:auto auto auto auto;
         grid-template-areas:
           "top"
-          "main"
+          "center"
+          "right"
           "left";
       }
       .topbar{
-        position:static;
         grid-template-columns:1fr;
       }
-      .top-pills{justify-content:flex-start}
+      .topbar-right{
+        justify-items:start;
+      }
+      .top-status-rail{
+        justify-content:flex-start;
+      }
+      .top-microbars{
+        width:100%;
+      }
+      .grid-two{grid-template-columns:1fr}
+      .console-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media (max-width: 760px){
       .app{padding:10px;gap:10px}
-      .topbar,.left,.main{border-radius:20px}
-      .grid{grid-template-columns:1fr}
-      .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 1}
-      .console-grid{grid-template-columns:1fr}
-      .doctrine{white-space:normal;text-align:left}
-      .brand-title{white-space:normal}
-      .table-row{grid-template-columns:1fr}
+      .topbar,.left,.center,.right{border-radius:20px}
+      .quick-grid,.nace-actions,.console-grid{grid-template-columns:1fr}
+      .receipt-row,.table-row{grid-template-columns:1fr}
+      .top-microbars{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
@@ -622,25 +806,47 @@
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
         </div>
+
         <div class="brand-copy">
           <div class="brand-kicker">Rising Phoenix Enterprises</div>
           <div class="brand-title">Phoenix Command Center</div>
         </div>
       </div>
 
-      <div class="doctrine">Console · Dense Telemetry · Command Visibility</div>
+      <div class="topbar-right">
+        <div class="top-status-rail">
+          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
+          <div class="status-chip cyan"><span class="dot"></span> Mode: Console</div>
+          <div class="status-chip amber"><span class="dot"></span> Boards: Active</div>
+          <div class="status-chip green"><span class="dot"></span> Logs: Live</div>
+        </div>
 
-      <div class="top-pills">
-        <div class="pill"><span class="dot" style="color:var(--green)"></span> Console Live</div>
-        <div class="pill"><span class="dot" style="color:var(--cyan)"></span> Boards Active</div>
-        <div class="pill"><span class="dot" style="color:var(--amber)"></span> Queue Visible</div>
+        <div class="top-microbars">
+          <div class="micro-card">
+            <div class="micro-label">System Load</div>
+            <div class="micro-value">74%</div>
+            <div class="micro-track"><div class="micro-fill" style="width:74%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Receipts Today</div>
+            <div class="micro-value">162</div>
+            <div class="micro-track"><div class="micro-fill" style="width:82%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Queue Visible</div>
+            <div class="micro-value">66</div>
+            <div class="micro-track"><div class="micro-fill" style="width:67%"></div></div>
+          </div>
+        </div>
       </div>
     </header>
 
     <aside class="left glass">
       <div class="pane-head">
-        <div class="pane-title">PCC Tower</div>
-        <div class="pane-sub">Dense dashboard and control-board lane under the PCC shell.</div>
+        <div class="pane-title">Console Rail</div>
+        <div class="pane-sub">Dense telemetry lane under the locked PCC shell. Queue boards, pressure surfaces, graphs, logs, and command visibility.</div>
       </div>
 
       <div class="pane-body">
@@ -660,298 +866,299 @@
             <a class="nav-btn" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
             <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
             <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
-            <a class="nav-btn" href="financial.html"><span class="nav-dot"></span> Financial Tracking</a>
+            <a class="nav-btn" href="financial-tracking.html"><span class="nav-dot"></span> Financial Tracking</a>
             <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>
           </div>
         </div>
 
         <div class="section-card">
           <div class="section-label">Console Doctrine</div>
-          <div class="small">Console carries the dense dashboard burden so Command Floor can remain sovereign, ceremonial, and readable.</div>
+          <div class="small">Console carries the dense telemetry burden so Command Floor can remain sovereign, ceremonial, and readable.</div>
         </div>
       </div>
     </aside>
 
-    <main class="main glass">
+    <main class="center glass">
+      <div class="center-scroll">
+        <section class="hero">
+          <div class="hero-title">Console</div>
+          <div class="hero-copy">
+            This is the dense telemetry surface of PCC. Command Floor carries authority and overview. Console carries the heavier operational readouts, queue visibility, board states, graphs, logs, and deeper monitoring surfaces across the command environment.
+          </div>
+          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Console Session: Dense Telemetry</div>
+
+          <div class="quick-grid">
+            <div class="quick-card">
+              <div class="metric-label">System Load</div>
+              <div class="metric-value">74%</div>
+              <div class="metric-note">Operational strain visible across command, media, registry, and communication lanes.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Receipts Today</div>
+              <div class="metric-value">162</div>
+              <div class="metric-note">Receipt-backed visibility remains active across queue, execution, voice, and registry surfaces.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Voice Queue</div>
+              <div class="metric-value">19</div>
+              <div class="metric-note">Pending voice requests remain visible across executive and staff communication lanes.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Spider Ready</div>
+              <div class="metric-value">88%</div>
+              <div class="metric-note">Media, render, and distribution surfaces remain near execution-ready under monitored posture.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Operations Matrix</div>
+              <div class="panel-sub">Dense board cells for live system-state reading.</div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="console-grid">
+              <div class="console-cell">
+                <div class="console-label">Command Lane</div>
+                <div class="console-value">GREEN</div>
+                <div class="muted-copy">Core rails stable</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">Voice Engine</div>
+                <div class="console-value">READY</div>
+                <div class="muted-copy">IDs mapped</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">War Room</div>
+                <div class="console-value">LIVE</div>
+                <div class="muted-copy">Executive chamber</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">NHCE</div>
+                <div class="console-value">63%</div>
+                <div class="muted-copy">Pressure elevated</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">PBRS</div>
+                <div class="console-value">ACTIVE</div>
+                <div class="muted-copy">Snapshot corridor</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">PBB</div>
+                <div class="console-value">STAGED</div>
+                <div class="muted-copy">Builder lane ready</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">PCC</div>
+                <div class="console-value">LOCKED</div>
+                <div class="muted-copy">Shell doctrine intact</div>
+              </div>
+              <div class="console-cell">
+                <div class="console-label">Queue</div>
+                <div class="console-value">66</div>
+                <div class="muted-copy">Awaiting execution</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-two">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Queue Pressure Graph</div>
+                <div class="panel-sub">Load and throughput visibility across monitored system lanes.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="bars">
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Command Queue</div>
+                    <div class="bar-value">71%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:71%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Voice Queue</div>
+                    <div class="bar-value">58%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:58%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Media Queue</div>
+                    <div class="bar-value">84%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Registry Tasks</div>
+                    <div class="bar-value">36%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:36%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Trend Surface</div>
+                <div class="panel-sub">System pulse chart for load rhythm and institutional pressure.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="mini-line">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polyline
+                    fill="none"
+                    stroke="rgba(99,217,255,.95)"
+                    stroke-width="2.4"
+                    points="0,75 8,72 16,70 24,62 32,58 40,61 48,45 56,50 64,40 72,42 80,30 88,34 96,24 100,28"
+                  />
+                  <polyline
+                    fill="none"
+                    stroke="rgba(198,161,91,.85)"
+                    stroke-width="2"
+                    points="0,82 8,78 16,76 24,73 32,70 40,68 48,64 56,62 64,58 72,55 80,52 88,50 96,46 100,44"
+                  />
+                </svg>
+              </div>
+              <div class="muted-copy" style="margin-top:10px;">Blue = command pulse. Gold = institutional load trend.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Queue Table</div>
+              <div class="panel-sub">Execution-ready queue visibility under dense monitoring posture.</div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="table">
+              <div class="table-row">
+                <div class="mono">Q-001</div>
+                <div>PBRS snapshot delivery queue</div>
+                <div class="status green">Ready</div>
+              </div>
+              <div class="table-row">
+                <div class="mono">Q-002</div>
+                <div>Spider outbound media render review</div>
+                <div class="status amber">Queued</div>
+              </div>
+              <div class="table-row">
+                <div class="mono">Q-003</div>
+                <div>NACE greeting voice activation test</div>
+                <div class="status amber">Pending</div>
+              </div>
+              <div class="table-row">
+                <div class="mono">Q-004</div>
+                <div>NHCE pressure threshold audit</div>
+                <div class="status red">Review</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Console Log</div>
+              <div class="panel-sub">Dense board-style log lane under the locked PCC shell.</div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="receipt-feed">
+              <div class="receipt-row">
+                <div class="receipt-time">07:18</div>
+                <div class="receipt-lane">PCC Core</div>
+                <div class="receipt-copy">Console lane established as the dense telemetry and command-visibility page under the PCC shell.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">07:23</div>
+                <div class="receipt-lane">Voice Grid</div>
+                <div class="receipt-copy">Executive and staff voice architecture recognized as part of communication infrastructure.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">07:29</div>
+                <div class="receipt-lane">War Room</div>
+                <div class="receipt-copy">Strategic chamber remains represented as a permanent tower lane, not an afterthought.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">07:35</div>
+                <div class="receipt-lane">Build Mode</div>
+                <div class="receipt-copy">Single-shell governance preserved so dense telemetry does not fracture PCC into multiple UI systems.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <aside class="right glass">
       <div class="pane-head">
-        <div class="pane-title">Console Layer</div>
-        <div class="pane-sub">Queue telemetry, board states, operational graphs, command logs, and dense monitoring surfaces.</div>
+        <div class="pane-title">Executive Intelligence Tower</div>
+        <div class="pane-sub">Quick command awareness, executive monitoring, and dense system-read support.</div>
       </div>
 
       <div class="pane-body">
-        <div class="main-scroll">
-          <section class="hero">
-            <div class="hero-top">
-              <div>
-                <div class="hero-title">Console</div>
-                <div class="hero-copy">
-                  This is the dense telemetry lane of PCC. Command Floor holds authority and overview. Console holds the heavier operational readouts, graphs, queue pressure, board cells, and command-monitoring surfaces.
-                </div>
-              </div>
+        <div class="nace-card">
+          <div class="nace-title">
+            <h3>NACE</h3>
+            <div class="tag">Guide</div>
+          </div>
 
-              <div class="pill"><span class="dot" style="color:var(--cyan)"></span> System Boards</div>
-            </div>
-          </section>
+          <div class="nace-copy">
+            Console is active. Dense telemetry, queue visibility, receipt posture, and board-state awareness are available from this surface without changing the sovereign PCC shell.
+          </div>
 
-          <section class="grid">
-            <div class="panel span-3">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">System Load</div>
-                  <div class="panel-sub">Current multi-lane pressure</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="big">74%</div>
-                <div class="muted">Operational strain across communication, media, and execution lanes.</div>
-              </div>
-            </div>
+          <div class="nace-actions">
+            <button>Explain Console</button>
+            <button>Open Queue</button>
+            <button>Inspect Logs</button>
+            <button>Return Floor</button>
+          </div>
+        </div>
 
-            <div class="panel span-3">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Receipts Today</div>
-                  <div class="panel-sub">Command confirmations</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="big">162</div>
-                <div class="muted">Receipt-backed visibility across queue, voice, and registry lanes.</div>
-              </div>
+        <div class="section-card">
+          <div class="section-label">Executive Tower</div>
+          <div class="tower">
+            <div class="tower-card">
+              <strong>NACE</strong>
+              <span>Guide lane standing by for command-floor intake and system explanation.</span>
             </div>
-
-            <div class="panel span-3">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Voice Queue</div>
-                  <div class="panel-sub">Persona synthesis demand</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="big">19</div>
-                <div class="muted">Current pending voice requests across executives and staff.</div>
-              </div>
+            <div class="tower-card">
+              <strong>Chad</strong>
+              <span>Execution posture active. Systems and routing intelligence remain aligned.</span>
             </div>
-
-            <div class="panel span-3">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Spider Ready</div>
-                  <div class="panel-sub">Outbound posture</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="big">88%</div>
-                <div class="muted">Media, render, and distribution surfaces remain near execution-ready.</div>
-              </div>
+            <div class="tower-card">
+              <strong>Alexis Vale</strong>
+              <span>Governance oversight visible. Institutional continuity preserved across dense telemetry surfaces.</span>
             </div>
-
-            <div class="panel span-8">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Operations Matrix</div>
-                  <div class="panel-sub">Dashboard cells for dense telemetry reading.</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="console-grid">
-                  <div class="console-cell">
-                    <div class="console-label">Command Lane</div>
-                    <div class="console-value">GREEN</div>
-                    <div class="muted">Core rails stable</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">Voice Engine</div>
-                    <div class="console-value">READY</div>
-                    <div class="muted">IDs mapped</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">War Room</div>
-                    <div class="console-value">LIVE</div>
-                    <div class="muted">Executive chamber</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">NHCE</div>
-                    <div class="console-value">63%</div>
-                    <div class="muted">Pressure elevated</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">PBRS</div>
-                    <div class="console-value">ACTIVE</div>
-                    <div class="muted">Snapshot corridor</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">PBB</div>
-                    <div class="console-value">STAGED</div>
-                    <div class="muted">Builder lane ready</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">PCC</div>
-                    <div class="console-value">LOCKED</div>
-                    <div class="muted">Shell doctrine intact</div>
-                  </div>
-                  <div class="console-cell">
-                    <div class="console-label">Queue</div>
-                    <div class="console-value">66</div>
-                    <div class="muted">Awaiting execution</div>
-                  </div>
-                </div>
-              </div>
+            <div class="tower-card">
+              <strong>Operator</strong>
+              <span>Phone and support layer remains reserved for communication engine expansion.</span>
             </div>
-
-            <div class="panel span-4">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Executive Tower</div>
-                  <div class="panel-sub">Quick command awareness</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="tower">
-                  <div class="tower-card">
-                    <strong>NACE</strong>
-                    <span>Guide lane standing by for command-floor intake and explanation.</span>
-                  </div>
-                  <div class="tower-card">
-                    <strong>Chad</strong>
-                    <span>Execution posture active. Systems and routing intelligence aligned.</span>
-                  </div>
-                  <div class="tower-card">
-                    <strong>Alexis Vale</strong>
-                    <span>Governance oversight visible. Institutional continuity preserved.</span>
-                  </div>
-                  <div class="tower-card">
-                    <strong>Operator</strong>
-                    <span>Phone and support layer reserved for communication engine expansion.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel span-6">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Queue Pressure Graph</div>
-                  <div class="panel-sub">Visual load lane</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="bars">
-                  <div>
-                    <div class="bar-top"><span>Command Queue</span><span>71%</span></div>
-                    <div class="track"><div class="fill" style="width:71%"></div></div>
-                  </div>
-                  <div>
-                    <div class="bar-top"><span>Voice Queue</span><span>58%</span></div>
-                    <div class="track"><div class="fill" style="width:58%"></div></div>
-                  </div>
-                  <div>
-                    <div class="bar-top"><span>Media Queue</span><span>84%</span></div>
-                    <div class="track"><div class="fill" style="width:84%"></div></div>
-                  </div>
-                  <div>
-                    <div class="bar-top"><span>Registry Tasks</span><span>36%</span></div>
-                    <div class="track"><div class="fill" style="width:36%"></div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel span-6">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Trend Surface</div>
-                  <div class="panel-sub">System pulse chart</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="mini-chart">
-                  <div class="mini-line">
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <polyline
-                        fill="none"
-                        stroke="rgba(99,217,255,.95)"
-                        stroke-width="2.4"
-                        points="0,75 8,72 16,70 24,62 32,58 40,61 48,45 56,50 64,40 72,42 80,30 88,34 96,24 100,28"
-                      />
-                      <polyline
-                        fill="none"
-                        stroke="rgba(198,161,91,.85)"
-                        stroke-width="2"
-                        points="0,82 8,78 16,76 24,73 32,70 40,68 48,64 56,62 64,58 72,55 80,52 88,50 96,46 100,44"
-                      />
-                    </svg>
-                  </div>
-                  <div class="muted">Blue = command pulse. Gold = institutional load trend.</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel span-12">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Queue Table</div>
-                  <div class="panel-sub">Execution-ready table lane</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="table">
-                  <div class="table-row">
-                    <div class="mono">Q-001</div>
-                    <div>PBRS snapshot delivery queue</div>
-                    <div class="status green">Ready</div>
-                  </div>
-                  <div class="table-row">
-                    <div class="mono">Q-002</div>
-                    <div>Spider outbound media render review</div>
-                    <div class="status amber">Queued</div>
-                  </div>
-                  <div class="table-row">
-                    <div class="mono">Q-003</div>
-                    <div>NACE greeting voice activation test</div>
-                    <div class="status amber">Pending</div>
-                  </div>
-                  <div class="table-row">
-                    <div class="mono">Q-004</div>
-                    <div>NHCE pressure threshold audit</div>
-                    <div class="status red">Review</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel span-12">
-              <div class="panel-head">
-                <div>
-                  <div class="panel-title">Console Log</div>
-                  <div class="panel-sub">Dense board-style log lane</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="log">
-                  <div class="log-item">
-                    <div class="log-meta">07:18 • PCC CORE</div>
-                    Console lane established as the dense telemetry and command-visibility page under the PCC shell.
-                  </div>
-                  <div class="log-item">
-                    <div class="log-meta">07:23 • VOICE GRID</div>
-                    Executive and staff voice architecture recognized as part of Communication Engine infrastructure.
-                  </div>
-                  <div class="log-item">
-                    <div class="log-meta">07:29 • WAR ROOM</div>
-                    Strategic chamber is now represented as a permanent tower lane, not an afterthought.
-                  </div>
-                  <div class="log-item">
-                    <div class="log-meta">07:35 • BUILD MODE</div>
-                    Multipage architecture selected to prevent overlap and compression failure in primary Command Floor.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+          </div>
         </div>
       </div>
-    </main>
+    </aside>
   </div>
 </body>
 </html> 
