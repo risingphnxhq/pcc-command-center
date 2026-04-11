@@ -1366,5 +1366,64 @@
       </div>
     </aside>
   </div>
+  <script>
+const commandInput = document.getElementById("commandInput");
+const enterButton = document.getElementById("enterButton");
+const statusBox = document.getElementById("authStatus");
+
+function runCommand(cmd){
+  const input = cmd.toLowerCase().trim();
+
+  // COMMAND ROUTING
+  if(input === "console"){
+    window.location.href = "console.html";
+  }
+
+  else if(input === "voice"){
+    window.location.href = "voice-engine.html";
+  }
+
+  else if(input === "war"){
+    window.location.href = "war-room.html";
+  }
+
+  else if(input === "staff"){
+    window.location.href = "council-staff.html";
+  }
+
+  else if(input === "finance"){
+    window.location.href = "financial-tracking.html";
+  }
+
+  else if(input === "execution"){
+    window.location.href = "execution.html";
+  }
+
+  else if(input === "inspect voice"){
+    window.location.href = "voice-engine.html";
+  }
+
+  else if(input === "show queue"){
+    window.location.href = "console.html";
+  }
+
+  else{
+    statusBox.innerText = "Command not recognized.";
+  }
+}
+
+// BUTTON CLICK
+enterButton.addEventListener("click", () => {
+  runCommand(commandInput.value);
+});
+
+// ENTER KEY
+commandInput.addEventListener("keypress", (e) => {
+  if(e.key === "Enter"){
+    runCommand(commandInput.value);
+  }
+});
+</script> 
+ 
 </body>
 </html> 
