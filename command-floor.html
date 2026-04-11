@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -43,24 +43,20 @@
   --text-md:14px;
   --text-lg:18px;
   --text-xl:28px;
-} 
-
+}
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
-  font-family:Inter,system-ui,sans-serif;
-  font-size:var(--text-sm); /* ← THIS activates your scaling */
-
-  color:var(--text);
-
-  background:
-    radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
-    radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
-    linear-gradient(180deg, #091018 0%, #05080c 100%);
-
-  overflow-x:hidden;
-} 
+      font-family:Inter,system-ui,sans-serif;
+      font-size:var(--text-sm);
+      color:var(--text);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+        linear-gradient(180deg, #091018 0%, #05080c 100%);
+      overflow-x:hidden;
+    }
 
     body::before{
       content:"";
@@ -278,12 +274,12 @@
     }
 
     .pane-body{
-  flex:1;
-  min-height:0;
-  overflow:auto;
-  padding:16px 30px 16px 16px;
-  scrollbar-gutter: stable;
-} 
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      padding:16px 30px 16px 16px;
+      scrollbar-gutter: stable;
+    }
 
     .nav-group + .nav-group{margin-top:18px}
     .group-label{
@@ -1097,6 +1093,43 @@
           </div>
         </section>
 
+        <section class="command-shell">
+          <div class="command-head">
+            <div>
+              <div class="command-title">Command Core</div>
+              <div class="panel-sub">Primary operator intake. This remains dominant, central, and visible at floor level.</div>
+            </div>
+            <div class="command-status">
+              <span class="dot" style="color:var(--cyan)"></span>
+              Input Ready
+            </div>
+          </div>
+
+          <div class="command-copy">
+            This command core is positioned as the executive entry point into Phoenix OS. It is not a generic search bar. It is the controlled mouth of the system — where authority, routing, command issuance, and intelligence invocation begin.
+          </div>
+
+          <div class="command-wrap">
+            <div class="command-row">
+              <textarea
+                id="commandInput"
+                class="command-input"
+                placeholder="Enter command, route request, executive query, floor instruction, or strategic directive..."
+              ></textarea>
+              <div class="btn-stack">
+                <button id="enterButton" class="btn" type="button">Execute</button>
+                <button class="btn secondary" type="button" id="routeButton">Route</button>
+              </div>
+            </div>
+
+            <div class="hint">
+              Example uses: console, voice, war, staff, finance, execution, registry, inspect voice, show queue, nhce.
+            </div>
+
+            <div id="authStatus" class="hint"></div>
+          </div>
+        </section>
+
         <section class="ticker-shell panel">
           <div class="ticker">
             <div class="ticker-item">PBRS Snapshot Verified</div>
@@ -1240,37 +1273,6 @@
           </div>
         </section>
 
-        <section class="command-shell">
-          <div class="command-head">
-            <div>
-              <div class="command-title">Command Core</div>
-              <div class="panel-sub">Primary operator intake. This remains dominant, central, and visible at floor level.</div>
-            </div>
-            <div class="command-status">
-              <span class="dot" style="color:var(--cyan)"></span>
-              Input Ready
-            </div>
-          </div>
-
-          <div class="command-copy">
-            This command core is positioned as the executive entry point into Phoenix OS. It is not a generic search bar. It is the controlled mouth of the system — where authority, routing, command issuance, and intelligence invocation begin.
-          </div>
-
-          <div class="command-wrap">
-            <div class="command-row">
-              <textarea class="command-input" placeholder="Enter command, route request, executive query, floor instruction, or strategic directive..."></textarea>
-              <div class="btn-stack">
-                <button class="btn">Execute</button>
-                <button class="btn secondary">Route</button>
-              </div>
-            </div>
-
-            <div class="hint">
-              Example uses: launch war room, route to Chad, explain NHCE pressure, open console, review execution queue.
-            </div>
-          </div>
-        </section>
-
         <section class="war-room-grid">
           <div class="panel">
             <div class="panel-head">
@@ -1352,78 +1354,163 @@
           </div>
 
           <div class="nace-actions">
-            <button>Explain Floor</button>
-            <button>Open Console</button>
-            <button>Route Me</button>
-            <button>Open War Room</button>
+            <button type="button" id="explainFloorBtn">Explain Floor</button>
+            <button type="button" id="openConsoleBtn">Open Console</button>
+            <button type="button" id="routeMeBtn">Route Me</button>
+            <button type="button" id="openWarRoomBtn">Open War Room</button>
           </div>
         </div>
 
         <div class="section-card">
           <div class="section-label">Next Move</div>
-          <div class="small">Build matching pages for Console, War Room, Council + Staff, Voice Engine, Execution, NHCE Monitor, and Financial Tracking.</div>
+          <div class="small">Build matching pages for Console, War Room, Council + Staff, Voice Engine, Execution, NHCE Monitor, Financial Tracking, and Registry.</div>
         </div>
       </div>
     </aside>
   </div>
+
   <script>
-const commandInput = document.getElementById("commandInput");
-const enterButton = document.getElementById("enterButton");
-const statusBox = document.getElementById("authStatus");
+    function setStatus(message) {
+      const statusBox = document.getElementById("authStatus");
+      if (statusBox) statusBox.textContent = message;
+    }
 
-function runCommand(cmd){
-  const input = cmd.toLowerCase().trim();
+    function safeSpeak(message) {
+      if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
 
-  // COMMAND ROUTING
-  if(input === "console"){
-    window.location.href = "console.html";
-  }
+      try {
+        window.speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(message);
+        speech.rate = 0.95;
+        speech.pitch = 1;
+        speech.volume = 1;
+        window.speechSynthesis.speak(speech);
+      } catch (err) {
+        console.warn("Speech synthesis unavailable:", err);
+      }
+    }
 
-  else if(input === "voice"){
-    window.location.href = "voice-engine.html";
-  }
+    function runCommand(cmd) {
+      const input = (cmd || "").toLowerCase().trim();
 
-  else if(input === "war"){
-    window.location.href = "war-room.html";
-  }
+      if (!input) {
+        setStatus("Enter a command.");
+        return;
+      }
 
-  else if(input === "staff"){
-    window.location.href = "council-staff.html";
-  }
+      if (input === "console" || input === "show queue") {
+        setStatus("Opening Console...");
+        safeSpeak("Opening console.");
+        setTimeout(() => { window.location.href = "console.html"; }, 250);
+      }
+      else if (input === "voice" || input === "inspect voice" || input === "voice engine") {
+        setStatus("Opening Voice Engine...");
+        safeSpeak("Opening voice engine.");
+        setTimeout(() => { window.location.href = "voice-engine.html"; }, 250);
+      }
+      else if (input === "war" || input === "war room") {
+        setStatus("Opening War Room...");
+        safeSpeak("Opening war room.");
+        setTimeout(() => { window.location.href = "war-room.html"; }, 250);
+      }
+      else if (input === "staff" || input === "council" || input === "council staff") {
+        setStatus("Opening Council and Staff...");
+        safeSpeak("Opening council and staff.");
+        setTimeout(() => { window.location.href = "council-staff.html"; }, 250);
+      }
+      else if (input === "finance" || input === "financial" || input === "financial tracking") {
+        setStatus("Opening Financial Tracking...");
+        safeSpeak("Opening financial tracking.");
+        setTimeout(() => { window.location.href = "financial-tracking.html"; }, 250);
+      }
+      else if (input === "execution") {
+        setStatus("Opening Execution...");
+        safeSpeak("Opening execution.");
+        setTimeout(() => { window.location.href = "execution.html"; }, 250);
+      }
+      else if (input === "registry") {
+        setStatus("Opening Registry...");
+        safeSpeak("Opening registry.");
+        setTimeout(() => { window.location.href = "registry.html"; }, 250);
+      }
+      else if (input === "nhce" || input === "nhce monitor") {
+        setStatus("Opening NHCE Monitor...");
+        safeSpeak("Opening N H C E monitor.");
+        setTimeout(() => { window.location.href = "nhce-monitor.html"; }, 250);
+      }
+      else if (input === "command floor" || input === "home") {
+        setStatus("You are already on Command Floor.");
+        safeSpeak("You are already on command floor.");
+      }
+      else {
+        setStatus("Command not recognized.");
+        safeSpeak("Command not recognized.");
+      }
+    }
 
-  else if(input === "finance"){
-    window.location.href = "financial-tracking.html";
-  }
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        safeSpeak("Welcome back. Phoenix Command Center is active. Awaiting your command.");
+      }, 800);
+    });
 
-  else if(input === "execution"){
-    window.location.href = "execution.html";
-  }
+    window.addEventListener("DOMContentLoaded", () => {
+      const commandInput = document.getElementById("commandInput");
+      const enterButton = document.getElementById("enterButton");
+      const routeButton = document.getElementById("routeButton");
+      const explainFloorBtn = document.getElementById("explainFloorBtn");
+      const openConsoleBtn = document.getElementById("openConsoleBtn");
+      const routeMeBtn = document.getElementById("routeMeBtn");
+      const openWarRoomBtn = document.getElementById("openWarRoomBtn");
 
-  else if(input === "inspect voice"){
-    window.location.href = "voice-engine.html";
-  }
+      if (enterButton && commandInput) {
+        enterButton.addEventListener("click", () => runCommand(commandInput.value));
+      }
 
-  else if(input === "show queue"){
-    window.location.href = "console.html";
-  }
+      if (routeButton && commandInput) {
+        routeButton.addEventListener("click", () => runCommand(commandInput.value));
+      }
 
-  else{
-    statusBox.innerText = "Command not recognized.";
-  }
-}
+      if (commandInput) {
+        commandInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            runCommand(commandInput.value);
+          }
+        });
+      }
 
-// BUTTON CLICK
-enterButton.addEventListener("click", () => {
-  runCommand(commandInput.value);
-});
+      if (explainFloorBtn) {
+        explainFloorBtn.addEventListener("click", () => {
+          setStatus("Command Floor is the sovereign overview surface of Phoenix OS.");
+          safeSpeak("Command floor is the sovereign overview surface of Phoenix O S.");
+        });
+      }
 
-// ENTER KEY
-commandInput.addEventListener("keypress", (e) => {
-  if(e.key === "Enter"){
-    runCommand(commandInput.value);
-  }
-});
-</script> 
- 
+      if (openConsoleBtn) {
+        openConsoleBtn.addEventListener("click", () => {
+          setStatus("Opening Console...");
+          safeSpeak("Opening console.");
+          setTimeout(() => { window.location.href = "console.html"; }, 250);
+        });
+      }
+
+      if (routeMeBtn) {
+        routeMeBtn.addEventListener("click", () => {
+          setStatus("Try typing console, voice, war, staff, finance, execution, registry, or nhce.");
+          safeSpeak("Try typing console, voice, war, staff, finance, execution, registry, or N H C E.");
+          if (commandInput) commandInput.focus();
+        });
+      }
+
+      if (openWarRoomBtn) {
+        openWarRoomBtn.addEventListener("click", () => {
+          setStatus("Opening War Room...");
+          safeSpeak("Opening war room.");
+          setTimeout(() => { window.location.href = "war-room.html"; }, 250);
+        });
+      }
+    });
+  </script>
 </body>
 </html> 
