@@ -9,58 +9,52 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-  --bg:#05080c;
-  --bg2:#071019;
-  --bg3:#0a1521;
-  --panel:#0e1824;
-  --panel2:#0b131c;
-  --panel3:#112030;
-  --line:rgba(255,255,255,.07);
-  --line-strong:rgba(198,161,91,.24);
-  --gold:#c6a15b;
-  --gold-soft:rgba(198,161,91,.12);
-  --cyan:#63d9ff;
-  --cyan-soft:rgba(99,217,255,.12);
-  --green:#49d391;
-  --amber:#f0b35a;
-  --red:#ea7474;
-  --text:#f4efe5;
-  --muted:rgba(244,239,229,.66);
-  --muted2:rgba(244,239,229,.42);
-  --shadow:0 22px 70px rgba(0,0,0,.40);
-  --radius-sm:12px;
-  --radius-md:16px;
-  --radius-lg:22px;
-  --radius-xl:28px;
-  --topH:160px;
-  --leftW:280px;
-  --rightW:360px;
-  --container:1680px;
-
-  /* Typography Scale */
-  --text-xs:11px;
-  --text-sm:13px;
-  --text-md:14px;
-  --text-lg:18px;
-  --text-xl:28px;
-}
-
+      --bg:#05080c;
+      --bg2:#071019;
+      --bg3:#0a1521;
+      --panel:#0e1824;
+      --panel2:#0b131c;
+      --panel3:#112030;
+      --line:rgba(255,255,255,.07);
+      --line-strong:rgba(198,161,91,.24);
+      --gold:#c6a15b;
+      --gold-soft:rgba(198,161,91,.12);
+      --cyan:#63d9ff;
+      --cyan-soft:rgba(99,217,255,.12);
+      --green:#49d391;
+      --amber:#f0b35a;
+      --red:#ea7474;
+      --text:#f4efe5;
+      --muted:rgba(244,239,229,.66);
+      --muted2:rgba(244,239,229,.42);
+      --shadow:0 22px 70px rgba(0,0,0,.40);
+      --radius-sm:12px;
+      --radius-md:16px;
+      --radius-lg:22px;
+      --radius-xl:28px;
+      --topH:160px;
+      --leftW:280px;
+      --rightW:360px;
+      --container:1680px;
+      --text-xs:11px;
+      --text-sm:13px;
+      --text-md:14px;
+      --text-lg:18px;
+      --text-xl:28px;
+    }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
-  font-family:Inter,system-ui,sans-serif;
-  font-size:var(--text-sm);
-
-  color:var(--text);
-
-  background:
-    radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
-    radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
-    linear-gradient(180deg, #091018 0%, #05080c 100%);
-
-  overflow-x:hidden;
-}
+      font-family:Inter,system-ui,sans-serif;
+      font-size:var(--text-sm);
+      color:var(--text);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+        linear-gradient(180deg, #091018 0%, #05080c 100%);
+      overflow-x:hidden;
+    }
 
     body::before{
       content:"";
@@ -278,12 +272,12 @@
     }
 
     .pane-body{
-  flex:1;
-  min-height:0;
-  overflow:auto;
-  padding:16px 30px 16px 16px;
-  scrollbar-gutter: stable;
-}
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      padding:16px 30px 16px 16px;
+      scrollbar-gutter: stable;
+    }
 
     .nav-group + .nav-group{margin-top:18px}
     .group-label{
@@ -345,27 +339,6 @@
       margin-bottom:12px;
     }
 
-    .persona-list{display:grid;gap:10px}
-    .persona-item{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
-      border-radius:14px;
-      padding:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-
-    .persona-name{font-weight:800;font-size:15px}
-    .persona-role{
-      color:var(--muted);
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      margin-top:3px;
-    }
-
     .tag{
       padding:8px 11px;
       border-radius:999px;
@@ -383,6 +356,8 @@
       gap:16px;
       align-content:start;
       min-width:0;
+      padding:16px;
+      overflow:auto;
     }
 
     .hero{
@@ -394,9 +369,8 @@
       padding:24px;
       display:grid;
       gap:18px;
-    }
-
-    .hero-title{
+    } 
+.hero-title{
       font-family:Cinzel,serif;
       font-size:clamp(28px,2.4vw,46px);
       letter-spacing:.12em;
@@ -627,9 +601,8 @@
       inset:0;
       width:100%;
       height:100%;
-    }
-
-    .table{display:grid;gap:10px}
+    } 
+.table{display:grid;gap:10px}
     .table-row{
       display:grid;
       grid-template-columns:120px 1fr 100px;
@@ -736,7 +709,8 @@
       gap:10px;
     }
 
-    .nace-actions button{
+    .nace-actions button,
+    .action-btn{
       border:none;
       border-radius:14px;
       padding:12px;
@@ -748,6 +722,13 @@
       color:var(--text);
       background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
       border:1px solid rgba(99,217,255,.20);
+      transition:.16s ease;
+    }
+
+    .nace-actions button:hover,
+    .action-btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(198,161,91,.32);
     }
 
     .small{
@@ -756,9 +737,231 @@
       color:var(--muted);
     }
 
+    .exec-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);
+      gap:16px;
+    }
+
+    .field-stack{
+      display:grid;
+      gap:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+    }
+
+    .field label{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+
+    .field input,
+    .field textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(6,12,18,.94), rgba(5,9,14,.98));
+      color:var(--text);
+      font-family:Inter,system-ui,sans-serif;
+      font-size:14px;
+      padding:14px 15px;
+      outline:none;
+      transition:border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .field textarea{
+      min-height:138px;
+      resize:vertical;
+      font-family:"IBM Plex Mono",monospace;
+      line-height:1.6;
+    }
+
+    .field input:focus,
+    .field textarea:focus{
+      border-color:rgba(99,217,255,.34);
+      box-shadow:0 0 0 3px rgba(99,217,255,.08);
+    }
+
+    .field-help{
+      font-size:12px;
+      color:var(--muted2);
+      line-height:1.5;
+    }
+
+    .exec-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:2px;
+    }
+
+    .primary-btn{
+      border:none;
+      border-radius:14px;
+      padding:13px 16px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#08111a;
+      background:linear-gradient(180deg, rgba(198,161,91,1), rgba(214,186,127,.92));
+      box-shadow:0 12px 28px rgba(198,161,91,.16);
+      transition:.16s ease;
+    }
+
+    .primary-btn:hover{transform:translateY(-1px)}
+    .primary-btn:disabled,
+    .action-btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .exec-status{
+      display:grid;
+      gap:12px;
+    }
+
+    .live-status{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      flex-wrap:wrap;
+    } 
+.live-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .live-dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 12px rgba(240,179,90,.8);
+      flex:0 0 auto;
+    }
+
+    .live-dot.loading{
+      background:var(--cyan);
+      box-shadow:0 0 14px rgba(99,217,255,.9);
+      animation:pulse 1s infinite;
+    }
+
+    .live-dot.success{
+      background:var(--green);
+      box-shadow:0 0 14px rgba(73,211,145,.9);
+    }
+
+    .live-dot.error{
+      background:var(--red);
+      box-shadow:0 0 14px rgba(234,116,116,.9);
+    }
+
+    @keyframes pulse{
+      0%{transform:scale(1);opacity:1}
+      50%{transform:scale(1.16);opacity:.75}
+      100%{transform:scale(1);opacity:1}
+    }
+
+    .live-copy{
+      min-width:0;
+    }
+
+    .live-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:4px;
+    }
+
+    .live-text{
+      font-size:14px;
+      color:var(--text);
+    }
+
+    .tiny-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      white-space:nowrap;
+    }
+
+    .response-box{
+      border:1px solid rgba(99,217,255,.14);
+      border-radius:18px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(6,12,18,.96), rgba(5,8,13,1));
+    }
+
+    .response-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.02);
+      flex-wrap:wrap;
+    }
+
+    .response-title{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+
+    .response-badges{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .response-pre{
+      margin:0;
+      padding:16px;
+      min-height:280px;
+      max-height:520px;
+      overflow:auto;
+      font-family:"IBM Plex Mono",monospace;
+      font-size:13px;
+      line-height:1.65;
+      color:#d4edf8;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
     @media (max-width: 1520px){
       .app{grid-template-columns:270px minmax(0,1fr) 340px}
       .console-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .exec-grid{grid-template-columns:1fr}
     }
 
     @media (max-width: 1180px){
@@ -791,11 +994,11 @@
     @media (max-width: 760px){
       .app{padding:10px;gap:10px}
       .topbar,.left,.center,.right{border-radius:20px}
-      .quick-grid,.nace-actions,.console-grid{grid-template-columns:1fr}
+      .quick-grid,.nace-actions,.console-grid,.exec-grid{grid-template-columns:1fr}
       .receipt-row,.table-row{grid-template-columns:1fr}
-      .top-microbars{
-        grid-template-columns:1fr;
-      }
+      .top-microbars{grid-template-columns:1fr}
+      .exec-actions{flex-direction:column}
+      .exec-actions button{width:100%}
     }
   </style>
 </head>
@@ -883,30 +1086,100 @@
         <section class="hero">
           <div class="hero-title">Console</div>
           <div class="hero-copy">
-            This is the dense telemetry surface of PCC. Command Floor carries authority and overview. Console carries the heavier operational readouts, queue visibility, board states, graphs, logs, and deeper monitoring surfaces across the command environment.
+            This is the dense telemetry surface of PCC. Command Floor carries authority and overview. Console now also carries the live PCC engine execution lane so command dispatch can occur inside the existing sovereign shell without breaking architecture.
           </div>
-          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Console Session: Dense Telemetry</div>
+          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Console Session: Live Engine Dispatch</div>
 
           <div class="quick-grid">
             <div class="quick-card">
-              <div class="metric-label">System Load</div>
-              <div class="metric-value">74%</div>
-              <div class="metric-note">Operational strain visible across command, media, registry, and communication lanes.</div>
+              <div class="metric-label">Engine Endpoint</div>
+              <div class="metric-value" style="font-size:20px;line-height:1.25;">LIVE</div>
+              <div class="metric-note">PCC engine target is wired to the active execution endpoint.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Receipts Today</div>
-              <div class="metric-value">162</div>
-              <div class="metric-note">Receipt-backed visibility remains active across queue, execution, voice, and registry surfaces.</div>
+              <div class="metric-label">Default Command</div>
+              <div class="metric-value" style="font-size:20px;line-height:1.25;">PPBP</div>
+              <div class="metric-note">Console initializes with the verified PCC core command.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Voice Queue</div>
-              <div class="metric-value">19</div>
-              <div class="metric-note">Pending voice requests remain visible across executive and staff communication lanes.</div>
+              <div class="metric-label">Execution State</div>
+              <div class="metric-value" id="heroExecState">IDLE</div>
+              <div class="metric-note">Current client-side dispatch state for this console session.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Spider Ready</div>
-              <div class="metric-value">88%</div>
-              <div class="metric-note">Media, render, and distribution surfaces remain near execution-ready under monitored posture.</div>
+              <div class="metric-label">HTTP Status</div>
+              <div class="metric-value" id="heroHttpStatus">—</div>
+              <div class="metric-note">Last returned HTTP status from the live PCC engine endpoint.</div>
+            </div>
+          </div>
+        </section> 
+<section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Live PCC Engine Execution</div>
+              <div class="panel-sub">Direct console dispatch to the live PCC engine endpoint from inside the established PCC shell.</div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="exec-grid">
+              <div class="field-stack">
+                <div class="field">
+                  <label for="endpointInput">Engine Endpoint</label>
+                  <input id="endpointInput" type="text" value="https://pcc-engine-v1.tsteelefpa.workers.dev/execute" spellcheck="false" />
+                  <div class="field-help">Live PCC endpoint carried forward from validated engine state.</div>
+                </div>
+
+                <div class="field">
+                  <label for="commandInput">Command Payload Input</label>
+                  <textarea id="commandInput" spellcheck="false">RUN PPBP: PCC CORE</textarea>
+                  <div class="field-help">Console sends JSON in the form: { "command": "..." }</div>
+                </div>
+
+                <div class="exec-actions">
+                  <button class="primary-btn" id="executeBtn">Execute Command</button>
+                  <button class="action-btn" id="resetBtn" type="button">Reset Command</button>
+                  <button class="action-btn" id="copyBtn" type="button">Copy Response</button>
+                </div>
+
+                <div class="exec-status">
+                  <div class="live-status">
+                    <div class="live-left">
+                      <div class="live-dot" id="liveDot"></div>
+                      <div class="live-copy">
+                        <div class="live-label">Execution Status</div>
+                        <div class="live-text" id="liveText">Idle. Console is ready for command dispatch.</div>
+                      </div>
+                    </div>
+                    <div class="tiny-chip" id="httpChip">HTTP —</div>
+                  </div>
+
+                  <div class="live-status">
+                    <div class="live-left">
+                      <div class="live-copy">
+                        <div class="live-label">Last Execution Time</div>
+                        <div class="live-text" id="lastRunText">No command executed yet.</div>
+                      </div>
+                    </div>
+                    <div class="tiny-chip" id="modeChip">Mode Ready</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="response-box">
+                <div class="response-top">
+                  <div class="response-title">Engine Response Panel</div>
+                  <div class="response-badges">
+                    <div class="tiny-chip" id="buildChip">PCC-ENGINE-V1-R1</div>
+                    <div class="tiny-chip" id="routeChip">/execute</div>
+                  </div>
+                </div>
+                <pre class="response-pre" id="responsePanel">{
+  "status": "READY",
+  "message": "Awaiting PCC engine command dispatch.",
+  "endpoint": "https://pcc-engine-v1.tsteelefpa.workers.dev/execute"
+}</pre>
+              </div>
             </div>
           </div>
         </section>
@@ -921,46 +1194,14 @@
 
           <div class="panel-body">
             <div class="console-grid">
-              <div class="console-cell">
-                <div class="console-label">Command Lane</div>
-                <div class="console-value">GREEN</div>
-                <div class="muted-copy">Core rails stable</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">Voice Engine</div>
-                <div class="console-value">READY</div>
-                <div class="muted-copy">IDs mapped</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">War Room</div>
-                <div class="console-value">LIVE</div>
-                <div class="muted-copy">Executive chamber</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">NHCE</div>
-                <div class="console-value">63%</div>
-                <div class="muted-copy">Pressure elevated</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">PBRS</div>
-                <div class="console-value">ACTIVE</div>
-                <div class="muted-copy">Snapshot corridor</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">PBB</div>
-                <div class="console-value">STAGED</div>
-                <div class="muted-copy">Builder lane ready</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">PCC</div>
-                <div class="console-value">LOCKED</div>
-                <div class="muted-copy">Shell doctrine intact</div>
-              </div>
-              <div class="console-cell">
-                <div class="console-label">Queue</div>
-                <div class="console-value">66</div>
-                <div class="muted-copy">Awaiting execution</div>
-              </div>
+              <div class="console-cell"><div class="console-label">Command Lane</div><div class="console-value">GREEN</div><div class="muted-copy">Core rails stable</div></div>
+              <div class="console-cell"><div class="console-label">Voice Engine</div><div class="console-value">READY</div><div class="muted-copy">IDs mapped</div></div>
+              <div class="console-cell"><div class="console-label">War Room</div><div class="console-value">LIVE</div><div class="muted-copy">Executive chamber</div></div>
+              <div class="console-cell"><div class="console-label">NHCE</div><div class="console-value">63%</div><div class="muted-copy">Pressure elevated</div></div>
+              <div class="console-cell"><div class="console-label">PBRS</div><div class="console-value">ACTIVE</div><div class="muted-copy">Snapshot corridor</div></div>
+              <div class="console-cell"><div class="console-label">PBB</div><div class="console-value">STAGED</div><div class="muted-copy">Builder lane ready</div></div>
+              <div class="console-cell"><div class="console-label">PCC</div><div class="console-value">LOCKED</div><div class="muted-copy">Shell doctrine intact</div></div>
+              <div class="console-cell"><div class="console-label">Queue</div><div class="console-value">66</div><div class="muted-copy">Awaiting execution</div></div>
             </div>
           </div>
         </section>
@@ -973,40 +1214,12 @@
                 <div class="panel-sub">Load and throughput visibility across monitored system lanes.</div>
               </div>
             </div>
-
             <div class="panel-body">
               <div class="bars">
-                <div class="bar-item">
-                  <div class="bar-top">
-                    <div class="bar-label">Command Queue</div>
-                    <div class="bar-value">71%</div>
-                  </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:71%"></div></div>
-                </div>
-
-                <div class="bar-item">
-                  <div class="bar-top">
-                    <div class="bar-label">Voice Queue</div>
-                    <div class="bar-value">58%</div>
-                  </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:58%"></div></div>
-                </div>
-
-                <div class="bar-item">
-                  <div class="bar-top">
-                    <div class="bar-label">Media Queue</div>
-                    <div class="bar-value">84%</div>
-                  </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
-                </div>
-
-                <div class="bar-item">
-                  <div class="bar-top">
-                    <div class="bar-label">Registry Tasks</div>
-                    <div class="bar-value">36%</div>
-                  </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:36%"></div></div>
-                </div>
+                <div class="bar-item"><div class="bar-top"><div class="bar-label">Command Queue</div><div class="bar-value">71%</div></div><div class="bar-track"><div class="bar-fill" style="width:71%"></div></div></div>
+                <div class="bar-item"><div class="bar-top"><div class="bar-label">Voice Queue</div><div class="bar-value">58%</div></div><div class="bar-track"><div class="bar-fill" style="width:58%"></div></div></div>
+                <div class="bar-item"><div class="bar-top"><div class="bar-label">Media Queue</div><div class="bar-value">84%</div></div><div class="bar-track"><div class="bar-fill" style="width:84%"></div></div></div>
+                <div class="bar-item"><div class="bar-top"><div class="bar-label">Registry Tasks</div><div class="bar-value">36%</div></div><div class="bar-track"><div class="bar-fill" style="width:36%"></div></div></div>
               </div>
             </div>
           </div>
@@ -1018,22 +1231,11 @@
                 <div class="panel-sub">System pulse chart for load rhythm and institutional pressure.</div>
               </div>
             </div>
-
             <div class="panel-body">
               <div class="mini-line">
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <polyline
-                    fill="none"
-                    stroke="rgba(99,217,255,.95)"
-                    stroke-width="2.4"
-                    points="0,75 8,72 16,70 24,62 32,58 40,61 48,45 56,50 64,40 72,42 80,30 88,34 96,24 100,28"
-                  />
-                  <polyline
-                    fill="none"
-                    stroke="rgba(198,161,91,.85)"
-                    stroke-width="2"
-                    points="0,82 8,78 16,76 24,73 32,70 40,68 48,64 56,62 64,58 72,55 80,52 88,50 96,46 100,44"
-                  />
+                  <polyline fill="none" stroke="rgba(99,217,255,.95)" stroke-width="2.4" points="0,75 8,72 16,70 24,62 32,58 40,61 48,45 56,50 64,40 72,42 80,30 88,34 96,24 100,28"/>
+                  <polyline fill="none" stroke="rgba(198,161,91,.85)" stroke-width="2" points="0,82 8,78 16,76 24,73 32,70 40,68 48,64 56,62 64,58 72,55 80,52 88,50 96,46 100,44"/>
                 </svg>
               </div>
               <div class="muted-copy" style="margin-top:10px;">Blue = command pulse. Gold = institutional load trend.</div>
@@ -1048,29 +1250,12 @@
               <div class="panel-sub">Execution-ready queue visibility under dense monitoring posture.</div>
             </div>
           </div>
-
           <div class="panel-body">
             <div class="table">
-              <div class="table-row">
-                <div class="mono">Q-001</div>
-                <div>PBRS snapshot delivery queue</div>
-                <div class="status green">Ready</div>
-              </div>
-              <div class="table-row">
-                <div class="mono">Q-002</div>
-                <div>Spider outbound media render review</div>
-                <div class="status amber">Queued</div>
-              </div>
-              <div class="table-row">
-                <div class="mono">Q-003</div>
-                <div>NACE greeting voice activation test</div>
-                <div class="status amber">Pending</div>
-              </div>
-              <div class="table-row">
-                <div class="mono">Q-004</div>
-                <div>NHCE pressure threshold audit</div>
-                <div class="status red">Review</div>
-              </div>
+              <div class="table-row"><div class="mono">Q-001</div><div>PBRS snapshot delivery queue</div><div class="status green">Ready</div></div>
+              <div class="table-row"><div class="mono">Q-002</div><div>Spider outbound media render review</div><div class="status amber">Queued</div></div>
+              <div class="table-row"><div class="mono">Q-003</div><div>NACE greeting voice activation test</div><div class="status amber">Pending</div></div>
+              <div class="table-row"><div class="mono">Q-004</div><div>NHCE pressure threshold audit</div><div class="status red">Review</div></div>
             </div>
           </div>
         </section>
@@ -1082,29 +1267,12 @@
               <div class="panel-sub">Dense board-style log lane under the locked PCC shell.</div>
             </div>
           </div>
-
           <div class="panel-body">
             <div class="receipt-feed">
-              <div class="receipt-row">
-                <div class="receipt-time">07:18</div>
-                <div class="receipt-lane">PCC Core</div>
-                <div class="receipt-copy">Console lane established as the dense telemetry and command-visibility page under the PCC shell.</div>
-              </div>
-              <div class="receipt-row">
-                <div class="receipt-time">07:23</div>
-                <div class="receipt-lane">Voice Grid</div>
-                <div class="receipt-copy">Executive and staff voice architecture recognized as part of communication infrastructure.</div>
-              </div>
-              <div class="receipt-row">
-                <div class="receipt-time">07:29</div>
-                <div class="receipt-lane">War Room</div>
-                <div class="receipt-copy">Strategic chamber remains represented as a permanent tower lane, not an afterthought.</div>
-              </div>
-              <div class="receipt-row">
-                <div class="receipt-time">07:35</div>
-                <div class="receipt-lane">Build Mode</div>
-                <div class="receipt-copy">Single-shell governance preserved so dense telemetry does not fracture PCC into multiple UI systems.</div>
-              </div>
+              <div class="receipt-row"><div class="receipt-time">07:18</div><div class="receipt-lane">PCC Core</div><div class="receipt-copy">Console lane established as the dense telemetry and command-visibility page under the PCC shell.</div></div>
+              <div class="receipt-row"><div class="receipt-time">07:23</div><div class="receipt-lane">Voice Grid</div><div class="receipt-copy">Executive and staff voice architecture recognized as part of communication infrastructure.</div></div>
+              <div class="receipt-row"><div class="receipt-time">07:29</div><div class="receipt-lane">War Room</div><div class="receipt-copy">Strategic chamber remains represented as a permanent tower lane, not an afterthought.</div></div>
+              <div class="receipt-row"><div class="receipt-time">07:35</div><div class="receipt-lane">Build Mode</div><div class="receipt-copy">Single-shell governance preserved so dense telemetry does not fracture PCC into multiple UI systems.</div></div>
             </div>
           </div>
         </section>
@@ -1124,41 +1292,249 @@
             <div class="tag">Guide</div>
           </div>
 
-          <div class="nace-copy">
-            Console is active. Dense telemetry, queue visibility, receipt posture, and board-state awareness are available from this surface without changing the sovereign PCC shell.
+          <div class="nace-copy" id="naceCopy">
+            Console is active. Dense telemetry, queue visibility, receipt posture, and live PCC engine dispatch are available from this surface without changing the sovereign PCC shell.
           </div>
 
           <div class="nace-actions">
-            <button>Explain Console</button>
-            <button>Open Queue</button>
-            <button>Inspect Logs</button>
-            <button>Return Floor</button>
+            <button type="button" id="explainBtn">Explain Console</button>
+            <button type="button" id="openQueueBtn">Open Queue</button>
+            <button type="button" id="inspectLogsBtn">Inspect Logs</button>
+            <button type="button" id="returnFloorBtn">Return Floor</button>
           </div>
         </div>
 
         <div class="section-card">
           <div class="section-label">Executive Tower</div>
           <div class="tower">
-            <div class="tower-card">
-              <strong>NACE</strong>
-              <span>Guide lane standing by for command-floor intake and system explanation.</span>
-            </div>
-            <div class="tower-card">
-              <strong>Chad</strong>
-              <span>Execution posture active. Systems and routing intelligence remain aligned.</span>
-            </div>
-            <div class="tower-card">
-              <strong>Alexis Vale</strong>
-              <span>Governance oversight visible. Institutional continuity preserved across dense telemetry surfaces.</span>
-            </div>
-            <div class="tower-card">
-              <strong>Operator</strong>
-              <span>Phone and support layer remains reserved for communication engine expansion.</span>
-            </div>
+            <div class="tower-card"><strong>NACE</strong><span>Guide lane standing by for console dispatch explanation and live engine awareness.</span></div>
+            <div class="tower-card"><strong>Chad</strong><span>Execution posture active. Systems and routing intelligence remain aligned.</span></div>
+            <div class="tower-card"><strong>Alexis Vale</strong><span>Governance oversight visible. Institutional continuity preserved across dense telemetry surfaces.</span></div>
+            <div class="tower-card"><strong>Operator</strong><span>Phone and support layer remains reserved for communication engine expansion.</span></div>
           </div>
         </div>
       </div>
     </aside>
   </div>
+
+  <script>
+    (function () {
+      const DEFAULT_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/execute";
+      const DEFAULT_COMMAND = "RUN PPBP: PCC CORE";
+
+      const endpointInput = document.getElementById("endpointInput");
+      const commandInput = document.getElementById("commandInput");
+      const executeBtn = document.getElementById("executeBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const copyBtn = document.getElementById("copyBtn");
+      const responsePanel = document.getElementById("responsePanel");
+      const liveDot = document.getElementById("liveDot");
+      const liveText = document.getElementById("liveText");
+      const httpChip = document.getElementById("httpChip");
+      const modeChip = document.getElementById("modeChip");
+      const lastRunText = document.getElementById("lastRunText");
+      const heroExecState = document.getElementById("heroExecState");
+      const heroHttpStatus = document.getElementById("heroHttpStatus");
+      const naceCopy = document.getElementById("naceCopy");
+      const explainBtn = document.getElementById("explainBtn");
+      const openQueueBtn = document.getElementById("openQueueBtn");
+      const inspectLogsBtn = document.getElementById("inspectLogsBtn");
+      const returnFloorBtn = document.getElementById("returnFloorBtn");
+
+      let lastResponseText = responsePanel.textContent;
+      let inFlight = false;
+
+      function stampNow() {
+        return new Date().toLocaleString([], {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+      }
+
+      function setDot(mode) {
+        liveDot.className = "live-dot";
+        if (mode === "loading") liveDot.classList.add("loading");
+        if (mode === "success") liveDot.classList.add("success");
+        if (mode === "error") liveDot.classList.add("error");
+      }
+
+      function setMode(modeText) {
+        modeChip.textContent = modeText;
+      }
+
+      function setStatus(text, mode) {
+        liveText.textContent = text;
+        setDot(mode);
+      }
+
+      function setResponse(obj) {
+        const output = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+        lastResponseText = output;
+        responsePanel.textContent = output;
+      }
+
+      function setBusy(isBusy) {
+        inFlight = isBusy;
+        executeBtn.disabled = isBusy;
+        resetBtn.disabled = isBusy;
+        endpointInput.disabled = isBusy;
+        commandInput.disabled = isBusy;
+      }
+
+      function resetView() {
+        endpointInput.value = DEFAULT_ENDPOINT;
+        commandInput.value = DEFAULT_COMMAND;
+        setDot("idle");
+        setStatus("Idle. Console is ready for command dispatch.", "idle");
+        setMode("Mode Ready");
+        httpChip.textContent = "HTTP —";
+        heroExecState.textContent = "IDLE";
+        heroHttpStatus.textContent = "—";
+        lastRunText.textContent = "No command executed yet.";
+        naceCopy.textContent = "Console is active. Dense telemetry, queue visibility, receipt posture, and live PCC engine dispatch are available from this surface without changing the sovereign PCC shell.";
+        setResponse({
+          status: "READY",
+          message: "Awaiting PCC engine command dispatch.",
+          endpoint: DEFAULT_ENDPOINT
+        });
+      }
+
+      async function executeCommand() {
+        if (inFlight) return;
+
+        const endpoint = endpointInput.value.trim() || DEFAULT_ENDPOINT;
+        const command = commandInput.value.trim();
+
+        if (!command) {
+          setStatus("Command input is empty. Execution halted.", "error");
+          setMode("Mode Error");
+          heroExecState.textContent = "ERROR";
+          heroHttpStatus.textContent = "—";
+          setResponse({
+            status: "CLIENT_ERROR",
+            message: "Command input is empty.",
+            expected_payload: { command: "RUN PPBP: PCC CORE" }
+          });
+          return;
+        }
+
+        const payload = { command };
+
+        setBusy(true);
+        setStatus("Dispatching command to live PCC engine...", "loading");
+        setMode("Mode Loading");
+        heroExecState.textContent = "LOADING";
+        httpChip.textContent = "HTTP Pending";
+        heroHttpStatus.textContent = "PENDING";
+        naceCopy.textContent = "Live dispatch in progress. PCC console is posting the current command payload to the active engine endpoint.";
+        setResponse({
+          status: "LOADING",
+          endpoint,
+          payload,
+          message: "Posting command to PCC engine..."
+        });
+
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const raw = await res.text();
+          let data;
+
+          try {
+            data = raw ? JSON.parse(raw) : { message: "Empty response body." };
+          } catch (e) {
+            data = { status: "NON_JSON_RESPONSE", raw };
+          }
+
+          httpChip.textContent = "HTTP " + res.status;
+          heroHttpStatus.textContent = String(res.status);
+          lastRunText.textContent = stampNow();
+
+          if (res.ok) {
+            setStatus("Execution completed successfully.", "success");
+            setMode("Mode Success");
+            heroExecState.textContent = "SUCCESS";
+            naceCopy.textContent = "PCC engine returned a successful response. Console remains the dense telemetry and dispatch surface within the locked PCC shell.";
+            setResponse(data);
+          } else {
+            setStatus("Engine returned an error response.", "error");
+            setMode("Mode Error");
+            heroExecState.textContent = "ERROR";
+            naceCopy.textContent = "The engine responded, but the returned HTTP status indicates failure or rejection. Review the response panel for exact details.";
+            setResponse({
+              status: "REQUEST_FAILED",
+              http_status: res.status,
+              response: data
+            });
+          }
+        } catch (error) {
+          httpChip.textContent = "HTTP Network Error";
+          heroHttpStatus.textContent = "ERROR";
+          lastRunText.textContent = stampNow();
+          setStatus("Network or CORS failure while contacting PCC engine.", "error");
+          setMode("Mode Error");
+          heroExecState.textContent = "ERROR";
+          naceCopy.textContent = "The console could not complete the network call to the engine endpoint. This usually indicates network, CORS, or endpoint reachability failure.";
+          setResponse({
+            status: "NETWORK_ERROR",
+            message: error && error.message ? error.message : "Unknown network failure."
+          });
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function copyResponse() {
+        try {
+          await navigator.clipboard.writeText(lastResponseText);
+          const oldText = copyBtn.textContent;
+          copyBtn.textContent = "Copied";
+          setTimeout(() => { copyBtn.textContent = oldText; }, 1200);
+        } catch (err) {
+          setStatus("Clipboard copy failed on this browser/device.", "error");
+          setMode("Mode Error");
+        }
+      }
+
+      executeBtn.addEventListener("click", executeCommand);
+      resetBtn.addEventListener("click", resetView);
+      copyBtn.addEventListener("click", copyResponse);
+
+      commandInput.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          executeCommand();
+        }
+      });
+
+      explainBtn.addEventListener("click", function () {
+        naceCopy.textContent = "Console is the dense operational surface of PCC. It now carries live engine dispatch, response visibility, status signaling, and deeper telemetry while Command Floor remains the executive overview layer.";
+      });
+
+      openQueueBtn.addEventListener("click", function () {
+        document.querySelector(".table").scrollIntoView({ behavior: "smooth", block: "start" });
+        naceCopy.textContent = "Queue table is the visible board lane for execution-ready items, pending items, and review posture under dense monitoring.";
+      });
+
+      inspectLogsBtn.addEventListener("click", function () {
+        document.querySelector(".receipt-feed").scrollIntoView({ behavior: "smooth", block: "start" });
+        naceCopy.textContent = "Console logs provide receipt-style event awareness, posture history, and system narrative within the locked PCC shell.";
+      });
+
+      returnFloorBtn.addEventListener("click", function () {
+        window.location.href = "command-floor.html";
+      });
+
+      resetView();
+    })();
+  </script>
 </body>
 </html> 
