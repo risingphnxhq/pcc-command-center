@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phoenix Command Center — Console V2C</title>
+  <title>Phoenix Command Center — Console V2D</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,11 +36,6 @@
       --leftW:280px;
       --rightW:360px;
       --container:1760px;
-      --text-xs:11px;
-      --text-sm:13px;
-      --text-md:14px;
-      --text-lg:18px;
-      --text-xl:28px;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -48,7 +43,7 @@
 
     body{
       font-family:Inter,system-ui,sans-serif;
-      font-size:var(--text-sm);
+      font-size:13px;
       color:var(--text);
       background:
         radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
@@ -201,9 +196,9 @@
 
     .top-microbars{
       display:grid;
-      grid-template-columns:repeat(3, minmax(120px, 1fr));
+      grid-template-columns:repeat(4, minmax(120px, 1fr));
       gap:10px;
-      width:min(460px, 100%);
+      width:min(620px, 100%);
     }
 
     .micro-card{
@@ -229,6 +224,7 @@
       font-size:11px;
       color:var(--muted);
       margin-bottom:8px;
+      word-break:break-word;
     }
 
     .micro-track{
@@ -432,8 +428,8 @@
 
     .metric-value{
       color:var(--cyan);
-      font-size:clamp(24px,2vw,34px);
-      line-height:1;
+      font-size:clamp(20px,1.8vw,30px);
+      line-height:1.15;
       font-weight:800;
       margin-bottom:10px;
       word-break:break-word;
@@ -809,9 +805,46 @@
       word-break:break-word;
     }
 
+    .boas-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .boas-card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+      min-width:0;
+    }
+
+    .boas-label{
+      font-size:11px;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.15em;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .boas-value{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:16px;
+      line-height:1.45;
+      color:var(--text);
+      word-break:break-word;
+    }
+
+    .boas-value.gold{color:var(--gold)}
+    .boas-value.cyan{color:var(--cyan)}
+    .boas-value.amber{color:var(--amber)}
+    .boas-value.red{color:var(--red)}
+    .boas-value.green{color:var(--green)}
+
     @media (max-width: 1520px){
       .app{grid-template-columns:270px minmax(0,1fr) 340px}
-      .ops-grid,.flow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .ops-grid,.flow-grid,.boas-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media (max-width: 1180px){
@@ -828,8 +861,8 @@
       .topbar{grid-template-columns:1fr}
       .topbar-right{justify-items:start}
       .top-status-rail{justify-content:flex-start}
-      .top-microbars{width:100%}
-      .ops-grid,.flow-grid,.quick-grid{grid-template-columns:1fr}
+      .top-microbars{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .ops-grid,.flow-grid,.quick-grid,.boas-grid{grid-template-columns:1fr}
     }
 
     @media (max-width: 760px){
@@ -858,9 +891,9 @@
       <div class="topbar-right">
         <div class="top-status-rail">
           <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
-          <div class="status-chip cyan"><span class="dot"></span> Mode: Console V2C</div>
-          <div class="status-chip amber"><span class="dot"></span> Build Layer: Live</div>
-          <div class="status-chip green"><span class="dot"></span> Apply Layer: Live</div>
+          <div class="status-chip cyan"><span class="dot"></span> Mode: Console V2D</div>
+          <div class="status-chip amber"><span class="dot"></span> BOAS: Enforced</div>
+          <div class="status-chip green"><span class="dot"></span> Apply Guard: Active</div>
         </div>
 
         <div class="top-microbars">
@@ -879,6 +912,11 @@
             <div class="micro-value">/apply</div>
             <div class="micro-track"><div class="micro-fill" style="width:95%"></div></div>
           </div>
+          <div class="micro-card">
+            <div class="micro-label">Current Trust</div>
+            <div class="micro-value" id="topTrustValue">UNKNOWN</div>
+            <div class="micro-track"><div class="micro-fill" id="topTrustBar" style="width:18%"></div></div>
+          </div>
         </div>
       </div>
     </header>
@@ -886,7 +924,7 @@
     <aside class="left glass">
       <div class="pane-head">
         <div class="pane-title">Console Rail</div>
-        <div class="pane-sub">Direct execution, build packet generation, artifact generation, and apply control inside the locked PCC shell.</div>
+        <div class="pane-sub">Direct execution, governed build packet generation, hard-enforced trust evaluation, and explicit apply control.</div>
       </div>
 
       <div class="pane-body">
@@ -912,8 +950,8 @@
         </div>
 
         <div class="section-card">
-          <div class="section-label">Console Doctrine</div>
-          <div class="small">Execute, build, and apply are separate governed actions. No hidden auto-routing. No implicit mutation.</div>
+          <div class="section-label">BOAS Doctrine</div>
+          <div class="small">Only trusted origins may apply. Unknown and untrusted packets are blocked. Build provenance is visible, signed, and enforced.</div>
         </div>
       </div>
     </aside>
@@ -921,11 +959,11 @@
     <main class="center glass">
       <div class="center-scroll">
         <section class="hero">
-          <div class="hero-title">Console V2C</div>
+          <div class="hero-title">Console V2D</div>
           <div class="hero-copy">
-            This console now operates the full PCC governed build chain. Direct execution remains active. Build packet generation, artifact generation, and apply actions are now exposed from the same sovereign control surface.
+            This console now operates the full PCC governed build chain with Build Origin Authority System enforcement. Direct execution remains active. Build packet generation, artifact generation, signature visibility, trust classification, and guarded apply actions are exposed from the same sovereign control surface.
           </div>
-          <div class="hero-badge">Console Session: Execute + Build + Apply</div>
+          <div class="hero-badge">Console Session: Execute + Build + Apply + BOAS</div>
 
           <div class="quick-grid">
             <div class="quick-card">
@@ -936,12 +974,41 @@
             <div class="quick-card">
               <div class="metric-label">Last Artifact</div>
               <div class="metric-value" id="heroArtifactId">—</div>
-              <div class="metric-note">Most recent generated artifact under V2C.</div>
+              <div class="metric-note">Most recent generated artifact under BOAS governance.</div>
             </div>
             <div class="quick-card">
               <div class="metric-label">Last Target</div>
               <div class="metric-value" id="heroTargetId">—</div>
-              <div class="metric-note">Most recent target updated by apply layer.</div>
+              <div class="metric-note">Most recent target updated by the apply layer.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">BOAS Authority Panel</div>
+              <div class="panel-sub">Origin, authority, trust, and signature state of the current proof object.</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="boas-grid">
+              <div class="boas-card">
+                <div class="boas-label">Origin</div>
+                <div class="boas-value red" id="boasOrigin">UNKNOWN</div>
+              </div>
+              <div class="boas-card">
+                <div class="boas-label">Authority</div>
+                <div class="boas-value red" id="boasAuthority">NONE</div>
+              </div>
+              <div class="boas-card">
+                <div class="boas-label">Trusted</div>
+                <div class="boas-value red" id="boasTrusted">FALSE</div>
+              </div>
+              <div class="boas-card">
+                <div class="boas-label">Verification</div>
+                <div class="boas-value red" id="boasVerification">UNVERIFIED</div>
+              </div>
             </div>
           </div>
         </section>
@@ -994,7 +1061,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Build Packet + Artifact</div>
-                <div class="panel-sub">Generate governed build packets and artifacts without auto-applying them.</div>
+                <div class="panel-sub">Generate governed build packets and artifacts. Origin is explicit and enforced.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1002,6 +1069,16 @@
                 <div class="field">
                   <label for="buildEndpoint">Build Endpoint</label>
                   <input id="buildEndpoint" type="text" value="https://pcc-engine-v1.tsteelefpa.workers.dev/build" spellcheck="false" />
+                </div>
+                <div class="field">
+                  <label for="buildOrigin">Build Origin</label>
+                  <select id="buildOrigin">
+                    <option value="PCC_ENGINE" selected>PCC_ENGINE</option>
+                    <option value="RPE_SUPER_COMMAND">RPE_SUPER_COMMAND</option>
+                    <option value="EXTERNAL_VERIFIED">EXTERNAL_VERIFIED</option>
+                    <option value="UNKNOWN">UNKNOWN</option>
+                  </select>
+                  <div class="field-help">Trusted apply is permitted only for trusted origins under BOAS enforcement.</div>
                 </div>
                 <div class="field">
                   <label for="buildCommand">Build Command</label>
@@ -1022,7 +1099,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Apply Layer</div>
-                <div class="panel-sub">Apply a staged packet into the governed target registry using an explicit packet reference.</div>
+                <div class="panel-sub">Apply a staged packet into the governed target registry using an explicit trusted packet reference.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1034,7 +1111,7 @@
                 <div class="field">
                   <label for="applyPacketId">Packet ID</label>
                   <input id="applyPacketId" type="text" value="" spellcheck="false" placeholder="Paste packet_id returned from /build" />
-                  <div class="field-help">Apply is explicit. No auto-apply. Packet reference must be exact.</div>
+                  <div class="field-help">Apply is explicit. Unknown and untrusted packets are blocked.</div>
                 </div>
                 <div class="exec-actions">
                   <button class="primary-btn" id="applyBtn">Run Apply</button>
@@ -1049,7 +1126,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Unified Status Tower</div>
-                <div class="panel-sub">Single visible proof layer for route, status, target mutation, and receipt-backed execution.</div>
+                <div class="panel-sub">Single visible proof layer for route, status, trust state, target mutation, and receipt-backed execution.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1059,7 +1136,7 @@
                     <div class="live-dot" id="liveDot"></div>
                     <div class="live-copy">
                       <div class="live-label">Execution Status</div>
-                      <div class="live-text" id="liveText">Idle. Console V2C is ready.</div>
+                      <div class="live-text" id="liveText">Idle. Console V2D is ready.</div>
                     </div>
                   </div>
                   <div class="tiny-chip" id="httpChip">HTTP —</div>
@@ -1094,8 +1171,8 @@
               <div class="panel-sub">Unified JSON response panel for execute, build, and apply actions.</div>
             </div>
             <div class="response-badges">
-              <div class="tiny-chip" id="engineChip">PCC-ENGINE-V1-R1</div>
-              <div class="tiny-chip" id="layerChip">PCC-BUILD-V2C-R1</div>
+              <div class="tiny-chip" id="engineChip">PCC-ENGINE-V2D-R1</div>
+              <div class="tiny-chip" id="layerChip">PCC-BUILD-V2D-R1</div>
               <div class="tiny-chip" id="routeChip">READY</div>
             </div>
           </div>
@@ -1109,8 +1186,14 @@
               </div>
               <pre class="response-pre" id="responsePanel">{
   "status": "READY",
-  "message": "Console V2C is waiting for execute, build, or apply actions.",
-  "routes": ["/execute", "/build", "/apply"]
+  "message": "Console V2D is waiting for execute, build, or apply actions.",
+  "routes": ["/execute", "/build", "/apply"],
+  "boas": {
+    "origin": "UNKNOWN",
+    "authority_level": "NONE",
+    "trusted": false,
+    "verification": "UNVERIFIED"
+  }
 }</pre>
             </div>
           </div>
@@ -1121,7 +1204,7 @@
     <aside class="right glass">
       <div class="pane-head">
         <div class="pane-title">Executive Intelligence Tower</div>
-        <div class="pane-sub">Operational guidance for direct execution, packet generation, and governed apply actions.</div>
+        <div class="pane-sub">Operational guidance for direct execution, provenance-aware builds, and hard-enforced apply actions.</div>
       </div>
 
       <div class="pane-body">
@@ -1132,11 +1215,11 @@
           </div>
 
           <div class="nace-copy" id="naceCopy">
-            Console V2C is active. Execute, build, and apply remain visibly separated so PCC can operate as a deterministic command system without hidden mutation behavior.
+            Console V2D is active. BOAS is enforced. Execute, build, and apply remain visibly separated. Only trusted origins can pass through apply.
           </div>
 
           <div class="nace-actions">
-            <button class="action-btn" type="button" id="explainBtn">Explain Console</button>
+            <button class="action-btn" type="button" id="explainBtn">Explain BOAS</button>
             <button class="action-btn" type="button" id="useBuildBtn">Use Build</button>
             <button class="action-btn" type="button" id="useApplyBtn">Use Apply</button>
             <button class="action-btn" type="button" id="returnFloorBtn">Return Floor</button>
@@ -1146,10 +1229,10 @@
         <div class="section-card">
           <div class="section-label">Executive Tower</div>
           <div class="tower">
-            <div class="tower-card"><strong>NACE</strong><span>Guide lane standing by for governed route selection and packet/apply explanation.</span></div>
-            <div class="tower-card"><strong>Chad</strong><span>Execution posture active. Command, packet, artifact, and apply logic remain aligned.</span></div>
-            <div class="tower-card"><strong>Alexis Vale</strong><span>Governance oversight visible. Explicit route separation preserves institutional control.</span></div>
-            <div class="tower-card"><strong>Operator</strong><span>Apply actions now mutate controlled targets only, not live repository files.</span></div>
+            <div class="tower-card"><strong>NACE</strong><span>Guide lane standing by for governed route selection, packet trust review, and apply explanation.</span></div>
+            <div class="tower-card"><strong>Chad</strong><span>Execution posture active. Command, packet, artifact, origin, signature, and apply logic remain aligned.</span></div>
+            <div class="tower-card"><strong>Alexis Vale</strong><span>Governance oversight visible. Explicit origin classification preserves institutional control.</span></div>
+            <div class="tower-card"><strong>Operator</strong><span>Apply actions mutate governed targets only. Untrusted packets are blocked before mutation.</span></div>
           </div>
         </div>
       </div>
@@ -1171,6 +1254,7 @@
       const executeCommand = document.getElementById("executeCommand");
       const buildCommand = document.getElementById("buildCommand");
       const applyPacketId = document.getElementById("applyPacketId");
+      const buildOrigin = document.getElementById("buildOrigin");
 
       const executeBtn = document.getElementById("executeBtn");
       const buildBtn = document.getElementById("buildBtn");
@@ -1201,6 +1285,13 @@
       const responsePanel = document.getElementById("responsePanel");
       const routeChip = document.getElementById("routeChip");
       const naceCopy = document.getElementById("naceCopy");
+      const topTrustValue = document.getElementById("topTrustValue");
+      const topTrustBar = document.getElementById("topTrustBar");
+
+      const boasOrigin = document.getElementById("boasOrigin");
+      const boasAuthority = document.getElementById("boasAuthority");
+      const boasTrusted = document.getElementById("boasTrusted");
+      const boasVerification = document.getElementById("boasVerification");
 
       const explainBtn = document.getElementById("explainBtn");
       const useBuildBtn = document.getElementById("useBuildBtn");
@@ -1243,8 +1334,10 @@
           executeBtn, buildBtn, applyBtn,
           executeResetBtn, buildResetBtn, applyResetBtn, applyLastBtn,
           executeEndpoint, buildEndpoint, applyEndpoint,
-          executeCommand, buildCommand, applyPacketId
-        ].forEach(el => el.disabled = isBusy);
+          executeCommand, buildCommand, applyPacketId, buildOrigin
+        ].forEach((el) => {
+          if (el) el.disabled = isBusy;
+        });
       }
 
       function setStatus({ text, mode, route, http, status, receipt, target }) {
@@ -1258,6 +1351,31 @@
         flowStatus.textContent = status || "IDLE";
         flowHttp.textContent = http || "—";
         flowReceipt.textContent = receipt || "—";
+      }
+
+      function setBoasDisplay(boas) {
+        const origin = boas?.origin || "UNKNOWN";
+        const authority = boas?.authority_level || "NONE";
+        const trusted = !!boas?.trusted;
+        const verification = boas?.verification || "UNVERIFIED";
+
+        const color =
+          origin === "RPE_SUPER_COMMAND" ? "gold" :
+          origin === "PCC_ENGINE" ? "cyan" :
+          origin === "EXTERNAL_VERIFIED" ? "amber" : "red";
+
+        boasOrigin.textContent = origin;
+        boasAuthority.textContent = authority;
+        boasTrusted.textContent = trusted ? "TRUE" : "FALSE";
+        boasVerification.textContent = verification;
+
+        boasOrigin.className = `boas-value ${color}`;
+        boasAuthority.className = `boas-value ${color}`;
+        boasTrusted.className = `boas-value ${trusted ? "green" : "red"}`;
+        boasVerification.className = `boas-value ${trusted ? "green" : color}`;
+
+        topTrustValue.textContent = trusted ? `${origin} / TRUSTED` : `${origin} / BLOCKED`;
+        topTrustBar.style.width = trusted ? "96%" : origin === "EXTERNAL_VERIFIED" ? "48%" : "18%";
       }
 
       function hydrateProofs(data) {
@@ -1281,6 +1399,10 @@
         if (receiptId) {
           flowReceipt.textContent = receiptId;
         }
+
+        if (data?.boas) {
+          setBoasDisplay(data.boas);
+        }
       }
 
       function resetExecute() {
@@ -1291,6 +1413,7 @@
       function resetBuild() {
         buildEndpoint.value = DEFAULT_BUILD_ENDPOINT;
         buildCommand.value = DEFAULT_BUILD_COMMAND;
+        buildOrigin.value = "PCC_ENGINE";
       }
 
       function resetApply() {
@@ -1304,7 +1427,7 @@
         resetApply();
         setDot("idle");
         setStatus({
-          text: "Idle. Console V2C is ready.",
+          text: "Idle. Console V2D is ready.",
           mode: "idle",
           route: "",
           http: "",
@@ -1321,16 +1444,29 @@
         flowHttp.textContent = "—";
         flowReceipt.textContent = "—";
         routeChip.textContent = "READY";
-        naceCopy.textContent = "Console V2C is active. Execute, build, and apply remain visibly separated so PCC can operate as a deterministic command system without hidden mutation behavior.";
+        naceCopy.textContent = "Console V2D is active. BOAS is enforced. Execute, build, and apply remain visibly separated. Only trusted origins can pass through apply.";
+        setBoasDisplay({
+          origin: "UNKNOWN",
+          authority_level: "NONE",
+          trusted: false,
+          verification: "UNVERIFIED"
+        });
         setResponse({
           status: "READY",
-          message: "Console V2C is waiting for execute, build, or apply actions.",
-          routes: ["/execute", "/build", "/apply"]
+          message: "Console V2D is waiting for execute, build, or apply actions.",
+          routes: ["/execute", "/build", "/apply"],
+          boas: {
+            origin: "UNKNOWN",
+            authority_level: "NONE",
+            trusted: false,
+            verification: "UNVERIFIED"
+          }
         });
       }
 
       async function callRoute(routeName, endpoint, payload, statusText) {
         if (busy) return;
+
         setBusy(true);
         setStatus({
           text: statusText,
@@ -1343,7 +1479,7 @@
         });
         routeChip.textContent = routeName;
         lastRunText.textContent = stampNow();
-        naceCopy.textContent = `PCC is calling ${routeName}. Review the unified response panel for governed output, IDs, and target state.`;
+        naceCopy.textContent = `PCC is calling ${routeName}. Review the unified response panel for governed output, BOAS classification, IDs, and target state.`;
         setResponse({
           status: "LOADING",
           route: routeName,
@@ -1360,6 +1496,7 @@
 
           const raw = await res.text();
           let data;
+
           try {
             data = raw ? JSON.parse(raw) : { message: "Empty response body." };
           } catch (e) {
@@ -1385,9 +1522,9 @@
             }
 
             if (routeName === "/apply" && data?.target?.file_name) {
-              naceCopy.textContent = `Apply completed. Target ${data.target.file_name} is now stored inside the governed PCC target registry.`;
+              naceCopy.textContent = `Apply completed. Target ${data.target.file_name} was updated by a trusted packet under BOAS enforcement.`;
             } else if (routeName === "/build") {
-              naceCopy.textContent = "Build completed. Packet and artifact were generated without auto-apply.";
+              naceCopy.textContent = `Build completed. Packet and artifact were generated with origin ${data?.boas?.origin || "UNKNOWN"}. Auto-apply did not occur.`;
             } else {
               naceCopy.textContent = "Execute completed. Direct execution result has been returned to the response panel.";
             }
@@ -1401,7 +1538,14 @@
               receipt: data.receipt_id || "",
               target: lastTarget || ""
             });
-            naceCopy.textContent = "The route responded, but the returned HTTP status indicates failure. Review the response panel for exact details.";
+
+            if (data?.error === "UNTRUSTED_PACKET" || data?.error === "BLOCKED_ORIGIN") {
+              naceCopy.textContent = "Apply was blocked by BOAS. This packet origin is not trusted for mutation.";
+            } else if (data?.error === "SIGNATURE_MISMATCH") {
+              naceCopy.textContent = "Apply was blocked because packet signature verification failed.";
+            } else {
+              naceCopy.textContent = "The route responded, but the returned HTTP status indicates failure. Review the response panel for exact details.";
+            }
           }
         } catch (error) {
           setStatus({
@@ -1437,8 +1581,11 @@
         callRoute(
           "/build",
           buildEndpoint.value.trim() || DEFAULT_BUILD_ENDPOINT,
-          { command: buildCommand.value.trim() },
-          "Generating build packet and artifact..."
+          {
+            command: buildCommand.value.trim(),
+            origin: buildOrigin.value
+          },
+          "Generating build packet, artifact, signature, and origin classification..."
         );
       });
 
@@ -1447,7 +1594,7 @@
           "/apply",
           applyEndpoint.value.trim() || DEFAULT_APPLY_ENDPOINT,
           { packet_id: applyPacketId.value.trim() },
-          "Applying packet into governed target registry..."
+          "Applying trusted packet into governed target registry..."
         );
       });
 
@@ -1479,12 +1626,12 @@
       });
 
       explainBtn.addEventListener("click", function () {
-        naceCopy.textContent = "Console V2C separates direct execution, build generation, and apply mutation into distinct governed routes. Build never auto-applies. Apply requires an explicit packet_id.";
+        naceCopy.textContent = "BOAS enforces build provenance. Every packet carries origin, authority level, trusted state, and signature verification. Apply blocks untrusted packets.";
       });
 
       useBuildBtn.addEventListener("click", function () {
         buildCommand.focus();
-        naceCopy.textContent = "Use Build for packet and artifact generation. Example: BUILD PAGE: VOICE ENGINE. This does not mutate a target until Apply is called.";
+        naceCopy.textContent = "Use Build for packet and artifact generation. Select origin explicitly. Trusted origins can later pass apply if signature verification succeeds.";
       });
 
       useApplyBtn.addEventListener("click", function () {
@@ -1492,7 +1639,7 @@
         if (lastPacket && !applyPacketId.value.trim()) {
           applyPacketId.value = lastPacket;
         }
-        naceCopy.textContent = "Use Apply only after a valid build returns a packet_id. Apply mutates the governed target registry, not the live repository.";
+        naceCopy.textContent = "Use Apply only after a valid trusted build returns a packet_id. Unknown or restricted packets are blocked before mutation.";
       });
 
       returnFloorBtn.addEventListener("click", function () {
