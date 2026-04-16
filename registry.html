@@ -276,7 +276,7 @@
       min-height:0;
       overflow:auto;
       padding:16px 30px 16px 16px;
-      scrollbar-gutter: stable;
+      scrollbar-gutter:stable;
     }
 
     .nav-group + .nav-group{margin-top:18px}
@@ -527,7 +527,7 @@
     .receipt-feed{display:grid;gap:12px}
     .receipt-row{
       display:grid;
-      grid-template-columns:90px 170px 1fr;
+      grid-template-columns:78px 150px 1fr;
       gap:12px;
       align-items:start;
       border-radius:16px;
@@ -619,7 +619,7 @@
     .tickler.green .tickler-dot{background:var(--green);box-shadow:0 0 12px rgba(73,211,145,.75)}
 
     .tickler-title{
-      font-size:12px;
+      font-size:13px;
       font-weight:800;
       letter-spacing:.11em;
       text-transform:uppercase;
@@ -694,7 +694,7 @@
     }
 
     .command-input{
-      min-height:92px;
+      min-height:76px;
       resize:vertical;
       width:100%;
       border-radius:16px;
@@ -703,7 +703,7 @@
       color:var(--text);
       outline:none;
       padding:16px;
-      font:600 14px/1.6 Inter,system-ui,sans-serif;
+      font:600 15px/1.5 Inter,system-ui,sans-serif;
     }
 
     .btn-stack{
@@ -773,7 +773,7 @@
       left:50%;
       top:50%;
       transform:translate(-50%,-50%);
-      width:160px;height:160px;border-radius:50%;
+      width:150px;height:150px;border-radius:50%;
       border:1px solid rgba(198,161,91,.24);
       background:
         radial-gradient(circle at center, rgba(198,161,91,.18), transparent 46%),
@@ -784,14 +784,14 @@
       letter-spacing:.16em;
       color:#f3e8d0;
       text-transform:uppercase;
-      font-size:13px;
+      font-size:14px;
       text-align:center;
       padding:18px;
     }
 
     .war-node{
       position:absolute;
-      width:128px;
+      width:114px;
       padding:10px 12px;
       border-radius:14px;
       border:1px solid var(--line);
@@ -902,87 +902,6 @@
       color:var(--muted);
     }
 
-    .system-table-wrap{
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:18px;
-      overflow:hidden;
-      background:rgba(255,255,255,.015);
-    }
-
-    table.system-table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:1100px;
-    }
-
-    .system-table th,
-    .system-table td{
-      padding:12px 12px;
-      text-align:left;
-      vertical-align:top;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      font-size:12px;
-      line-height:1.5;
-    }
-
-    .system-table th{
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:var(--gold);
-      background:rgba(255,255,255,.02);
-      font-weight:800;
-    }
-
-    .mono{
-      font-family:"IBM Plex Mono", monospace;
-      color:#d6edf7;
-      font-size:11px;
-      word-break:break-word;
-    }
-
-    .caps{
-      text-transform:uppercase;
-      letter-spacing:.11em;
-      font-weight:800;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      font-size:10px;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.03);
-      white-space:nowrap;
-    }
-
-    .pill.green{color:var(--green);border-color:rgba(73,211,145,.22);background:rgba(73,211,145,.08)}
-    .pill.cyan{color:var(--cyan);border-color:rgba(99,217,255,.22);background:rgba(99,217,255,.08)}
-    .pill.gold{color:var(--gold);border-color:rgba(198,161,91,.22);background:rgba(198,161,91,.08)}
-    .pill.red{color:var(--red);border-color:rgba(234,116,116,.22);background:rgba(234,116,116,.08)}
-
-    .code-card{
-      border:1px solid rgba(99,217,255,.14);
-      background:rgba(5,12,18,.92);
-      border-radius:18px;
-      padding:14px;
-      overflow:auto;
-    }
-
-    pre{
-      margin:0;
-      white-space:pre-wrap;
-      word-break:break-word;
-      color:#d6edf7;
-      font:500 12px/1.65 "IBM Plex Mono", monospace;
-    }
-
     @media (max-width: 1520px){
       .app{grid-template-columns:270px minmax(0,1fr) 340px}
     }
@@ -998,10 +917,18 @@
           "right"
           "left";
       }
-      .topbar{grid-template-columns:1fr}
-      .topbar-right{justify-items:start}
-      .top-status-rail{justify-content:flex-start}
-      .top-microbars{width:100%}
+      .topbar{
+        grid-template-columns:1fr;
+      }
+      .topbar-right{
+        justify-items:start;
+      }
+      .top-status-rail{
+        justify-content:flex-start;
+      }
+      .top-microbars{
+        width:100%;
+      }
       .grid-two,.war-room-grid{grid-template-columns:1fr}
     }
 
@@ -1017,7 +944,9 @@
         grid-template-rows:none;
         width:100%;
       }
-      .top-microbars{grid-template-columns:1fr}
+      .top-microbars{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
@@ -1040,26 +969,26 @@
           <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
           <div class="status-chip cyan"><span class="dot"></span> Mode: Registry</div>
           <div class="status-chip amber"><span class="dot"></span> Canon: Active</div>
-          <div class="status-chip green"><span class="dot"></span> Systems: 7</div>
+          <div class="status-chip green"><span class="dot"></span> <span id="top-node-chip">Nodes: 18</span></div>
         </div>
 
         <div class="top-microbars">
           <div class="micro-card">
-            <div class="micro-label">Registry Integrity</div>
-            <div class="micro-value">99%</div>
-            <div class="micro-track"><div class="micro-fill" style="width:99%"></div></div>
+            <div class="micro-label" id="micro-label-1">Registry Integrity</div>
+            <div class="micro-value" id="micro-value-1">96%</div>
+            <div class="micro-track"><div class="micro-fill" id="micro-fill-1" style="width:96%"></div></div>
           </div>
 
           <div class="micro-card">
-            <div class="micro-label">Self-Build Readiness</div>
-            <div class="micro-value">Phase Active</div>
-            <div class="micro-track"><div class="micro-fill" style="width:84%"></div></div>
+            <div class="micro-label" id="micro-label-2">Council Seats</div>
+            <div class="micro-value" id="micro-value-2">12 Active</div>
+            <div class="micro-track"><div class="micro-fill" id="micro-fill-2" style="width:82%"></div></div>
           </div>
 
           <div class="micro-card">
-            <div class="micro-label">Validation Coverage</div>
-            <div class="micro-value">Registry-Bound</div>
-            <div class="micro-track"><div class="micro-fill" style="width:88%"></div></div>
+            <div class="micro-label" id="micro-label-3">Voice Personas</div>
+            <div class="micro-value" id="micro-value-3">20 Registered</div>
+            <div class="micro-track"><div class="micro-fill" id="micro-fill-3" style="width:78%"></div></div>
           </div>
         </div>
       </div>
@@ -1068,7 +997,7 @@
     <aside class="left glass">
       <div class="pane-head">
         <div class="pane-title">Registry Rail</div>
-        <div class="pane-sub">Governed identity, build authority, system scope, and continuity mapping across PCC.</div>
+        <div class="pane-sub" id="left-rail-copy">Scrollable authority map. Identity, governance, executive role placement, and system continuity across PCC.</div>
       </div>
 
       <div class="pane-body">
@@ -1098,30 +1027,31 @@
           <div class="persona-list">
             <div class="persona-item">
               <div>
-                <div class="persona-name">Registered Systems</div>
-                <div class="persona-role">Approved self-build and cross-system targets</div>
+                <div class="persona-name" id="overview-name-1">Executive Core</div>
+                <div class="persona-role" id="overview-role-1">Founder / Chair / CEO / COO</div>
               </div>
-              <div class="tag">7</div>
+              <div class="tag" id="overview-tag-1">4</div>
             </div>
             <div class="persona-item">
               <div>
-                <div class="persona-name">Active Build Modes</div>
-                <div class="persona-role">Full-file governed operations only</div>
+                <div class="persona-name" id="overview-name-2">Council Layer</div>
+                <div class="persona-role" id="overview-role-2">Mapped governance seats</div>
               </div>
-              <div class="tag">3</div>
-            </div>
-            <div>
-              <div class="persona-name">Validation Profiles</div>
-              <div class="persona-role">System-specific apply protection</div>
-            </div>
-              <div class="tag">7</div>
+              <div class="tag" id="overview-tag-2">12</div>
             </div>
             <div class="persona-item">
               <div>
-                <div class="persona-name">Canon-Locked Systems</div>
-                <div class="persona-role">Protected authority layer entries</div>
+                <div class="persona-name" id="overview-name-3">Voice Grid</div>
+                <div class="persona-role" id="overview-role-3">Registered communication personas</div>
               </div>
-              <div class="tag">4</div>
+              <div class="tag" id="overview-tag-3">20</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name" id="overview-name-4">Support Roles</div>
+                <div class="persona-role" id="overview-role-4">Audit / routing / specialist support</div>
+              </div>
+              <div class="tag" id="overview-tag-4">6</div>
             </div>
           </div>
         </div>
@@ -1132,114 +1062,79 @@
       <div class="center-scroll">
         <section class="hero">
           <div class="hero-title">Registry</div>
-          <div class="hero-copy">
-            The sovereign build authority surface of Phoenix OS. Registry now defines not only identity and authority placement, but also which systems PCC is authorized to build, where they live, what targets are legal, what build modes are permitted, and what validation profile must pass before apply.
-          </div>
-          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Registry Session: System Build Authority Active</div>
+          <div class="hero-copy" id="hero-copy">The sovereign identity surface of Phoenix OS. Registry defines who exists inside the system, what they govern, where authority sits, and how executive continuity is preserved across Phoenix Command Center.</div>
+          <div class="hero-badge" id="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Registry Session: Canon Visible</div>
 
           <div class="quick-grid">
             <div class="quick-card">
-              <div class="metric-label">Registered Systems</div>
-              <div class="metric-value">07</div>
-              <div class="metric-note">PCC-approved systems now governed through a registry-bound build authority model.</div>
+              <div class="metric-label" id="metric-label-1">Authority Nodes</div>
+              <div class="metric-value" id="metric-value-1">18</div>
+              <div class="metric-note" id="metric-note-1">Command-facing identities and system roles visible across PCC.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Build Scope</div>
-              <div class="metric-value">FULL</div>
-              <div class="metric-note">Registry enforces full-file / governed-only mutations to prevent drift and partial patch corruption.</div>
+              <div class="metric-label" id="metric-label-2">Council Seats</div>
+              <div class="metric-value" id="metric-value-2">12</div>
+              <div class="metric-note" id="metric-note-2">Governance and domain leadership mapped to operating lanes.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Apply Policy</div>
-              <div class="metric-value">BOUND</div>
-              <div class="metric-note">Apply eligibility is no longer implied. It must be explicitly permitted by registry policy and version binding.</div>
+              <div class="metric-label" id="metric-label-3">Executive Layer</div>
+              <div class="metric-value" id="metric-value-3">04</div>
+              <div class="metric-note" id="metric-note-3">Founder, Chair, CEO, and COO remain fixed as core authority layer.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Validation Law</div>
-              <div class="metric-value">ON</div>
-              <div class="metric-note">All future self-build and cross-system build operations must resolve through registry and validation gates before mutation.</div>
+              <div class="metric-label" id="metric-label-4">Voice Personas</div>
+              <div class="metric-value" id="metric-value-4">20</div>
+              <div class="metric-note" id="metric-note-4">Executive and staff identities registered for the communication layer.</div>
             </div>
           </div>
         </section>
 
         <section class="ticker-shell panel">
-          <div class="ticker">
-            <div class="ticker-item">Registry Now Governs System Build Authority</div>
-            <div class="ticker-item">PCC Self-Build Phase Is Active</div>
-            <div class="ticker-item">Unregistered Targets Must Be Blocked</div>
-            <div class="ticker-item">Validation Profiles Must Pass Before Apply</div>
-            <div class="ticker-item">Registry-Bound Mutation Replaces Freeform Drift</div>
-            <div class="ticker-item">Build Scope Must Remain Full File Or Governed Section</div>
-            <div class="ticker-item">Registry Now Governs System Build Authority</div>
-            <div class="ticker-item">PCC Self-Build Phase Is Active</div>
-            <div class="ticker-item">Unregistered Targets Must Be Blocked</div>
-            <div class="ticker-item">Validation Profiles Must Pass Before Apply</div>
-            <div class="ticker-item">Registry-Bound Mutation Replaces Freeform Drift</div>
-            <div class="ticker-item">Build Scope Must Remain Full File Or Governed Section</div>
+          <div class="ticker" id="registry-ticker">
+            <div class="ticker-item">Phoenix King Locked As Sovereign Origin</div>
+            <div class="ticker-item">Chad Registered As COO Systems Authority</div>
+            <div class="ticker-item">Phoenix OS Bound As Governance Core</div>
+            <div class="ticker-item">Council Seats Mapped Across PCC</div>
+            <div class="ticker-item">Voice Persona Grid Recognized</div>
+            <div class="ticker-item">Audit Roles Preserved In Registry</div>
+            <div class="ticker-item">Phoenix King Locked As Sovereign Origin</div>
+            <div class="ticker-item">Chad Registered As COO Systems Authority</div>
+            <div class="ticker-item">Phoenix OS Bound As Governance Core</div>
+            <div class="ticker-item">Council Seats Mapped Across PCC</div>
+            <div class="ticker-item">Voice Persona Grid Recognized</div>
+            <div class="ticker-item">Audit Roles Preserved In Registry</div>
           </div>
-        </section>
-
-        <section class="panel">
+        </section> 
+<section class="panel">
           <div class="panel-head">
             <div>
-              <div class="panel-title">Registry Doctrine</div>
-              <div class="panel-sub">The page is now upgraded from identity map to build authority layer.</div>
+              <div class="panel-title" id="entries-title">Registry Entries</div>
+              <div class="panel-sub" id="entries-sub">Canonical identity and authority feed across executive, governance, system, and support layers.</div>
             </div>
           </div>
 
           <div class="panel-body">
-            <div class="receipt-feed">
+            <div class="receipt-feed" id="registry-feed">
               <div class="receipt-row">
-                <div class="receipt-time">LAW</div>
-                <div class="receipt-lane">Registry-Bound</div>
-                <div class="receipt-copy">No system may be built or mutated unless it exists inside the PCC System Build Registry with an active policy, allowed target definition, and valid build mode.</div>
+                <div class="receipt-time">L0</div>
+                <div class="receipt-lane">Sovereign</div>
+                <div class="receipt-copy">Phoenix King — Founder / Chair / CEO — sovereign authority origin and final canon lock source.</div>
               </div>
               <div class="receipt-row">
-                <div class="receipt-time">LAW</div>
-                <div class="receipt-lane">Validation-Gated</div>
-                <div class="receipt-copy">Self-build and cross-system build must pass registry, build-scope, content-type, and validation-profile checks before apply becomes eligible.</div>
+                <div class="receipt-time">L1</div>
+                <div class="receipt-lane">Executive</div>
+                <div class="receipt-copy">Chad G. Pennington — COO / Systems Execution Authority — converts direction into structured execution.</div>
               </div>
               <div class="receipt-row">
-                <div class="receipt-time">LAW</div>
-                <div class="receipt-lane">Version-Bound</div>
-                <div class="receipt-copy">Registry authority does not replace FVE. All mutations remain version-bound, flow-bound, and receipt-backed.</div>
+                <div class="receipt-time">SYS</div>
+                <div class="receipt-lane">Core</div>
+                <div class="receipt-copy">Phoenix OS — governance, memory, law, receipt continuity, and command-system truth layer.</div>
               </div>
               <div class="receipt-row">
-                <div class="receipt-time">PHASE</div>
-                <div class="receipt-lane">Self-Build</div>
-                <div class="receipt-copy">Registry is the first required infrastructure block for PCC to safely build itself and approved external systems under governed control.</div>
+                <div class="receipt-time">AUX</div>
+                <div class="receipt-lane">Guide</div>
+                <div class="receipt-copy">NACE and registered personas remain visible as guidance, routing, and communications-facing support layers.</div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">System Build Registry Entries</div>
-              <div class="panel-sub">Approved systems, repositories, target scope, apply policy, and validation profile for future self-build orchestration.</div>
-            </div>
-            <div class="pill cyan">Registry Authority</div>
-          </div>
-
-          <div class="panel-body">
-            <div class="system-table-wrap">
-              <table class="system-table">
-                <thead>
-                  <tr>
-                    <th>System</th>
-                    <th>Repo</th>
-                    <th>Branch</th>
-                    <th>Allowed Target Types</th>
-                    <th>Allowed Files / Scope</th>
-                    <th>Build Modes</th>
-                    <th>Apply Policy</th>
-                    <th>Validation Profile</th>
-                    <th>Status</th>
-                    <th>Canon</th>
-                  </tr>
-                </thead>
-                <tbody id="registry-table-body"></tbody>
-              </table>
             </div>
           </div>
         </section>
@@ -1248,32 +1143,24 @@
           <div class="panel">
             <div class="panel-head">
               <div>
-                <div class="panel-title">Registry Signals</div>
-                <div class="panel-sub">Readiness and enforcement levels for governed self-build operations.</div>
+                <div class="panel-title" id="signals-title">Registry Signals</div>
+                <div class="panel-sub" id="signals-sub">Structural counts, continuity pressure, and role saturation across active layers.</div>
               </div>
             </div>
 
             <div class="panel-body">
-              <div class="bars">
+              <div class="bars" id="registry-bars">
                 <div class="bar-item">
                   <div class="bar-top">
-                    <div class="bar-label">Registry Integrity</div>
-                    <div class="bar-value">99%</div>
+                    <div class="bar-label">Authority Chain Integrity</div>
+                    <div class="bar-value">96%</div>
                   </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:99%"></div></div>
+                  <div class="bar-track"><div class="bar-fill" style="width:96%"></div></div>
                 </div>
 
                 <div class="bar-item">
                   <div class="bar-top">
-                    <div class="bar-label">Self-Build Readiness</div>
-                    <div class="bar-value">84%</div>
-                  </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
-                </div>
-
-                <div class="bar-item">
-                  <div class="bar-top">
-                    <div class="bar-label">Target Scope Mapping</div>
+                    <div class="bar-label">Executive Continuity</div>
                     <div class="bar-value">91%</div>
                   </div>
                   <div class="bar-track"><div class="bar-fill" style="width:91%"></div></div>
@@ -1281,7 +1168,7 @@
 
                 <div class="bar-item">
                   <div class="bar-top">
-                    <div class="bar-label">Validation Profile Coverage</div>
+                    <div class="bar-label">Council Mapping Coverage</div>
                     <div class="bar-value">88%</div>
                   </div>
                   <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
@@ -1289,10 +1176,18 @@
 
                 <div class="bar-item">
                   <div class="bar-top">
-                    <div class="bar-label">Apply Governance Enforcement</div>
-                    <div class="bar-value">100%</div>
+                    <div class="bar-label">Voice Identity Registration</div>
+                    <div class="bar-value">78%</div>
                   </div>
-                  <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+                  <div class="bar-track"><div class="bar-fill" style="width:78%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Audit Visibility</div>
+                    <div class="bar-value">84%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
                 </div>
               </div>
             </div>
@@ -1301,34 +1196,34 @@
           <div class="panel">
             <div class="panel-head">
               <div>
-                <div class="panel-title">Priority Rail</div>
-                <div class="panel-sub">Immediate build-authority reminders for the self-build phase.</div>
+                <div class="panel-title" id="priority-title">Priority Rail</div>
+                <div class="panel-sub" id="priority-sub">Immediate identity, governance, and continuity reminders.</div>
               </div>
             </div>
 
             <div class="panel-body">
-              <div class="tickler-list">
+              <div class="tickler-list" id="priority-list">
                 <div class="tickler">
                   <div class="tickler-dot"></div>
                   <div>
-                    <div class="tickler-title">Registry Before Orchestration</div>
-                    <div class="tickler-copy">PCC must resolve system, file, mode, and apply policy through registry before build-and-apply orchestration is authorized.</div>
+                    <div class="tickler-title">Master Shell Continuity</div>
+                    <div class="tickler-copy">Registry now operates as a direct derivative of the live PCC shell instead of an independent layout.</div>
                   </div>
                 </div>
 
                 <div class="tickler red">
                   <div class="tickler-dot"></div>
                   <div>
-                    <div class="tickler-title">Unregistered Build Block</div>
-                    <div class="tickler-copy">Any unregistered target, repo, file, or mode must be rejected automatically. Freeform build authority is prohibited.</div>
+                    <div class="tickler-title">Unmapped Roles</div>
+                    <div class="tickler-copy">Any future persona or division role should be added here before operational expansion or command exposure.</div>
                   </div>
                 </div>
 
                 <div class="tickler green">
                   <div class="tickler-dot"></div>
                   <div>
-                    <div class="tickler-title">Registry As Self-Build Foundation</div>
-                    <div class="tickler-copy">This page is now the first structural pillar enabling PCC to safely build itself and approved external systems.</div>
+                    <div class="tickler-title">Authority Clarity</div>
+                    <div class="tickler-copy">Registry preserves position, role, and system function so execution surfaces do not drift into ambiguity.</div>
                   </div>
                 </div>
               </div>
@@ -1340,43 +1235,29 @@
           <div class="command-head">
             <div>
               <div class="command-title">Registry Core</div>
-              <div class="panel-sub">Structured build intent examples and registry-backed command doctrine for the self-build phase.</div>
+              <div class="panel-sub" id="command-sub">Primary operator field for identity lookup, role review, and structural registry queries.</div>
             </div>
-            <div class="command-status">
+            <div class="command-status" id="command-status">
               <span class="dot" style="color:var(--cyan)"></span>
-              Registry Query Ready
+              Query Ready
             </div>
           </div>
 
-          <div class="command-copy">
-            Registry Core is now the controlled intake point for system build authority. It should support future lookup, classification, scope resolution, validation profile lookup, and build target authorization prior to artifact generation and apply.
+          <div class="command-copy" id="command-copy">
+            This registry core is the controlled intake point for identity, role, authority, and continuity review inside Phoenix OS. It is designed for lookups, classification, and future record binding — not as a public directory surface.
           </div>
 
           <div class="command-wrap">
-            <div class="code-card">
-<pre>{
-  "system": "PCC",
-  "action": "BUILD_AND_APPLY",
-  "target_type": "PAGE",
-  "target_name": "VOICE_ENGINE",
-  "target_file": "voice-engine.html",
-  "build_scope": "FULL_FILE",
-  "content_type": "text/html",
-  "apply": true,
-  "origin": "PCC_ENGINE"
-}</pre>
-            </div>
-
             <div class="command-row">
-              <textarea class="command-input" placeholder="Query registry status, inspect system authority, review allowed files, resolve validation profile, inspect apply policy, or preview structured build intent..."></textarea>
+              <textarea class="command-input" id="registry-query" placeholder="Search identity, review authority placement, inspect role mapping, check registry status, or query command continuity..."></textarea>
               <div class="btn-stack">
-                <button class="btn" type="button">Inspect</button>
-                <button class="btn secondary" type="button">Resolve</button>
+                <button class="btn" id="inspect-btn" type="button">Inspect</button>
+                <button class="btn secondary" id="route-btn" type="button">Route</button>
               </div>
             </div>
 
-            <div class="hint">
-              Example uses: show registered systems, inspect PCC targets, review allowed build modes, check apply eligibility, resolve validation profile, verify repo + branch mapping.
+            <div class="hint" id="command-hint">
+              Example uses: show executive chain, inspect council role, review voice persona status, check registry integrity, locate audit lane.
             </div>
           </div>
         </section>
@@ -1385,30 +1266,30 @@
           <div class="panel">
             <div class="panel-head">
               <div>
-                <div class="panel-title">Authority Map</div>
-                <div class="panel-sub">Registry hierarchy upgraded from identity-only mapping into build-authority mapping.</div>
+                <div class="panel-title" id="map-title">Authority Map</div>
+                <div class="panel-sub" id="map-sub">Registry hierarchy built into the system surface, not stored off-screen.</div>
               </div>
             </div>
 
             <div class="panel-body">
               <div class="war-stage">
                 <div class="war-node node-1">
-                  <strong>Sovereign</strong>
-                  Phoenix King
+                  <strong id="node-1-title">Sovereign</strong>
+                  <span id="node-1-copy">Phoenix King</span>
                 </div>
                 <div class="war-node node-2">
-                  <strong>Execution</strong>
-                  Chad / COO
+                  <strong id="node-2-title">Execution</strong>
+                  <span id="node-2-copy">Chad / COO</span>
                 </div>
                 <div class="war-node node-3">
-                  <strong>Validation</strong>
-                  Profiles / Gates
+                  <strong id="node-3-title">Audit</strong>
+                  <span id="node-3-copy">Aiden / System</span>
                 </div>
                 <div class="war-node node-4">
-                  <strong>Systems</strong>
-                  Registry Targets
+                  <strong id="node-4-title">Voice</strong>
+                  <span id="node-4-copy">NACE / Grid</span>
                 </div>
-                <div class="war-core">Registry Build Authority</div>
+                <div class="war-core" id="war-core-copy">Registry Core</div>
               </div>
             </div>
           </div>
@@ -1416,26 +1297,26 @@
           <div class="panel">
             <div class="panel-head">
               <div>
-                <div class="panel-title">Registry Notes</div>
-                <div class="panel-sub">Executive doctrine for self-build expansion.</div>
+                <div class="panel-title" id="notes-title">Registry Notes</div>
+                <div class="panel-sub" id="notes-sub">Executive-level identity doctrine visible at system level.</div>
               </div>
             </div>
 
             <div class="panel-body">
-              <div class="war-list">
+              <div class="war-list" id="registry-notes">
                 <div class="war-item">
                   <div class="war-item-title">Meaning</div>
-                  <div class="war-item-copy">Registry now defines what PCC is authorized to build, where each system lives, and which mutations are legally permitted under governance.</div>
+                  <div class="war-item-copy">Registry is the controlled identity map of Phoenix OS, preserving role clarity and authority placement across PCC.</div>
                 </div>
 
                 <div class="war-item">
                   <div class="war-item-title">Page Role</div>
-                  <div class="war-item-copy">Registry is no longer only a continuity surface. It is now a governed control layer for self-build and cross-system build resolution.</div>
+                  <div class="war-item-copy">Registry carries structure, identity, and continuity. Council + Staff carries presentation density. Execution carries receipts and queue logic.</div>
                 </div>
 
                 <div class="war-item">
                   <div class="war-item-title">Build Rule</div>
-                  <div class="war-item-copy">All future build orchestration must resolve through this registry before apply. Shell remains locked. Authority expands through governed content and logic only.</div>
+                  <div class="war-item-copy">Shell is locked. Content changes only. Registry expands the command tower without mutating the master PCC architecture.</div>
                 </div>
               </div>
             </div>
@@ -1447,7 +1328,7 @@
     <aside class="right glass">
       <div class="pane-head">
         <div class="pane-title">Executive Intelligence Tower</div>
-        <div class="pane-sub">Guide layer, registry support, and self-build authority access.</div>
+        <div class="pane-sub" id="right-rail-sub">Guide layer, registry support, and high-level authority access.</div>
       </div>
 
       <div class="pane-body">
@@ -1457,137 +1338,545 @@
             <div class="tag">Guide</div>
           </div>
 
-          <div class="nace-copy">
-            Registry is active as a system build authority layer. Approved systems, allowed targets, apply policies, and validation profiles are now visible from this surface before deeper orchestration occurs.
+          <div class="nace-copy" id="nace-copy">
+            Registry is active. Identity, authority, and role continuity are visible from this surface. Executive, council, audit, and voice layers can be inspected from here before routing deeper into the system.
           </div>
 
           <div class="nace-actions">
-            <button type="button">Explain Registry</button>
-            <button type="button">Open Systems</button>
-            <button type="button">Inspect Policy</button>
-            <button type="button">Return Floor</button>
+            <button id="nace-explain-btn" type="button">Explain Registry</button>
+            <button id="nace-roles-btn" type="button">Open Roles</button>
+            <button id="nace-voice-btn" type="button">Inspect Voice</button>
+            <button id="nace-floor-btn" type="button">Return Floor</button>
           </div>
         </div>
 
         <div class="section-card">
           <div class="section-label">Next Move</div>
-          <div class="small">After registry is applied, the next layer is the Build Specification Engine so PCC can resolve structured build intent into governed build packets automatically.</div>
+          <div class="small" id="next-move-copy">Build matching pages for Financial Tracking, NHCE Monitor, Execution, and Voice Engine using this same locked PCC shell.</div>
         </div>
       </div>
     </aside>
-  </div>
-
-  <script>
-    const systemRegistry = [
+  </div> 
+<script>
+    const registrySystems = [
       {
-        system_name: "PCC",
+        system: "PCC",
+        type: "CORE",
+        seats: 1,
+        roles: 4,
+        status: "LOCKED",
         repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "PAGE, CORE_FILE, HTML",
-        allowed_files: "command-floor.html, console.html, war-room.html, council-staff.html, registry.html, voice-engine.html",
-        build_modes: "FULL_FILE, LOCKED_SECTION, CONTENT_ONLY",
-        apply_policy: "GOVERNED_APPLY_ALLOWED",
-        validation_profile: "PCC_CORE_UI",
-        active: true,
-        canon_locked: true
+        files: ["command-floor.html","console.html","war-room.html","registry.html","execution.html","voice-engine.html","financial-tracking.html","nhce-monitor.html"],
+        build_modes: ["FULL_FILE","CONTENT_ONLY"],
+        route: "console.html"
       },
       {
-        system_name: "VOICE_ENGINE",
+        system: "VOICE_ENGINE",
+        type: "SYSTEM",
+        seats: 0,
+        roles: 20,
+        status: "ACTIVE",
         repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "PAGE, MODULE",
-        allowed_files: "voice-engine.html",
-        build_modes: "FULL_FILE, LOCKED_SECTION",
-        apply_policy: "GOVERNED_APPLY_ALLOWED",
-        validation_profile: "VOICE_ENGINE_UI",
-        active: true,
-        canon_locked: true
+        files: ["voice-engine.html"],
+        build_modes: ["FULL_FILE"],
+        route: "voice-engine.html"
       },
       {
-        system_name: "PBRS",
-        repo: "risingphnxhq/pbrs",
+        system: "EXECUTION",
+        type: "SYSTEM",
+        seats: 0,
+        roles: 3,
+        status: "ACTIVE",
+        repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "LANDING, ENGINE, HTML, WORKER",
-        allowed_files: "index.html, worker.js, output.html",
-        build_modes: "FULL_FILE, FULL_SECTION",
-        apply_policy: "REVIEW_THEN_APPLY",
-        validation_profile: "PBRS_PHASE1",
-        active: true,
-        canon_locked: false
+        files: ["execution.html"],
+        build_modes: ["FULL_FILE"],
+        route: "execution.html"
       },
       {
-        system_name: "PBB",
-        repo: "risingphnxhq/pbb",
+        system: "NHCE_MONITOR",
+        type: "SYSTEM",
+        seats: 0,
+        roles: 2,
+        status: "ACTIVE",
+        repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "LANDING, ENGINE, HTML, WORKER",
-        allowed_files: "index.html, worker.js",
-        build_modes: "FULL_FILE, FULL_SECTION",
-        apply_policy: "REVIEW_THEN_APPLY",
-        validation_profile: "PBB_ENGINE",
-        active: true,
-        canon_locked: false
+        files: ["nhce-monitor.html"],
+        build_modes: ["FULL_FILE"],
+        route: "nhce-monitor.html"
       },
       {
-        system_name: "PQS",
-        repo: "risingphnxhq/pqs",
+        system: "FINANCIAL_TRACKING",
+        type: "SYSTEM",
+        seats: 0,
+        roles: 2,
+        status: "ACTIVE",
+        repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "INTAKE, ENGINE, HTML, WORKER",
-        allowed_files: "index.html, worker.js",
-        build_modes: "FULL_FILE, FULL_SECTION",
-        apply_policy: "REVIEW_THEN_APPLY",
-        validation_profile: "PQS_GATEWAY",
-        active: true,
-        canon_locked: false
+        files: ["financial-tracking.html"],
+        build_modes: ["FULL_FILE"],
+        route: "financial-tracking.html"
       },
       {
-        system_name: "STATSCORE",
-        repo: "risingphnxhq/statscore",
+        system: "WAR_ROOM",
+        type: "CHAMBER",
+        seats: 12,
+        roles: 12,
+        status: "ACTIVE",
+        repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "FRONT_DOOR, SYSTEM_UI, ENGINE",
-        allowed_files: "index.html, dashboard.html, worker.js",
-        build_modes: "FULL_FILE, FULL_SECTION",
-        apply_policy: "REVIEW_THEN_APPLY",
-        validation_profile: "STATSCORE_SYSTEM",
-        active: true,
-        canon_locked: true
+        files: ["war-room.html"],
+        build_modes: ["FULL_FILE"],
+        route: "war-room.html"
       },
       {
-        system_name: "PHOENIX_LEARN",
-        repo: "risingphnxhq/phoenix-learn",
+        system: "COUNCIL_STAFF",
+        type: "GOVERNANCE",
+        seats: 12,
+        roles: 18,
+        status: "ACTIVE",
+        repo: "risingphnxhq/pcc-command-center",
         branch: "main",
-        target_types: "LANDING, SYSTEM_UI, ENGINE",
-        allowed_files: "index.html, dashboard.html, worker.js",
-        build_modes: "FULL_FILE, FULL_SECTION",
-        apply_policy: "REVIEW_THEN_APPLY",
-        validation_profile: "PHOENIX_LEARN_CORE",
-        active: true,
-        canon_locked: false
+        files: ["council-staff.html"],
+        build_modes: ["FULL_FILE","CONTENT_ONLY"],
+        route: "council-staff.html"
       }
     ];
 
-    function pill(label, kind){
-      return `<span class="pill ${kind}">${label}</span>`;
+    const registryMetrics = {
+      registeredSystems: registrySystems.length,
+      councilSeats: 12,
+      buildModes: 2,
+      voicePersonas: 20,
+      registryIntegrity: 99,
+      selfBuildReadiness: 84,
+      validationCoverage: 91,
+      applyGovernance: 100
+    };
+
+    const buildAuthorityEntries = [
+      {
+        lane: "SYS",
+        title: "Registry-Bound",
+        copy: "PCC now resolves system-build authority, allowed routes, and governed target surfaces through registry-aware logic."
+      },
+      {
+        lane: "LAW",
+        title: "Validation-Gated",
+        copy: "Self-build and cross-system build actions must remain validation-aware before route escalation or future packet issuance."
+      },
+      {
+        lane: "MAP",
+        title: "System Index",
+        copy: "Registered systems, route targets, file surfaces, and shell continuity now exist as inspectable registry objects."
+      },
+      {
+        lane: "FLOW",
+        title: "Self-Build Phase",
+        copy: "Registry now supports system lookup, route resolution, and governed self-build preparation without mutating shell architecture."
+      }
+    ];
+
+    const priorityItems = [
+      {
+        cls: "",
+        title: "System Build Registry",
+        copy: "Registry must now track approved PCC pages, build targets, route surfaces, and future self-build authority objects."
+      },
+      {
+        cls: "red",
+        title: "Unregistered Surface Risk",
+        copy: "Any future page, subsystem, or routed surface should be recognized through registry before command exposure or build escalation."
+      },
+      {
+        cls: "green",
+        title: "Shell Preservation Law",
+        copy: "Registry upgrades must preserve the original PCC shell, look, and layout while expanding logic, query capability, and system visibility."
+      }
+    ];
+
+    const registryNotes = [
+      {
+        title: "Meaning",
+        copy: "Registry is now both the controlled identity map and the controlled system-build index of Phoenix OS inside PCC."
+      },
+      {
+        title: "Page Role",
+        copy: "Registry carries identity, authority, continuity, route visibility, system indexing, and future build-surface awareness without changing page architecture."
+      },
+      {
+        title: "Build Rule",
+        copy: "Shell remains locked. Functional upgrades may expand query logic, route resolution, system indexing, and registry-backed build readiness only."
+      }
+    ];
+
+    function setText(id, value){
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
     }
 
-    function renderRegistryTable(){
-      const tbody = document.getElementById("registry-table-body");
-      tbody.innerHTML = systemRegistry.map(entry => `
-        <tr>
-          <td class="caps">${entry.system_name}</td>
-          <td class="mono">${entry.repo}</td>
-          <td class="mono">${entry.branch}</td>
-          <td>${entry.target_types}</td>
-          <td>${entry.allowed_files}</td>
-          <td>${entry.build_modes}</td>
-          <td>${entry.apply_policy}</td>
-          <td>${entry.validation_profile}</td>
-          <td>${entry.active ? pill("ACTIVE","green") : pill("DISABLED","red")}</td>
-          <td>${entry.canon_locked ? pill("LOCKED","gold") : pill("OPEN","cyan")}</td>
-        </tr>
+    function setHTML(id, value){
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = value;
+    }
+
+    function setWidth(id, width){
+      const el = document.getElementById(id);
+      if (el) el.style.width = `${width}%`;
+    }
+
+    function renderTopMetrics(){
+      setText("top-node-chip", `Systems: ${registryMetrics.registeredSystems}`);
+      setText("micro-label-1", "Registry Integrity");
+      setText("micro-value-1", `${registryMetrics.registryIntegrity}%`);
+      setWidth("micro-fill-1", registryMetrics.registryIntegrity);
+
+      setText("micro-label-2", "Self-Build Readiness");
+      setText("micro-value-2", "Phase Active");
+      setWidth("micro-fill-2", registryMetrics.selfBuildReadiness);
+
+      setText("micro-label-3", "Validation Coverage");
+      setText("micro-value-3", "Registry-Bound");
+      setWidth("micro-fill-3", registryMetrics.validationCoverage);
+    }
+
+    function renderOverview(){
+      setText("left-rail-copy", "Scrollable registry map. Identity, governance, system scope, and continuity across PCC.");
+      setText("overview-name-1", "Executive Core");
+      setText("overview-role-1", "Founder / Chair / CEO / COO");
+      setText("overview-tag-1", "4");
+
+      setText("overview-name-2", "Registered Systems");
+      setText("overview-role-2", "Governed surfaces visible through registry");
+      setText("overview-tag-2", String(registryMetrics.registeredSystems));
+
+      setText("overview-name-3", "Build Modes");
+      setText("overview-role-3", "Approved mutation types under shell law");
+      setText("overview-tag-3", String(registryMetrics.buildModes));
+
+      setText("overview-name-4", "Voice Grid");
+      setText("overview-role-4", "Registered communication personas");
+      setText("overview-tag-4", String(registryMetrics.voicePersonas));
+    }
+
+    function renderHero(){
+      setText("hero-copy", "The sovereign registry surface of Phoenix OS. Registry now defines who exists inside the system, what they govern, which PCC systems are recognized, where command authority sits, and how future build visibility is preserved across Phoenix Command Center.");
+      setHTML("hero-badge", '<span class="dot" style="color:var(--cyan)"></span> Registry Session: System Build Authority Visible');
+
+      setText("metric-label-1", "Registered Systems");
+      setText("metric-value-1", String(registryMetrics.registeredSystems).padStart(2, "0"));
+      setText("metric-note-1", "PCC-recognized systems and surfaces visible through registry.");
+
+      setText("metric-label-2", "Council Seats");
+      setText("metric-value-2", String(registryMetrics.councilSeats));
+      setText("metric-note-2", "Governance and decision seats remain mapped inside the broader registry authority layer.");
+
+      setText("metric-label-3", "Build Modes");
+      setText("metric-value-3", String(registryMetrics.buildModes).padStart(2, "0"));
+      setText("metric-note-3", "Registry now distinguishes approved shell-safe mutation modes for future self-build control.");
+
+      setText("metric-label-4", "Voice Personas");
+      setText("metric-value-4", String(registryMetrics.voicePersonas));
+      setText("metric-note-4", "Communication-facing identities remain registered as part of routed system continuity.");
+    }
+
+    function renderTicker(){
+      const items = [
+        "Registry Now Tracks System Build Authority",
+        "PCC Shell Preservation Remains Active",
+        "Registered Systems Visible Across PCC",
+        "Validation-Aware Build Readiness Preserved",
+        "Voice Persona Grid Remains Recognized",
+        "Council Governance Mapping Still Active"
+      ];
+      const ticker = document.getElementById("registry-ticker");
+      ticker.innerHTML = [...items, ...items].map(item => `<div class="ticker-item">${item}</div>`).join("");
+    }
+
+    function renderEntries(){
+      setText("entries-title", "Registry Entries");
+      setText("entries-sub", "Canonical registry feed across executive, governance, systems, and future build-authority surfaces.");
+
+      const feed = document.getElementById("registry-feed");
+      feed.innerHTML = buildAuthorityEntries.map(entry => `
+        <div class="receipt-row">
+          <div class="receipt-time">${entry.lane}</div>
+          <div class="receipt-lane">${entry.title}</div>
+          <div class="receipt-copy">${entry.copy}</div>
+        </div>
       `).join("");
     }
 
-    renderRegistryTable();
+    function renderSignals(){
+      setText("signals-title", "Registry Signals");
+      setText("signals-sub", "Structural counts, self-build readiness, and governance visibility across active registry layers.");
+
+      const bars = [
+        {label:"Registry Integrity", value:registryMetrics.registryIntegrity},
+        {label:"Self-Build Readiness", value:registryMetrics.selfBuildReadiness},
+        {label:"Validation Coverage", value:registryMetrics.validationCoverage},
+        {label:"Apply Governance", value:registryMetrics.applyGovernance},
+        {label:"System Visibility", value:94}
+      ];
+
+      const container = document.getElementById("registry-bars");
+      container.innerHTML = bars.map(bar => `
+        <div class="bar-item">
+          <div class="bar-top">
+            <div class="bar-label">${bar.label}</div>
+            <div class="bar-value">${bar.value}%</div>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${bar.value}%"></div></div>
+        </div>
+      `).join("");
+    }
+
+    function renderPriority(){
+      setText("priority-title", "Priority Rail");
+      setText("priority-sub", "Immediate registry reminders for identity, build authority, and shell-safe continuity.");
+      const list = document.getElementById("priority-list");
+      list.innerHTML = priorityItems.map(item => `
+        <div class="tickler ${item.cls}">
+          <div class="tickler-dot"></div>
+          <div>
+            <div class="tickler-title">${item.title}</div>
+            <div class="tickler-copy">${item.copy}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderCommandArea(){
+      setText("command-sub", "Primary operator field for identity lookup, registry inspection, system visibility review, and future build-route resolution.");
+      setText("command-copy", "This registry core now serves as the controlled intake point for identity, system indexing, route visibility, and shell-safe build authority awareness inside Phoenix OS. It is designed for inspection, classification, system lookup, and future registry-backed route binding.");
+      setText("command-hint", "Example uses: show registered systems, inspect build modes, review registry integrity, route to execution, inspect voice engine, check council mapping.");
+    }
+
+    function renderMap(){
+      setText("map-title", "Authority Map");
+      setText("map-sub", "Registry hierarchy remains built into the system surface while now recognizing system-build visibility.");
+      setText("node-1-title", "Sovereign");
+      setText("node-1-copy", "Phoenix King");
+      setText("node-2-title", "Execution");
+      setText("node-2-copy", "Chad / COO");
+      setText("node-3-title", "Registry");
+      setText("node-3-copy", "System Index");
+      setText("node-4-title", "Voice");
+      setText("node-4-copy", "NACE / Grid");
+      setText("war-core-copy", "Registry Core");
+    }
+
+    function renderNotes(){
+      setText("notes-title", "Registry Notes");
+      setText("notes-sub", "Executive-level registry doctrine and shell-preservation law visible at system level.");
+      const notes = document.getElementById("registry-notes");
+      notes.innerHTML = registryNotes.map(note => `
+        <div class="war-item">
+          <div class="war-item-title">${note.title}</div>
+          <div class="war-item-copy">${note.copy}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderRightRail(){
+      setText("right-rail-sub", "Guide layer, registry support, and high-level authority access.");
+      setText("nace-copy", "Registry is active. Identity, authority, system scope, build visibility, and shell-safe continuity can be inspected from this surface before routing deeper into command, execution, or future self-build operations.");
+      setText("next-move-copy", "Next move: rebuild Voice Engine as a full PCC shell page while preserving the same sovereign shell law used across the command environment.");
+    }
+
+    function normalizeQuery(query){
+      return String(query || "").trim().toLowerCase();
+    }
+
+    function inspectRegistry(query){
+      const q = normalizeQuery(query);
+
+      if (!q) {
+        return {
+          status: "Registry Query Ready",
+          commandCopy: "Registry is active. Query a system, role, route, seat, or build surface to inspect authority placement and system visibility inside PCC.",
+          nace: "Awaiting registry query. Ask about systems, council mapping, build modes, or voice surfaces.",
+          hint: "Try: show systems, inspect execution, inspect voice engine, inspect council, inspect build modes."
+        };
+      }
+
+      if (q.includes("system") || q.includes("systems")) {
+        return {
+          status: "Systems Visible",
+          commandCopy: `Registered systems: ${registrySystems.map(s => s.system).join(", ")}.`,
+          nace: `Registry confirms ${registrySystems.length} recognized systems or system-class surfaces inside PCC.`,
+          hint: "You can inspect a specific system next: execution, voice engine, war room, financial tracking, nhce monitor."
+        };
+      }
+
+      if (q.includes("voice")) {
+        const voice = registrySystems.find(s => s.system === "VOICE_ENGINE");
+        return {
+          status: "Voice Engine Located",
+          commandCopy: `VOICE_ENGINE is ${voice.status}. Route target: ${voice.route}. Repo: ${voice.repo}. Build modes: ${voice.build_modes.join(", ")}.`,
+          nace: "Voice Engine is recognized by registry, but still requires full shell-consistent production build alignment.",
+          hint: "Next valid follow-up: route voice engine, inspect voice engine files, review voice status."
+        };
+      }
+
+      if (q.includes("execution")) {
+        const execution = registrySystems.find(s => s.system === "EXECUTION");
+        return {
+          status: "Execution Located",
+          commandCopy: `EXECUTION is ${execution.status}. Route target: ${execution.route}. Repo: ${execution.repo}. Build modes: ${execution.build_modes.join(", ")}.`,
+          nace: "Execution is an active recognized system surface inside PCC registry.",
+          hint: "You can route directly to execution or inspect execution surface details."
+        };
+      }
+
+      if (q.includes("financial")) {
+        const finance = registrySystems.find(s => s.system === "FINANCIAL_TRACKING");
+        return {
+          status: "Financial Tracking Located",
+          commandCopy: `FINANCIAL_TRACKING is ${finance.status}. Route target: ${finance.route}. Repo: ${finance.repo}.`,
+          nace: "Financial Tracking is visible as an active treasury-class system surface.",
+          hint: "You can inspect treasury surface or route to financial tracking."
+        };
+      }
+
+      if (q.includes("war")) {
+        const war = registrySystems.find(s => s.system === "WAR_ROOM");
+        return {
+          status: "War Room Located",
+          commandCopy: `WAR_ROOM is ${war.status}. Route target: ${war.route}. Council seats visible: ${war.seats}.`,
+          nace: "War Room remains a live chamber-class surface under registry visibility.",
+          hint: "Try: route war room, inspect council, inspect live chamber."
+        };
+      }
+
+      if (q.includes("council")) {
+        return {
+          status: "Council Mapping Visible",
+          commandCopy: `Council seats mapped: ${registryMetrics.councilSeats}. Council-adjacent surfaces include WAR_ROOM and COUNCIL_STAFF.`,
+          nace: "Council mapping remains preserved under registry continuity law.",
+          hint: "Try: inspect council staff, route war room, inspect governance."
+        };
+      }
+
+      if (q.includes("build")) {
+        return {
+          status: "Build Modes Visible",
+          commandCopy: `Approved build modes currently visible in registry: FULL_FILE, CONTENT_ONLY. Registry remains shell-preservation aware.`,
+          nace: "Registry can now expose build visibility without changing shell architecture.",
+          hint: "Try: inspect systems, inspect voice engine, inspect shell law."
+        };
+      }
+
+      return {
+        status: "Registry Match Partial",
+        commandCopy: `No exact registry object matched "${query}". Query systems, council, execution, voice engine, financial tracking, war room, or build modes.`,
+        nace: "Partial match only. Narrow the query to a specific system, role, or build surface.",
+        hint: "Try: show systems, inspect voice engine, inspect execution, inspect council."
+      };
+    }
+
+    function routeRegistry(query){
+      const q = normalizeQuery(query);
+
+      const routeMap = [
+        { keys:["voice","voice engine"], href:"voice-engine.html", label:"Routing to Voice Engine" },
+        { keys:["execution"], href:"execution.html", label:"Routing to Execution" },
+        { keys:["nhce","nhce monitor"], href:"nhce-monitor.html", label:"Routing to NHCE Monitor" },
+        { keys:["financial","finance","treasury"], href:"financial-tracking.html", label:"Routing to Financial Tracking" },
+        { keys:["war","war room"], href:"war-room.html", label:"Routing to War Room" },
+        { keys:["console"], href:"console.html", label:"Routing to Console" },
+        { keys:["floor","command floor"], href:"command-floor.html", label:"Routing to Command Floor" },
+        { keys:["staff","council"], href:"council-staff.html", label:"Routing to Council + Staff" }
+      ];
+
+      for (const route of routeMap) {
+        if (route.keys.some(key => q.includes(key))) {
+          setText("command-status", route.label);
+          setText("nace-copy", `${route.label}. Registry confirms this surface as a recognized route target inside PCC.`);
+          setTimeout(() => {
+            window.location.href = route.href;
+          }, 250);
+          return true;
+        }
+      }
+
+      setText("command-status", "Route Not Found");
+      setText("nace-copy", "Registry could not resolve a route target from that query. Try a recognized PCC surface.");
+      return false;
+    }
+
+    function bindActions(){
+      const queryInput = document.getElementById("registry-query");
+
+      document.getElementById("inspect-btn").addEventListener("click", () => {
+        const result = inspectRegistry(queryInput.value);
+        setText("command-status", result.status);
+        setText("command-copy", result.commandCopy);
+        setText("command-hint", result.hint);
+        setText("nace-copy", result.nace);
+      });
+
+      document.getElementById("route-btn").addEventListener("click", () => {
+        routeRegistry(queryInput.value);
+      });
+
+      document.getElementById("nace-explain-btn").addEventListener("click", () => {
+        setText("command-status", "Registry Explained");
+        setText("command-copy", "Registry is the controlled identity, authority, and system-visibility surface of Phoenix OS inside PCC. It preserves role clarity, route awareness, and future shell-safe build readiness.");
+        setText("command-hint", "Use Inspect to query a system or role. Use Route to move into a recognized PCC surface.");
+        setText("nace-copy", "Registry explained. It governs who exists, what is visible, and which PCC surfaces are recognized for routed continuity.");
+      });
+
+      document.getElementById("nace-roles-btn").addEventListener("click", () => {
+        setText("command-status", "Roles Visible");
+        setText("command-copy", "Executive Core, registered systems, build modes, and voice grid remain visible through registry overview and mapped continuity surfaces.");
+        setText("command-hint", "Try: inspect council, inspect voice engine, inspect systems.");
+        setText("nace-copy", "Role visibility restored. Registry continues to preserve authority clarity across mapped positions and recognized systems.");
+      });
+
+      document.getElementById("nace-voice-btn").addEventListener("click", () => {
+        queryInput.value = "inspect voice engine";
+        const result = inspectRegistry(queryInput.value);
+        setText("command-status", result.status);
+        setText("command-copy", result.commandCopy);
+        setText("command-hint", result.hint);
+        setText("nace-copy", result.nace);
+      });
+
+      document.getElementById("nace-floor-btn").addEventListener("click", () => {
+        window.location.href = "command-floor.html";
+      });
+
+      queryInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          const result = inspectRegistry(queryInput.value);
+          setText("command-status", result.status);
+          setText("command-copy", result.commandCopy);
+          setText("command-hint", result.hint);
+          setText("nace-copy", result.nace);
+        }
+      });
+    }
+
+    function initRegistry(){
+      renderTopMetrics();
+      renderOverview();
+      renderHero();
+      renderTicker();
+      renderEntries();
+      renderSignals();
+      renderPriority();
+      renderCommandArea();
+      renderMap();
+      renderNotes();
+      renderRightRail();
+      bindActions();
+    }
+
+    initRegistry();
   </script>
 </body>
 </html> 
