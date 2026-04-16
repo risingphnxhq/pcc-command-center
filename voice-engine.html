@@ -3,85 +3,1640 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VOICE ENGINE — Phoenix Command Center</title>
+  <title>Phoenix Command Center — Voice Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #071019;
-      --panel: #0e1824;
-      --line: rgba(255,255,255,.08);
-      --gold: #c6a15b;
-      --cyan: #63d9ff;
-      --text: #f4efe5;
-      --muted: rgba(244,239,229,.68);
+    :root{
+      --bg:#05080c;
+      --bg2:#071019;
+      --bg3:#0a1521;
+      --panel:#0e1824;
+      --panel2:#0b131c;
+      --panel3:#112030;
+      --line:rgba(255,255,255,.07);
+      --line-strong:rgba(198,161,91,.24);
+      --gold:#c6a15b;
+      --gold-soft:rgba(198,161,91,.12);
+      --cyan:#63d9ff;
+      --cyan-soft:rgba(99,217,255,.12);
+      --green:#49d391;
+      --amber:#f0b35a;
+      --red:#ea7474;
+      --violet:#b490ff;
+      --violet-soft:rgba(180,144,255,.12);
+      --text:#f4efe5;
+      --muted:rgba(244,239,229,.66);
+      --muted2:rgba(244,239,229,.42);
+      --shadow:0 22px 70px rgba(0,0,0,.40);
+      --radius-sm:12px;
+      --radius-md:16px;
+      --radius-lg:22px;
+      --radius-xl:28px;
+      --topH:160px;
+      --leftW:280px;
+      --rightW:360px;
+      --container:1680px;
+
+      --text-xs:11px;
+      --text-sm:13px;
+      --text-md:14px;
+      --text-lg:18px;
+      --text-xl:28px;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, sans-serif;
-      background: linear-gradient(180deg, #091018 0%, #05080c 100%);
-      color: var(--text);
-      padding: 32px;
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:Inter,system-ui,sans-serif;
+      font-size:var(--text-sm);
+      color:var(--text);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+        linear-gradient(180deg, #091018 0%, #05080c 100%);
+      overflow-x:hidden;
     }
-    .shell {
-      max-width: 1200px;
-      margin: 0 auto;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background: linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
-      padding: 28px;
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size:36px 36px;
+      opacity:.22;
+      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
     }
-    .kicker {
-      color: var(--gold);
-      text-transform: uppercase;
-      letter-spacing: .22em;
-      font-size: 12px;
-      margin-bottom: 10px;
+
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:var(--leftW) minmax(0,1fr) var(--rightW);
+      grid-template-rows:var(--topH) auto;
+      grid-template-areas:
+        "top top top"
+        "left center right";
+      gap:14px;
+      padding:14px;
+      max-width:calc(var(--container) + 28px);
+      margin:0 auto;
     }
-    h1 {
-      font-family: Georgia, "Times New Roman", serif;
-      letter-spacing: .06em;
-      margin: 0 0 16px;
-      font-size: 48px;
+
+    .glass{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius-xl);
+      min-width:0;
+      overflow:hidden;
     }
-    p {
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 16px;
-      max-width: 860px;
+
+    .topbar{
+      grid-area:top;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:18px;
+      padding:16px 20px;
+      position:sticky;
+      top:14px;
+      z-index:20;
     }
-    .panel {
-      margin-top: 24px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      background: rgba(255,255,255,.02);
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
     }
-    .label {
-      color: var(--cyan);
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 10px;
+
+    .brand-mark{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      flex:0 0 auto;
+      overflow:hidden;
+      border:1px solid var(--line-strong);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(198,161,91,.22), transparent 40%),
+        linear-gradient(180deg, rgba(198,161,91,.08), rgba(7,12,17,.92));
+      display:grid;
+      place-items:center;
+    }
+
+    .brand-mark img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .brand-copy{
+      min-width:0;
+      flex:1;
+    }
+
+    .brand-kicker{
+      font-size:11px;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .brand-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(22px,2vw,36px);
+      letter-spacing:.08em;
+      white-space:nowrap;
+    }
+
+    .topbar-right{
+      display:grid;
+      gap:10px;
+      justify-items:end;
+      min-width:0;
+    }
+
+    .top-status-rail{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
+      min-width:0;
+    }
+
+    .status-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .status-chip .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:currentColor;
+      box-shadow:0 0 10px currentColor;
+      flex:0 0 auto;
+    }
+
+    .status-chip.green{color:var(--green)}
+    .status-chip.cyan{color:var(--cyan)}
+    .status-chip.amber{color:var(--amber)}
+    .status-chip.red{color:var(--red)}
+    .status-chip.violet{color:var(--violet)}
+
+    .top-microbars{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(120px, 1fr));
+      gap:10px;
+      width:min(460px, 100%);
+    }
+
+    .micro-card{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+      padding:10px 12px;
+      min-width:0;
+    }
+
+    .micro-label{
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+
+    .micro-value{
+      font-family:"IBM Plex Mono", monospace;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .micro-track{
+      height:8px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+
+    .micro-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+    }
+
+    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+    .center{grid-area:center;display:flex;flex-direction:column;min-width:0}
+    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+
+    .pane-head{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .pane-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#f3e8d0;
+      margin-bottom:6px;
+    }
+
+    .pane-sub{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .pane-body{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      padding:16px 30px 16px 16px;
+      scrollbar-gutter: stable;
+    }
+
+    .nav-group + .nav-group{margin-top:18px}
+    .group-label{
+      margin:0 0 10px 4px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .nav-list{display:grid;gap:10px}
+    .nav-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      color:var(--text);
+      padding:14px 14px;
+      text-align:left;
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      transition:.16s ease;
+    }
+
+    .nav-btn:hover,.nav-btn.active{
+      border-color:rgba(198,161,91,.34);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.02));
+      transform:translateX(2px);
+    }
+
+    .nav-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 10px rgba(240,179,90,.8);
+      flex:0 0 auto;
+    }
+
+    .section-card{
+      margin-top:16px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+    }
+
+    .section-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:12px;
+    }
+
+    .persona-list{display:grid;gap:10px}
+    .persona-item{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .persona-name{font-weight:800;font-size:15px}
+    .persona-role{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-top:3px;
+    }
+
+    .tag{
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .center-scroll{
+      display:grid;
+      gap:16px;
+      align-content:start;
+      min-width:0;
+    }
+
+    .hero{
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:24px;
+      display:grid;
+      gap:18px;
+    }
+
+    .hero-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(28px,2.4vw,46px);
+      letter-spacing:.12em;
+      margin-bottom:8px;
+    }
+
+    .hero-copy{
+      font-size:16px;
+      line-height:1.72;
+      color:var(--text);
+      opacity:.94;
+      max-width:980px;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(99,217,255,.18);
+      background:rgba(99,217,255,.10);
+      color:#c9effb;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      white-space:nowrap;
+      width:max-content;
+    }
+
+    .quick-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .quick-card{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      padding:16px;
+      min-width:0;
+    }
+
+    .metric-label{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      margin-bottom:10px;
+    }
+
+    .metric-value{
+      color:var(--cyan);
+      font-size:clamp(30px,2.2vw,42px);
+      line-height:1;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .metric-note{
+      font-size:15px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.9;
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      overflow:hidden;
+    }
+
+    .panel-head{
+      padding:16px 18px 10px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .panel-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .panel-sub{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .panel-body{padding:16px 18px 18px}
+
+    .ticker-shell{
+      overflow:hidden;
+      border:1px solid rgba(198,161,91,.18);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.015));
+      border-radius:18px;
+    }
+
+    .ticker{
+      display:flex;
+      gap:34px;
+      align-items:center;
+      white-space:nowrap;
+      padding:14px 18px;
+      width:max-content;
+      animation:tickerMove 30s linear infinite;
+    }
+
+    @keyframes tickerMove{
+      from{transform:translateX(0)}
+      to{transform:translateX(-50%)}
+    }
+
+    .ticker-item{
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:#f3e8d0;
+    }
+
+    .receipt-feed{display:grid;gap:12px}
+    .receipt-row{
+      display:grid;
+      grid-template-columns:78px 150px 1fr;
+      gap:12px;
+      align-items:start;
+      border-radius:16px;
+      border:1px solid rgba(99,217,255,.14);
+      background:linear-gradient(180deg, rgba(99,217,255,.09), rgba(99,217,255,.03));
+      padding:14px;
+      min-width:0;
+    }
+
+    .receipt-time{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .receipt-lane{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    .receipt-copy{
+      font-size:14px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.92;
+    }
+
+    .grid-two{
+      display:grid;
+      grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);
+      gap:16px;
+    }
+
+    .bars{display:grid;gap:16px}
+    .bar-item{display:grid;gap:8px}
+    .bar-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      font-size:13px;
+    }
+    .bar-label{
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:#f3e8d0;
+    }
+    .bar-value{
+      font-family:"IBM Plex Mono",monospace;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .bar-track{
+      height:12px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+      box-shadow:0 0 20px rgba(99,217,255,.18);
+    }
+
+    .tickler-list{display:grid;gap:12px}
+    .tickler{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:12px;
+      align-items:start;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      padding:14px;
+    }
+
+    .tickler-dot{
+      width:10px;height:10px;border-radius:50%;
+      margin-top:5px;
+      background:var(--amber);
+      box-shadow:0 0 12px rgba(240,179,90,.7);
+    }
+    .tickler.red .tickler-dot{background:var(--red);box-shadow:0 0 12px rgba(234,116,116,.75)}
+    .tickler.green .tickler-dot{background:var(--green);box-shadow:0 0 12px rgba(73,211,145,.75)}
+    .tickler.violet .tickler-dot{background:var(--violet);box-shadow:0 0 12px rgba(180,144,255,.75)}
+
+    .tickler-title{
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .tickler-copy{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .command-shell{
+      border:1px solid rgba(99,217,255,.16);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      overflow:hidden;
+    }
+
+    .command-head{
+      padding:18px 18px 10px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .command-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(26px,2vw,40px);
+      letter-spacing:.12em;
+      margin-bottom:6px;
+    }
+
+    .command-status{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(99,217,255,.18);
+      background:rgba(99,217,255,.11);
+      color:#c9effb;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      white-space:nowrap;
+    }
+
+    .command-copy{
+      min-height:140px;
+      padding:0 18px 16px;
+      font-size:16px;
+      line-height:1.72;
+      color:var(--text);
+      opacity:.95;
+    }
+
+    .command-wrap{
+      padding:0 18px 18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .command-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:12px;
+    }
+
+    .command-input{
+      min-height:76px;
+      resize:vertical;
+      width:100%;
+      border-radius:16px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--text);
+      outline:none;
+      padding:16px;
+      font:600 15px/1.5 Inter,system-ui,sans-serif;
+    }
+
+    .btn-stack{
+      display:grid;
+      grid-template-rows:1fr 1fr;
+      gap:10px;
+      width:170px;
+    }
+
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:14px 14px;
+      background:linear-gradient(180deg, #d8b16a, #be9250);
+      color:#0c1218;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+
+    .btn.secondary{
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
+      color:var(--text);
+      border:1px solid rgba(99,217,255,.20);
+    }
+
+    .hint{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    .war-room-grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:16px;
+    }
+
+    .war-stage{
+      min-height:280px;
+      border:1px solid rgba(99,217,255,.14);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(99,217,255,.14), transparent 34%),
+        linear-gradient(180deg, rgba(5,12,18,.92), rgba(8,18,28,.95));
+      position:relative;
+      overflow:hidden;
+    }
+
+    .war-stage::before,
+    .war-stage::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      border:1px solid rgba(99,217,255,.18);
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+    }
+    .war-stage::before{width:220px;height:220px}
+    .war-stage::after{width:360px;height:360px;opacity:.45}
+
+    .war-core{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      width:150px;height:150px;border-radius:50%;
+      border:1px solid rgba(198,161,91,.24);
+      background:
+        radial-gradient(circle at center, rgba(198,161,91,.18), transparent 46%),
+        rgba(255,255,255,.02);
+      display:grid;
+      place-items:center;
+      font-family:Cinzel,serif;
+      letter-spacing:.16em;
+      color:#f3e8d0;
+      text-transform:uppercase;
+      font-size:14px;
+      text-align:center;
+      padding:18px;
+    }
+
+    .war-node{
+      position:absolute;
+      width:118px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(9,17,26,.92);
+      font-size:12px;
+      line-height:1.45;
+      text-align:center;
+    }
+
+    .war-node strong{
+      display:block;
+      margin-bottom:4px;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      font-size:11px;
+      color:var(--gold);
+    }
+
+    .node-1{left:8%;top:16%}
+    .node-2{right:8%;top:16%}
+    .node-3{left:6%;bottom:14%}
+    .node-4{right:6%;bottom:14%}
+
+    .war-list{display:grid;gap:12px}
+    .war-item{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:rgba(255,255,255,.02);
+    }
+
+    .war-item-title{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .war-item-copy{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .right .pane-body{
+      display:grid;
+      gap:16px;
+      align-content:start;
+    }
+
+    .nace-card{
+      border:1px solid rgba(99,217,255,.16);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+
+    .nace-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .nace-title h3{
+      font-family:Cinzel,serif;
+      letter-spacing:.14em;
+      font-size:28px;
+    }
+
+    .nace-copy{
+      font-size:15px;
+      line-height:1.7;
+      color:var(--text);
+      opacity:.94;
+      min-height:130px;
+    }
+
+    .nace-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .nace-actions button{
+      border:none;
+      border-radius:14px;
+      padding:12px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
+      border:1px solid rgba(99,217,255,.20);
+    }
+
+    .small{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    .mono{
+      font-family:"IBM Plex Mono", monospace;
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+    @media (max-width: 1520px){
+      .app{grid-template-columns:270px minmax(0,1fr) 340px}
+    }
+
+    @media (max-width: 1180px){
+      .left,.right{position:static;height:auto}
+      .app{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto auto auto;
+        grid-template-areas:
+          "top"
+          "center"
+          "right"
+          "left";
+      }
+      .topbar{
+        grid-template-columns:1fr;
+      }
+      .topbar-right{
+        justify-items:start;
+      }
+      .top-status-rail{
+        justify-content:flex-start;
+      }
+      .top-microbars{
+        width:100%;
+      }
+      .grid-two,.war-room-grid{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 760px){
+      .app{padding:10px;gap:10px}
+      .topbar,.left,.center,.right{border-radius:20px}
+      .quick-grid{grid-template-columns:1fr}
+      .receipt-row{grid-template-columns:1fr}
+      .nace-actions{grid-template-columns:1fr}
+      .command-row{grid-template-columns:1fr}
+      .btn-stack{
+        grid-template-columns:1fr 1fr;
+        grid-template-rows:none;
+        width:100%;
+      }
+      .top-microbars{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <div class="kicker">Rising Phoenix Enterprises</div>
-    <h1>VOICE ENGINE</h1>
-    <p>
-      This file was generated through PCC V5C-R3 governed build logic.
-      Origin classification: PCC_ENGINE.
-    </p>
-    <section class="panel">
-      <div class="label">Build Metadata</div>
-      <p>Engine Build ID: PCC-ENGINE-V5C-R3</p>
-      <p>Build Layer Version: PCC-BUILD-V5C-R3</p>
-      <p>Command Type: BUILD_PAGE</p>
-      <p>Target File: voice-engine.html</p>
-      <p>Operation: CREATE_FILE</p>
-    </section>
-  </main>
+  <div class="app">
+    <header class="topbar glass">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
+        </div>
+
+        <div class="brand-copy">
+          <div class="brand-kicker">Rising Phoenix Enterprises</div>
+          <div class="brand-title">Phoenix Command Center</div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="top-status-rail">
+          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
+          <div class="status-chip cyan"><span class="dot"></span> Mode: Voice Engine</div>
+          <div class="status-chip amber"><span class="dot"></span> Voice Layer: Armed</div>
+          <div class="status-chip violet"><span class="dot"></span> Personas: 20</div>
+        </div>
+
+        <div class="top-microbars">
+          <div class="micro-card">
+            <div class="micro-label">Voice Readiness</div>
+            <div class="micro-value" id="microVoiceReadinessValue">92%</div>
+            <div class="micro-track"><div class="micro-fill" id="microVoiceReadinessBar" style="width:92%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Routing Integrity</div>
+            <div class="micro-value" id="microRoutingIntegrityValue">89%</div>
+            <div class="micro-track"><div class="micro-fill" id="microRoutingIntegrityBar" style="width:89%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Persona Coverage</div>
+            <div class="micro-value" id="microPersonaCoverageValue">20 Registered</div>
+            <div class="micro-track"><div class="micro-fill" id="microPersonaCoverageBar" style="width:84%"></div></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="left glass">
+      <div class="pane-head">
+        <div class="pane-title">Voice Rail</div>
+        <div class="pane-sub">Scrollable voice architecture. Persona coverage, readiness state, synthesis visibility, and governed communication continuity across PCC.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="nav-group">
+          <div class="group-label">Primary</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
+            <a class="nav-btn" href="console.html"><span class="nav-dot"></span> Console</a>
+            <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
+            <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="group-label">Systems</div>
+          <div class="nav-list">
+            <a class="nav-btn active" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
+            <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
+            <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
+            <a class="nav-btn" href="financial-tracking.html"><span class="nav-dot"></span> Financial Tracking</a>
+            <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">Voice Overview</div>
+          <div class="persona-list" id="voiceOverviewList">
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Voice Grid</div>
+                <div class="persona-role">Registered communication personas</div>
+              </div>
+              <div class="tag" id="voiceGridCountTag">20</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Routing State</div>
+                <div class="persona-role">Guide / executive / system lanes</div>
+              </div>
+              <div class="tag">Live</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Fallback Mode</div>
+                <div class="persona-role">Default system voice active</div>
+              </div>
+              <div class="tag">On</div>
+            </div>
+            <div class="persona-item">
+              <div>
+                <div class="persona-name">Engine Policy</div>
+                <div class="persona-role">Governed voice application only</div>
+              </div>
+              <div class="tag">Locked</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="center glass">
+      <div class="center-scroll">
+        <section class="hero">
+          <div class="hero-title">Voice Engine</div>
+          <div class="hero-copy" id="heroCopy">
+            The controlled voice surface of Phoenix OS. Voice Engine governs persona registration, speech readiness, routing posture, fallback continuity, and the future transition from default system audio into governed identity-bound voice output across Phoenix Command Center.
+          </div>
+          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Voice Session: Communication Infrastructure Visible</div>
+
+          <div class="quick-grid" id="heroMetricGrid">
+            <div class="quick-card">
+              <div class="metric-label">Voice Personas</div>
+              <div class="metric-value" id="metricVoicePersonas">20</div>
+              <div class="metric-note">Executive and staff voice identities visible across routed communication layers.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Fallback State</div>
+              <div class="metric-value" id="metricFallbackState">ON</div>
+              <div class="metric-note">Default system voice remains active until governed persona output is fully bound.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Readiness</div>
+              <div class="metric-value" id="metricReadiness">92%</div>
+              <div class="metric-note">Voice layer is structurally ready for controlled persona activation and surface expansion.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Routing Lanes</div>
+              <div class="metric-value" id="metricRoutingLanes">04</div>
+              <div class="metric-note">Guide, executive, system, and future multi-role voice channels remain visible for governed routing.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ticker-shell panel">
+          <div class="ticker">
+            <div class="ticker-item">Default Fallback Voice Remains Active</div>
+            <div class="ticker-item">Persona Grid Preserved Across PCC</div>
+            <div class="ticker-item">Governed Voice Transition Remains Authorized</div>
+            <div class="ticker-item">Registry Recognition Supports Voice Surface</div>
+            <div class="ticker-item">Command Routing Will Bind Future Voice Output</div>
+            <div class="ticker-item">ElevenLabs Identity Layer Reserved For Controlled Use</div>
+            <div class="ticker-item">Default Fallback Voice Remains Active</div>
+            <div class="ticker-item">Persona Grid Preserved Across PCC</div>
+            <div class="ticker-item">Governed Voice Transition Remains Authorized</div>
+            <div class="ticker-item">Registry Recognition Supports Voice Surface</div>
+            <div class="ticker-item">Command Routing Will Bind Future Voice Output</div>
+            <div class="ticker-item">ElevenLabs Identity Layer Reserved For Controlled Use</div>
+          </div>
+        </section> 
+<section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Voice Events</div>
+              <div class="panel-sub">Visibility feed across fallback continuity, persona readiness, routed communications, and future activation posture.</div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="receipt-feed" id="voiceEventFeed">
+              <div class="receipt-row">
+                <div class="receipt-time">V0</div>
+                <div class="receipt-lane">Fallback</div>
+                <div class="receipt-copy">Default system voice remains the temporary audible layer until governed persona output is fully completed and applied.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">V1</div>
+                <div class="receipt-lane">Persona</div>
+                <div class="receipt-copy">Executive and staff identities remain preserved as the long-term voice authority grid for Phoenix Command Center.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">V2</div>
+                <div class="receipt-lane">Engine</div>
+                <div class="receipt-copy">Voice Engine is now recognized as a real system surface and no longer treated as a static placeholder page.</div>
+              </div>
+              <div class="receipt-row">
+                <div class="receipt-time">V3</div>
+                <div class="receipt-lane">Route</div>
+                <div class="receipt-copy">Future command and role routing can resolve through registry + execution + voice continuity instead of isolated persona playback.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-two">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Voice Signals</div>
+                <div class="panel-sub">Readiness and enforcement levels for governed communication infrastructure.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="bars" id="voiceSignalBars">
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Voice Layer Stability</div>
+                    <div class="bar-value" id="signalStabilityValue">92%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" id="signalStabilityBar" style="width:92%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Persona Registration Coverage</div>
+                    <div class="bar-value" id="signalCoverageValue">84%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" id="signalCoverageBar" style="width:84%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Routing Readiness</div>
+                    <div class="bar-value" id="signalRoutingValue">89%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" id="signalRoutingBar" style="width:89%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Fallback Continuity</div>
+                    <div class="bar-value" id="signalFallbackValue">100%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" id="signalFallbackBar" style="width:100%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Activation Discipline</div>
+                    <div class="bar-value" id="signalDisciplineValue">88%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" id="signalDisciplineBar" style="width:88%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Priority Rail</div>
+                <div class="panel-sub">Immediate voice reminders, continuity notes, and next controlled move.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="tickler-list" id="priorityRailList">
+                <div class="tickler amber">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Fallback Stays Active</div>
+                    <div class="tickler-copy">Do not remove default system voice until the governed voice engine has completed real persona output and validation.</div>
+                  </div>
+                </div>
+
+                <div class="tickler red">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Unbound Persona Risk</div>
+                    <div class="tickler-copy">Voice persona names without controlled routing, verification, and selection policy must not be treated as live production authority.</div>
+                  </div>
+                </div>
+
+                <div class="tickler green">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">System Surface Preserved</div>
+                    <div class="tickler-copy">Voice Engine now matches the broader PCC shell and can expand in logic without breaking the command environment.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="command-shell">
+          <div class="command-head">
+            <div>
+              <div class="command-title">Voice Core</div>
+              <div class="panel-sub">Primary operator field for persona lookup, voice readiness review, route inspection, and future activation control.</div>
+            </div>
+            <div class="command-status">
+              <span class="dot" style="color:var(--cyan)"></span>
+              Query Ready
+            </div>
+          </div>
+
+          <div class="command-copy" id="voiceCoreCopy">
+            This voice core is the controlled intake point for persona awareness, communication routing, fallback review, and future governed activation inside Phoenix OS. It is designed for inspection, classification, and system-aware voice control — not uncontrolled playback.
+          </div>
+
+          <div class="command-wrap">
+            <div class="command-row">
+              <textarea class="command-input" id="voiceCommandInput" placeholder="Inspect voice grid, review persona readiness, show fallback state, inspect routing lanes, review activation policy, or query voice continuity..."></textarea>
+              <div class="btn-stack">
+                <button class="btn" id="inspectVoiceBtn">Inspect</button>
+                <button class="btn secondary" id="routeVoiceBtn">Route</button>
+              </div>
+            </div>
+
+            <div class="hint" id="voiceHint">
+              Example uses: show personas, inspect fallback, review routing, check voice integrity, locate NACE voice lane, inspect activation readiness.
+            </div>
+          </div>
+        </section>
+
+        <section class="war-room-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Voice Map</div>
+                <div class="panel-sub">Voice hierarchy remains built into the system surface while preserving governed communication continuity.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="war-stage">
+                <div class="war-node node-1">
+                  <strong>Guide</strong>
+                  NACE
+                </div>
+                <div class="war-node node-2">
+                  <strong>Executive</strong>
+                  Council / COO
+                </div>
+                <div class="war-node node-3">
+                  <strong>Fallback</strong>
+                  System Voice
+                </div>
+                <div class="war-node node-4">
+                  <strong>Future</strong>
+                  Persona Output
+                </div>
+                <div class="war-core">Voice Core</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Voice Notes</div>
+                <div class="panel-sub">Executive-level voice doctrine visible at system level.</div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="war-list" id="voiceNotesList">
+                <div class="war-item">
+                  <div class="war-item-title">Meaning</div>
+                  <div class="war-item-copy">Voice Engine is the controlled communication layer of Phoenix OS, preserving persona identity, routing posture, and audible authority continuity.</div>
+                </div>
+
+                <div class="war-item">
+                  <div class="war-item-title">Page Role</div>
+                  <div class="war-item-copy">Voice Engine carries persona visibility, fallback continuity, and activation readiness. Console carries direct build logic. Registry carries system recognition and scope.</div>
+                </div>
+
+                <div class="war-item">
+                  <div class="war-item-title">Build Rule</div>
+                  <div class="war-item-copy">Shell remains locked. Functional upgrades may expand query logic, routing awareness, and readiness visibility only.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <aside class="right glass">
+      <div class="pane-head">
+        <div class="pane-title">Executive Intelligence Tower</div>
+        <div class="pane-sub">Guide layer, voice support, and high-level communication access.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="nace-card">
+          <div class="nace-title">
+            <h3>NACE</h3>
+            <div class="tag">Guide</div>
+          </div>
+
+          <div class="nace-copy" id="naceCopy">
+            Voice Engine is active. Persona readiness, fallback continuity, and routed communication posture are visible from this surface before routing deeper into execution or future governed voice activation.
+          </div>
+
+          <div class="nace-actions">
+            <button id="explainVoiceBtn">Explain Voice</button>
+            <button id="openPersonasBtn">Open Personas</button>
+            <button id="inspectFallbackBtn">Inspect Fallback</button>
+            <button id="returnFloorBtn">Return Floor</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">Next Move</div>
+          <div class="small" id="nextMoveCopy">Use this surface to inspect persona readiness, preserve fallback continuity, and prepare the governed transition into true voice-bound system authority.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const VOICE_ENGINE_STATE = {
+      fallbackMode: "DEFAULT_SYSTEM_VOICE",
+      voiceReadiness: 92,
+      routingIntegrity: 89,
+      personaCoveragePercent: 84,
+      personaCount: 20,
+      routingLanes: 4,
+      activePersonaGroups: [
+        "Executive",
+        "Council",
+        "Guide",
+        "System"
+      ],
+      registeredPersonas: [
+        { name:"NACE", role:"Guide Layer / Communications Front", status:"Active" },
+        { name:"Alexis Vale", role:"AI Chairwoman / Council Lead", status:"Registered" },
+        { name:"Michael Carrington", role:"AI CEO / Enterprise Operations Lead", status:"Registered" },
+        { name:"Chad G. Pennington", role:"COO / Systems Execution", status:"Registered" },
+        { name:"Aiden Mercer", role:"Audit Independence", status:"Registered" },
+        { name:"Rebecca Lawson", role:"Corporate Command", status:"Registered" },
+        { name:"Jordan Hale", role:"Architecture Lead", status:"Registered" },
+        { name:"Patrick Ross", role:"Design Engineer", status:"Registered" }
+      ],
+      notes: {
+        explain: "Voice Engine preserves persona awareness, fallback continuity, routing posture, and the future handoff into governed voice output.",
+        fallback: "Fallback mode remains the temporary audible layer until the governed voice stack is fully completed and validated.",
+        roles: "Registered voice personas include executive, council, audit, and guide-facing communication identities.",
+        floor: "Returning to Command Floor preserves shell continuity while leaving voice readiness visible at system level."
+      }
+    };
+
+    const el = {
+      microVoiceReadinessValue: document.getElementById("microVoiceReadinessValue"),
+      microVoiceReadinessBar: document.getElementById("microVoiceReadinessBar"),
+      microRoutingIntegrityValue: document.getElementById("microRoutingIntegrityValue"),
+      microRoutingIntegrityBar: document.getElementById("microRoutingIntegrityBar"),
+      microPersonaCoverageValue: document.getElementById("microPersonaCoverageValue"),
+      microPersonaCoverageBar: document.getElementById("microPersonaCoverageBar"),
+
+      metricVoicePersonas: document.getElementById("metricVoicePersonas"),
+      metricFallbackState: document.getElementById("metricFallbackState"),
+      metricReadiness: document.getElementById("metricReadiness"),
+      metricRoutingLanes: document.getElementById("metricRoutingLanes"),
+
+      signalStabilityValue: document.getElementById("signalStabilityValue"),
+      signalStabilityBar: document.getElementById("signalStabilityBar"),
+      signalCoverageValue: document.getElementById("signalCoverageValue"),
+      signalCoverageBar: document.getElementById("signalCoverageBar"),
+      signalRoutingValue: document.getElementById("signalRoutingValue"),
+      signalRoutingBar: document.getElementById("signalRoutingBar"),
+      signalFallbackValue: document.getElementById("signalFallbackValue"),
+      signalFallbackBar: document.getElementById("signalFallbackBar"),
+      signalDisciplineValue: document.getElementById("signalDisciplineValue"),
+      signalDisciplineBar: document.getElementById("signalDisciplineBar"),
+
+      voiceGridCountTag: document.getElementById("voiceGridCountTag"),
+      voiceCommandInput: document.getElementById("voiceCommandInput"),
+      voiceHint: document.getElementById("voiceHint"),
+      voiceCoreCopy: document.getElementById("voiceCoreCopy"),
+      naceCopy: document.getElementById("naceCopy"),
+      nextMoveCopy: document.getElementById("nextMoveCopy"),
+      voiceEventFeed: document.getElementById("voiceEventFeed"),
+
+      inspectVoiceBtn: document.getElementById("inspectVoiceBtn"),
+      routeVoiceBtn: document.getElementById("routeVoiceBtn"),
+      explainVoiceBtn: document.getElementById("explainVoiceBtn"),
+      openPersonasBtn: document.getElementById("openPersonasBtn"),
+      inspectFallbackBtn: document.getElementById("inspectFallbackBtn"),
+      returnFloorBtn: document.getElementById("returnFloorBtn")
+    };
+
+    function setWidth(node, value){
+      if(node) node.style.width = `${Math.max(0, Math.min(100, Number(value) || 0))}%`;
+    }
+
+    function updateTopMetrics(){
+      el.microVoiceReadinessValue.textContent = `${VOICE_ENGINE_STATE.voiceReadiness}%`;
+      setWidth(el.microVoiceReadinessBar, VOICE_ENGINE_STATE.voiceReadiness);
+
+      el.microRoutingIntegrityValue.textContent = `${VOICE_ENGINE_STATE.routingIntegrity}%`;
+      setWidth(el.microRoutingIntegrityBar, VOICE_ENGINE_STATE.routingIntegrity);
+
+      el.microPersonaCoverageValue.textContent = `${VOICE_ENGINE_STATE.personaCount} Registered`;
+      setWidth(el.microPersonaCoverageBar, VOICE_ENGINE_STATE.personaCoveragePercent);
+
+      el.metricVoicePersonas.textContent = String(VOICE_ENGINE_STATE.personaCount).padStart(2, "0");
+      el.metricFallbackState.textContent = VOICE_ENGINE_STATE.fallbackMode === "DEFAULT_SYSTEM_VOICE" ? "ON" : "OFF";
+      el.metricReadiness.textContent = `${VOICE_ENGINE_STATE.voiceReadiness}%`;
+      el.metricRoutingLanes.textContent = String(VOICE_ENGINE_STATE.routingLanes).padStart(2, "0");
+
+      el.voiceGridCountTag.textContent = String(VOICE_ENGINE_STATE.personaCount);
+
+      el.signalStabilityValue.textContent = `${VOICE_ENGINE_STATE.voiceReadiness}%`;
+      setWidth(el.signalStabilityBar, VOICE_ENGINE_STATE.voiceReadiness);
+
+      el.signalCoverageValue.textContent = `${VOICE_ENGINE_STATE.personaCoveragePercent}%`;
+      setWidth(el.signalCoverageBar, VOICE_ENGINE_STATE.personaCoveragePercent);
+
+      el.signalRoutingValue.textContent = `${VOICE_ENGINE_STATE.routingIntegrity}%`;
+      setWidth(el.signalRoutingBar, VOICE_ENGINE_STATE.routingIntegrity);
+
+      el.signalFallbackValue.textContent = `100%`;
+      setWidth(el.signalFallbackBar, 100);
+
+      el.signalDisciplineValue.textContent = `88%`;
+      setWidth(el.signalDisciplineBar, 88);
+    }
+
+    function renderVoiceEvents(items){
+      if(!el.voiceEventFeed) return;
+      el.voiceEventFeed.innerHTML = items.map(item => `
+        <div class="receipt-row">
+          <div class="receipt-time">${item.time}</div>
+          <div class="receipt-lane">${item.lane}</div>
+          <div class="receipt-copy">${item.copy}</div>
+        </div>
+      `).join("");
+    } 
+function getPersonaSummary(){
+      const active = VOICE_ENGINE_STATE.registeredPersonas
+        .slice(0, 6)
+        .map(p => `${p.name} — ${p.role}`)
+        .join(" | ");
+      return active;
+    }
+
+    function inspectVoiceQuery(raw){
+      const q = String(raw || "").trim().toLowerCase();
+
+      if(!q){
+        el.voiceCoreCopy.textContent = "This voice core is the controlled intake point for persona awareness, communication routing, fallback review, and future governed activation inside Phoenix OS. It is designed for inspection, classification, and system-aware voice control — not uncontrolled playback.";
+        el.voiceHint.textContent = "Example uses: show personas, inspect fallback, review routing, check voice integrity, locate NACE voice lane, inspect activation readiness.";
+        el.naceCopy.textContent = "Voice Engine is active. Persona readiness, fallback continuity, and routed communication posture are visible from this surface before routing deeper into execution or future governed voice activation.";
+        renderVoiceEvents([
+          { time:"V0", lane:"Fallback", copy:"Default system voice remains the temporary audible layer until governed persona output is fully completed and applied." },
+          { time:"V1", lane:"Persona", copy:"Executive and staff identities remain preserved as the long-term voice authority grid for Phoenix Command Center." },
+          { time:"V2", lane:"Engine", copy:"Voice Engine is now recognized as a real system surface and no longer treated as a static placeholder page." },
+          { time:"V3", lane:"Route", copy:"Future command and role routing can resolve through registry + execution + voice continuity instead of isolated persona playback." }
+        ]);
+        return;
+      }
+
+      if(q.includes("persona") || q.includes("personas") || q.includes("voice grid")){
+        el.voiceCoreCopy.textContent = `Registered voice personas currently visible inside this surface include: ${getPersonaSummary()}. Persona continuity remains preserved as the future governed voice authority layer.`;
+        el.voiceHint.textContent = "Persona inspection complete. Review registration, role alignment, and routed communication ownership before activation.";
+        el.naceCopy.textContent = "Persona inspection is visible. Registered communication identities remain preserved for future governed voice output.";
+        renderVoiceEvents([
+          { time:"P0", lane:"Grid", copy:`${VOICE_ENGINE_STATE.personaCount} voice personas remain registered in the visible communication layer.` },
+          { time:"P1", lane:"Guide", copy:"NACE remains visible as the guide-facing communications surface." },
+          { time:"P2", lane:"Exec", copy:"Executive identities remain preserved as routed communication authorities." },
+          { time:"P3", lane:"Audit", copy:"Audit and support-facing voice roles remain preserved for controlled enterprise continuity." }
+        ]);
+        return;
+      }
+
+      if(q.includes("fallback") || q.includes("default voice") || q.includes("system voice")){
+        el.voiceCoreCopy.textContent = "Fallback review complete. Default system voice remains the active audible layer and should stay in place until real persona-bound voice output is governed, verified, and ready for controlled use.";
+        el.voiceHint.textContent = "Fallback continuity is active. Do not cut over to persona output without governed verification.";
+        el.naceCopy.textContent = "Fallback mode is currently preserving continuity. This is a protection state, not a downgrade.";
+        renderVoiceEvents([
+          { time:"F0", lane:"Fallback", copy:"Default system voice remains active by doctrine." },
+          { time:"F1", lane:"Risk", copy:"Fallback removal before validated persona activation would create audible continuity risk." },
+          { time:"F2", lane:"Guard", copy:"Voice transition must remain governed and not improvised at surface level." },
+          { time:"F3", lane:"State", copy:"Fallback remains ON until the Voice Engine reaches controlled production readiness." }
+        ]);
+        return;
+      }
+
+      if(q.includes("route") || q.includes("routing") || q.includes("lane")){
+        el.voiceCoreCopy.textContent = "Routing review complete. Voice lanes remain visible across guide, executive, system, and future persona-output surfaces. Command routing can later resolve which role speaks, when it speaks, and under what authority.";
+        el.voiceHint.textContent = "Routing awareness is active. Voice output should ultimately resolve through governed system routing, not manual guesswork.";
+        el.naceCopy.textContent = "Routing posture is visible. Voice is being prepared as a system lane, not just a media effect.";
+        renderVoiceEvents([
+          { time:"R0", lane:"Guide", copy:"Guide-facing communications remain routed through NACE visibility." },
+          { time:"R1", lane:"Exec", copy:"Executive communication lanes remain preserved for chair, CEO, COO, and command-level authority." },
+          { time:"R2", lane:"System", copy:"System voice continuity remains available for fallback and neutral outputs." },
+          { time:"R3", lane:"Future", copy:"Persona-bound voice output can later route based on role, surface, and command intent." }
+        ]);
+        return;
+      }
+
+      if(q.includes("readiness") || q.includes("integrity") || q.includes("status")){
+        el.voiceCoreCopy.textContent = `Voice readiness is currently ${VOICE_ENGINE_STATE.voiceReadiness}%. Routing integrity is ${VOICE_ENGINE_STATE.routingIntegrity}%. Persona coverage remains visible at ${VOICE_ENGINE_STATE.personaCoveragePercent}%.`;
+        el.voiceHint.textContent = "Readiness inspection complete. Voice layer is structurally strong but still governed by fallback continuity.";
+        el.naceCopy.textContent = "Readiness state is visible. Voice Engine is active as infrastructure and still maturing toward full persona-bound execution.";
+        renderVoiceEvents([
+          { time:"S0", lane:"Ready", copy:`Voice layer readiness remains at ${VOICE_ENGINE_STATE.voiceReadiness}%.` },
+          { time:"S1", lane:"Route", copy:`Routing integrity remains at ${VOICE_ENGINE_STATE.routingIntegrity}%.` },
+          { time:"S2", lane:"Coverage", copy:`Persona registration coverage remains at ${VOICE_ENGINE_STATE.personaCoveragePercent}%.` },
+          { time:"S3", lane:"Policy", copy:"Fallback continuity remains active until final activation law is satisfied." }
+        ]);
+        return;
+      }
+
+      el.voiceCoreCopy.textContent = "Query recognized but not mapped to a specialized response. Voice Engine remains available for persona lookup, fallback inspection, routing review, and activation readiness awareness.";
+      el.voiceHint.textContent = "Try: show personas, inspect fallback, review routing, check readiness, or inspect voice integrity.";
+      el.naceCopy.textContent = "Voice surface remains active. Refine the query for persona, fallback, routing, or readiness review.";
+      renderVoiceEvents([
+        { time:"Q0", lane:"Input", copy:`Unmapped query received: "${raw}".` },
+        { time:"Q1", lane:"Scope", copy:"Voice Engine supports persona, fallback, routing, and readiness inspection." },
+        { time:"Q2", lane:"State", copy:"System continuity remains preserved while awaiting a refined query." },
+        { time:"Q3", lane:"Guide", copy:"NACE can continue guiding the operator through voice inspection lanes." }
+      ]);
+    }
+
+    function bindEvents(){
+      el.inspectVoiceBtn?.addEventListener("click", () => {
+        inspectVoiceQuery(el.voiceCommandInput?.value || "");
+      });
+
+      el.routeVoiceBtn?.addEventListener("click", () => {
+        const query = String(el.voiceCommandInput?.value || "").trim();
+        if(!query){
+          el.voiceHint.textContent = "Route preview: Voice Engine can route to persona inspection, fallback review, routing posture, or readiness review.";
+          return;
+        }
+        if(query.toLowerCase().includes("registry")){
+          window.location.href = "registry.html";
+          return;
+        }
+        if(query.toLowerCase().includes("console") || query.toLowerCase().includes("build")){
+          window.location.href = "console.html";
+          return;
+        }
+        if(query.toLowerCase().includes("execution")){
+          window.location.href = "execution.html";
+          return;
+        }
+        inspectVoiceQuery(query);
+        el.voiceHint.textContent = `Route preview complete for query: ${query}`;
+      });
+
+      el.explainVoiceBtn?.addEventListener("click", () => {
+        el.naceCopy.textContent = VOICE_ENGINE_STATE.notes.explain;
+        el.voiceCoreCopy.textContent = VOICE_ENGINE_STATE.notes.explain;
+      });
+
+      el.openPersonasBtn?.addEventListener("click", () => {
+        inspectVoiceQuery("show personas");
+      });
+
+      el.inspectFallbackBtn?.addEventListener("click", () => {
+        inspectVoiceQuery("inspect fallback");
+      });
+
+      el.returnFloorBtn?.addEventListener("click", () => {
+        window.location.href = "command-floor.html";
+      });
+
+      el.voiceCommandInput?.addEventListener("keydown", (event) => {
+        if((event.ctrlKey || event.metaKey) && event.key === "Enter"){
+          inspectVoiceQuery(el.voiceCommandInput.value || "");
+        }
+      });
+    }
+
+    function boot(){
+      updateTopMetrics();
+      bindEvents();
+      inspectVoiceQuery("");
+    }
+
+    boot();
+  </script>
 </body>
-</html>
+</html> 
