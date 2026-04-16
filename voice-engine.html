@@ -24,8 +24,7 @@
       --green:#49d391;
       --amber:#f0b35a;
       --red:#ea7474;
-      --violet:#b490ff;
-      --violet-soft:rgba(180,144,255,.12);
+      --violet:#bf8cff;
       --text:#f4efe5;
       --muted:rgba(244,239,229,.66);
       --muted2:rgba(244,239,229,.42);
@@ -280,7 +279,7 @@
       min-height:0;
       overflow:auto;
       padding:16px 30px 16px 16px;
-      scrollbar-gutter: stable;
+      scrollbar-gutter:stable;
     }
 
     .nav-group + .nav-group{margin-top:18px}
@@ -559,9 +558,8 @@
       line-height:1.55;
       color:var(--text);
       opacity:.92;
-    }
-
-    .grid-two{
+    } 
+.grid-two{
       display:grid;
       grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);
       gap:16px;
@@ -621,7 +619,7 @@
     }
     .tickler.red .tickler-dot{background:var(--red);box-shadow:0 0 12px rgba(234,116,116,.75)}
     .tickler.green .tickler-dot{background:var(--green);box-shadow:0 0 12px rgba(73,211,145,.75)}
-    .tickler.violet .tickler-dot{background:var(--violet);box-shadow:0 0 12px rgba(180,144,255,.75)}
+    .tickler.violet .tickler-dot{background:var(--violet);box-shadow:0 0 12px rgba(191,140,255,.75)}
 
     .tickler-title{
       font-size:13px;
@@ -907,13 +905,7 @@
       color:var(--muted);
     }
 
-    .mono{
-      font-family:"IBM Plex Mono", monospace;
-    }
-
-    .hidden{
-      display:none !important;
-    }
+    .mono{font-family:"IBM Plex Mono",monospace}
 
     @media (max-width: 1520px){
       .app{grid-template-columns:270px minmax(0,1fr) 340px}
@@ -981,27 +973,27 @@
         <div class="top-status-rail">
           <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
           <div class="status-chip cyan"><span class="dot"></span> Mode: Voice Engine</div>
-          <div class="status-chip amber"><span class="dot"></span> Voice Layer: Armed</div>
-          <div class="status-chip violet"><span class="dot"></span> Personas: 20</div>
+          <div class="status-chip amber"><span class="dot"></span> Fallback: Active</div>
+          <div class="status-chip violet"><span class="dot"></span> SBIL: Armed</div>
         </div>
 
         <div class="top-microbars">
           <div class="micro-card">
             <div class="micro-label">Voice Readiness</div>
-            <div class="micro-value" id="microVoiceReadinessValue">92%</div>
-            <div class="micro-track"><div class="micro-fill" id="microVoiceReadinessBar" style="width:92%"></div></div>
+            <div class="micro-value" id="voiceReadinessValue">92%</div>
+            <div class="micro-track"><div class="micro-fill" id="voiceReadinessBar" style="width:92%"></div></div>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-label">Validated Personas</div>
+            <div class="micro-value" id="validatedPersonasValue">3 / 20</div>
+            <div class="micro-track"><div class="micro-fill" id="validatedPersonasBar" style="width:15%"></div></div>
           </div>
 
           <div class="micro-card">
             <div class="micro-label">Routing Integrity</div>
-            <div class="micro-value" id="microRoutingIntegrityValue">89%</div>
-            <div class="micro-track"><div class="micro-fill" id="microRoutingIntegrityBar" style="width:89%"></div></div>
-          </div>
-
-          <div class="micro-card">
-            <div class="micro-label">Persona Coverage</div>
-            <div class="micro-value" id="microPersonaCoverageValue">20 Registered</div>
-            <div class="micro-track"><div class="micro-fill" id="microPersonaCoverageBar" style="width:84%"></div></div>
+            <div class="micro-value" id="routingIntegrityValue">89%</div>
+            <div class="micro-track"><div class="micro-fill" id="routingIntegrityBar" style="width:89%"></div></div>
           </div>
         </div>
       </div>
@@ -1010,7 +1002,7 @@
     <aside class="left glass">
       <div class="pane-head">
         <div class="pane-title">Voice Rail</div>
-        <div class="pane-sub">Scrollable voice architecture. Persona coverage, readiness state, synthesis visibility, and governed communication continuity across PCC.</div>
+        <div class="pane-sub">Scrollable voice governance map. Persona registry, validation posture, fallback doctrine, and route-aware activation continuity across PCC.</div>
       </div>
 
       <div class="pane-body">
@@ -1036,35 +1028,35 @@
         </div>
 
         <div class="section-card">
-          <div class="section-label">Voice Overview</div>
+          <div class="section-label">SBIL Voice Overview</div>
           <div class="persona-list" id="voiceOverviewList">
             <div class="persona-item">
               <div>
-                <div class="persona-name">Voice Grid</div>
-                <div class="persona-role">Registered communication personas</div>
+                <div class="persona-name">Persona Registry</div>
+                <div class="persona-role">Registered custom voice identities</div>
               </div>
-              <div class="tag" id="voiceGridCountTag">20</div>
+              <div class="tag" id="personaRegistryTag">20</div>
             </div>
             <div class="persona-item">
               <div>
-                <div class="persona-name">Routing State</div>
-                <div class="persona-role">Guide / executive / system lanes</div>
+                <div class="persona-name">Validated Personas</div>
+                <div class="persona-role">Approved for governed custom voice</div>
               </div>
-              <div class="tag">Live</div>
+              <div class="tag" id="validatedRegistryTag">3</div>
             </div>
             <div class="persona-item">
               <div>
-                <div class="persona-name">Fallback Mode</div>
-                <div class="persona-role">Default system voice active</div>
+                <div class="persona-name">Fallback Doctrine</div>
+                <div class="persona-role">Default system voice preserved</div>
               </div>
-              <div class="tag">On</div>
+              <div class="tag">ON</div>
             </div>
             <div class="persona-item">
               <div>
-                <div class="persona-name">Engine Policy</div>
-                <div class="persona-role">Governed voice application only</div>
+                <div class="persona-name">Activation Policy</div>
+                <div class="persona-role">Validation required before cutover</div>
               </div>
-              <div class="tag">Locked</div>
+              <div class="tag">LOCKED</div>
             </div>
           </div>
         </div>
@@ -1076,30 +1068,30 @@
         <section class="hero">
           <div class="hero-title">Voice Engine</div>
           <div class="hero-copy" id="heroCopy">
-            The controlled voice surface of Phoenix OS. Voice Engine governs persona registration, speech readiness, routing posture, fallback continuity, and the future transition from default system audio into governed identity-bound voice output across Phoenix Command Center.
+            The governed voice surface of Phoenix OS. SBIL Voice converts this page from a visibility placeholder into a voice-intelligence surface for persona registry, route-aware voice resolution, validation posture, fallback continuity, and custom voice activation readiness for NACE, Chad, and approved AI staff.
           </div>
-          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Voice Session: Communication Infrastructure Visible</div>
+          <div class="hero-badge"><span class="dot" style="color:var(--cyan)"></span> Voice Session: SBIL Voice Governance Visible</div>
 
-          <div class="quick-grid" id="heroMetricGrid">
+          <div class="quick-grid">
             <div class="quick-card">
-              <div class="metric-label">Voice Personas</div>
-              <div class="metric-value" id="metricVoicePersonas">20</div>
-              <div class="metric-note">Executive and staff voice identities visible across routed communication layers.</div>
+              <div class="metric-label">Registered Personas</div>
+              <div class="metric-value" id="registeredPersonasMetric">20</div>
+              <div class="metric-note">Voice-bound identities visible inside the controlled persona registry layer.</div>
+            </div>
+            <div class="quick-card">
+              <div class="metric-label">Validated Now</div>
+              <div class="metric-value" id="validatedMetric">03</div>
+              <div class="metric-note">NACE, Chad, and one approved staff lane are the first governed custom voice activation targets.</div>
             </div>
             <div class="quick-card">
               <div class="metric-label">Fallback State</div>
-              <div class="metric-value" id="metricFallbackState">ON</div>
-              <div class="metric-note">Default system voice remains active until governed persona output is fully bound.</div>
+              <div class="metric-value" id="fallbackMetric">ON</div>
+              <div class="metric-note">Default system voice remains active until persona voice passes validation and route binding checks.</div>
             </div>
             <div class="quick-card">
-              <div class="metric-label">Readiness</div>
-              <div class="metric-value" id="metricReadiness">92%</div>
-              <div class="metric-note">Voice layer is structurally ready for controlled persona activation and surface expansion.</div>
-            </div>
-            <div class="quick-card">
-              <div class="metric-label">Routing Lanes</div>
-              <div class="metric-value" id="metricRoutingLanes">04</div>
-              <div class="metric-note">Guide, executive, system, and future multi-role voice channels remain visible for governed routing.</div>
+              <div class="metric-label">Route Lanes</div>
+              <div class="metric-value" id="routeLaneMetric">04</div>
+              <div class="metric-note">Guide, executive, system, and future multi-role voice channels are visible as governed speaking lanes.</div>
             </div>
           </div>
         </section>
@@ -1107,86 +1099,57 @@
         <section class="ticker-shell panel">
           <div class="ticker">
             <div class="ticker-item">Default Fallback Voice Remains Active</div>
-            <div class="ticker-item">Persona Grid Preserved Across PCC</div>
-            <div class="ticker-item">Governed Voice Transition Remains Authorized</div>
-            <div class="ticker-item">Registry Recognition Supports Voice Surface</div>
-            <div class="ticker-item">Command Routing Will Bind Future Voice Output</div>
-            <div class="ticker-item">ElevenLabs Identity Layer Reserved For Controlled Use</div>
+            <div class="ticker-item">NACE Is First Guide Voice Candidate</div>
+            <div class="ticker-item">Chad Is First Executive Operations Voice Candidate</div>
+            <div class="ticker-item">Validation Required Before Persona Cutover</div>
+            <div class="ticker-item">Route Binding Governs Who May Speak</div>
+            <div class="ticker-item">SBIL Voice Protects Against Random Playback</div>
             <div class="ticker-item">Default Fallback Voice Remains Active</div>
-            <div class="ticker-item">Persona Grid Preserved Across PCC</div>
-            <div class="ticker-item">Governed Voice Transition Remains Authorized</div>
-            <div class="ticker-item">Registry Recognition Supports Voice Surface</div>
-            <div class="ticker-item">Command Routing Will Bind Future Voice Output</div>
-            <div class="ticker-item">ElevenLabs Identity Layer Reserved For Controlled Use</div>
+            <div class="ticker-item">NACE Is First Guide Voice Candidate</div>
+            <div class="ticker-item">Chad Is First Executive Operations Voice Candidate</div>
+            <div class="ticker-item">Validation Required Before Persona Cutover</div>
+            <div class="ticker-item">Route Binding Governs Who May Speak</div>
+            <div class="ticker-item">SBIL Voice Protects Against Random Playback</div>
           </div>
-        </section> 
-<section class="panel">
+        </section>
+
+        <section class="panel">
           <div class="panel-head">
             <div>
-              <div class="panel-title">Voice Events</div>
-              <div class="panel-sub">Visibility feed across fallback continuity, persona readiness, routed communications, and future activation posture.</div>
+              <div class="panel-title">Voice Persona Registry</div>
+              <div class="panel-sub">SBIL registry visibility across priority personas, provider binding, fallback law, and activation status.</div>
             </div>
           </div>
 
           <div class="panel-body">
-            <div class="receipt-feed" id="voiceEventFeed">
-              <div class="receipt-row">
-                <div class="receipt-time">V0</div>
-                <div class="receipt-lane">Fallback</div>
-                <div class="receipt-copy">Default system voice remains the temporary audible layer until governed persona output is fully completed and applied.</div>
-              </div>
-              <div class="receipt-row">
-                <div class="receipt-time">V1</div>
-                <div class="receipt-lane">Persona</div>
-                <div class="receipt-copy">Executive and staff identities remain preserved as the long-term voice authority grid for Phoenix Command Center.</div>
-              </div>
-              <div class="receipt-row">
-                <div class="receipt-time">V2</div>
-                <div class="receipt-lane">Engine</div>
-                <div class="receipt-copy">Voice Engine is now recognized as a real system surface and no longer treated as a static placeholder page.</div>
-              </div>
-              <div class="receipt-row">
-                <div class="receipt-time">V3</div>
-                <div class="receipt-lane">Route</div>
-                <div class="receipt-copy">Future command and role routing can resolve through registry + execution + voice continuity instead of isolated persona playback.</div>
-              </div>
-            </div>
+            <div class="receipt-feed" id="voiceRegistryFeed"></div>
           </div>
-        </section>
-
-        <section class="grid-two">
+        </section> 
+<section class="grid-two">
           <div class="panel">
             <div class="panel-head">
               <div>
                 <div class="panel-title">Voice Signals</div>
-                <div class="panel-sub">Readiness and enforcement levels for governed communication infrastructure.</div>
+                <div class="panel-sub">Governed voice readiness, validation coverage, fallback continuity, and activation discipline across SBIL Voice.</div>
               </div>
             </div>
 
             <div class="panel-body">
-              <div class="bars" id="voiceSignalBars">
+              <div class="bars">
                 <div class="bar-item">
                   <div class="bar-top">
                     <div class="bar-label">Voice Layer Stability</div>
-                    <div class="bar-value" id="signalStabilityValue">92%</div>
+                    <div class="bar-value" id="signalVoiceLayerValue">92%</div>
                   </div>
-                  <div class="bar-track"><div class="bar-fill" id="signalStabilityBar" style="width:92%"></div></div>
+                  <div class="bar-track"><div class="bar-fill" id="signalVoiceLayerBar" style="width:92%"></div></div>
                 </div>
 
                 <div class="bar-item">
                   <div class="bar-top">
-                    <div class="bar-label">Persona Registration Coverage</div>
-                    <div class="bar-value" id="signalCoverageValue">84%</div>
+                    <div class="bar-label">Validation Coverage</div>
+                    <div class="bar-value" id="signalValidationValue">15%</div>
                   </div>
-                  <div class="bar-track"><div class="bar-fill" id="signalCoverageBar" style="width:84%"></div></div>
-                </div>
-
-                <div class="bar-item">
-                  <div class="bar-top">
-                    <div class="bar-label">Routing Readiness</div>
-                    <div class="bar-value" id="signalRoutingValue">89%</div>
-                  </div>
-                  <div class="bar-track"><div class="bar-fill" id="signalRoutingBar" style="width:89%"></div></div>
+                  <div class="bar-track"><div class="bar-fill" id="signalValidationBar" style="width:15%"></div></div>
                 </div>
 
                 <div class="bar-item">
@@ -1195,6 +1158,14 @@
                     <div class="bar-value" id="signalFallbackValue">100%</div>
                   </div>
                   <div class="bar-track"><div class="bar-fill" id="signalFallbackBar" style="width:100%"></div></div>
+                </div>
+
+                <div class="bar-item">
+                  <div class="bar-top">
+                    <div class="bar-label">Route Integrity</div>
+                    <div class="bar-value" id="signalRouteValue">89%</div>
+                  </div>
+                  <div class="bar-track"><div class="bar-fill" id="signalRouteBar" style="width:89%"></div></div>
                 </div>
 
                 <div class="bar-item">
@@ -1212,33 +1183,33 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Priority Rail</div>
-                <div class="panel-sub">Immediate voice reminders, continuity notes, and next controlled move.</div>
+                <div class="panel-sub">Immediate voice-governance reminders for custom voice rollout, fallback continuity, and persona safety.</div>
               </div>
             </div>
 
             <div class="panel-body">
               <div class="tickler-list" id="priorityRailList">
-                <div class="tickler amber">
+                <div class="tickler green">
                   <div class="tickler-dot"></div>
                   <div>
-                    <div class="tickler-title">Fallback Stays Active</div>
-                    <div class="tickler-copy">Do not remove default system voice until the governed voice engine has completed real persona output and validation.</div>
+                    <div class="tickler-title">NACE First Guide Activation</div>
+                    <div class="tickler-copy">NACE should be the first governed guide voice to validate on a controlled PCC route.</div>
+                  </div>
+                </div>
+
+                <div class="tickler violet">
+                  <div class="tickler-dot"></div>
+                  <div>
+                    <div class="tickler-title">Chad Executive Operations Lane</div>
+                    <div class="tickler-copy">Chad should be the first executive-operations voice lane resolved through route-aware SBIL logic.</div>
                   </div>
                 </div>
 
                 <div class="tickler red">
                   <div class="tickler-dot"></div>
                   <div>
-                    <div class="tickler-title">Unbound Persona Risk</div>
-                    <div class="tickler-copy">Voice persona names without controlled routing, verification, and selection policy must not be treated as live production authority.</div>
-                  </div>
-                </div>
-
-                <div class="tickler green">
-                  <div class="tickler-dot"></div>
-                  <div>
-                    <div class="tickler-title">System Surface Preserved</div>
-                    <div class="tickler-copy">Voice Engine now matches the broader PCC shell and can expand in logic without breaking the command environment.</div>
+                    <div class="tickler-title">No Random Persona Playback</div>
+                    <div class="tickler-copy">Voice IDs alone do not authorize speech. Persona binding, route binding, and validation status must all pass first.</div>
                   </div>
                 </div>
               </div>
@@ -1249,30 +1220,30 @@
         <section class="command-shell">
           <div class="command-head">
             <div>
-              <div class="command-title">Voice Core</div>
-              <div class="panel-sub">Primary operator field for persona lookup, voice readiness review, route inspection, and future activation control.</div>
+              <div class="command-title">SBIL Voice Core</div>
+              <div class="panel-sub">Primary operator field for persona inspection, route-aware voice resolution, fallback review, and activation-readiness checks.</div>
             </div>
-            <div class="command-status">
+            <div class="command-status" id="voiceCoreStatus">
               <span class="dot" style="color:var(--cyan)"></span>
               Query Ready
             </div>
           </div>
 
           <div class="command-copy" id="voiceCoreCopy">
-            This voice core is the controlled intake point for persona awareness, communication routing, fallback review, and future governed activation inside Phoenix OS. It is designed for inspection, classification, and system-aware voice control — not uncontrolled playback.
+            This SBIL Voice core is the controlled intake point for persona resolution, route-aware speech eligibility, fallback enforcement, and custom voice validation inside Phoenix OS. It is designed for governed voice control — not uncontrolled playback.
           </div>
 
           <div class="command-wrap">
             <div class="command-row">
-              <textarea class="command-input" id="voiceCommandInput" placeholder="Inspect voice grid, review persona readiness, show fallback state, inspect routing lanes, review activation policy, or query voice continuity..."></textarea>
+              <textarea class="command-input" id="voiceCommandInput" placeholder="Inspect NACE voice, inspect Chad voice, show validated personas, review fallback doctrine, inspect route policy, or query activation readiness..."></textarea>
               <div class="btn-stack">
-                <button class="btn" id="inspectVoiceBtn">Inspect</button>
-                <button class="btn secondary" id="routeVoiceBtn">Route</button>
+                <button class="btn" id="inspectVoiceBtn" type="button">Inspect</button>
+                <button class="btn secondary" id="routeVoiceBtn" type="button">Route</button>
               </div>
             </div>
 
             <div class="hint" id="voiceHint">
-              Example uses: show personas, inspect fallback, review routing, check voice integrity, locate NACE voice lane, inspect activation readiness.
+              Example uses: inspect NACE voice, inspect Chad voice, show validated personas, review fallback policy, inspect route scope, check activation readiness.
             </div>
           </div>
         </section>
@@ -1282,7 +1253,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Voice Map</div>
-                <div class="panel-sub">Voice hierarchy remains built into the system surface while preserving governed communication continuity.</div>
+                <div class="panel-sub">Governed voice hierarchy built into the visible PCC surface rather than treated like loose media playback.</div>
               </div>
             </div>
 
@@ -1293,8 +1264,8 @@
                   NACE
                 </div>
                 <div class="war-node node-2">
-                  <strong>Executive</strong>
-                  Council / COO
+                  <strong>Exec</strong>
+                  Chad / Ops
                 </div>
                 <div class="war-node node-3">
                   <strong>Fallback</strong>
@@ -1302,9 +1273,9 @@
                 </div>
                 <div class="war-node node-4">
                   <strong>Future</strong>
-                  Persona Output
+                  Staff Grid
                 </div>
-                <div class="war-core">Voice Core</div>
+                <div class="war-core">SBIL Voice</div>
               </div>
             </div>
           </div>
@@ -1313,25 +1284,25 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Voice Notes</div>
-                <div class="panel-sub">Executive-level voice doctrine visible at system level.</div>
+                <div class="panel-sub">Executive-level doctrine for controlled custom voice visible at system level.</div>
               </div>
             </div>
 
             <div class="panel-body">
-              <div class="war-list" id="voiceNotesList">
+              <div class="war-list">
                 <div class="war-item">
                   <div class="war-item-title">Meaning</div>
-                  <div class="war-item-copy">Voice Engine is the controlled communication layer of Phoenix OS, preserving persona identity, routing posture, and audible authority continuity.</div>
+                  <div class="war-item-copy">SBIL Voice is the intelligence layer that governs who may speak, which voice is used, when fallback overrides, and how persona identity remains controlled.</div>
                 </div>
 
                 <div class="war-item">
                   <div class="war-item-title">Page Role</div>
-                  <div class="war-item-copy">Voice Engine carries persona visibility, fallback continuity, and activation readiness. Console carries direct build logic. Registry carries system recognition and scope.</div>
+                  <div class="war-item-copy">Voice Engine now carries persona registry visibility, route-aware inspection, validation status, fallback doctrine, and activation posture. It is no longer a placeholder page.</div>
                 </div>
 
                 <div class="war-item">
                   <div class="war-item-title">Build Rule</div>
-                  <div class="war-item-copy">Shell remains locked. Functional upgrades may expand query logic, routing awareness, and readiness visibility only.</div>
+                  <div class="war-item-copy">The PCC shell remains locked. Functional intelligence expands through doctrine, inspection logic, and controlled SBIL behavior without changing page architecture.</div>
                 </div>
               </div>
             </div>
@@ -1343,7 +1314,7 @@
     <aside class="right glass">
       <div class="pane-head">
         <div class="pane-title">Executive Intelligence Tower</div>
-        <div class="pane-sub">Guide layer, voice support, and high-level communication access.</div>
+        <div class="pane-sub">Guide layer, voice governance support, and high-level controlled activation access.</div>
       </div>
 
       <div class="pane-body">
@@ -1354,88 +1325,140 @@
           </div>
 
           <div class="nace-copy" id="naceCopy">
-            Voice Engine is active. Persona readiness, fallback continuity, and routed communication posture are visible from this surface before routing deeper into execution or future governed voice activation.
+            Voice Engine is active. Persona registry, fallback doctrine, route-aware voice resolution, and first-phase custom voice readiness are visible from this surface before any governed activation occurs.
           </div>
 
           <div class="nace-actions">
-            <button id="explainVoiceBtn">Explain Voice</button>
-            <button id="openPersonasBtn">Open Personas</button>
-            <button id="inspectFallbackBtn">Inspect Fallback</button>
-            <button id="returnFloorBtn">Return Floor</button>
+            <button id="explainVoiceBtn" type="button">Explain Voice</button>
+            <button id="openPersonasBtn" type="button">Open Personas</button>
+            <button id="inspectFallbackBtn" type="button">Inspect Fallback</button>
+            <button id="returnFloorBtn" type="button">Return Floor</button>
           </div>
         </div>
 
         <div class="section-card">
           <div class="section-label">Next Move</div>
-          <div class="small" id="nextMoveCopy">Use this surface to inspect persona readiness, preserve fallback continuity, and prepare the governed transition into true voice-bound system authority.</div>
+          <div class="small" id="nextMoveCopy">Validate NACE first, validate Chad second, then promote additional AI staff into controlled persona-bound voice lanes without removing fallback continuity.</div>
         </div>
       </div>
     </aside>
   </div>
 
   <script>
-    const VOICE_ENGINE_STATE = {
-      fallbackMode: "DEFAULT_SYSTEM_VOICE",
-      voiceReadiness: 92,
-      routingIntegrity: 89,
-      personaCoveragePercent: 84,
-      personaCount: 20,
-      routingLanes: 4,
-      activePersonaGroups: [
-        "Executive",
-        "Council",
-        "Guide",
-        "System"
-      ],
-      registeredPersonas: [
-        { name:"NACE", role:"Guide Layer / Communications Front", status:"Active" },
-        { name:"Alexis Vale", role:"AI Chairwoman / Council Lead", status:"Registered" },
-        { name:"Michael Carrington", role:"AI CEO / Enterprise Operations Lead", status:"Registered" },
-        { name:"Chad G. Pennington", role:"COO / Systems Execution", status:"Registered" },
-        { name:"Aiden Mercer", role:"Audit Independence", status:"Registered" },
-        { name:"Rebecca Lawson", role:"Corporate Command", status:"Registered" },
-        { name:"Jordan Hale", role:"Architecture Lead", status:"Registered" },
-        { name:"Patrick Ross", role:"Design Engineer", status:"Registered" }
-      ],
-      notes: {
-        explain: "Voice Engine preserves persona awareness, fallback continuity, routing posture, and the future handoff into governed voice output.",
-        fallback: "Fallback mode remains the temporary audible layer until the governed voice stack is fully completed and validated.",
-        roles: "Registered voice personas include executive, council, audit, and guide-facing communication identities.",
-        floor: "Returning to Command Floor preserves shell continuity while leaving voice readiness visible at system level."
-      }
+    const SBIL_VOICE = {
+      fallback_mode: "DEFAULT_SYSTEM_VOICE",
+      voice_readiness: 92,
+      routing_integrity: 89,
+      total_personas: 20,
+      validated_personas: 3,
+      first_wave: ["NACE", "Chad G. Pennington", "Alexis Vale"],
+      persona_registry: [
+        {
+          persona_key: "nace",
+          persona_name: "NACE",
+          system_role: "Guide Layer / Communications Front",
+          authority_tier: "GUIDE",
+          voice_provider: "elevenlabs",
+          provider_voice_id: "PENDING_BIND",
+          model_name: "eleven_multilingual_v2",
+          fallback_mode: "DEFAULT_SYSTEM_VOICE",
+          status: "REGISTERED",
+          validation_status: "READY_FOR_BIND",
+          route_scope: ["voice-engine","registry","command-floor","guide"],
+          speak_enabled: true
+        },
+        {
+          persona_key: "chad",
+          persona_name: "Chad G. Pennington",
+          system_role: "COO / Systems Execution",
+          authority_tier: "EXECUTIVE",
+          voice_provider: "elevenlabs",
+          provider_voice_id: "PENDING_BIND",
+          model_name: "eleven_multilingual_v2",
+          fallback_mode: "DEFAULT_SYSTEM_VOICE",
+          status: "REGISTERED",
+          validation_status: "READY_FOR_BIND",
+          route_scope: ["execution","console","command-floor","strategy","systems"],
+          speak_enabled: true
+        },
+        {
+          persona_key: "alexis",
+          persona_name: "Alexis Vale",
+          system_role: "AI Chairwoman / Council Lead",
+          authority_tier: "EXECUTIVE",
+          voice_provider: "elevenlabs",
+          provider_voice_id: "PENDING_BIND",
+          model_name: "eleven_multilingual_v2",
+          fallback_mode: "DEFAULT_SYSTEM_VOICE",
+          status: "REGISTERED",
+          validation_status: "READY_FOR_BIND",
+          route_scope: ["council","war-room","command-floor"],
+          speak_enabled: true
+        },
+        {
+          persona_key: "michael",
+          persona_name: "Michael Carrington",
+          system_role: "AI CEO / Enterprise Operations Lead",
+          authority_tier: "EXECUTIVE",
+          voice_provider: "elevenlabs",
+          provider_voice_id: "UNBOUND",
+          model_name: "eleven_multilingual_v2",
+          fallback_mode: "DEFAULT_SYSTEM_VOICE",
+          status: "REGISTERED",
+          validation_status: "PENDING",
+          route_scope: ["command-floor","operations","strategy"],
+          speak_enabled: true
+        },
+        {
+          persona_key: "aiden",
+          persona_name: "Aiden Mercer",
+          system_role: "Audit Independence",
+          authority_tier: "AUDIT",
+          voice_provider: "elevenlabs",
+          provider_voice_id: "UNBOUND",
+          model_name: "eleven_multilingual_v2",
+          fallback_mode: "DEFAULT_SYSTEM_VOICE",
+          status: "REGISTERED",
+          validation_status: "PENDING",
+          route_scope: ["audit","review","validation"],
+          speak_enabled: true
+        }
+      ]
     };
 
-    const el = {
-      microVoiceReadinessValue: document.getElementById("microVoiceReadinessValue"),
-      microVoiceReadinessBar: document.getElementById("microVoiceReadinessBar"),
-      microRoutingIntegrityValue: document.getElementById("microRoutingIntegrityValue"),
-      microRoutingIntegrityBar: document.getElementById("microRoutingIntegrityBar"),
-      microPersonaCoverageValue: document.getElementById("microPersonaCoverageValue"),
-      microPersonaCoverageBar: document.getElementById("microPersonaCoverageBar"),
+    const ui = {
+      voiceReadinessValue: document.getElementById("voiceReadinessValue"),
+      voiceReadinessBar: document.getElementById("voiceReadinessBar"),
+      validatedPersonasValue: document.getElementById("validatedPersonasValue"),
+      validatedPersonasBar: document.getElementById("validatedPersonasBar"),
+      routingIntegrityValue: document.getElementById("routingIntegrityValue"),
+      routingIntegrityBar: document.getElementById("routingIntegrityBar"),
 
-      metricVoicePersonas: document.getElementById("metricVoicePersonas"),
-      metricFallbackState: document.getElementById("metricFallbackState"),
-      metricReadiness: document.getElementById("metricReadiness"),
-      metricRoutingLanes: document.getElementById("metricRoutingLanes"),
+      personaRegistryTag: document.getElementById("personaRegistryTag"),
+      validatedRegistryTag: document.getElementById("validatedRegistryTag"),
+      registeredPersonasMetric: document.getElementById("registeredPersonasMetric"),
+      validatedMetric: document.getElementById("validatedMetric"),
+      fallbackMetric: document.getElementById("fallbackMetric"),
+      routeLaneMetric: document.getElementById("routeLaneMetric"),
 
-      signalStabilityValue: document.getElementById("signalStabilityValue"),
-      signalStabilityBar: document.getElementById("signalStabilityBar"),
-      signalCoverageValue: document.getElementById("signalCoverageValue"),
-      signalCoverageBar: document.getElementById("signalCoverageBar"),
-      signalRoutingValue: document.getElementById("signalRoutingValue"),
-      signalRoutingBar: document.getElementById("signalRoutingBar"),
+      signalVoiceLayerValue: document.getElementById("signalVoiceLayerValue"),
+      signalVoiceLayerBar: document.getElementById("signalVoiceLayerBar"),
+      signalValidationValue: document.getElementById("signalValidationValue"),
+      signalValidationBar: document.getElementById("signalValidationBar"),
       signalFallbackValue: document.getElementById("signalFallbackValue"),
       signalFallbackBar: document.getElementById("signalFallbackBar"),
+      signalRouteValue: document.getElementById("signalRouteValue"),
+      signalRouteBar: document.getElementById("signalRouteBar"),
       signalDisciplineValue: document.getElementById("signalDisciplineValue"),
       signalDisciplineBar: document.getElementById("signalDisciplineBar"),
 
-      voiceGridCountTag: document.getElementById("voiceGridCountTag"),
+      voiceRegistryFeed: document.getElementById("voiceRegistryFeed"),
+      voiceCoreStatus: document.getElementById("voiceCoreStatus"),
+      voiceCoreCopy: document.getElementById("voiceCoreCopy"),
       voiceCommandInput: document.getElementById("voiceCommandInput"),
       voiceHint: document.getElementById("voiceHint"),
-      voiceCoreCopy: document.getElementById("voiceCoreCopy"),
       naceCopy: document.getElementById("naceCopy"),
       nextMoveCopy: document.getElementById("nextMoveCopy"),
-      voiceEventFeed: document.getElementById("voiceEventFeed"),
 
       inspectVoiceBtn: document.getElementById("inspectVoiceBtn"),
       routeVoiceBtn: document.getElementById("routeVoiceBtn"),
@@ -1445,195 +1468,199 @@
       returnFloorBtn: document.getElementById("returnFloorBtn")
     };
 
-    function setWidth(node, value){
-      if(node) node.style.width = `${Math.max(0, Math.min(100, Number(value) || 0))}%`;
+    function clampPercent(value){
+      return Math.max(0, Math.min(100, Number(value) || 0));
     }
 
-    function updateTopMetrics(){
-      el.microVoiceReadinessValue.textContent = `${VOICE_ENGINE_STATE.voiceReadiness}%`;
-      setWidth(el.microVoiceReadinessBar, VOICE_ENGINE_STATE.voiceReadiness);
-
-      el.microRoutingIntegrityValue.textContent = `${VOICE_ENGINE_STATE.routingIntegrity}%`;
-      setWidth(el.microRoutingIntegrityBar, VOICE_ENGINE_STATE.routingIntegrity);
-
-      el.microPersonaCoverageValue.textContent = `${VOICE_ENGINE_STATE.personaCount} Registered`;
-      setWidth(el.microPersonaCoverageBar, VOICE_ENGINE_STATE.personaCoveragePercent);
-
-      el.metricVoicePersonas.textContent = String(VOICE_ENGINE_STATE.personaCount).padStart(2, "0");
-      el.metricFallbackState.textContent = VOICE_ENGINE_STATE.fallbackMode === "DEFAULT_SYSTEM_VOICE" ? "ON" : "OFF";
-      el.metricReadiness.textContent = `${VOICE_ENGINE_STATE.voiceReadiness}%`;
-      el.metricRoutingLanes.textContent = String(VOICE_ENGINE_STATE.routingLanes).padStart(2, "0");
-
-      el.voiceGridCountTag.textContent = String(VOICE_ENGINE_STATE.personaCount);
-
-      el.signalStabilityValue.textContent = `${VOICE_ENGINE_STATE.voiceReadiness}%`;
-      setWidth(el.signalStabilityBar, VOICE_ENGINE_STATE.voiceReadiness);
-
-      el.signalCoverageValue.textContent = `${VOICE_ENGINE_STATE.personaCoveragePercent}%`;
-      setWidth(el.signalCoverageBar, VOICE_ENGINE_STATE.personaCoveragePercent);
-
-      el.signalRoutingValue.textContent = `${VOICE_ENGINE_STATE.routingIntegrity}%`;
-      setWidth(el.signalRoutingBar, VOICE_ENGINE_STATE.routingIntegrity);
-
-      el.signalFallbackValue.textContent = `100%`;
-      setWidth(el.signalFallbackBar, 100);
-
-      el.signalDisciplineValue.textContent = `88%`;
-      setWidth(el.signalDisciplineBar, 88);
+    function setBar(node, value){
+      if(node) node.style.width = `${clampPercent(value)}%`;
     }
 
-    function renderVoiceEvents(items){
-      if(!el.voiceEventFeed) return;
-      el.voiceEventFeed.innerHTML = items.map(item => `
+    function validatedPercent(){
+      return Math.round((SBIL_VOICE.validated_personas / SBIL_VOICE.total_personas) * 100);
+    }
+
+    function renderTopMetrics(){
+      ui.voiceReadinessValue.textContent = `${SBIL_VOICE.voice_readiness}%`;
+      setBar(ui.voiceReadinessBar, SBIL_VOICE.voice_readiness);
+
+      ui.validatedPersonasValue.textContent = `${SBIL_VOICE.validated_personas} / ${SBIL_VOICE.total_personas}`;
+      setBar(ui.validatedPersonasBar, validatedPercent());
+
+      ui.routingIntegrityValue.textContent = `${SBIL_VOICE.routing_integrity}%`;
+      setBar(ui.routingIntegrityBar, SBIL_VOICE.routing_integrity);
+
+      ui.personaRegistryTag.textContent = String(SBIL_VOICE.total_personas);
+      ui.validatedRegistryTag.textContent = String(SBIL_VOICE.validated_personas);
+
+      ui.registeredPersonasMetric.textContent = String(SBIL_VOICE.total_personas);
+      ui.validatedMetric.textContent = String(SBIL_VOICE.validated_personas).padStart(2, "0");
+      ui.fallbackMetric.textContent = "ON";
+      ui.routeLaneMetric.textContent = "04";
+
+      ui.signalVoiceLayerValue.textContent = `${SBIL_VOICE.voice_readiness}%`;
+      setBar(ui.signalVoiceLayerBar, SBIL_VOICE.voice_readiness);
+
+      ui.signalValidationValue.textContent = `${validatedPercent()}%`;
+      setBar(ui.signalValidationBar, validatedPercent());
+
+      ui.signalFallbackValue.textContent = `100%`;
+      setBar(ui.signalFallbackBar, 100);
+
+      ui.signalRouteValue.textContent = `${SBIL_VOICE.routing_integrity}%`;
+      setBar(ui.signalRouteBar, SBIL_VOICE.routing_integrity);
+
+      ui.signalDisciplineValue.textContent = `88%`;
+      setBar(ui.signalDisciplineBar, 88);
+    }
+
+    function statusToLane(validation_status){
+      if(validation_status === "READY_FOR_BIND") return "Ready";
+      if(validation_status === "VALIDATED") return "Live";
+      if(validation_status === "PENDING") return "Pending";
+      if(validation_status === "BLOCKED") return "Blocked";
+      return "Review";
+    }
+
+    function registryCopy(p){
+      return `
         <div class="receipt-row">
-          <div class="receipt-time">${item.time}</div>
-          <div class="receipt-lane">${item.lane}</div>
-          <div class="receipt-copy">${item.copy}</div>
+          <div class="receipt-time">${statusToLane(p.validation_status)}</div>
+          <div class="receipt-lane">${p.persona_name}</div>
+          <div class="receipt-copy">
+            ${p.system_role} · Provider: ${p.voice_provider} · Model: ${p.model_name} ·
+            Voice ID: <span class="mono">${p.provider_voice_id}</span> ·
+            Validation: ${p.validation_status} ·
+            Fallback: ${p.fallback_mode}.
+          </div>
         </div>
-      `).join("");
-    } 
-function getPersonaSummary(){
-      const active = VOICE_ENGINE_STATE.registeredPersonas
-        .slice(0, 6)
-        .map(p => `${p.name} — ${p.role}`)
-        .join(" | ");
-      return active;
+      `;
     }
 
-    function inspectVoiceQuery(raw){
-      const q = String(raw || "").trim().toLowerCase();
+    function renderRegistry(list){
+      ui.voiceRegistryFeed.innerHTML = list.map(registryCopy).join("");
+    }
+
+    function resolvePersona(query){
+      const q = String(query || "").trim().toLowerCase();
+      return SBIL_VOICE.persona_registry.find(p =>
+        p.persona_name.toLowerCase().includes(q) ||
+        p.persona_key.toLowerCase().includes(q)
+      ) || null;
+    }
+
+    function inspectVoice(query){
+      const q = String(query || "").trim().toLowerCase();
 
       if(!q){
-        el.voiceCoreCopy.textContent = "This voice core is the controlled intake point for persona awareness, communication routing, fallback review, and future governed activation inside Phoenix OS. It is designed for inspection, classification, and system-aware voice control — not uncontrolled playback.";
-        el.voiceHint.textContent = "Example uses: show personas, inspect fallback, review routing, check voice integrity, locate NACE voice lane, inspect activation readiness.";
-        el.naceCopy.textContent = "Voice Engine is active. Persona readiness, fallback continuity, and routed communication posture are visible from this surface before routing deeper into execution or future governed voice activation.";
-        renderVoiceEvents([
-          { time:"V0", lane:"Fallback", copy:"Default system voice remains the temporary audible layer until governed persona output is fully completed and applied." },
-          { time:"V1", lane:"Persona", copy:"Executive and staff identities remain preserved as the long-term voice authority grid for Phoenix Command Center." },
-          { time:"V2", lane:"Engine", copy:"Voice Engine is now recognized as a real system surface and no longer treated as a static placeholder page." },
-          { time:"V3", lane:"Route", copy:"Future command and role routing can resolve through registry + execution + voice continuity instead of isolated persona playback." }
-        ]);
+        ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--cyan)"></span> Query Ready';
+        ui.voiceCoreCopy.textContent = "This SBIL Voice core is the controlled intake point for persona resolution, route-aware speech eligibility, fallback enforcement, and custom voice validation inside Phoenix OS. It is designed for governed voice control — not uncontrolled playback.";
+        ui.voiceHint.textContent = "Example uses: inspect NACE voice, inspect Chad voice, show validated personas, review fallback policy, inspect route scope, check activation readiness.";
+        ui.naceCopy.textContent = "Voice Engine is active. Persona registry, fallback doctrine, route-aware voice resolution, and first-phase custom voice readiness are visible from this surface before any governed activation occurs.";
+        renderRegistry(SBIL_VOICE.persona_registry);
         return;
       }
 
-      if(q.includes("persona") || q.includes("personas") || q.includes("voice grid")){
-        el.voiceCoreCopy.textContent = `Registered voice personas currently visible inside this surface include: ${getPersonaSummary()}. Persona continuity remains preserved as the future governed voice authority layer.`;
-        el.voiceHint.textContent = "Persona inspection complete. Review registration, role alignment, and routed communication ownership before activation.";
-        el.naceCopy.textContent = "Persona inspection is visible. Registered communication identities remain preserved for future governed voice output.";
-        renderVoiceEvents([
-          { time:"P0", lane:"Grid", copy:`${VOICE_ENGINE_STATE.personaCount} voice personas remain registered in the visible communication layer.` },
-          { time:"P1", lane:"Guide", copy:"NACE remains visible as the guide-facing communications surface." },
-          { time:"P2", lane:"Exec", copy:"Executive identities remain preserved as routed communication authorities." },
-          { time:"P3", lane:"Audit", copy:"Audit and support-facing voice roles remain preserved for controlled enterprise continuity." }
-        ]);
+      if(q.includes("validated personas") || q.includes("validated") || q.includes("show validated")){
+        ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--green)"></span> Validated View';
+        ui.voiceCoreCopy.textContent = "Validated-first view active. First-wave candidates are NACE, Chad G. Pennington, and Alexis Vale. These are the primary custom voice bind targets for controlled rollout.";
+        ui.voiceHint.textContent = "Validated-first view loaded. Next best action: bind actual provider voice IDs, then promote validation_status from READY_FOR_BIND to VALIDATED.";
+        ui.naceCopy.textContent = "First-wave controlled custom voice rollout is centered on NACE, Chad, and Alexis. Fallback remains active until successful bind and route validation.";
+        renderRegistry(SBIL_VOICE.persona_registry.filter(p => ["READY_FOR_BIND","VALIDATED"].includes(p.validation_status)));
         return;
       }
 
-      if(q.includes("fallback") || q.includes("default voice") || q.includes("system voice")){
-        el.voiceCoreCopy.textContent = "Fallback review complete. Default system voice remains the active audible layer and should stay in place until real persona-bound voice output is governed, verified, and ready for controlled use.";
-        el.voiceHint.textContent = "Fallback continuity is active. Do not cut over to persona output without governed verification.";
-        el.naceCopy.textContent = "Fallback mode is currently preserving continuity. This is a protection state, not a downgrade.";
-        renderVoiceEvents([
-          { time:"F0", lane:"Fallback", copy:"Default system voice remains active by doctrine." },
-          { time:"F1", lane:"Risk", copy:"Fallback removal before validated persona activation would create audible continuity risk." },
-          { time:"F2", lane:"Guard", copy:"Voice transition must remain governed and not improvised at surface level." },
-          { time:"F3", lane:"State", copy:"Fallback remains ON until the Voice Engine reaches controlled production readiness." }
-        ]);
+      if(q.includes("fallback")){
+        ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--amber)"></span> Fallback Review';
+        ui.voiceCoreCopy.textContent = "Fallback doctrine review complete. Default system voice remains the active audible layer until persona voice passes provider bind, persona validation, and route eligibility checks.";
+        ui.voiceHint.textContent = "Fallback must remain ON until custom voice is controlled, validated, and route-safe.";
+        ui.naceCopy.textContent = "Fallback is not a downgrade. It is the continuity shield that protects the Voice Engine while persona-bound activation matures.";
+        renderRegistry(SBIL_VOICE.persona_registry.slice(0,3));
         return;
       }
 
-      if(q.includes("route") || q.includes("routing") || q.includes("lane")){
-        el.voiceCoreCopy.textContent = "Routing review complete. Voice lanes remain visible across guide, executive, system, and future persona-output surfaces. Command routing can later resolve which role speaks, when it speaks, and under what authority.";
-        el.voiceHint.textContent = "Routing awareness is active. Voice output should ultimately resolve through governed system routing, not manual guesswork.";
-        el.naceCopy.textContent = "Routing posture is visible. Voice is being prepared as a system lane, not just a media effect.";
-        renderVoiceEvents([
-          { time:"R0", lane:"Guide", copy:"Guide-facing communications remain routed through NACE visibility." },
-          { time:"R1", lane:"Exec", copy:"Executive communication lanes remain preserved for chair, CEO, COO, and command-level authority." },
-          { time:"R2", lane:"System", copy:"System voice continuity remains available for fallback and neutral outputs." },
-          { time:"R3", lane:"Future", copy:"Persona-bound voice output can later route based on role, surface, and command intent." }
-        ]);
+      if(q.includes("route") || q.includes("scope") || q.includes("policy")){
+        ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--violet)"></span> Route Review';
+        ui.voiceCoreCopy.textContent = "Route-aware voice review complete. Persona voice may only activate on approved route_scope surfaces. SBIL Voice prevents custom voice from being treated as freeform playback.";
+        ui.voiceHint.textContent = "Route scope is persona-bound. Query a specific persona next to inspect exact speaking surfaces.";
+        ui.naceCopy.textContent = "Route binding governs who may speak, where they may speak, and when fallback must override custom voice.";
+        renderRegistry(SBIL_VOICE.persona_registry);
         return;
       }
 
-      if(q.includes("readiness") || q.includes("integrity") || q.includes("status")){
-        el.voiceCoreCopy.textContent = `Voice readiness is currently ${VOICE_ENGINE_STATE.voiceReadiness}%. Routing integrity is ${VOICE_ENGINE_STATE.routingIntegrity}%. Persona coverage remains visible at ${VOICE_ENGINE_STATE.personaCoveragePercent}%.`;
-        el.voiceHint.textContent = "Readiness inspection complete. Voice layer is structurally strong but still governed by fallback continuity.";
-        el.naceCopy.textContent = "Readiness state is visible. Voice Engine is active as infrastructure and still maturing toward full persona-bound execution.";
-        renderVoiceEvents([
-          { time:"S0", lane:"Ready", copy:`Voice layer readiness remains at ${VOICE_ENGINE_STATE.voiceReadiness}%.` },
-          { time:"S1", lane:"Route", copy:`Routing integrity remains at ${VOICE_ENGINE_STATE.routingIntegrity}%.` },
-          { time:"S2", lane:"Coverage", copy:`Persona registration coverage remains at ${VOICE_ENGINE_STATE.personaCoveragePercent}%.` },
-          { time:"S3", lane:"Policy", copy:"Fallback continuity remains active until final activation law is satisfied." }
-        ]);
+      const persona = resolvePersona(q);
+      if(persona){
+        ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--green)"></span> Persona Resolved';
+        ui.voiceCoreCopy.textContent =
+          `${persona.persona_name} resolved. Role: ${persona.system_role}. Provider: ${persona.voice_provider}. Model: ${persona.model_name}. Voice ID: ${persona.provider_voice_id}. Validation: ${persona.validation_status}. Route scope: ${persona.route_scope.join(", ")}.`;
+        ui.voiceHint.textContent =
+          `${persona.persona_name} inspection complete. Next best action: bind or validate provider voice, then confirm route-safe activation.`;
+        ui.naceCopy.textContent =
+          `${persona.persona_name} is visible inside SBIL Voice. This persona cannot fully cut over to custom voice until validation passes and route policy is satisfied.`;
+        renderRegistry([persona]);
         return;
       }
 
-      el.voiceCoreCopy.textContent = "Query recognized but not mapped to a specialized response. Voice Engine remains available for persona lookup, fallback inspection, routing review, and activation readiness awareness.";
-      el.voiceHint.textContent = "Try: show personas, inspect fallback, review routing, check readiness, or inspect voice integrity.";
-      el.naceCopy.textContent = "Voice surface remains active. Refine the query for persona, fallback, routing, or readiness review.";
-      renderVoiceEvents([
-        { time:"Q0", lane:"Input", copy:`Unmapped query received: "${raw}".` },
-        { time:"Q1", lane:"Scope", copy:"Voice Engine supports persona, fallback, routing, and readiness inspection." },
-        { time:"Q2", lane:"State", copy:"System continuity remains preserved while awaiting a refined query." },
-        { time:"Q3", lane:"Guide", copy:"NACE can continue guiding the operator through voice inspection lanes." }
-      ]);
+      ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--red)"></span> Partial Match';
+      ui.voiceCoreCopy.textContent = `No exact persona or doctrine match found for "${query}". Query NACE, Chad, Alexis, fallback, validated personas, or route policy.`;
+      ui.voiceHint.textContent = "Try: inspect NACE voice, inspect Chad voice, show validated personas, review fallback policy, inspect route scope.";
+      ui.naceCopy.textContent = "Voice Engine remains active. Narrow the query to a known persona or doctrine lane.";
+      renderRegistry(SBIL_VOICE.persona_registry);
     }
 
     function bindEvents(){
-      el.inspectVoiceBtn?.addEventListener("click", () => {
-        inspectVoiceQuery(el.voiceCommandInput?.value || "");
+      ui.inspectVoiceBtn.addEventListener("click", () => {
+        inspectVoice(ui.voiceCommandInput.value);
       });
 
-      el.routeVoiceBtn?.addEventListener("click", () => {
-        const query = String(el.voiceCommandInput?.value || "").trim();
-        if(!query){
-          el.voiceHint.textContent = "Route preview: Voice Engine can route to persona inspection, fallback review, routing posture, or readiness review.";
-          return;
-        }
-        if(query.toLowerCase().includes("registry")){
+      ui.routeVoiceBtn.addEventListener("click", () => {
+        const q = String(ui.voiceCommandInput.value || "").toLowerCase();
+        if(q.includes("registry")){
           window.location.href = "registry.html";
           return;
         }
-        if(query.toLowerCase().includes("console") || query.toLowerCase().includes("build")){
-          window.location.href = "console.html";
-          return;
-        }
-        if(query.toLowerCase().includes("execution")){
+        if(q.includes("execution")){
           window.location.href = "execution.html";
           return;
         }
-        inspectVoiceQuery(query);
-        el.voiceHint.textContent = `Route preview complete for query: ${query}`;
+        if(q.includes("console") || q.includes("build")){
+          window.location.href = "console.html";
+          return;
+        }
+        inspectVoice(ui.voiceCommandInput.value);
       });
 
-      el.explainVoiceBtn?.addEventListener("click", () => {
-        el.naceCopy.textContent = VOICE_ENGINE_STATE.notes.explain;
-        el.voiceCoreCopy.textContent = VOICE_ENGINE_STATE.notes.explain;
+      ui.explainVoiceBtn.addEventListener("click", () => {
+        ui.voiceCoreStatus.innerHTML = '<span class="dot" style="color:var(--cyan)"></span> Doctrine View';
+        ui.voiceCoreCopy.textContent = "SBIL Voice is the governed intelligence layer for persona-bound speech. It resolves who may speak, which voice is used, whether fallback overrides, and when custom voice may be activated safely.";
+        ui.voiceHint.textContent = "Doctrine view loaded. Voice IDs alone do not authorize speech. Persona binding + route binding + validation status govern activation.";
+        ui.naceCopy.textContent = "Voice Engine is not a media player. It is a controlled authority surface for custom voice governance.";
       });
 
-      el.openPersonasBtn?.addEventListener("click", () => {
-        inspectVoiceQuery("show personas");
+      ui.openPersonasBtn.addEventListener("click", () => {
+        inspectVoice("show validated personas");
       });
 
-      el.inspectFallbackBtn?.addEventListener("click", () => {
-        inspectVoiceQuery("inspect fallback");
+      ui.inspectFallbackBtn.addEventListener("click", () => {
+        inspectVoice("fallback");
       });
 
-      el.returnFloorBtn?.addEventListener("click", () => {
+      ui.returnFloorBtn.addEventListener("click", () => {
         window.location.href = "command-floor.html";
       });
 
-      el.voiceCommandInput?.addEventListener("keydown", (event) => {
-        if((event.ctrlKey || event.metaKey) && event.key === "Enter"){
-          inspectVoiceQuery(el.voiceCommandInput.value || "");
+      ui.voiceCommandInput.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" && !e.shiftKey){
+          e.preventDefault();
+          inspectVoice(ui.voiceCommandInput.value);
         }
       });
     }
 
     function boot(){
-      updateTopMetrics();
+      renderTopMetrics();
+      renderRegistry(SBIL_VOICE.persona_registry);
       bindEvents();
-      inspectVoiceQuery("");
     }
 
     boot();
