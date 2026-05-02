@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>  
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1370,147 +1370,174 @@
   </div>
 
   <script>
-    function setStatus(message) {
-      const statusBox = document.getElementById("authStatus");
-      if (statusBox) statusBox.textContent = message;
+  const PCC_COMMAND_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/command";
+
+  function setStatus(message) {
+    const statusBox = document.getElementById("authStatus");
+    if (statusBox) statusBox.textContent = message;
+  }
+
+  function safeSpeak(message) {
+    if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+
+    try {
+      window.speechSynthesis.cancel();
+      const speech = new SpeechSynthesisUtterance(message);
+      speech.rate = 0.95;
+      speech.pitch = 1;
+      speech.volume = 1;
+      window.speechSynthesis.speak(speech);
+    } catch (err) {
+      console.warn("Speech synthesis unavailable:", err);
+    }
+  }
+
+  function localRoute(input) {
+    const cmd = String(input || "").toLowerCase().trim();
+
+    const routes = {
+      "console": "console.html",
+      "show queue": "console.html",
+      "voice": "voice-engine.html",
+      "inspect voice": "voice-engine.html",
+      "voice engine": "voice-engine.html",
+      "war": "war-room.html",
+      "war room": "war-room.html",
+      "staff": "council-staff.html",
+      "council": "council-staff.html",
+      "council staff": "council-staff.html",
+      "finance": "financial-tracking.html",
+      "financial": "financial-tracking.html",
+      "financial tracking": "financial-tracking.html",
+      "execution": "execution.html",
+      "registry": "registry.html",
+      "nhce": "nhce-monitor.html",
+      "nhce monitor": "nhce-monitor.html"
+    };
+
+    return routes[cmd] || null;
+  }
+
+  async function sendStarshipCommand(rawCommand) {
+    const command = String(rawCommand || "").trim();
+
+    if (!command) {
+      setStatus("Enter a command.");
+      return;
     }
 
-    function safeSpeak(message) {
-      if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+    const route = localRoute(command);
 
-      try {
-        window.speechSynthesis.cancel();
-        const speech = new SpeechSynthesisUtterance(message);
-        speech.rate = 0.95;
-        speech.pitch = 1;
-        speech.volume = 1;
-        window.speechSynthesis.speak(speech);
-      } catch (err) {
-        console.warn("Speech synthesis unavailable:", err);
-      }
+    if (route) {
+      setStatus("Routing locally...");
+      safeSpeak("Routing locally.");
+      setTimeout(() => { window.location.href = route; }, 250);
+      return;
     }
 
-    function runCommand(cmd) {
-      const input = (cmd || "").toLowerCase().trim();
+    setStatus("NACE is receiving command...");
 
-      if (!input) {
-        setStatus("Enter a command.");
-        return;
+    try {
+      const res = await fetch(PCC_COMMAND_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          command,
+          operator_key: "phoenix_king",
+          authorization: "EXECUTE"
+        })
+      });
+
+      const data = await res.json();
+
+      const naceMessage =
+        data?.nace?.message ||
+        data?.message ||
+        data?.status ||
+        "Command response received.";
+
+      setStatus(naceMessage);
+
+      const naceBox = document.querySelector(".nace-copy");
+      if (naceBox) {
+        naceBox.textContent = naceMessage;
       }
 
-      if (input === "console" || input === "show queue") {
-        setStatus("Opening Console...");
-        safeSpeak("Opening console.");
-        setTimeout(() => { window.location.href = "console.html"; }, 250);
+      if (data?.voice?.audio_data_url) {
+        const audio = new Audio(data.voice.audio_data_url);
+        await audio.play();
+      } else {
+        safeSpeak(naceMessage);
       }
-      else if (input === "voice" || input === "inspect voice" || input === "voice engine") {
-        setStatus("Opening Voice Engine...");
-        safeSpeak("Opening voice engine.");
-        setTimeout(() => { window.location.href = "voice-engine.html"; }, 250);
-      }
-      else if (input === "war" || input === "war room") {
-        setStatus("Opening War Room...");
-        safeSpeak("Opening war room.");
-        setTimeout(() => { window.location.href = "war-room.html"; }, 250);
-      }
-      else if (input === "staff" || input === "council" || input === "council staff") {
-        setStatus("Opening Council and Staff...");
-        safeSpeak("Opening council and staff.");
-        setTimeout(() => { window.location.href = "council-staff.html"; }, 250);
-      }
-      else if (input === "finance" || input === "financial" || input === "financial tracking") {
-        setStatus("Opening Financial Tracking...");
-        safeSpeak("Opening financial tracking.");
-        setTimeout(() => { window.location.href = "financial-tracking.html"; }, 250);
-      }
-      else if (input === "execution") {
-        setStatus("Opening Execution...");
-        safeSpeak("Opening execution.");
-        setTimeout(() => { window.location.href = "execution.html"; }, 250);
-      }
-      else if (input === "registry") {
-        setStatus("Opening Registry...");
-        safeSpeak("Opening registry.");
-        setTimeout(() => { window.location.href = "registry.html"; }, 250);
-      }
-      else if (input === "nhce" || input === "nhce monitor") {
-        setStatus("Opening NHCE Monitor...");
-        safeSpeak("Opening N H C E monitor.");
-        setTimeout(() => { window.location.href = "nhce-monitor.html"; }, 250);
-      }
-      else if (input === "command floor" || input === "home") {
-        setStatus("You are already on Command Floor.");
-        safeSpeak("You are already on command floor.");
-      }
-      else {
-        setStatus("Command not recognized.");
-        safeSpeak("Command not recognized.");
-      }
+
+      console.log("PCC /command response:", data);
+    } catch (err) {
+      console.error("PCC command failed:", err);
+      setStatus("PCC command failed. Check console.");
+      safeSpeak("P C C command failed. Check console.");
+    }
+  }
+
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      safeSpeak("Welcome back. Starship Command is active. NACE is standing by.");
+    }, 800);
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const commandInput = document.getElementById("commandInput");
+    const enterButton = document.getElementById("enterButton");
+    const routeButton = document.getElementById("routeButton");
+    const explainFloorBtn = document.getElementById("explainFloorBtn");
+    const openConsoleBtn = document.getElementById("openConsoleBtn");
+    const routeMeBtn = document.getElementById("routeMeBtn");
+    const openWarRoomBtn = document.getElementById("openWarRoomBtn");
+
+    if (enterButton && commandInput) {
+      enterButton.addEventListener("click", () => sendStarshipCommand(commandInput.value));
     }
 
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        safeSpeak("Welcome back. Phoenix Command Center is active. Awaiting your command.");
-      }, 800);
-    });
+    if (routeButton && commandInput) {
+      routeButton.addEventListener("click", () => sendStarshipCommand(commandInput.value));
+    }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      const commandInput = document.getElementById("commandInput");
-      const enterButton = document.getElementById("enterButton");
-      const routeButton = document.getElementById("routeButton");
-      const explainFloorBtn = document.getElementById("explainFloorBtn");
-      const openConsoleBtn = document.getElementById("openConsoleBtn");
-      const routeMeBtn = document.getElementById("routeMeBtn");
-      const openWarRoomBtn = document.getElementById("openWarRoomBtn");
+    if (commandInput) {
+      commandInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendStarshipCommand(commandInput.value);
+        }
+      });
+    }
 
-      if (enterButton && commandInput) {
-        enterButton.addEventListener("click", () => runCommand(commandInput.value));
-      }
+    if (explainFloorBtn) {
+      explainFloorBtn.addEventListener("click", () => {
+        setStatus("Command Floor is now the Starship Command intake surface.");
+        safeSpeak("Command Floor is now the Starship Command intake surface.");
+      });
+    }
 
-      if (routeButton && commandInput) {
-        routeButton.addEventListener("click", () => runCommand(commandInput.value));
-      }
+    if (openConsoleBtn) {
+      openConsoleBtn.addEventListener("click", () => {
+        window.location.href = "console.html";
+      });
+    }
 
-      if (commandInput) {
-        commandInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            runCommand(commandInput.value);
-          }
-        });
-      }
+    if (routeMeBtn && commandInput) {
+      routeMeBtn.addEventListener("click", () => {
+        setStatus("Enter a system command or route request.");
+        safeSpeak("Enter a system command or route request.");
+        commandInput.focus();
+      });
+    }
 
-      if (explainFloorBtn) {
-        explainFloorBtn.addEventListener("click", () => {
-          setStatus("Command Floor is the sovereign overview surface of Phoenix OS.");
-          safeSpeak("Command floor is the sovereign overview surface of Phoenix O S.");
-        });
-      }
+    if (openWarRoomBtn) {
+      openWarRoomBtn.addEventListener("click", () => {
+        window.location.href = "war-room.html";
+      });
+    }
+  });
+</script> 
 
-      if (openConsoleBtn) {
-        openConsoleBtn.addEventListener("click", () => {
-          setStatus("Opening Console...");
-          safeSpeak("Opening console.");
-          setTimeout(() => { window.location.href = "console.html"; }, 250);
-        });
-      }
-
-      if (routeMeBtn) {
-        routeMeBtn.addEventListener("click", () => {
-          setStatus("Try typing console, voice, war, staff, finance, execution, registry, or nhce.");
-          safeSpeak("Try typing console, voice, war, staff, finance, execution, registry, or N H C E.");
-          if (commandInput) commandInput.focus();
-        });
-      }
-
-      if (openWarRoomBtn) {
-        openWarRoomBtn.addEventListener("click", () => {
-          setStatus("Opening War Room...");
-          safeSpeak("Opening war room.");
-          setTimeout(() => { window.location.href = "war-room.html"; }, 250);
-        });
-      }
-    });
-  </script>
-</body>
-</html> 
