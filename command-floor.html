@@ -1707,10 +1707,12 @@ if (micButton) {
 }; 
 
 
-    recognition.onerror = () => {
-      setStatus("Mic error.");
-      if (listeningStatus) listeningStatus.textContent = "Mic error.";
-    };
+    recognition.onerror = (event) => {
+  const err = event?.error || "unknown";
+  setStatus("Mic error: " + err);
+  if (listeningStatus) listeningStatus.textContent = "Mic error: " + err;
+  console.error("Speech recognition error:", event);
+}; 
 
     recognition.onend = () => {
       if (listeningStatus && listeningStatus.textContent === "Listening...") {
