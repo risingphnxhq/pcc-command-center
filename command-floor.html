@@ -1127,6 +1127,26 @@
             </div>
 
             <div id="authStatus" class="hint"></div>
+            <div class="pcc-interactive-panel">
+  <div class="pcc-interactive-actions">
+    <button id="micButton" class="btn secondary" type="button">Mic</button>
+    <button id="stopAudioButton" class="btn secondary" type="button">Stop Audio</button>
+  </div>
+
+  <div id="listeningStatus" class="hint">Mic idle.</div>
+
+  <div class="pcc-output-grid">
+    <div class="pcc-output-box">
+      <div class="section-label">NACE Response</div>
+      <pre id="naceOutput">Awaiting command.</pre>
+    </div>
+
+    <div class="pcc-output-box">
+      <div class="section-label">Witness / System Response</div>
+      <pre id="witnessOutput">Awaiting system response.</pre>
+    </div>
+  </div>
+</div> 
           </div>
         </section>
 
@@ -1480,9 +1500,9 @@
     }
   }
 
-  window.addEventListener("load", () => {
+  window.addEventListener("load", () => { 
     setTimeout(() => {
-      safeSpeak("Welcome back. Starship Command is active. NACE is standing by.");
+      safeSpeak("Welcome back. Phoenix Command Center is active. NACE is standing by.");
     }, 800);
   });
 
