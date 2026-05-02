@@ -1492,9 +1492,27 @@
       setStatus("Enter a command.");
       return;
     }
+function normalizeNaceIntent(input) {
+  const text = String(input || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, "");
 
-    const route = localRoute(command);
+  if (text.includes("console") || text.includes("queue")) return "console";
+  if (text.includes("voice") || text.includes("mic") || text.includes("audio")) return "voice";
+  if (text.includes("war room") || text.includes("war")) return "war";
+  if (text.includes("staff") || text.includes("council")) return "staff";
+  if (text.includes("finance") || text.includes("financial")) return "finance";
+  if (text.includes("execution") || text.includes("execute") || text.includes("run")) return "execution";
+  if (text.includes("registry")) return "registry";
+  if (text.includes("nhce") || text.includes("health") || text.includes("monitor")) return "nhce";
 
+  return "";
+} 
+  
+const normalizedCommand = normalizeNaceIntent(command);
+const route = localRoute(normalizedCommand);
+    
     if (route) {
       setStatus("Routing locally...");
       safeSpeak("Routing locally.");
