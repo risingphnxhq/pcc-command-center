@@ -1408,6 +1408,35 @@
   </div>
 
   <script>
+    function startListening() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    setStatus("Speech recognition not supported.");
+    return;
+  }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    setStatus("Listening...");
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    setStatus("Heard: " + transcript);
+    safeSpeak("Command received");
+
+    runCommand(transcript); // 🔥 connects to your routing system
+  };
+
+  recognition.onerror = (event) => {
+    setStatus("Mic error: " + event.error);
+  };
+
+  recognition.start();
+} 
   const PCC_COMMAND_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/command";
 
   function setStatus(message) {
