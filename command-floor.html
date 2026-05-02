@@ -1585,9 +1585,29 @@ setStatus("Normalized: " + normalizedCommand + " | Route: " + route);
 
   window.addEventListener("load", () => { 
     setTimeout(() => {
-      safeSpeak("Welcome back. Phoenix Command Center is active. NACE is standing by.");
+      sendToNaceVoice("Welcome back Phoenix King. Phoenix Command Center is active. NACE is standing by.");
     }, 800);
   });
+    
+async function sendToNaceVoice(text) {
+  const res = await fetch("https://system-voice-worker.tsteelefpa.workers.dev/voice/execute", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    }, 
+    body: JSON.stringify({
+      voice_plan: {
+        persona_key: "nace",
+        text: text
+      }
+    })
+  });
+
+  const audioBlob = await res.blob();
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const audio = new Audio(audioUrl);
+  audio.play();
+} 
 
   window.addEventListener("DOMContentLoaded", () => {
     const commandInput = document.getElementById("commandInput");
@@ -1623,7 +1643,7 @@ setStatus("Normalized: " + normalizedCommand + " | Route: " + route);
     if (explainFloorBtn) {
       explainFloorBtn.addEventListener("click", () => {
         setStatus("Command Floor is now the Starship Command intake surface.");
-        safeSpeak("Command Floor is now the Starship Command intake surface.");
+        safeSpeak("Command Floor is now the Starship Command intake surface."); 
       });
     }
 
@@ -1670,12 +1690,22 @@ if (micButton) {
 
     recognition.start();
 
-    recognition.onresult = (event) => {
-      const transcript = event.results?.[0]?.[0]?.transcript || "";
-      if (commandInput) commandInput.value = transcript;
-      if (listeningStatus) listeningStatus.textContent = `Heard: ${transcript}`;
-      runCommand(transcript); 
-    };
+    recognition.onresult = async (event) => {
+  try {
+    const transcript = event.results?.[0]?.[0]?.transcript || "";
+
+    if (!transcript) return;
+
+    setStatus("Heard: " + transcript);
+
+    // 🔥 THIS IS THE ONLY THING THAT MATTERS
+    await sendToNaceVoice(transcript);
+
+  } catch (err) {
+    console.error("Mic execution error:", err);
+  }
+}; 
+
 
     recognition.onerror = () => {
       setStatus("Mic error.");
