@@ -1423,24 +1423,41 @@
     setStatus("Listening...");
   };
 
-  recognition.onresult = (event) => {
+ recognition.onresult = async (event) => {
   const transcript = event.results?.[0]?.[0]?.transcript || "";
 
-  if (commandInput) {
-    commandInput.value = transcript;
+  if (commandInput) commandInput.value = transcript;
+  if (listeningStatus) listeningStatus.textContent = "Heard: " + transcript;
+
+  const normalizedCommand = normalizeNaceIntent(transcript);
+  const route = localRoute(normalizedCommand);
+
+  // 🧠 STEP 1 — ACKNOWLEDGE
+  await sendToNaceVoice("I heard you. " + transcript);
+
+  // ⚙️ STEP 2 — EXECUTE OR FAIL
+  if (route) {
+    await sendToNaceVoice("Executing " + normalizedCommand + ".");
+
+    // 🧠 STEP 3 — PASS ARRIVAL MESSAGE
+    sessionStorage.setItem(
+      "pccArrivalMessage",
+      normalizedCommand + " is open. What do you need here?"
+    );
+
+    // 🚀 STEP 4 — NAVIGATE
+    setTimeout(() => {
+      window.location.href = route;
+    }, 600);
+
+    return;
   }
 
-  if (listeningStatus) {
-    listeningStatus.textContent = `Heard: ${transcript}`;
-  }
-
-  if (enterButton) {
-    enterButton.click(); // uses the same path as typing + Execute
-  } else {
-    runCommand(transcript);
-  }
+  // ❌ FAILURE CASE
+  await sendToNaceVoice(
+    "I understood you, but I do not have a route for that command yet."
+  );
 }; 
-
 
  recognition.onerror = (event) => {
   const reason = event?.error || "unknown";
