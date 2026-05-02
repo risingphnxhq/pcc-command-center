@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1646,8 +1646,21 @@
         window.location.href = "command-floor.html";
       });
 
-      resetAllView();
-    })();
+resetAllView();
+
+window.addEventListener("DOMContentLoaded", () => {
+  const arrivalMessage = sessionStorage.getItem("pccArrivalMessage");
+
+  if (arrivalMessage) {
+    sessionStorage.removeItem("pccArrivalMessage");
+
+    setTimeout(() => {
+      sendToNaceVoice(arrivalMessage);
+    }, 500);
+  }
+});
+
+})(); 
   </script>
 </body>
 </html> 
