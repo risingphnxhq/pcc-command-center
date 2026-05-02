@@ -1424,12 +1424,23 @@
   };
 
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    setStatus("Heard: " + transcript);
-    safeSpeak("Command received");
+  const transcript = event.results?.[0]?.[0]?.transcript || "";
 
-    runCommand(transcript); // 🔥 connects to your routing system
-  };
+  if (commandInput) {
+    commandInput.value = transcript;
+  }
+
+  if (listeningStatus) {
+    listeningStatus.textContent = `Heard: ${transcript}`;
+  }
+
+  if (enterButton) {
+    enterButton.click(); // uses the same path as typing + Execute
+  } else {
+    runCommand(transcript);
+  }
+}; 
+
 
  recognition.onerror = (event) => {
   const reason = event?.error || "unknown";
