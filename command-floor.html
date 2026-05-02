@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>   
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1514,7 +1514,12 @@
     const openConsoleBtn = document.getElementById("openConsoleBtn");
     const routeMeBtn = document.getElementById("routeMeBtn");
     const openWarRoomBtn = document.getElementById("openWarRoomBtn");
-
+    const micButton = document.getElementById("micButton");
+    const stopAudioButton = document.getElementById("stopAudioButton");
+    const listeningStatus = document.getElementById("listeningStatus");
+    const naceOutput = document.getElementById("naceOutput");
+    const witnessOutput = document.getElementById("witnessOutput"); 
+        
     if (enterButton && commandInput) {
       enterButton.addEventListener("click", () => sendStarshipCommand(commandInput.value));
     }
