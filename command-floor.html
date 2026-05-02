@@ -1431,9 +1431,14 @@
     runCommand(transcript); // 🔥 connects to your routing system
   };
 
-  recognition.onerror = (event) => {
-    setStatus("Mic error: " + event.error);
-  };
+ recognition.onerror = (event) => {
+  const reason = event?.error || "unknown";
+  setStatus("Mic error: " + reason);
+  if (typeof listeningStatus !== "undefined" && listeningStatus) {
+    listeningStatus.textContent = "Mic error: " + reason;
+  }
+  console.warn("Speech recognition error:", event);
+}; 
 
   recognition.start();
 } 
