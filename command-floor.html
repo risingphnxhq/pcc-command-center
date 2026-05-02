@@ -1557,6 +1557,55 @@
         commandInput.focus();
       });
     }
+if (stopAudioButton) {
+  stopAudioButton.addEventListener("click", () => {
+    window.speechSynthesis?.cancel?.();
+    setStatus("Audio stopped.");
+    if (listeningStatus) listeningStatus.textContent = "Audio stopped.";
+  });
+}
+
+if (micButton) {
+  micButton.addEventListener("click", () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setStatus("Mic not supported in this browser.");
+      if (listeningStatus) listeningStatus.textContent = "Mic unavailable.";
+      safeSpeak("Microphone is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    setStatus("Listening...");
+    if (listeningStatus) listeningStatus.textContent = "Listening...";
+
+    recognition.start();
+
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript || "";
+      if (commandInput) commandInput.value = transcript;
+      if (listeningStatus) listeningStatus.textContent = `Heard: ${transcript}`;
+      sendStarshipCommand(transcript);
+    };
+
+    recognition.onerror = () => {
+      setStatus("Mic error.");
+      if (listeningStatus) listeningStatus.textContent = "Mic error.";
+    };
+
+    recognition.onend = () => {
+      if (listeningStatus && listeningStatus.textContent === "Listening...") {
+        listeningStatus.textContent = "Mic idle.";
+      }
+    };
+  });
+} 
 
     if (openWarRoomBtn) {
       openWarRoomBtn.addEventListener("click", () => {
