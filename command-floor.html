@@ -1692,7 +1692,7 @@ if (micButton) {
 
     if (!SpeechRecognition) {
       setStatus("Mic not supported in this browser.");
-      if (listeningStatus) listeningStatus.textContent = "Mic unavailable.";
+      if (listeningStatus) listeningStatus.textContent = "Mic unavailable."; 
       safeSpeak("Microphone is not supported in this browser.");
       return;
     }
@@ -1744,6 +1744,11 @@ if (micButton) {
         window.location.href = "war-room.html";
       });
     }
-  });
-</script> 
+  </script>
+
+<script src="nace-runtime.js"></script>
+
+</body>
+</html> 
+ 
 
