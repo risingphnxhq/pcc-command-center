@@ -1,4 +1,4 @@
-const NACE_RUNTIME_VERSION = "v1.0.0"; 
+const NACE_RUNTIME_VERSION = "v1.0.0";  
 
 const SVW_ENDPOINT =
   "https://system-voice-worker.tsteelefpa.workers.dev/voice/execute";
@@ -60,7 +60,7 @@ function naceArrivalMessage() {
   }
 
   const page = naceCurrentPage();
-  return "Welcome Phoenix King. Phoenix Command Center is active. NACE is standing by."; 
+  return "Welcome Phoenix King. Phoenix Command Center is active. Nace is standing by."; 
 }
 
 async function naceAnnounceArrival() {
