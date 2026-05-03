@@ -22,5 +22,34 @@
     <p>Version: PCC-BUILD-V7A-R1</p>
     <p>Target File: voice-engine.html</p>
   </main>
+  <script>
+  function sendToNaceVoice(text) {
+    fetch("https://system-voice-worker.tsteelefpa.workers.dev/voice/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        voice_plan: { persona_key: "nace", text: text }
+      })
+    })
+    .then(res => res.blob())
+    .then(audioBlob => {
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+    })
+    .catch(err => console.error("Voice error:", err));
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const arrivalMessage = sessionStorage.getItem("pccArrivalMessage");
+    if (arrivalMessage) {
+      sessionStorage.removeItem("pccArrivalMessage");
+      setTimeout(() => {
+        sendToNaceVoice(arrivalMessage);
+      }, 500);
+    }
+  });
+</script> 
+
 </body>
 </html>
