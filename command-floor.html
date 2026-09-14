@@ -1470,7 +1470,7 @@
 
   recognition.start();
 } 
-  const PCC_COMMAND_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/command";
+  const PCC_COMMAND_ENDPOINT = "https://pcc-command-relay-v1.tsteelefpa.workers.dev/voice-command";
 
   function setStatus(message) {
     const statusBox = document.getElementById("authStatus");
@@ -1560,6 +1560,7 @@ setStatus("Normalized: " + normalizedCommand + " | Route: " + route);
     try {
       const res = await fetch(PCC_COMMAND_ENDPOINT, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json"
         },
@@ -1715,8 +1716,9 @@ if (micButton) {
 
     setStatus("Heard: " + transcript);
 
-    // 🔥 THIS IS THE ONLY THING THAT MATTERS
-    await sendToNaceVoice(transcript);
+    if (commandInput) commandInput.value = transcript;
+    if (listeningStatus) listeningStatus.textContent = "Heard: " + transcript;
+    await sendStarshipCommand(transcript);
 
   } catch (err) {
     console.error("Mic execution error:", err); 
