@@ -1,5 +1,4 @@
--- Applied to Corporate project on 2026-09-24.
--- Authenticated Corporate actor binding required. Registered state is not runtime certification.
+-- Corporate PCC registered-state read, bounded by verified actor authority.
 CREATE OR REPLACE FUNCTION pcc_hq.corporate_command_snapshot()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -10,7 +9,7 @@ declare
  subject_id uuid := auth.uid();
  snapshot jsonb;
 begin
- if subject_id is null or not exists (
+ if subject_id is null or not (exists (
    select 1 from corporate_psc.actor_auth_bindings b
    join corporate_psc.actor_registry ar on ar.actor_id=b.actor_id
    join corporate_psc.psc_a_records p on p.record_id=b.authority_psc
@@ -19,7 +18,19 @@ begin
      and b.binding_state='ACTIVE'
      and ar.active
      and p.status='AUTHORITATIVE'
- ) then
+ ) or exists (
+   select 1 from pcc_hq.read_authorizations ra
+   join pcc_hq.source_identity_registry s on s.actor_id=ra.actor_id and s.auth_subject=ra.auth_subject
+   join corporate_psc.actor_registry ar on ar.actor_id=ra.actor_id
+   join corporate_psc.psc_a_records p on p.record_id=ra.authority_psc_id
+   where ra.auth_subject=subject_id
+     and ra.actor_id='corporate-coo-chad-g-pennington'
+     and ra.scope='PCC_CORPORATE_REGISTERED_STATE_READ'
+     and ra.state='ACTIVE'
+     and s.authority_domain='CORPORATE'
+     and ar.active
+     and p.status='AUTHORITATIVE'
+ )) then
    raise exception 'PCC Corporate office binding required' using errcode='42501';
  end if;
  select jsonb_build_object(
@@ -80,7 +91,6 @@ begin
 end;
 $function$
 
-
-revoke all on function pcc_hq.corporate_command_snapshot() from public,anon;
+revoke all on function pcc_hq.corporate_command_snapshot() from public, anon;
 grant usage on schema pcc_hq to authenticated;
 grant execute on function pcc_hq.corporate_command_snapshot() to authenticated;
