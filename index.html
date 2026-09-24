@@ -651,7 +651,14 @@
         height:44px;
       }
     }
-  </style>
+  
+/* Executive entry refinement */
+.chamber{border-radius:5px;border-top:3px solid var(--gold);box-shadow:0 22px 80px rgba(0,0,0,.5)}
+.chamber::before{border-radius:2px;border-color:rgba(198,161,91,.23)}
+.auth-shell{border-color:rgba(198,161,91,.38);background:linear-gradient(155deg,rgba(20,28,38,.9),rgba(7,12,18,.95))}
+.datum-caps span{border-radius:2px}
+.command-input:focus-visible,.enter:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+</style>
 </head>
 <body>
   <div class="transition-overlay" aria-hidden="true"></div>
