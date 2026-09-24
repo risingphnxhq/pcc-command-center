@@ -10,6 +10,8 @@ create table if not exists pcc_hq.actions (
   title text not null check (length(btrim(title)) > 0),
   state text not null default 'PLANNED'
     check (state in ('PLANNED','HOLD','AUTHORIZED','EXECUTED','VERIFIED','CANCELLED')),
+  constraint actions_authority_required_for_progress
+    check (state not in ('AUTHORIZED','EXECUTED','VERIFIED') or authority_id is not null),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   foreign key (mission_id,workstream_id)
