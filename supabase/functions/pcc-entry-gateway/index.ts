@@ -83,20 +83,18 @@ Deno.serve(async (request) => {
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
   const publishable = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-  const email = Deno.env.get("PCC_MACHINE_AUTH_EMAIL");
   const password = Deno.env.get("PCC_MACHINE_AUTH_PASSWORD");
-  if (!corporateUrl || !publishable || !email || !password) return reply({ error: "MACHINE_AUTH_NOT_CONFIGURED" }, 503);
+  if (!corporateUrl || !publishable || !password) return reply({ error: "MACHINE_AUTH_NOT_CONFIGURED" }, 503);
   const expectedSubject = "d95ef35a-b6bc-4133-a8ff-0ee618b2b665";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return reply({ error: "MACHINE_AUTH_NOT_CONFIGURED" }, 503);
   const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
   const { data: expected, error: lookupError } = await admin.auth.admin.getUserById(expectedSubject);
   if (lookupError || !expected.user) return reply({ error: "MACHINE_SUBJECT_UNAVAILABLE" }, 503);
-  if (expected.user.email?.trim().toLowerCase() !== email.trim().toLowerCase()) {
-    return reply({ error: "MACHINE_IDENTITY_MISMATCH" }, 503);
-  }
+  const machineEmail = expected.user.email;
+  if (!machineEmail) return reply({ error: "MACHINE_SUBJECT_UNAVAILABLE" }, 503);
   const machine = createClient(corporateUrl, publishable, { auth: { persistSession: false } });
-  const { data: login, error: loginError } = await machine.auth.signInWithPassword({ email, password });
+  const { data: login, error: loginError } = await machine.auth.signInWithPassword({ email: machineEmail, password });
   if (loginError || !login.session?.access_token) return reply({ error: "MACHINE_CREDENTIALS_REJECTED" }, 503);
   if (login.user?.id !== expectedSubject) return reply({ error: "MACHINE_IDENTITY_MISMATCH" }, 503);
   const client = createClient(corporateUrl, publishable, {
