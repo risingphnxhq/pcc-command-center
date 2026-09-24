@@ -936,8 +936,25 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .nace-emblem{border-radius:4px!important;background:linear-gradient(135deg,rgba(198,161,91,.16),rgba(8,14,22,.95))!important;box-shadow:inset 0 0 0 5px rgba(198,161,91,.05);color:var(--gold)!important}
 .floor-head{border-bottom:1px solid rgba(198,161,91,.33);padding-bottom:18px}
 @media(max-width:760px){.topbar,.left,.center,.right{border-radius:5px!important}}
-</style></head><body><div class="app"><header class="topbar glass">
-      <div class="brand">
+
+/* Executive intelligence belongs in the workspace, with explicit provenance. */
+.app{grid-template-rows:94px auto!important}.left,.right{top:122px!important;height:calc(100vh - 136px)!important}
+@media(max-width:1180px){.app{grid-template-rows:auto!important}.left,.right{height:auto!important;position:static!important}}
+.topbar{grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;min-height:94px!important}
+.topbar-right{display:flex;align-items:center}
+.executive-status{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--amber);border-left:1px solid var(--line-strong);padding-left:16px}
+.intel-board{border:1px solid rgba(198,161,91,.32);border-top:2px solid var(--gold);padding:18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(198,161,91,.065),rgba(8,14,22,.87))}
+.intel-head{display:flex;justify-content:space-between;align-items:end;gap:12px;border-bottom:1px solid rgba(198,161,91,.24);padding-bottom:12px;margin-bottom:15px}
+.intel-head h2{font:600 18px Cinzel,Georgia,serif;letter-spacing:.09em}
+.intel-head small{font:600 10px "IBM Plex Mono",monospace;color:var(--muted)}
+.intel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.intel-card{border-left:2px solid rgba(198,161,91,.65);background:rgba(255,255,255,.025);padding:14px;min-width:0}
+.intel-card strong{display:block;font:600 clamp(20px,2vw,30px) Cinzel,Georgia,serif;color:var(--text);margin:8px 0}
+.intel-card span{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.intel-card small{color:var(--muted);line-height:1.4}
+.intel-track{height:4px;background:#18212a;margin-top:12px}.intel-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan))}
+@media(max-width:900px){.intel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.intel-grid{grid-template-columns:1fr}.intel-head{display:block}}
+</style></head><body><div class="app"><header class="topbar glass"><div class="brand">
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
         </div>
@@ -947,38 +964,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         </div>
       </div>
 
-      <div class="topbar-right">
-        <div class="top-status-rail">
-          <div class="status-chip amber" id="sourceChip"><span class="dot" id="connectionDot"></span> <span id="connectionLabel">Corporate source pending</span></div>
-          <div class="status-chip cyan"><span class="dot"></span> Mode: Registered Read</div>
-          <div class="status-chip amber"><span class="dot"></span> BOAS: Route pending</div>
-          <div class="status-chip amber"><span class="dot"></span> Apply: Held</div>
-        </div>
-
-        <div class="top-microbars">
-          <div class="micro-card">
-            <div class="micro-label">Corporate Offices</div>
-            <div class="micro-value" id="sourceOffices">—</div>
-            <div class="micro-track"><div class="micro-fill" style="width:0"></div></div>
-          </div>
-          <div class="micro-card">
-            <div class="micro-label">Registered Missions</div>
-            <div class="micro-value" id="sourceMissions">—</div>
-            <div class="micro-track"><div class="micro-fill" style="width:0"></div></div>
-          </div>
-          <div class="micro-card">
-            <div class="micro-label">Corporate Source</div>
-            <div class="micro-value" id="sourceClass">Pending</div>
-            <div class="micro-track"><div class="micro-fill" style="width:0"></div></div>
-          </div>
-          <div class="micro-card">
-            <div class="micro-label">Current Trust</div>
-            <div class="micro-value" id="topTrustValue">UNKNOWN</div>
-            <div class="micro-track"><div class="micro-fill" id="topTrustBar" style="width:18%"></div></div>
-          </div>
-        </div>
-      </div>
-    </header>
+      <div class="topbar-right"><span class="executive-status" id="sourceChip"><span id="connectionDot" aria-hidden="true">◆</span> <span id="connectionLabel">Corporate source pending</span></span></div></header>
 
 <aside class="left glass">
       <div class="pane-head">
@@ -1015,7 +1001,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       </div>
     </aside>
 
-<main class="center glass"><div class="center-scroll">
+<main class="center glass"><div class="center-scroll"><section class="intel-board" aria-label="Executive intelligence"><div class="intel-head"><h2>HQ &amp; Systems Intelligence</h2><small>Read-only · Source-backed values</small></div><div class="intel-grid"><div class="intel-card"><span>Corporate Offices</span><strong id="sourceOffices">—</strong><small>Registered in Corporate source</small></div><div class="intel-card"><span>Registered Missions</span><strong id="sourceMissions">—</strong><small>Across retrieved offices</small></div><div class="intel-card"><span>PSC Source Coverage</span><strong id="sourceCoverage">—</strong><small id="sourceCoverageText">Awaiting Corporate read</small><div class="intel-track"><div class="intel-fill" id="sourceCoverageBar"></div></div></div><div class="intel-card"><span>Systems Runtime</span><strong>—</strong><small>No verified Systems telemetry on this page</small></div></div><span id="sourceClass" hidden>Pending</span><span id="topTrustValue" hidden>UNKNOWN</span><span id="topTrustBar" hidden></span></section>
   <div class="floor-head"><div><span class="eyebrow">Corporate HQ / Executive Command</span><h1>Command Floor</h1><p>Speak with NACE. Inspect the enterprise. Follow authority and evidence to every result.</p></div><span class="lineage">ENTERPRISE → OFFICE → MISSION → RECEIPT</span></div>
   <section class="floor-panel"><div class="nace-head"><div><span class="eyebrow">Vocal Intelligence Layer</span><h2>NACE · Corporate voice &amp; intelligence</h2></div><button class="floor-btn" id="hearNace" type="button" disabled>Hear NACE</button></div>
   <div class="nace-stage"><div class="nace-emblem" aria-hidden="true">N</div><div><span class="eyebrow" id="naceState">AWAITING CORPORATE SOURCE</span><h3>Your enterprise, in conversation.</h3><p class="floor-note">Ask NACE for source-backed office and mission context. Commands follow Corporate authority, verification, and receipts.</p></div></div>
@@ -1049,7 +1035,7 @@ async function selectMission(id){$('missionDetail').textContent='Reading mission
 function handle(input){const phrase=input.trim();if(!phrase)return;bubble('You',phrase);const q=phrase.toLowerCase();if(/\b(speak|voice on|read aloud|mute|voice off)\b/.test(q)){bubble('NACE','Approved voice output through System Voice Worker has not been physically bound to this Command Floor session.');return}if(/\b(execute|deploy|approve|authorize|transfer|send money|publish)\b/.test(q)){bubble('NACE','Execution is held. A verified authority route and action receipt are required before I can perform that command.');return}const localRoutes={'console':'console.html','war room':'war-room.html','council':'council-staff.html','voice engine':'voice-engine.html','finance':'financial-tracking.html','registry':'registry.html'};if(/^(open|go to|navigate to)\b/.test(q)){const route=Object.entries(localRoutes).find(([name])=>q.includes(name));if(route){bubble('NACE','Opening '+route[0]+'.');window.location.assign(route[1]);return}}if(!snapshot){bubble('NACE','Corporate data has not been read through an authenticated PCC session. Connect the Corporate source first.');return}const found=offices().find(o=>q.includes((o.display_name||'').toLowerCase())||q.includes((o.office_id||'').toLowerCase()));if(found){selectOffice(found);return}if(/\b(receipt|evidence|verification)\b/.test(q)){bubble('NACE','The Corporate command snapshot has no connected verified receipt feed. No receipt total will be inferred from registered work.');return}if(/\b(mission|workstream)\b/.test(q)){const count=offices().reduce((n,o)=>n+(Number(o.mission_count)||0),0);bubble('NACE',count+' missions are registered across Corporate offices. Select an office for its mission lineage.');return}if(/\b(office|department|council)\b/.test(q)){bubble('NACE',offices().length+' Corporate offices were returned by the source registry. Select an office below for missions.');return}if(/\b(status|enterprise|brief|summary|report)\b/.test(q)){bubble('NACE','Corporate source returned '+offices().length+' offices and '+offices().reduce((n,o)=>n+(Number(o.mission_count)||0),0)+' registered missions. State is '+snapshot.state_class+'. Activation and receipts require separate verification.');return}bubble('NACE','I can read Corporate office status, missions, workstreams, and connected receipts. That request has no verified command route yet.')}
 $('hearNace').addEventListener('click',async()=>{if(!snapshot||!lastSourceReply||!window.NACE?.speak)return;$('voiceStatus').textContent='Rendering through System Voice Worker…';const played=await window.NACE.speak(lastSourceReply);$('voiceStatus').textContent=played?'Audio playback completed':'Audio unavailable · text remains authoritative';});
 $('commandForm').addEventListener('submit',e=>{e.preventDefault();const input=$('commandInput');handle(input.value);input.value=''});document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>handle(b.dataset.prompt)));
-async function loadCorporateSource(){if(!token){state('Executive entry is required. Return to index.html.',true);return}state('Reading the Corporate source through the PCC gateway…');try{snapshot=await read();$('initialBubble')?.remove();$('connectionDot').classList.add('live');$('connectionLabel').textContent='Corporate source read';$('naceState').textContent='CORPORATE SOURCE · '+snapshot.state_class;$('disconnect').hidden=false;state('PCC gate session and Corporate source read completed. Workforce activation is separate.');renderOffices();document.getElementById('sourceChip').className='status-chip green';document.getElementById('sourceOffices').textContent=String(offices().length);document.getElementById('sourceMissions').textContent=document.getElementById('missionCount').textContent;document.getElementById('sourceClass').textContent='READ';bubble('NACE','Corporate source read complete. I can brief you on '+offices().length+' registered offices.')}catch(error){$('initialBubble')?.remove();snapshot=null;lastSourceReply=null;$('hearNace').disabled=true;if(error.message==='ENTRY_REQUIRED'){token=null;sessionStorage.removeItem('pccEntrySession')}state(error.message,true);bubble('NACE','Source connection has not been verified: '+error.message)}}
+async function loadCorporateSource(){if(!token){state('Executive entry is required. Return to index.html.',true);return}state('Reading the Corporate source through the PCC gateway…');try{snapshot=await read();$('initialBubble')?.remove();$('connectionDot').classList.add('live');$('connectionLabel').textContent='Corporate source read';$('naceState').textContent='CORPORATE SOURCE · '+snapshot.state_class;$('disconnect').hidden=false;state('PCC gate session and Corporate source read completed. Workforce activation is separate.');renderOffices();document.getElementById('sourceChip').className='status-chip green';document.getElementById('sourceOffices').textContent=String(offices().length);document.getElementById('sourceMissions').textContent=document.getElementById('missionCount').textContent;document.getElementById('sourceClass').textContent='READ';const covered=offices().filter(o=>o.source_present).length;const total=offices().length;document.getElementById('sourceCoverage').textContent=total?Math.round(covered/total*100)+'%':'—';document.getElementById('sourceCoverageText').textContent=total?covered+' / '+total+' offices have PSC source':'No offices returned';document.getElementById('sourceCoverageBar').style.width=total?Math.round(covered/total*100)+'%':'0%';bubble('NACE','Corporate source read complete. I can brief you on '+offices().length+' registered offices.')}catch(error){$('initialBubble')?.remove();snapshot=null;lastSourceReply=null;$('hearNace').disabled=true;if(error.message==='ENTRY_REQUIRED'){token=null;sessionStorage.removeItem('pccEntrySession')}state(error.message,true);bubble('NACE','Source connection has not been verified: '+error.message)}}
 $('disconnect').addEventListener('click',()=>{token=null;sessionStorage.removeItem('pccEntrySession');snapshot=null;lastSourceReply=null;$('hearNace').disabled=true;$('connectionDot').classList.remove('live');$('connectionLabel').textContent='Corporate source pending';$('naceState').textContent='AWAITING CORPORATE SOURCE';$('officeCount').textContent='—';$('missionCount').textContent='—';$('officeLabel').textContent='Authenticate to load source records';$('officeGrid').textContent='No Corporate source data has been read in this browser session.';clearNode('missionList');clearNode('missionDetail');$('selectedOffice').textContent='Select an office';$('disconnect').hidden=true;state('Session cleared from this page.');bubble('NACE','This page has disconnected from the Corporate source.')});
 loadCorporateSource();
 const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(Recognition){recognition=new Recognition();recognition.lang=document.documentElement.lang;recognition.interimResults=false;recognition.onresult=e=>{const phrase=e.results[0][0].transcript;$('commandInput').value=phrase;handle(phrase);$('commandInput').value=''};recognition.onerror=e=>{$('voiceStatus').textContent='Mic '+e.error};recognition.onend=()=>{$('voiceDot').classList.remove('live');$('voiceStatus').textContent='Voice ready on supported browsers'};$('micButton').addEventListener('click',()=>{try{recognition.start();$('voiceDot').classList.add('live');$('voiceStatus').textContent='Listening…'}catch{$('voiceStatus').textContent='Microphone unavailable'}})}else{$('micButton').disabled=true;$('voiceStatus').textContent='Voice unavailable in this browser';$('commandHint').textContent='Text commands remain available. This browser does not support speech recognition.'}
