@@ -995,6 +995,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .intel-card small{color:var(--muted);line-height:1.4}
 .intel-track{height:4px;background:#18212a;margin-top:12px}.intel-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan))}
 @media(max-width:900px){.intel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.intel-grid{grid-template-columns:1fr}.intel-head{display:block}}
+
+/* Make the original RPE seal legible as the executive identity mark. */
+.brand-mark{width:88px!important;height:88px!important;flex:0 0 88px!important;border:1px solid #c6a15b!important;background:#05080c!important;overflow:hidden!important}
+.brand-mark img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
+.topbar{min-height:116px!important}
+.app{grid-template-rows:116px auto!important}
+.left,.right{top:144px!important;height:calc(100vh - 158px)!important}
+@media(max-width:1180px){.app{grid-template-rows:auto!important}.left,.right{height:auto!important;position:static!important}}
+@media(max-width:760px){.brand-mark{width:68px!important;height:68px!important;flex-basis:68px!important}.topbar{min-height:88px!important}}
 </style>
 </head>
 <body>
