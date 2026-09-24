@@ -1309,7 +1309,18 @@
           </div>
         </section>
       </div>
-    </main>
+    <section class="panel" id="corporateLive" aria-label="Corporate live read">
+  <h2>Corporate source read</h2>
+  <p id="pccLiveState">Awaiting authenticated Corporate PCC access. Registered data is not runtime certification.</p>
+  <form id="pccLiveSignIn" autocomplete="on" style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+    <label>Corporate email <input type="email" name="email" autocomplete="username" required /></label>
+    <label>Password <input type="password" name="password" autocomplete="current-password" required /></label>
+    <button type="submit">Read Corporate source</button>
+  </form>
+  <div id="pccOfficeList" aria-live="polite"></div>
+  <div id="pccMissionDetail" aria-live="polite"></div>
+</section>
+</main>
 
     <aside class="right glass">
       <div class="pane-head">
@@ -1646,5 +1657,79 @@ if (micButton) {
 
 <script src="nace-runtime.js"></script>
 
+<script>
+(() => {
+  const base = "https://ttkceizmjeckrorhkhfr.supabase.co";
+  const publicKey = "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO";
+  const state = document.getElementById("pccLiveState");
+  const officeList = document.getElementById("pccOfficeList");
+  const detail = document.getElementById("pccMissionDetail");
+  let accessToken = null;
+  async function read(missionId) {
+    const query = missionId ? "?mission_id=" + encodeURIComponent(missionId) : "";
+    const response = await fetch(base + "/functions/v1/pcc-corporate-command-read" + query, {
+      headers: { Authorization: "Bearer " + accessToken, apikey: publicKey },
+      cache: "no-store"
+    });
+    const value = await response.json();
+    if (!response.ok) throw new Error(value.error || "CORPORATE_READ_UNAVAILABLE");
+    return value;
+  }
+  function line(parent, text, tag = "p") {
+    const el = document.createElement(tag);
+    el.textContent = text;
+    parent.appendChild(el);
+    return el;
+  }
+  document.getElementById("pccLiveSignIn").addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = form.elements.email.value.trim();
+    const password = form.elements.password.value;
+    state.textContent = "Authenticating and checking Corporate PCC authority…";
+    officeList.replaceChildren();
+    detail.replaceChildren();
+    try {
+      const authResponse = await fetch(base + "/auth/v1/token?grant_type=password", {
+        method: "POST",
+        headers: { apikey: publicKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        cache: "no-store"
+      });
+      const auth = await authResponse.json();
+      if (!authResponse.ok || !auth.access_token) throw new Error("AUTHENTICATION_FAILED");
+      accessToken = auth.access_token;
+      const snapshot = await read();
+      state.textContent = "Corporate source read: " + snapshot.state_class + " · " + snapshot.office_count + " offices. No runtime activation inferred.";
+      for (const office of snapshot.offices || []) {
+        const block = document.createElement("div");
+        line(block, (office.display_name || office.office_id) + " · " + office.mission_count + " missions · " + office.workstream_count + " workstreams", "h3");
+        for (const mission of office.missions || []) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = mission.mission_name || mission.mission_id;
+          button.addEventListener("click", async () => {
+            detail.replaceChildren();
+            try {
+              const item = await read(mission.mission_id);
+              line(detail, item.mission_name + " · " + item.registered_state, "h3");
+              for (const work of item.workstreams || []) {
+                line(detail, work.title + " · " + work.registered_state + " · " + work.actions.length + " actions");
+              }
+            } catch (error) { state.textContent = error.message; }
+          });
+          block.appendChild(button);
+        }
+        officeList.appendChild(block);
+      }
+    } catch (error) {
+      accessToken = null;
+      state.textContent = error.message === "OFFICE_BINDING_REQUIRED"
+        ? "Authenticated account has no verified Corporate PCC binding."
+        : "Corporate source read unavailable: " + error.message;
+    } finally { form.elements.password.value = ""; }
+  });
+})();
+</script>
 </body>
 </html>
