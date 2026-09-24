@@ -60,6 +60,16 @@ Deno.serve(async (request) => {
   const signingKey = Deno.env.get("PCC_GATE_SIGNING_KEY");
   if (!gateSecret || !signingKey || gateSecret.length < 20 || signingKey.length < 32) return reply({ error: "GATE_NOT_CONFIGURED" }, 503);
   if (path === "authorize" && request.method === "POST") {
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const corporateUrl = Deno.env.get("SUPABASE_URL");
+    if (!serviceKey || !corporateUrl) return reply({ error: "GATE_NOT_CONFIGURED" }, 503);
+    const requestAddress = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const signature = new Uint8Array(await crypto.subtle.sign("HMAC", await key(signingKey), encoder.encode(requestAddress)));
+    const fingerprint = [...signature].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
+    const { data: allowed, error: limitError } = await admin.rpc("pcc_entry_attempt_allowed", { p_fingerprint: fingerprint });
+    if (limitError) return reply({ error: "GATE_NOT_CONFIGURED" }, 503);
+    if (!allowed) return reply({ error: "ENTRY_RATE_LIMITED" }, 429);
     if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let passphrase: unknown;
     try { passphrase = (await request.json()).passphrase; } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
