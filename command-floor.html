@@ -1,4 +1,4 @@
-<!DOCTYPE htmln>    
+<!DOCTYPE html>    
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -986,10 +986,10 @@
 
       <div class="topbar-right">
         <div class="top-status-rail">
-          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
+          <div class="status-chip green"><span class="dot"></span> Status: Unverified</div>
           <div class="status-chip cyan"><span class="dot"></span> Mode: Command Floor</div>
           <div class="status-chip amber"><span class="dot"></span> Route: NACE</div>
-          <div class="status-chip green"><span class="dot"></span> Queue: 66</div>
+          <div class="status-chip green"><span class="dot"></span> Queue: No live count</div>
         </div>
 
         <div class="top-microbars">
@@ -1470,6 +1470,24 @@
 
   recognition.start();
 } 
+function normalizeNaceIntent(input) {
+  const text = String(input || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, "");
+
+  if (text.includes("console") || text.includes("queue")) return "console";
+  if (text.includes("voice") || text.includes("mic") || text.includes("audio")) return "voice";
+  if (text.includes("war room") || text.includes("war")) return "war";
+  if (text.includes("staff") || text.includes("council")) return "staff";
+  if (text.includes("finance") || text.includes("financial")) return "finance";
+  if (text.includes("execution") || text.includes("execute") || text.includes("run")) return "execution";
+  if (text.includes("registry")) return "registry";
+  if (text.includes("nhce") || text.includes("health") || text.includes("monitor")) return "nhce";
+
+  return "";
+} 
+
   const PCC_COMMAND_ENDPOINT = "https://pcc-command-relay-v1.tsteelefpa.workers.dev/voice-command";
 
   function setStatus(message) {
@@ -1525,23 +1543,7 @@
       setStatus("Enter a command.");
       return;
     }
-function normalizeNaceIntent(input) {
-  const text = String(input || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s]/g, "");
 
-  if (text.includes("console") || text.includes("queue")) return "console";
-  if (text.includes("voice") || text.includes("mic") || text.includes("audio")) return "voice";
-  if (text.includes("war room") || text.includes("war")) return "war";
-  if (text.includes("staff") || text.includes("council")) return "staff";
-  if (text.includes("finance") || text.includes("financial")) return "finance";
-  if (text.includes("execution") || text.includes("execute") || text.includes("run")) return "execution";
-  if (text.includes("registry")) return "registry";
-  if (text.includes("nhce") || text.includes("health") || text.includes("monitor")) return "nhce";
-
-  return "";
-} 
   
 const normalizedCommand = normalizeNaceIntent(command);
 const route = localRoute(normalizedCommand);
@@ -1566,11 +1568,11 @@ setStatus("Normalized: " + normalizedCommand + " | Route: " + route);
         },
         body: JSON.stringify({
           command,
-          operator_key: "phoenix_king",
-          authorization: "EXECUTE"
+          operator_key: "phoenix_king"
         })
       });
 
+      if (!res.ok) throw new Error("Command route returned HTTP " + res.status);
       const data = await res.json();
 
       const naceMessage =
@@ -1746,12 +1748,10 @@ if (micButton) {
         window.location.href = "war-room.html";
       });
     }
+  });
   </script>
 
 <script src="nace-runtime.js"></script>
 
 </body>
-</html> 
-});
- 
-
+</html>
