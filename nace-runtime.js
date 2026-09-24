@@ -41,8 +41,11 @@ async function naceSpeak(text) {
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
     await audio.play();
+    audio.addEventListener("ended", () => URL.revokeObjectURL(audioUrl), { once: true });
+    return true;
   } catch (err) {
     console.error("NACE voice error:", err);
+    return false;
   }
 }
 
@@ -60,7 +63,7 @@ function naceArrivalMessage() {
   }
 
   const page = naceCurrentPage();
-  return "Welcome Phoenix King. Phoenix Command Center is active. Nace is standing by."; 
+  return "Welcome Phoenix King. Command Center is loaded. Live PCC state requires an authenticated source read."; 
 }
 
 async function naceAnnounceArrival() {
@@ -165,6 +168,7 @@ window.NACE = {
 };
 
 window.addEventListener("DOMContentLoaded", () => {
+  if (window.location.pathname.endsWith("/command-floor.html")) return;
   setTimeout(() => {
     naceAnnounceArrival();
   }, 500);
