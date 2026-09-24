@@ -890,10 +890,10 @@
 
       <div class="topbar-right">
         <div class="top-status-rail">
-          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
+          <div class="status-chip green"><span class="dot"></span> Status: Unverified</div>
           <div class="status-chip cyan"><span class="dot"></span> Mode: Console V2D</div>
-          <div class="status-chip amber"><span class="dot"></span> BOAS: Enforced</div>
-          <div class="status-chip green"><span class="dot"></span> Apply Guard: Active</div>
+          <div class="status-chip amber"><span class="dot"></span> BOAS: Unverified</div>
+          <div class="status-chip green"><span class="dot"></span> Apply Guard: Unverified</div>
         </div>
 
         <div class="top-microbars">
@@ -1465,6 +1465,10 @@
       }
 
       async function callRoute(routeName, endpoint, payload, statusText) {
+        setStatus({ text: "Governed routes require verified institutional sign-in.", mode: "error", route: routeName, http: "NOT_CONNECTED", status: "Unavailable", receipt: "", target: "" });
+        setResponse({ status: "AUTH_BINDING_REQUIRED", route: routeName });
+        naceCopy.textContent = "Execution is disabled until a governed office identity and route are physically verified.";
+        return;
         if (busy) return;
 
         setBusy(true);
