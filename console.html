@@ -1600,18 +1600,6 @@ async function loadCorporateSnapshot() {
 }
 loadCorporateSnapshot();
 
-window.addEventListener("DOMContentLoaded", () => {
-  const arrivalMessage = sessionStorage.getItem("pccArrivalMessage");
-
-  if (arrivalMessage) {
-    sessionStorage.removeItem("pccArrivalMessage");
-
-    setTimeout(() => {
-      sendToNaceVoice(arrivalMessage);
-    }, 500);
-  }
-});
-
 })(); 
   </script>
 </body>
