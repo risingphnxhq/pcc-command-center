@@ -665,7 +665,7 @@
 
       <section class="layout">
         <div class="eyebrow">
-          Rising Phoenix Enterprises · Phoenix King Restricted Entry
+          Rising Phoenix Enterprises · PCC Build Preview
         </div>
 
         <div class="left">
@@ -680,36 +680,19 @@
 
           <p class="position-line">
             Sovereign command layer above all operational systems.
-            <span class="muted">Restricted to authorized executive entry.</span>
+            <span class="muted">Operational commands remain gated until institutional authentication is connected.</span>
           </p>
 
-          <section class="auth-shell" aria-label="Restricted Authentication">
+          <section class="auth-shell" aria-label="PCC build status">
             <div class="auth-top">
-              <span>Phoenix King Access</span>
-              <span>Restricted Authentication</span>
+              <span>Corporate HQ</span>
+              <span>Build Preview</span>
             </div>
 
-            <div class="auth-title">Executive Authorization</div>
-            <div class="auth-copy">Enter command or passkey to initiate access.</div>
+            <div class="auth-title">PCC V1 Command Floor</div>
+            <div class="auth-copy">Browse the build preview. Governed commands require verified institutional authentication.</div>
 
-            <div class="command-field-wrap">
-              <div class="command-prefix">&gt;</div>
-              <input
-                id="commandInput"
-                class="command-input"
-                type="password"
-                inputmode="text"
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-                aria-label="Executive command or passkey"
-                placeholder="ENTER COMMAND OR PASSKEY"
-              />
-            </div>
-
-            <div class="command-hint">Single-field sovereign input · protected sequence</div>
-
-            <button class="enter" id="enterButton" type="button">Authorize Access</button>
+            <a class="enter" id="enterButton" href="command-floor.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">View Command Floor</a>
             <div class="auth-status" id="authStatus" aria-live="polite"></div>
           </section>
         </div>
@@ -729,88 +712,6 @@
     </main>
   </div>
 
-  <script>
-    (function () {
-      const REQUIRED_CODE = "PHNX_KEY^";
-      const REDIRECT_TARGET = "command-floor.html";
 
-      const commandInput = document.getElementById("commandInput");
-      const enterButton = document.getElementById("enterButton");
-      const authStatus = document.getElementById("authStatus");
-      const sealMount = document.getElementById("sealMount");
-
-      let voicePrimed = false;
-
-      function setStatus(message, type) {
-        authStatus.textContent = message || "";
-        authStatus.className = "auth-status" + (type ? " " + type : "");
-      }
-
-      function normalizeInput(value) {
-        return (value || "").trim();
-      }
-
-      function primeVoiceLayer() {
-        if (voicePrimed) return;
-        voicePrimed = true;
-        // Reserved for future authoritative voice binding.
-        // Keep silent for now to avoid autoplay/browser issues.
-      }
-
-      function denyAccess(message) {
-        setStatus(message || "Authorization denied.", "error");
-        commandInput.focus();
-        commandInput.select();
-      }
-
-      function authorizeAccess() {
-        const enteredCode = normalizeInput(commandInput.value);
-
-        if (!enteredCode) {
-          denyAccess("Enter command or passkey.");
-          return;
-        }
-
-        if (enteredCode !== REQUIRED_CODE) {
-          denyAccess("Authorization denied.");
-          return;
-        }
-
-        setStatus("Authorization confirmed · Initiating Command Layer…", "success");
-        document.body.classList.add("authorized");
-        enterButton.disabled = true;
-        commandInput.disabled = true;
-
-        setTimeout(() => {
-          window.location.href = REDIRECT_TARGET;
-        }, 1200);
-      }
-
-      commandInput.addEventListener("focus", primeVoiceLayer);
-
-      commandInput.addEventListener("input", () => {
-        setStatus("", "");
-      });
-
-      commandInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          authorizeAccess();
-        }
-      });
-
-      enterButton.addEventListener("click", authorizeAccess);
-
-      sealMount.addEventListener("mouseenter", () => {
-        sealMount.style.transform = "scale(1.012)";
-      });
-
-      sealMount.addEventListener("mouseleave", () => {
-        if (!document.body.classList.contains("authorized")) {
-          sealMount.style.transform = "";
-        }
-      });
-    })();
-  </script>
 </body>
 </html> 
