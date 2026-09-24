@@ -45,8 +45,13 @@ Deno.serve(async (req: Request) => {
     }, 200);
   }
 
-  const { data, error } = await client.schema("pcc_hq")
-    .rpc("corporate_command_snapshot");
+  const missionId = new URL(req.url).searchParams.get("mission_id");
+  if (missionId && !/^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(missionId)) {
+    return respond({ error: "INVALID_MISSION_ID" }, 400);
+  }
+  const { data, error } = missionId
+    ? await client.schema("pcc_hq").rpc("corporate_mission_detail", { p_mission_id: missionId })
+    : await client.schema("pcc_hq").rpc("corporate_command_snapshot");
   if (error) {
     if (error.code === "42501") return respond({ error: "OFFICE_BINDING_REQUIRED" }, 403);
     return respond({ error: "COMMAND_STATE_UNAVAILABLE" }, 503);
