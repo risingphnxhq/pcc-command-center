@@ -1464,112 +1464,15 @@
         });
       }
 
-      async function callRoute(routeName, endpoint, payload, statusText) {
-        setStatus({ text: "Governed routes require verified institutional sign-in.", mode: "error", route: routeName, http: "NOT_CONNECTED", status: "Unavailable", receipt: "", target: "" });
-        setResponse({ status: "AUTH_BINDING_REQUIRED", route: routeName });
-        naceCopy.textContent = "Execution is disabled until a governed office identity and route are physically verified.";
-        return;
-        if (busy) return;
-
-        setBusy(true);
+      async function callRoute(routeName) {
         setStatus({
-          text: statusText,
-          mode: "loading",
-          route: routeName,
-          http: "PENDING",
-          status: "Mode Loading",
-          receipt: "",
-          target: lastTarget || ""
+          text: "Governed routes require verified institutional sign-in.",
+          mode: "error", route: routeName, http: "NOT_CONNECTED",
+          status: "Unavailable", receipt: "", target: ""
         });
-        routeChip.textContent = routeName;
-        lastRunText.textContent = stampNow();
-        naceCopy.textContent = `PCC is calling ${routeName}. Review the unified response panel for governed output, BOAS classification, IDs, and target state.`;
-        setResponse({
-          status: "LOADING",
-          route: routeName,
-          endpoint,
-          payload
-        });
-
-        try {
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-
-          const raw = await res.text();
-          let data;
-
-          try {
-            data = raw ? JSON.parse(raw) : { message: "Empty response body." };
-          } catch (e) {
-            data = { status: "NON_JSON_RESPONSE", raw };
-          }
-
-          setResponse(data);
-          hydrateProofs(data);
-
-          if (res.ok) {
-            setStatus({
-              text: `${routeName} completed successfully.`,
-              mode: "success",
-              route: routeName,
-              http: String(res.status),
-              status: data.status || "Mode Success",
-              receipt: data.receipt_id || "",
-              target: data?.target?.target_id || lastTarget || ""
-            });
-
-            if (routeName === "/build" && data?.packet?.packet_id) {
-              applyPacketId.value = data.packet.packet_id;
-            }
-
-            if (routeName === "/apply" && data?.target?.file_name) {
-              naceCopy.textContent = `Apply completed. Target ${data.target.file_name} was updated by a trusted packet under BOAS enforcement.`;
-            } else if (routeName === "/build") {
-              naceCopy.textContent = `Build completed. Packet and artifact were generated with origin ${data?.boas?.origin || "UNKNOWN"}. Auto-apply did not occur.`;
-            } else {
-              naceCopy.textContent = "Execute completed. Direct execution result has been returned to the response panel.";
-            }
-          } else {
-            setStatus({
-              text: `${routeName} returned an error response.`,
-              mode: "error",
-              route: routeName,
-              http: String(res.status),
-              status: "Mode Error",
-              receipt: data.receipt_id || "",
-              target: lastTarget || ""
-            });
-
-            if (data?.error === "UNTRUSTED_PACKET" || data?.error === "BLOCKED_ORIGIN") {
-              naceCopy.textContent = "Apply was blocked by BOAS. This packet origin is not trusted for mutation.";
-            } else if (data?.error === "SIGNATURE_MISMATCH") {
-              naceCopy.textContent = "Apply was blocked because packet signature verification failed.";
-            } else {
-              naceCopy.textContent = "The route responded, but the returned HTTP status indicates failure. Review the response panel for exact details.";
-            }
-          }
-        } catch (error) {
-          setStatus({
-            text: `Network or CORS failure while calling ${routeName}.`,
-            mode: "error",
-            route: routeName,
-            http: "ERROR",
-            status: "Mode Error",
-            receipt: "",
-            target: lastTarget || ""
-          });
-          setResponse({
-            status: "NETWORK_ERROR",
-            route: routeName,
-            message: error && error.message ? error.message : "Unknown network failure."
-          });
-          naceCopy.textContent = `The console could not complete ${routeName}. This usually indicates browser-to-worker network or CORS failure.`;
-        } finally {
-          setBusy(false);
-        }
+        setResponse({ status: "AUTH_BINDING_REQUIRED", route: routeName });
+        naceCopy.textContent =
+          "Execution is disabled until a governed office identity and route are physically verified.";
       }
 
       executeBtn.addEventListener("click", function () {
