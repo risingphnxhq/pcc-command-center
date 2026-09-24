@@ -983,12 +983,29 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .nace-emblem{border-radius:4px!important;background:linear-gradient(135deg,rgba(198,161,91,.16),rgba(8,14,22,.95))!important;box-shadow:inset 0 0 0 5px rgba(198,161,91,.05);color:var(--gold)!important}
 .floor-head{border-bottom:1px solid rgba(198,161,91,.33);padding-bottom:18px}
 @media(max-width:760px){.topbar,.left,.center,.right{border-radius:5px!important}}
+
+/* Executive intelligence belongs in the workspace, with explicit provenance. */
+.app{grid-template-rows:94px auto!important}.left,.right{top:122px!important;height:calc(100vh - 136px)!important}
+@media(max-width:1180px){.app{grid-template-rows:auto!important}.left,.right{height:auto!important;position:static!important}}
+.topbar{grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;min-height:94px!important}
+.topbar-right{display:flex;align-items:center}
+.executive-status{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--amber);border-left:1px solid var(--line-strong);padding-left:16px}
+.intel-board{border:1px solid rgba(198,161,91,.32);border-top:2px solid var(--gold);padding:18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(198,161,91,.065),rgba(8,14,22,.87))}
+.intel-head{display:flex;justify-content:space-between;align-items:end;gap:12px;border-bottom:1px solid rgba(198,161,91,.24);padding-bottom:12px;margin-bottom:15px}
+.intel-head h2{font:600 18px Cinzel,Georgia,serif;letter-spacing:.09em}
+.intel-head small{font:600 10px "IBM Plex Mono",monospace;color:var(--muted)}
+.intel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.intel-card{border-left:2px solid rgba(198,161,91,.65);background:rgba(255,255,255,.025);padding:14px;min-width:0}
+.intel-card strong{display:block;font:600 clamp(20px,2vw,30px) Cinzel,Georgia,serif;color:var(--text);margin:8px 0}
+.intel-card span{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.intel-card small{color:var(--muted);line-height:1.4}
+.intel-track{height:4px;background:#18212a;margin-top:12px}.intel-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan))}
+@media(max-width:900px){.intel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.intel-grid{grid-template-columns:1fr}.intel-head{display:block}}
 </style>
 </head>
 <body>
   <div class="app">
-    <header class="topbar glass">
-      <div class="brand">
+    <header class="topbar glass"><div class="brand">
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
         </div>
@@ -999,35 +1016,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         </div>
       </div>
 
-      <div class="topbar-right">
-        <div class="top-status-rail">
-          <div class="status-chip green"><span class="dot"></span> Status: Stable</div>
-          <div class="status-chip cyan"><span class="dot"></span> Mode: Execution</div>
-          <div class="status-chip amber"><span class="dot"></span> Spider: Armed</div>
-          <div class="status-chip green"><span class="dot"></span> Queue: 42</div>
-        </div>
-
-        <div class="top-microbars">
-          <div class="micro-card">
-            <div class="micro-label">Queue Integrity</div>
-            <div class="micro-value">94%</div>
-            <div class="micro-track"><div class="micro-fill" style="width:94%"></div></div>
-          </div>
-
-          <div class="micro-card">
-            <div class="micro-label">Receipt Coverage</div>
-            <div class="micro-value">89%</div>
-            <div class="micro-track"><div class="micro-fill" style="width:89%"></div></div>
-          </div>
-
-          <div class="micro-card">
-            <div class="micro-label">Runner Readiness</div>
-            <div class="micro-value">97%</div>
-            <div class="micro-track"><div class="micro-fill" style="width:97%"></div></div>
-          </div>
-        </div>
-      </div>
-    </header>
+      <div class="topbar-right"><span class="executive-status">Corporate HQ · Source state unverified</span></div></header>
 
     <aside class="left glass">
       <div class="pane-head">
@@ -1094,7 +1083,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
     </aside>
 
     <main class="center glass">
-      <div class="center-scroll">
+      <div class="center-scroll"><section class="intel-board"><div class="intel-head"><h2>Executive Intelligence</h2><small>Verified feeds only</small></div><div class="intel-grid"><div class="intel-card"><span>Corporate HQ</span><strong>—</strong><small>Open Command Floor for Corporate source read</small></div><div class="intel-card"><span>Systems</span><strong>—</strong><small>No verified Systems feed on this page</small></div><div class="intel-card"><span>Mission Completion</span><strong>—</strong><small>Verified outcome data required</small></div><div class="intel-card"><span>Receipts</span><strong>—</strong><small>Verified receipt data required</small></div></div></section>
         <section class="hero">
           <div class="hero-title">Execution</div>
           <div class="hero-copy">
