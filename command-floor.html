@@ -1090,22 +1090,22 @@
           <div class="quick-grid">
             <div class="quick-card">
               <div class="metric-label">Systems Active</div>
-              <div class="metric-value">27</div>
+              <div class="metric-value">—</div>
               <div class="metric-note">Command-facing lanes visible across PCC.</div>
             </div>
             <div class="quick-card">
               <div class="metric-label">Executive Nodes</div>
-              <div class="metric-value">12</div>
+              <div class="metric-value">—</div>
               <div class="metric-note">Authority stack staged for routed interaction.</div>
             </div>
             <div class="quick-card">
               <div class="metric-label">Voice Grid</div>
-              <div class="metric-value">20</div>
+              <div class="metric-value">—</div>
               <div class="metric-note">Executive and staff voices registered for the communication layer.</div>
             </div>
             <div class="quick-card">
               <div class="metric-label">Execution Pressure</div>
-              <div class="metric-value">66</div>
+              <div class="metric-value">—</div>
               <div class="metric-note">Queue pressure visible across command and media lanes.</div>
             </div>
           </div>
@@ -1707,7 +1707,7 @@ if (micButton) {
         for (const mission of office.missions || []) {
           const button = document.createElement("button");
           button.type = "button";
-          button.textContent = mission.mission_name || mission.mission_id;
+          button.textContent = mission.name || mission.mission_id;
           button.addEventListener("click", async () => {
             detail.replaceChildren();
             try {
