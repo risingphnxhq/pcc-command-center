@@ -36,6 +36,15 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await client.auth.getUser(token);
   if (userError || !userData.user) return respond({ error: "AUTH_INVALID" }, 401);
 
+  const path = new URL(req.url).pathname;
+  if (path.endsWith("/identity")) {
+    return respond({
+      authenticated_subject: userData.user.id,
+      institutional_binding: "UNVERIFIED",
+      source: "SUPABASE_AUTH_GET_USER",
+    }, 200);
+  }
+
   const { data, error } = await client.schema("pcc_hq")
     .rpc("corporate_command_snapshot");
   if (error) {
