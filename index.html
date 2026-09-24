@@ -665,7 +665,7 @@
 
       <section class="layout">
         <div class="eyebrow">
-          Rising Phoenix Enterprises · Phoenix King Restricted Entry
+          Rising Phoenix Enterprises · PCC Build Preview
         </div>
 
         <div class="left">
@@ -680,36 +680,19 @@
 
           <p class="position-line">
             Sovereign command layer above all operational systems.
-            <span class="muted">Restricted to authorized executive entry.</span>
+            <span class="muted">Operational commands remain gated until institutional authentication is connected.</span>
           </p>
 
-          <section class="auth-shell" aria-label="Restricted Authentication">
+          <section class="auth-shell" aria-label="PCC executive entry">
             <div class="auth-top">
-              <span>Phoenix King Access</span>
-              <span>Restricted Authentication</span>
+              <span>Corporate HQ</span>
+              <span>Executive Entry</span>
             </div>
 
-            <div class="auth-title">Executive Authorization</div>
-            <div class="auth-copy">Enter command or passkey to initiate access.</div>
+            <div class="auth-title">PCC V1 Command Floor</div>
+            <div class="auth-copy">Enter through the PCC executive gate to open the live Command Floor.</div>
 
-            <div class="command-field-wrap">
-              <div class="command-prefix">&gt;</div>
-              <input
-                id="commandInput"
-                class="command-input"
-                type="password"
-                inputmode="text"
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-                aria-label="Executive command or passkey"
-                placeholder="ENTER COMMAND OR PASSKEY"
-              />
-            </div>
-
-            <div class="command-hint">Single-field sovereign input · protected sequence</div>
-
-            <button class="enter" id="enterButton" type="button">Authorize Access</button>
+            <form id="entryForm"><input id="entryCode" class="command-input" type="password" autocomplete="off" required aria-label="PCC executive entry passphrase" placeholder="EXECUTIVE ENTRY PASSPHRASE" style="width:100%;margin:12px 0"><button class="enter" id="enterButton" type="submit">Enter Command Floor</button></form>
             <div class="auth-status" id="authStatus" aria-live="polite"></div>
           </section>
         </div>
@@ -729,88 +712,39 @@
     </main>
   </div>
 
-  <script>
-    (function () {
-      const REQUIRED_CODE = "PHNX_KEY^";
-      const REDIRECT_TARGET = "command-floor.html";
 
-      const commandInput = document.getElementById("commandInput");
-      const enterButton = document.getElementById("enterButton");
-      const authStatus = document.getElementById("authStatus");
-      const sealMount = document.getElementById("sealMount");
-
-      let voicePrimed = false;
-
-      function setStatus(message, type) {
-        authStatus.textContent = message || "";
-        authStatus.className = "auth-status" + (type ? " " + type : "");
-      }
-
-      function normalizeInput(value) {
-        return (value || "").trim();
-      }
-
-      function primeVoiceLayer() {
-        if (voicePrimed) return;
-        voicePrimed = true;
-        // Reserved for future authoritative voice binding.
-        // Keep silent for now to avoid autoplay/browser issues.
-      }
-
-      function denyAccess(message) {
-        setStatus(message || "Authorization denied.", "error");
-        commandInput.focus();
-        commandInput.select();
-      }
-
-      function authorizeAccess() {
-        const enteredCode = normalizeInput(commandInput.value);
-
-        if (!enteredCode) {
-          denyAccess("Enter command or passkey.");
-          return;
-        }
-
-        if (enteredCode !== REQUIRED_CODE) {
-          denyAccess("Authorization denied.");
-          return;
-        }
-
-        setStatus("Authorization confirmed · Initiating Command Layer…", "success");
-        document.body.classList.add("authorized");
-        enterButton.disabled = true;
-        commandInput.disabled = true;
-
-        setTimeout(() => {
-          window.location.href = REDIRECT_TARGET;
-        }, 1200);
-      }
-
-      commandInput.addEventListener("focus", primeVoiceLayer);
-
-      commandInput.addEventListener("input", () => {
-        setStatus("", "");
+<script>
+(() => {
+  const form = document.getElementById("entryForm");
+  const code = document.getElementById("entryCode");
+  const status = document.getElementById("authStatus");
+  const button = document.getElementById("enterButton");
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    button.disabled = true;
+    status.textContent = "Checking executive entry…";
+    try {
+      const response = await fetch("https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passphrase: code.value }),
+        cache: "no-store"
       });
-
-      commandInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          authorizeAccess();
-        }
-      });
-
-      enterButton.addEventListener("click", authorizeAccess);
-
-      sealMount.addEventListener("mouseenter", () => {
-        sealMount.style.transform = "scale(1.012)";
-      });
-
-      sealMount.addEventListener("mouseleave", () => {
-        if (!document.body.classList.contains("authorized")) {
-          sealMount.style.transform = "";
-        }
-      });
-    })();
-  </script>
+      const result = await response.json();
+      code.value = "";
+      if (!response.ok || !result.session) throw Error(result.error || "ENTRY_UNAVAILABLE");
+      sessionStorage.setItem("pccEntrySession", result.session);
+      document.body.classList.add("authorized");
+      status.textContent = "Entry verified. Opening Command Floor…";
+      window.location.assign("command-floor.html");
+    } catch (error) {
+      status.textContent = error.message === "ENTRY_DENIED" ? "Entry denied." :
+        error.message === "GATE_NOT_CONFIGURED" ? "PCC entry is being configured." : "Entry unavailable. Please try again.";
+      button.disabled = false;
+      code.value = "";
+    }
+  });
+})();
+</script>
 </body>
 </html> 
