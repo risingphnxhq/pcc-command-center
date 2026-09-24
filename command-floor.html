@@ -1425,8 +1425,6 @@ function normalizeNaceIntent(input) {
   return "";
 } 
 
-  const PCC_COMMAND_ENDPOINT = "https://pcc-command-relay-v1.tsteelefpa.workers.dev/voice-command";
-
   function setStatus(message) {
     const statusBox = document.getElementById("authStatus");
     if (statusBox) statusBox.textContent = message;
@@ -1494,50 +1492,8 @@ setStatus("Normalized: " + normalizedCommand + " | Route: " + route);
       return;
     }
 
-    setStatus("NACE is receiving command...");
-
-    try {
-      const res = await fetch(PCC_COMMAND_ENDPOINT, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          command,
-          operator_key: "phoenix_king"
-        })
-      });
-
-      if (!res.ok) throw new Error("Command route returned HTTP " + res.status);
-      const data = await res.json();
-
-      const naceMessage =
-        data?.nace?.message ||
-        data?.message ||
-        data?.status ||
-        "Command response received.";
-
-      setStatus(naceMessage);
-
-      const naceBox = document.querySelector(".nace-copy");
-      if (naceBox) {
-        naceBox.textContent = naceMessage;
-      }
-
-      if (data?.voice?.audio_data_url) {
-        const audio = new Audio(data.voice.audio_data_url);
-        await audio.play();
-      } else {
-        safeSpeak(naceMessage);
-      }
-
-      console.log("PCC /command response:", data);
-    } catch (err) {
-      console.error("PCC command failed:", err);
-      setStatus("PCC command failed. Check console.");
-      safeSpeak("P C C command failed. Check console.");
-    }
+    setStatus("Governed command unavailable: verified institutional sign-in is required.");
+    safeSpeak("Governed command is unavailable until institutional sign-in is connected.");
   }
 
   window.addEventListener("load", () => { 
