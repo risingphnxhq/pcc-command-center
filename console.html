@@ -890,27 +890,27 @@
 
       <div class="topbar-right">
         <div class="top-status-rail">
-          <div class="status-chip green"><span class="dot"></span> Status: Unverified</div>
-          <div class="status-chip cyan"><span class="dot"></span> Mode: Console V2D</div>
-          <div class="status-chip amber"><span class="dot"></span> BOAS: Unverified</div>
-          <div class="status-chip green"><span class="dot"></span> Apply Guard: Unverified</div>
+          <div class="status-chip amber" id="sourceChip"><span class="dot"></span> Corporate source pending</div>
+          <div class="status-chip cyan"><span class="dot"></span> Mode: Registered Read</div>
+          <div class="status-chip amber"><span class="dot"></span> BOAS: Route pending</div>
+          <div class="status-chip amber"><span class="dot"></span> Apply: Held</div>
         </div>
 
         <div class="top-microbars">
           <div class="micro-card">
-            <div class="micro-label">Execute Route</div>
-            <div class="micro-value">/execute</div>
-            <div class="micro-track"><div class="micro-fill" style="width:86%"></div></div>
+            <div class="micro-label">Corporate Offices</div>
+            <div class="micro-value" id="sourceOffices">—</div>
+            <div class="micro-track"><div class="micro-fill" style="width:0"></div></div>
           </div>
           <div class="micro-card">
-            <div class="micro-label">Build Route</div>
-            <div class="micro-value">/build</div>
-            <div class="micro-track"><div class="micro-fill" style="width:92%"></div></div>
+            <div class="micro-label">Registered Missions</div>
+            <div class="micro-value" id="sourceMissions">—</div>
+            <div class="micro-track"><div class="micro-fill" style="width:0"></div></div>
           </div>
           <div class="micro-card">
-            <div class="micro-label">Apply Route</div>
-            <div class="micro-value">/apply</div>
-            <div class="micro-track"><div class="micro-fill" style="width:95%"></div></div>
+            <div class="micro-label">Corporate Source</div>
+            <div class="micro-value" id="sourceClass">Pending</div>
+            <div class="micro-track"><div class="micro-fill" style="width:0"></div></div>
           </div>
           <div class="micro-card">
             <div class="micro-label">Current Trust</div>
@@ -924,7 +924,7 @@
     <aside class="left glass">
       <div class="pane-head">
         <div class="pane-title">Console Rail</div>
-        <div class="pane-sub">Direct execution, governed build packet generation, hard-enforced trust evaluation, and explicit apply control.</div>
+        <div class="pane-sub">Corporate registered-state view and staged command controls. Execution requires a verified office authority and route.</div>
       </div>
 
       <div class="pane-body">
@@ -951,7 +951,7 @@
 
         <div class="section-card">
           <div class="section-label">BOAS Doctrine</div>
-          <div class="small">Only trusted origins may apply. Unknown and untrusted packets are blocked. Build provenance is visible, signed, and enforced.</div>
+          <div class="small">BOAS trust and signature requirements govern future apply actions. This Console has no verified execute, build, or apply route yet.</div>
         </div>
       </div>
     </aside>
@@ -961,9 +961,9 @@
         <section class="hero">
           <div class="hero-title">Console V2D</div>
           <div class="hero-copy">
-            This console now operates the full PCC governed build chain with Build Origin Authority System enforcement. Direct execution remains active. Build packet generation, artifact generation, signature visibility, trust classification, and guarded apply actions are exposed from the same sovereign control surface.
+            Corporate offices and missions appear here through the authenticated PCC source. Execute, build, and apply controls remain held until their authority, routes, verification, and receipts are connected.
           </div>
-          <div class="hero-badge">Console Session: Execute + Build + Apply + BOAS</div>
+          <div class="hero-badge">Corporate source read · command routes held</div>
 
           <div class="quick-grid">
             <div class="quick-card">
@@ -1017,12 +1017,12 @@
           <div class="panel-head">
             <div>
               <div class="panel-title">Build Flow Status</div>
-              <div class="panel-sub">Visible proof objects across the governed PCC build chain.</div>
+              <div class="panel-sub">Registered source state and execution boundaries.</div>
             </div>
           </div>
           <div class="panel-body">
             <div class="flow-grid">
-              <div class="flow-card"><div class="k">Route</div><div class="v" id="flowRoute">READY</div></div>
+              <div class="flow-card"><div class="k">Route</div><div class="v" id="flowRoute">HELD</div></div>
               <div class="flow-card"><div class="k">Status</div><div class="v" id="flowStatus">IDLE</div></div>
               <div class="flow-card"><div class="k">HTTP</div><div class="v" id="flowHttp">—</div></div>
               <div class="flow-card"><div class="k">Receipt</div><div class="v" id="flowReceipt">—</div></div>
@@ -1035,7 +1035,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Direct Execution</div>
-                <div class="panel-sub">Use the locked execution route for PPBP, TEST, VERIFY, and direct system commands.</div>
+                <div class="panel-sub">Staged execution controls. Dispatch requires a verified institutional authority and route.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1061,7 +1061,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Build Packet + Artifact</div>
-                <div class="panel-sub">Generate governed build packets and artifacts. Origin is explicit and enforced.</div>
+                <div class="panel-sub">Staged build controls. Packet signing and origin verification are not connected here.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1078,7 +1078,7 @@
                     <option value="EXTERNAL_VERIFIED">EXTERNAL_VERIFIED</option>
                     <option value="UNKNOWN">UNKNOWN</option>
                   </select>
-                  <div class="field-help">Trusted apply is permitted only for trusted origins under BOAS enforcement.</div>
+                  <div class="field-help">Apply remains held until BOAS trust and signature verification are physically connected.</div>
                 </div>
                 <div class="field">
                   <label for="buildCommand">Build Command</label>
@@ -1099,7 +1099,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Apply Layer</div>
-                <div class="panel-sub">Apply a staged packet into the governed target registry using an explicit trusted packet reference.</div>
+                <div class="panel-sub">Staged apply controls. No target mutation is available from this Console.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1111,7 +1111,7 @@
                 <div class="field">
                   <label for="applyPacketId">Packet ID</label>
                   <input id="applyPacketId" type="text" value="" spellcheck="false" placeholder="Paste packet_id returned from /build" />
-                  <div class="field-help">Apply is explicit. Unknown and untrusted packets are blocked.</div>
+                  <div class="field-help">Apply is held; no packet or target will be changed.</div>
                 </div>
                 <div class="exec-actions">
                   <button class="primary-btn" id="applyBtn">Run Apply</button>
@@ -1126,7 +1126,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Unified Status Tower</div>
-                <div class="panel-sub">Single visible proof layer for route, status, trust state, target mutation, and receipt-backed execution.</div>
+                <div class="panel-sub">Source state and held route status; no execution receipt is asserted.</div>
               </div>
             </div>
             <div class="panel-body">
@@ -1136,7 +1136,7 @@
                     <div class="live-dot" id="liveDot"></div>
                     <div class="live-copy">
                       <div class="live-label">Execution Status</div>
-                      <div class="live-text" id="liveText">Idle. Console V2D is ready.</div>
+                      <div class="live-text" id="liveText">Corporate source pending. Command routes held.</div>
                     </div>
                   </div>
                   <div class="tiny-chip" id="httpChip">HTTP —</div>
@@ -1148,7 +1148,7 @@
                       <div class="live-text" id="lastRouteText">No route called yet.</div>
                     </div>
                   </div>
-                  <div class="tiny-chip" id="modeChip">Mode Ready</div>
+                  <div class="tiny-chip" id="modeChip">Read Only</div>
                 </div>
                 <div class="live-status">
                   <div class="live-left">
@@ -1168,12 +1168,12 @@
           <div class="panel-head">
             <div>
               <div class="panel-title">Engine Response Panel</div>
-              <div class="panel-sub">Unified JSON response panel for execute, build, and apply actions.</div>
+              <div class="panel-sub">Source read and route status, without simulated execution receipts.</div>
             </div>
             <div class="response-badges">
-              <div class="tiny-chip" id="engineChip">PCC-ENGINE-V2D-R1</div>
-              <div class="tiny-chip" id="layerChip">PCC-BUILD-V2D-R1</div>
-              <div class="tiny-chip" id="routeChip">READY</div>
+              <div class="tiny-chip" id="engineChip">PCC SOURCE</div>
+              <div class="tiny-chip" id="layerChip">COMMAND HELD</div>
+              <div class="tiny-chip" id="routeChip">HELD</div>
             </div>
           </div>
           <div class="panel-body" style="padding-top:0;">
@@ -1185,9 +1185,9 @@
                 </div>
               </div>
               <pre class="response-pre" id="responsePanel">{
-  "status": "READY",
-  "message": "Console V2D is waiting for execute, build, or apply actions.",
-  "routes": ["/execute", "/build", "/apply"],
+  "status": "COMMAND_ROUTES_HELD",
+  "message": "Corporate read pending; no command route is connected.",
+  "routes": [],
   "boas": {
     "origin": "UNKNOWN",
     "authority_level": "NONE",
@@ -1204,7 +1204,7 @@
     <aside class="right glass">
       <div class="pane-head">
         <div class="pane-title">Executive Intelligence Tower</div>
-        <div class="pane-sub">Operational guidance for direct execution, provenance-aware builds, and hard-enforced apply actions.</div>
+        <div class="pane-sub">Source-backed Corporate context and command route boundaries.</div>
       </div>
 
       <div class="pane-body">
@@ -1215,7 +1215,7 @@
           </div>
 
           <div class="nace-copy" id="naceCopy">
-            Console V2D is active. BOAS is enforced. Execute, build, and apply remain visibly separated. Only trusted origins can pass through apply.
+            Corporate source is being checked. Command routes remain held until their authority and receipts are verified.
           </div>
 
           <div class="nace-actions">
@@ -1230,9 +1230,9 @@
           <div class="section-label">Executive Tower</div>
           <div class="tower">
             <div class="tower-card"><strong>NACE</strong><span>Guide lane standing by for governed route selection, packet trust review, and apply explanation.</span></div>
-            <div class="tower-card"><strong>Chad</strong><span>Execution posture active. Command, packet, artifact, origin, signature, and apply logic remain aligned.</span></div>
+            <div class="tower-card"><strong>Chad</strong><span>Corporate registered-state read is available; command execution remains held.</span></div>
             <div class="tower-card"><strong>Alexis Vale</strong><span>Governance oversight visible. Explicit origin classification preserves institutional control.</span></div>
-            <div class="tower-card"><strong>Operator</strong><span>Apply actions mutate governed targets only. Untrusted packets are blocked before mutation.</span></div>
+            <div class="tower-card"><strong>Operator</strong><span>Apply route is held. No target mutation is authorized from this page.</span></div>
           </div>
         </div>
       </div>
@@ -1427,11 +1427,11 @@
         resetApply();
         setDot("idle");
         setStatus({
-          text: "Idle. Console V2D is ready.",
+          text: "Corporate source pending. Command routes held.",
           mode: "idle",
           route: "",
           http: "",
-          status: "Mode Ready",
+          status: "Read Only",
           receipt: "",
           target: ""
         });
@@ -1439,12 +1439,12 @@
         heroPacketId.textContent = "—";
         heroArtifactId.textContent = "—";
         heroTargetId.textContent = "—";
-        flowRoute.textContent = "READY";
+        flowRoute.textContent = "HELD";
         flowStatus.textContent = "IDLE";
         flowHttp.textContent = "—";
         flowReceipt.textContent = "—";
-        routeChip.textContent = "READY";
-        naceCopy.textContent = "Console V2D is active. BOAS is enforced. Execute, build, and apply remain visibly separated. Only trusted origins can pass through apply.";
+        routeChip.textContent = "HELD";
+        naceCopy.textContent = "Checking the Corporate source. Execute, build, and apply remain held.";
         setBoasDisplay({
           origin: "UNKNOWN",
           authority_level: "NONE",
@@ -1452,9 +1452,9 @@
           verification: "UNVERIFIED"
         });
         setResponse({
-          status: "READY",
-          message: "Console V2D is waiting for execute, build, or apply actions.",
-          routes: ["/execute", "/build", "/apply"],
+          status: "COMMAND_ROUTES_HELD",
+          message: "No verified execute, build, or apply route is connected.",
+          routes: [],
           boas: {
             origin: "UNKNOWN",
             authority_level: "NONE",
@@ -1466,13 +1466,13 @@
 
       async function callRoute(routeName) {
         setStatus({
-          text: "Governed routes require verified institutional sign-in.",
+          text: "Execution is held. A verified command authority and route are required.",
           mode: "error", route: routeName, http: "NOT_CONNECTED",
           status: "Unavailable", receipt: "", target: ""
         });
         setResponse({ status: "AUTH_BINDING_REQUIRED", route: routeName });
         naceCopy.textContent =
-          "Execution is disabled until a governed office identity and route are physically verified.";
+          "Corporate registered-state access does not authorize execution. A governed office and route must be verified.";
       }
 
       executeBtn.addEventListener("click", function () {
@@ -1533,12 +1533,12 @@
       });
 
       explainBtn.addEventListener("click", function () {
-        naceCopy.textContent = "BOAS enforces build provenance. Every packet carries origin, authority level, trusted state, and signature verification. Apply blocks untrusted packets.";
+        naceCopy.textContent = "BOAS requires verified origin, authority, and signature before apply. This Console has not connected that route.";
       });
 
       useBuildBtn.addEventListener("click", function () {
         buildCommand.focus();
-        naceCopy.textContent = "Use Build for packet and artifact generation. Select origin explicitly. Trusted origins can later pass apply if signature verification succeeds.";
+        naceCopy.textContent = "Build is staged here. Packet generation needs a verified authority, route, and source-backed receipt.";
       });
 
       useApplyBtn.addEventListener("click", function () {
@@ -1546,7 +1546,7 @@
         if (lastPacket && !applyPacketId.value.trim()) {
           applyPacketId.value = lastPacket;
         }
-        naceCopy.textContent = "Use Apply only after a valid trusted build returns a packet_id. Unknown or restricted packets are blocked before mutation.";
+        naceCopy.textContent = "Apply is held. No packet from this Console may mutate a target until BOAS verification is connected.";
       });
 
       returnFloorBtn.addEventListener("click", function () {
@@ -1554,6 +1554,51 @@
       });
 
 resetAllView();
+for (const button of [executeBtn, buildBtn, applyBtn, applyLastBtn]) {
+  button.disabled = true;
+  button.title = "Governed command route not yet verified";
+}
+async function loadCorporateSnapshot() {
+  const entry = sessionStorage.getItem("pccEntrySession");
+  if (!entry) {
+    window.location.replace("index.html");
+    return;
+  }
+  try {
+    const response = await fetch("https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/snapshot", {
+      headers: { Authorization: "Bearer " + entry }, cache: "no-store"
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      if (result.error === "ENTRY_REQUIRED") {
+        sessionStorage.removeItem("pccEntrySession");
+        window.location.replace("index.html");
+        return;
+      }
+      throw Error(result.error || "CORPORATE_SOURCE_UNAVAILABLE");
+    }
+    const offices = Array.isArray(result.offices) ? result.offices : [];
+    const missions = offices.reduce((total, office) => total + (Number(office.mission_count) || 0), 0);
+    document.getElementById("sourceOffices").textContent = String(offices.length);
+    document.getElementById("sourceMissions").textContent = String(missions);
+    document.getElementById("sourceClass").textContent = result.state_class || "REGISTERED";
+    const chip = document.getElementById("sourceChip");
+    chip.className = "status-chip green";
+    chip.innerHTML = '<span class="dot"></span> Corporate source read';
+    setStatus({ text: "Corporate registered-state read completed. Command routes remain held.",
+      mode: "idle", route: "", http: "", status: "Read Only", receipt: "", target: "" });
+    naceCopy.textContent = offices.length + " Corporate offices and " + missions +
+      " missions were read. Execute, build, and apply remain held.";
+    setResponse({ status: "REGISTERED_STATE_READ", source: "CORPORATE_PCC",
+      state_class: result.state_class, office_count: offices.length,
+      registered_mission_count: missions, command_routes: "HELD", receipt: null });
+  } catch (error) {
+    setStatus({ text: "Corporate read unavailable: " + error.message,
+      mode: "error", route: "", http: "", status: "Read Pending", receipt: "", target: "" });
+    naceCopy.textContent = "The Corporate source could not be read. Return to the Command Floor to inspect entry status.";
+  }
+}
+loadCorporateSnapshot();
 
 window.addEventListener("DOMContentLoaded", () => {
   const arrivalMessage = sessionStorage.getItem("pccArrivalMessage");
