@@ -1,2 +1,5 @@
 [functions.pcc-corporate-command-read]
 verify_jwt = true
+
+[functions.pcc-entry-gateway]
+verify_jwt = false
