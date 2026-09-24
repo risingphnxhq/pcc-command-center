@@ -1,0 +1,2 @@
+[functions.pcc-corporate-command-read]
+verify_jwt = true
