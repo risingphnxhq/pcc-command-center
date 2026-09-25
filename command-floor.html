@@ -982,6 +982,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 @media(max-width:520px){.hq-rooms{grid-template-columns:1fr}}
 .office-room{border:1px solid rgba(198,161,91,.23);background:#0f1924}.office-room .office{border:0;border-radius:0!important}.office-door{display:block;border-top:1px solid rgba(198,161,91,.22);padding:10px 15px;color:var(--gold);font:700 11px "IBM Plex Mono",monospace;text-decoration:none}.office-door:hover{background:rgba(198,161,91,.1)}
 .nace-intercom{font:700 11px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--gold);border:1px solid var(--line-strong);padding:10px 12px;text-decoration:none}.nace-intercom:hover{background:var(--gold-soft)}
+.founder-room{border-color:rgba(198,161,91,.7);background:linear-gradient(135deg,rgba(198,161,91,.16),#121b26)}
+.dispatch-links{display:grid;gap:0}.dispatch-links a{padding:10px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none;font-size:12px}.dispatch-links a:hover{color:var(--gold)}
 </style></head><body><div class="app"><header class="topbar glass"><div class="brand">
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
@@ -1002,9 +1004,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 
       <div class="pane-body">
         <div class="nav-group">
-          <div class="group-label">Executive &amp; command</div>
+          <div class="group-label">Founder &amp; executive</div>
           <div class="nav-list">
-            <a class="nav-btn active" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
+            <a class="nav-btn" href="founder-suite.html"><span class="nav-dot"></span> Phoenix King’s Suite</a><a class="nav-btn active" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
             <a class="nav-btn" href="console.html"><span class="nav-dot"></span> Corporate Console</a><a class="nav-btn" href="systems-console.html"><span class="nav-dot"></span> Systems Console</a>
             <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
             <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
@@ -1031,7 +1033,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 
 <main class="center glass"><div class="center-scroll"><div class="hq-intro" id="founder-chamber"><span class="eyebrow">Welcome, Phoenix King · Executive access</span><h1>RPE Headquarters</h1><p>From the Phoenix King’s direction to office missions, Systems handoffs, verified evidence and Canon. NACE is your voice throughout headquarters.</p></div>
 <section class="hq-directory" aria-label="Headquarters directory"><div class="intel-head"><h2>Headquarters Directory</h2><small>Enter a room · Follow its authority</small></div><div class="hq-rooms">
-<a class="hq-room" href="#command-chamber"><small>01 · EXECUTIVE</small><strong>Command Chamber</strong><span>Founder direction · NACE · Chad</span></a>
+<a class="hq-room founder-room" href="founder-suite.html"><small>TOP FLOOR · FOUNDER</small><strong>Phoenix King’s Suite</strong><span>Founder direction · sovereign decisions</span></a><a class="hq-room" href="#command-chamber"><small>01 · EXECUTIVE</small><strong>Command Chamber</strong><span>Founder direction · NACE · Chad</span></a>
 <a class="hq-room" href="console.html"><small>02 · CORPORATE</small><strong>COO’s Office</strong><span>Corporate command and operations</span></a>
 <a class="hq-room" href="council-staff.html"><small>03 · GOVERNANCE</small><strong>Council Chamber</strong><span>Executive offices · review · dissent</span></a>
 <a class="hq-room" href="#office-registry"><small>04 · DEPARTMENTS</small><strong>Office Floors</strong><span>Owned missions · workstreams · evidence</span></a>
@@ -1052,10 +1054,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
   <section class="intel-board" aria-label="Executive intelligence"><div class="intel-head"><h2>HQ &amp; Systems Intelligence</h2><small>Read-only · Source-backed values</small></div><div class="intel-grid"><div class="intel-card"><span>Corporate Offices</span><strong id="sourceOffices">—</strong><small>Registered in Corporate source</small></div><div class="intel-card"><span>Registered Missions</span><strong id="sourceMissions">—</strong><small>Across retrieved offices</small></div><div class="intel-card"><span>PSC Source Coverage</span><strong id="sourceCoverage">—</strong><small id="sourceCoverageText">Awaiting Corporate read</small><div class="intel-track"><div class="intel-fill" id="sourceCoverageBar"></div></div></div><div class="intel-card"><span>Systems Runtime</span><strong>—</strong><small>No verified Systems telemetry on this page</small></div></div><span id="sourceClass" hidden>Pending</span><span id="topTrustValue" hidden>UNKNOWN</span><span id="topTrustBar" hidden></span></section>
 <section class="floor-panel" id="office-registry"><span class="eyebrow">Enterprise / Corporate HQ</span><h2>Office registry <span id="officeCount">—</span></h2><p class="floor-note" id="officeLabel">Authenticate to load source records</p><div class="floor-grid" id="officeGrid" style="margin-top:15px">No Corporate source data has been read in this browser session.</div></section>
   <section class="floor-panel"><span class="eyebrow">Office / Mission / Workstream</span><h2 id="selectedOffice">Select an office</h2><p class="floor-note" id="officeContext">Select an office to inspect its missions.</p><div id="missionList" class="detail-text"></div><div id="missionDetail" class="detail-text"></div></section>
-  </div></main><aside class="right glass"><div class="pane-head"><div class="pane-title">Your HQ Visit</div><div class="pane-sub">Where you are and what is available.</div></div><div class="pane-body">
-<div class="section-card"><div class="section-label">Your Access</div><h3>Corporate HQ</h3><p id="authStatus" class="detail-text" style="margin:12px 0">Checking executive entry…</p><a class="floor-btn" id="returnEntry" href="index.html" style="display:inline-block;text-decoration:none">Enter HQ</a> <button class="floor-btn" id="disconnect" type="button" hidden>End session</button></div>
-<div class="section-card"><div class="section-label">HQ Directory</div><p class="detail-text" id="sourceDetail">Sign in to view the Corporate office directory.</p><p class="detail-text" style="margin-top:12px">Office records: <strong id="officeCountMirror">—</strong><br>Registered missions: <strong id="missionCount">—</strong></p><p class="detail-text" id="receiptDetail" style="margin-top:12px">Completion receipts will appear when that feed is connected.</p><span id="receiptCount" hidden>—</span></div>
-<div class="section-card"><div class="section-label">How Work Moves</div><p class="detail-text">You give direction. An authorized office owns the mission. Work is checked. PCC shows the evidence and receipt.</p><p class="detail-text" style="margin-top:12px">An office listed here is part of the HQ directory; its live operation needs separate proof.</p></div>
+  </div></main><aside class="right glass"><div class="pane-head"><div class="pane-title">Executive Dispatch</div><div class="pane-sub">Move directly to the office or room you need.</div></div><div class="pane-body">
+<div class="section-card"><div class="section-label">Founder’s Top Floor</div><h3>Phoenix King’s Suite</h3><p class="detail-text" style="margin:10px 0">Your private executive space above the headquarters floors.</p><a class="floor-btn" href="founder-suite.html" style="display:inline-block;text-decoration:none">Enter your suite →</a></div>
+<div class="section-card"><div class="section-label">Direct Routes</div><nav class="dispatch-links" aria-label="Executive routes"><a href="#command-chamber">Speak with NACE →</a><a href="console.html">Chad · Corporate operations →</a><a href="council-staff.html">Council and executive staff →</a><a href="war-room.html">Convene the War Room →</a><a href="#office-registry">Visit department floors →</a></nav></div>
+<div class="section-card"><div class="section-label">Your HQ Visit</div><p id="authStatus" class="detail-text">Checking entry…</p><p id="sourceDetail" class="detail-text" style="margin-top:8px">Office directory not loaded.</p><p class="detail-text" style="margin-top:8px">Offices: <span id="officeCountMirror">—</span> · Missions: <span id="missionCount">—</span></p><a class="floor-btn" id="returnEntry" href="index.html" style="display:inline-block;text-decoration:none;margin-top:10px">Enter HQ</a><button class="floor-btn" id="disconnect" type="button" hidden>End visit</button><span id="receiptCount" hidden>—</span></div>
 </div></aside></div><script src="nace-runtime.js"></script>
 <script>
 (()=>{'use strict';
