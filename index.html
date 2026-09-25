@@ -742,8 +742,10 @@
       if (!response.ok || !result.session) throw Error(result.error || "ENTRY_UNAVAILABLE");
       sessionStorage.setItem("pccEntrySession", result.session);
       document.body.classList.add("authorized");
-      status.textContent = "Entry verified. Opening Command Floor…";
-      window.location.assign("command-floor.html");
+      const returnTo = new URLSearchParams(window.location.search).get("return");
+      const destination = returnTo === "founder-suite.html" ? "founder-suite.html" : "command-floor.html";
+      status.textContent = destination === "founder-suite.html" ? "Entry verified. Opening your Suite…" : "Entry verified. Opening Command Floor…";
+      window.location.assign(destination);
     } catch (error) {
       status.textContent = error.message === "ENTRY_DENIED" ? "Entry denied." :
         error.message === "GATE_NOT_CONFIGURED" ? "PCC entry is being configured." : "Entry unavailable. Please try again.";
