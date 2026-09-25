@@ -1,0 +1,1054 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phoenix Command Center — Corporate Office</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#05080c;
+      --bg2:#071019;
+      --bg3:#0a1521;
+      --panel:#0e1824;
+      --panel2:#0b131c;
+      --panel3:#112030;
+      --line:rgba(255,255,255,.07);
+      --line-strong:rgba(198,161,91,.24);
+      --gold:#c6a15b;
+      --gold-soft:rgba(198,161,91,.12);
+      --cyan:#63d9ff;
+      --cyan-soft:rgba(99,217,255,.12);
+      --green:#49d391;
+      --amber:#f0b35a;
+      --red:#ea7474;
+      --text:#f4efe5;
+      --muted:rgba(244,239,229,.66);
+      --muted2:rgba(244,239,229,.42);
+      --shadow:0 22px 70px rgba(0,0,0,.40);
+      --radius-sm:12px;
+      --radius-md:16px;
+      --radius-lg:22px;
+      --radius-xl:28px;
+      --topH:160px;
+      --leftW:280px;
+      --rightW:360px;
+      --container:1760px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+
+    body{
+      font-family:Inter,system-ui,sans-serif;
+      font-size:13px;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(99,217,255,.10), transparent 20%),
+        radial-gradient(circle at 84% 8%, rgba(198,161,91,.09), transparent 18%),
+        linear-gradient(180deg, #091018 0%, #05080c 100%);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size:36px 36px;
+      opacity:.22;
+      mask-image:radial-gradient(circle at center, black 46%, transparent 100%);
+    }
+
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:var(--leftW) minmax(0,1fr) var(--rightW);
+      grid-template-rows:var(--topH) auto;
+      grid-template-areas:
+        "top top top"
+        "left center right";
+      gap:14px;
+      padding:14px;
+      max-width:calc(var(--container) + 28px);
+      margin:0 auto;
+    }
+
+    .glass{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(14,24,36,.95), rgba(8,12,18,.93));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius-xl);
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .topbar{
+      grid-area:top;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:18px;
+      padding:16px 20px;
+      position:sticky;
+      top:14px;
+      z-index:20;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+
+    .brand-mark{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      flex:0 0 auto;
+      overflow:hidden;
+      border:1px solid var(--line-strong);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(198,161,91,.22), transparent 40%),
+        linear-gradient(180deg, rgba(198,161,91,.08), rgba(7,12,17,.92));
+      display:grid;
+      place-items:center;
+    }
+
+    .brand-mark img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .brand-copy{min-width:0;flex:1}
+
+    .brand-kicker{
+      font-size:11px;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .brand-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(22px,2vw,36px);
+      letter-spacing:.08em;
+      white-space:nowrap;
+    }
+
+    .topbar-right{
+      display:grid;
+      gap:10px;
+      justify-items:end;
+      min-width:0;
+    }
+
+    .top-status-rail{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
+      min-width:0;
+    }
+
+    .status-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .status-chip .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:currentColor;
+      box-shadow:0 0 10px currentColor;
+      flex:0 0 auto;
+    }
+
+    .status-chip.green{color:var(--green)}
+    .status-chip.cyan{color:var(--cyan)}
+    .status-chip.amber{color:var(--amber)}
+    .status-chip.red{color:var(--red)}
+
+    .top-microbars{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(120px, 1fr));
+      gap:10px;
+      width:min(620px, 100%);
+    }
+
+    .micro-card{
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+      padding:10px 12px;
+      min-width:0;
+    }
+
+    .micro-label{
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+
+    .micro-value{
+      font-family:"IBM Plex Mono", monospace;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:8px;
+      word-break:break-word;
+    }
+
+    .micro-track{
+      height:8px;
+      border-radius:999px;
+      background:#08111a;
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+
+    .micro-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(99,217,255,.86), rgba(198,161,91,.82));
+    }
+
+    .left{grid-area:left;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+    .center{grid-area:center;display:flex;flex-direction:column;min-width:0}
+    .right{grid-area:right;display:flex;flex-direction:column;position:sticky;top:148px;height:calc(100vh - 162px)}
+
+    .pane-head{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .pane-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#f3e8d0;
+      margin-bottom:6px;
+    }
+
+    .pane-sub{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .pane-body{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      padding:16px 30px 16px 16px;
+      scrollbar-gutter:stable;
+    }
+
+    .nav-group + .nav-group{margin-top:18px}
+
+    .group-label{
+      margin:0 0 10px 4px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .nav-list{display:grid;gap:10px}
+
+    .nav-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      color:var(--text);
+      padding:14px;
+      text-align:left;
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      transition:.16s ease;
+    }
+
+    .nav-btn:hover,.nav-btn.active{
+      border-color:rgba(198,161,91,.34);
+      background:linear-gradient(180deg, rgba(198,161,91,.10), rgba(255,255,255,.02));
+      transform:translateX(2px);
+    }
+
+    .nav-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 10px rgba(240,179,90,.8);
+      flex:0 0 auto;
+    }
+
+    .section-card{
+      margin-top:16px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+    }
+
+    .section-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:12px;
+    }
+
+    .tag{
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .center-scroll{
+      display:grid;
+      gap:16px;
+      align-content:start;
+      min-width:0;
+      padding:16px;
+      overflow:auto;
+    }
+
+    .hero{
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:24px;
+      display:grid;
+      gap:18px;
+    }
+
+    .hero-title{
+      font-family:Cinzel,serif;
+      font-size:clamp(28px,2.4vw,46px);
+      letter-spacing:.12em;
+      margin-bottom:8px;
+    }
+
+    .hero-copy{
+      font-size:16px;
+      line-height:1.72;
+      color:var(--text);
+      opacity:.94;
+      max-width:980px;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(99,217,255,.18);
+      background:rgba(99,217,255,.10);
+      color:#c9effb;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      white-space:nowrap;
+      width:max-content;
+    }
+
+    .quick-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .quick-card{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.08), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      padding:16px;
+      min-width:0;
+    }
+
+    .metric-label{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      margin-bottom:10px;
+    }
+
+    .metric-value{
+      color:var(--cyan);
+      font-size:clamp(20px,1.8vw,30px);
+      line-height:1.15;
+      font-weight:800;
+      margin-bottom:10px;
+      word-break:break-word;
+    }
+
+    .metric-note{
+      font-size:14px;
+      line-height:1.55;
+      color:var(--text);
+      opacity:.9;
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      overflow:hidden;
+    }
+
+    .panel-head{
+      padding:16px 18px 10px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .panel-title{
+      font-family:Cinzel,serif;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .panel-sub{
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .panel-body{padding:16px 18px 18px}
+
+    .ops-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .field-stack{display:grid;gap:14px}
+    .field{display:grid;gap:8px}
+
+    .field label{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+
+    .field input,
+    .field textarea,
+    .field select{
+      width:100%;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(6,12,18,.94), rgba(5,9,14,.98));
+      color:var(--text);
+      font-family:Inter,system-ui,sans-serif;
+      font-size:14px;
+      padding:14px 15px;
+      outline:none;
+      transition:border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .field textarea{
+      min-height:122px;
+      resize:vertical;
+      font-family:"IBM Plex Mono",monospace;
+      line-height:1.6;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus{
+      border-color:rgba(99,217,255,.34);
+      box-shadow:0 0 0 3px rgba(99,217,255,.08);
+    }
+
+    .field-help{
+      font-size:12px;
+      color:var(--muted2);
+      line-height:1.5;
+    }
+
+    .exec-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:2px;
+    }
+
+    .primary-btn,
+    .action-btn{
+      border:none;
+      border-radius:14px;
+      padding:13px 16px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      transition:.16s ease;
+    }
+
+    .primary-btn{
+      color:#08111a;
+      background:linear-gradient(180deg, rgba(198,161,91,1), rgba(214,186,127,.92));
+      box-shadow:0 12px 28px rgba(198,161,91,.16);
+    }
+
+    .action-btn{
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(99,217,255,.16), rgba(99,217,255,.07));
+      border:1px solid rgba(99,217,255,.20);
+    }
+
+    .primary-btn:hover,
+    .action-btn:hover{transform:translateY(-1px)}
+
+    .primary-btn:disabled,
+    .action-btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .status-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .live-status{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      flex-wrap:wrap;
+    }
+
+    .live-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .live-dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 12px rgba(240,179,90,.8);
+      flex:0 0 auto;
+    }
+
+    .live-dot.loading{
+      background:var(--cyan);
+      box-shadow:0 0 14px rgba(99,217,255,.9);
+      animation:pulse 1s infinite;
+    }
+
+    .live-dot.success{
+      background:var(--green);
+      box-shadow:0 0 14px rgba(73,211,145,.9);
+    }
+
+    .live-dot.error{
+      background:var(--red);
+      box-shadow:0 0 14px rgba(234,116,116,.9);
+    }
+
+    @keyframes pulse{
+      0%{transform:scale(1);opacity:1}
+      50%{transform:scale(1.16);opacity:.75}
+      100%{transform:scale(1);opacity:1}
+    }
+
+    .live-copy{min-width:0}
+
+    .live-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:4px;
+    }
+
+    .live-text{
+      font-size:14px;
+      color:var(--text);
+      word-break:break-word;
+    }
+
+    .tiny-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      white-space:nowrap;
+    }
+
+    .response-box{
+      border:1px solid rgba(99,217,255,.14);
+      border-radius:18px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(6,12,18,.96), rgba(5,8,13,1));
+    }
+
+    .response-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.02);
+      flex-wrap:wrap;
+    }
+
+    .response-title{
+      font-size:11px;
+      font-weight:800;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+
+    .response-badges{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .response-pre{
+      margin:0;
+      padding:16px;
+      min-height:300px;
+      max-height:720px;
+      overflow:auto;
+      font-family:"IBM Plex Mono",monospace;
+      font-size:13px;
+      line-height:1.65;
+      color:#d4edf8;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .tower{
+      display:grid;
+      gap:10px;
+    }
+
+    .tower-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+    }
+
+    .tower-card strong{
+      display:block;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .tower-card span{
+      display:block;
+      font-size:13px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+
+    .nace-card{
+      border:1px solid rgba(99,217,255,.16);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at top right, rgba(99,217,255,.10), transparent 30%),
+        linear-gradient(180deg, rgba(10,30,46,.95), rgba(7,14,21,.98));
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+
+    .nace-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .nace-title h3{
+      font-family:Cinzel,serif;
+      letter-spacing:.14em;
+      font-size:28px;
+    }
+
+    .nace-copy{
+      font-size:15px;
+      line-height:1.7;
+      color:var(--text);
+      opacity:.94;
+      min-height:130px;
+    }
+
+    .nace-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .small{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .flow-card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+      min-width:0;
+    }
+
+    .flow-card .k{
+      font-size:11px;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.15em;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .flow-card .v{
+      font-family:"IBM Plex Mono",monospace;
+      color:var(--cyan);
+      font-size:18px;
+      line-height:1.4;
+      word-break:break-word;
+    }
+
+    .boas-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .boas-card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.02);
+      padding:14px;
+      min-width:0;
+    }
+
+    .boas-label{
+      font-size:11px;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.15em;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .boas-value{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:16px;
+      line-height:1.45;
+      color:var(--text);
+      word-break:break-word;
+    }
+
+    .boas-value.gold{color:var(--gold)}
+    .boas-value.cyan{color:var(--cyan)}
+    .boas-value.amber{color:var(--amber)}
+    .boas-value.red{color:var(--red)}
+    .boas-value.green{color:var(--green)}
+
+    @media (max-width: 1520px){
+      .app{grid-template-columns:270px minmax(0,1fr) 340px}
+      .ops-grid,.flow-grid,.boas-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (max-width: 1180px){
+      .left,.right{position:static;height:auto}
+      .app{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto auto auto;
+        grid-template-areas:
+          "top"
+          "center"
+          "right"
+          "left";
+      }
+      .topbar{grid-template-columns:1fr}
+      .topbar-right{justify-items:start}
+      .top-status-rail{justify-content:flex-start}
+      .top-microbars{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .ops-grid,.flow-grid,.quick-grid,.boas-grid{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 760px){
+      .app{padding:10px;gap:10px}
+      .topbar,.left,.center,.right{border-radius:20px}
+      .nace-actions{grid-template-columns:1fr}
+      .exec-actions{flex-direction:column}
+      .exec-actions button{width:100%}
+      .top-microbars{grid-template-columns:1fr}
+    }
+  
+    .floor-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:18px}
+    .floor-head h1{font:700 clamp(26px,3vw,40px) Cinzel,serif;letter-spacing:.04em}
+    .floor-head p,.floor-note{color:var(--muted);line-height:1.6}
+    .eyebrow{display:block;color:var(--gold);font:700 11px "IBM Plex Mono",monospace;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+    .lineage{color:var(--cyan);font:600 10px "IBM Plex Mono",monospace;white-space:nowrap}
+    .floor-panel{border:1px solid var(--line-strong);border-radius:var(--radius-lg);background:linear-gradient(145deg,rgba(198,161,91,.09),rgba(17,32,48,.5));padding:20px;margin-bottom:16px}
+    .nace-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:14px}
+    .nace-head h2{font:700 22px Cinzel,serif}
+    .nace-stage{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:20px;padding:22px 0}
+    .nace-emblem{width:92px;height:92px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line-strong);font:700 38px Cinzel,serif;color:var(--gold);background:radial-gradient(circle at 36% 30%,rgba(99,217,255,.28),transparent 55%),#0a1521}
+    .nace-stage h3{font-size:clamp(19px,2vw,28px);margin-bottom:8px}
+    .conversation{max-height:240px;min-height:100px;overflow:auto;display:flex;flex-direction:column;gap:9px;margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.18)}
+    .bubble{max-width:92%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;color:var(--text);line-height:1.55;background:var(--panel3);white-space:pre-wrap}
+    .bubble.user{align-self:flex-end;border-color:var(--line-strong)}
+    .bubble small{display:block;color:var(--gold);font:700 10px "IBM Plex Mono",monospace;letter-spacing:.12em;margin-bottom:4px}
+    .command-row{display:flex;gap:8px;margin-top:12px}
+    .command-row input{flex:1;min-width:0;padding:13px;border:1px solid var(--line-strong);border-radius:10px;background:var(--panel2);color:var(--text);font:inherit}
+    .floor-btn{cursor:pointer;border:1px solid var(--line-strong);border-radius:10px;background:var(--gold-soft);color:var(--text);padding:10px 14px;font:700 11px "IBM Plex Mono",monospace}
+    .floor-btn:disabled{opacity:.45;cursor:not-allowed}
+    .floor-btn:hover:not(:disabled){border-color:var(--gold)}
+    .prompt-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .floor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .office{display:flex;flex-direction:column;gap:7px;text-align:left;width:100%;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel3);color:var(--text);cursor:pointer}
+    .office:hover{border-color:var(--gold)}
+    .office b{font-size:15px}.office small,.office .mini,.mission small{color:var(--muted)}
+    .mission{display:grid;gap:7px;border-bottom:1px solid var(--line);padding:10px 0}
+    .mission button{width:max-content;border:0;background:transparent;color:var(--cyan);cursor:pointer}
+    .detail-text{color:var(--muted);line-height:1.6}.detail-text p{margin-top:7px}
+    .right .pane-body{overflow:auto}
+    .error{color:var(--red)!important}.live{color:var(--green)!important}
+    #voiceDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:6px}
+    #voiceDot.live{background:var(--green)}
+    @media(max-width:760px){.floor-head{display:block}.lineage{display:block;margin-top:12px;white-space:normal}.nace-stage{grid-template-columns:1fr}.floor-grid{grid-template-columns:1fr}.command-row{flex-wrap:wrap}}
+
+/* PCC sovereign command language: crest, gold rules, disciplined rectangular surfaces. */
+:root{--radius-sm:3px;--radius-md:4px;--radius-lg:5px;--radius-xl:6px;--shadow:0 18px 48px rgba(0,0,0,.32)}
+body{background:radial-gradient(ellipse at 50% -30%,rgba(198,161,91,.105),transparent 54%),linear-gradient(160deg,#05080c,#0b121b 54%,#05080c)}
+.glass{border-radius:6px;border-color:rgba(198,161,91,.24);background:linear-gradient(160deg,rgba(16,25,36,.97),rgba(6,11,17,.97));backdrop-filter:none}
+.topbar{border-top:3px solid var(--gold);border-bottom-color:rgba(198,161,91,.36)}
+.brand-mark{border-radius:4px;border-color:var(--gold);box-shadow:0 0 0 4px rgba(198,161,91,.08)}
+.brand-mark img{object-fit:contain}
+.brand-title,.pane-title,.hero-title,.panel-title{font-family:Cinzel,Georgia,serif;letter-spacing:.08em}
+.left .pane-head,.right .pane-head,.panel-head{border-bottom:1px solid rgba(198,161,91,.26)}
+.status-chip,.tag,.pill,.badge,.chip{border-radius:3px;letter-spacing:.09em}
+.status-chip .dot,.nav-dot{border-radius:1px;box-shadow:none;transform:rotate(45deg)}
+.nav-list{gap:3px}
+.nav-btn{border-radius:3px;padding:13px 14px;background:transparent;border-color:transparent;border-left:2px solid transparent;font-size:12px}
+.nav-btn:hover,.nav-btn.active{transform:none;border-color:rgba(198,161,91,.28);border-left-color:var(--gold);background:linear-gradient(90deg,rgba(198,161,91,.13),transparent)}
+.panel,.section-card,.micro-card,.quick-card,.tower-card,.nace-card,.flow-card,.boas-card,.floor-panel,.office,.mission,.card{border-radius:4px!important}
+.panel,.section-card,.micro-card,.floor-panel{border-color:rgba(198,161,91,.19)}
+.micro-track,.micro-fill{border-radius:1px}
+.micro-track{height:3px}
+.micro-value{font-size:12px;color:var(--text)}
+.section-label,.group-label,.eyebrow{color:var(--gold);letter-spacing:.17em}
+button,.action-btn,.floor-btn{border-radius:3px!important}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.bubble{border:0!important;border-left:2px solid rgba(198,161,91,.7)!important;border-radius:0!important;background:rgba(198,161,91,.04)!important;max-width:100%!important;padding:10px 14px!important}
+.bubble.user{align-self:stretch!important;border-left-color:var(--cyan)!important;background:rgba(99,217,255,.04)!important}
+.conversation{border-radius:3px!important;border-color:rgba(198,161,91,.23)!important;background:rgba(3,8,13,.65)!important}
+.nace-emblem{border-radius:4px!important;background:linear-gradient(135deg,rgba(198,161,91,.16),rgba(8,14,22,.95))!important;box-shadow:inset 0 0 0 5px rgba(198,161,91,.05);color:var(--gold)!important}
+.floor-head{border-bottom:1px solid rgba(198,161,91,.33);padding-bottom:18px}
+@media(max-width:760px){.topbar,.left,.center,.right{border-radius:5px!important}}
+
+/* Executive intelligence belongs in the workspace, with explicit provenance. */
+.app{grid-template-rows:94px auto!important}.left,.right{top:122px!important;height:calc(100vh - 136px)!important}
+@media(max-width:1180px){.app{grid-template-rows:auto!important}.left,.right{height:auto!important;position:static!important}}
+.topbar{grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;min-height:94px!important}
+.topbar-right{display:flex;align-items:center}
+.executive-status{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--amber);border-left:1px solid var(--line-strong);padding-left:16px}
+.intel-board{border:1px solid rgba(198,161,91,.32);border-top:2px solid var(--gold);padding:18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(198,161,91,.065),rgba(8,14,22,.87))}
+.intel-head{display:flex;justify-content:space-between;align-items:end;gap:12px;border-bottom:1px solid rgba(198,161,91,.24);padding-bottom:12px;margin-bottom:15px}
+.intel-head h2{font:600 18px Cinzel,Georgia,serif;letter-spacing:.09em}
+.intel-head small{font:600 10px "IBM Plex Mono",monospace;color:var(--muted)}
+.intel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.intel-card{border-left:2px solid rgba(198,161,91,.65);background:rgba(255,255,255,.025);padding:14px;min-width:0}
+.intel-card strong{display:block;font:600 clamp(20px,2vw,30px) Cinzel,Georgia,serif;color:var(--text);margin:8px 0}
+.intel-card span{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.intel-card small{color:var(--muted);line-height:1.4}
+.intel-track{height:4px;background:#18212a;margin-top:12px}.intel-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan))}
+@media(max-width:900px){.intel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.intel-grid{grid-template-columns:1fr}.intel-head{display:block}}
+
+/* Make the original RPE seal legible as the executive identity mark. */
+.brand-mark{width:88px!important;height:88px!important;flex:0 0 88px!important;border:1px solid #c6a15b!important;background:#05080c!important;overflow:hidden!important}
+.brand-mark img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
+.topbar{min-height:116px!important}
+.app{grid-template-rows:116px auto!important}
+.left,.right{top:144px!important;height:calc(100vh - 158px)!important}
+@media(max-width:1180px){.app{grid-template-rows:auto!important}.left,.right{height:auto!important;position:static!important}}
+@media(max-width:760px){.brand-mark{width:68px!important;height:68px!important;flex-basis:68px!important}.topbar{min-height:88px!important}}
+
+/* Headquarters architecture: threshold, rooms and office access. */
+.hq-intro{border-top:2px solid var(--gold);padding:18px 0 20px;margin-bottom:12px}
+.hq-intro h1{font:700 clamp(28px,3vw,42px) Cinzel,Georgia,serif;letter-spacing:.08em}
+.hq-intro p{color:var(--muted);line-height:1.6;margin-top:8px}
+.hq-directory{border:1px solid var(--line-strong);padding:18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(198,161,91,.055),rgba(7,13,20,.96))}
+.hq-directory h2{font:600 18px Cinzel,serif;letter-spacing:.1em}
+.hq-rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}
+.hq-room{display:flex;flex-direction:column;justify-content:space-between;min-height:112px;padding:13px;border:1px solid rgba(198,161,91,.22);background:#111b26;color:var(--text);text-decoration:none;transition:background .16s,border-color .16s}
+.hq-room:hover{background:#1a2834;border-color:var(--gold)}
+.hq-room small{font:700 10px "IBM Plex Mono",monospace;color:var(--gold);letter-spacing:.14em}
+.hq-room strong{font:600 14px Cinzel,serif;letter-spacing:.04em}
+.hq-room span{font-size:11px;color:var(--muted)}
+.hq-room[aria-disabled="true"]{cursor:default;opacity:.8}
+.hq-passage{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+@media(max-width:900px){.hq-rooms{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.hq-rooms{grid-template-columns:1fr}}
+.office-room{border:1px solid rgba(198,161,91,.23);background:#0f1924}.office-room .office{border:0;border-radius:0!important}.office-door{display:block;border-top:1px solid rgba(198,161,91,.22);padding:10px 15px;color:var(--gold);font:700 11px "IBM Plex Mono",monospace;text-decoration:none}.office-door:hover{background:rgba(198,161,91,.1)}
+.office-door{display:inline-block;color:var(--gold);text-decoration:none;font:700 11px "IBM Plex Mono",monospace;letter-spacing:.08em}.office-door:hover{text-decoration:underline}</style></head><body><div class="app"><header class="topbar glass"><div class="brand">
+        <div class="brand-mark">
+          <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
+        </div>
+        <div class="brand-copy">
+          <div class="brand-kicker">Rising Phoenix Enterprises</div>
+          <div class="brand-title">Phoenix Command Center</div>
+        </div>
+      </div>
+
+      <div class="topbar-right"><span class="executive-status" id="sourceChip"><span id="connectionDot" aria-hidden="true">◆</span> <span id="connectionLabel">Corporate source pending</span></span><time id="headerClock" style="font:600 10px IBM Plex Mono,monospace;color:var(--muted);margin-left:12px"></time></div></header><aside class="left glass">
+      <div class="pane-head">
+        <div class="pane-title">Headquarters Directory</div>
+        <div class="pane-sub">The rooms and offices of RPE Corporate HQ.</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="nav-group">
+          <div class="group-label">Executive &amp; command</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
+            <a class="nav-btn" href="console.html"><span class="nav-dot"></span> Corporate Console</a><a class="nav-btn" href="systems-console.html"><span class="nav-dot"></span> Systems Console</a>
+            <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
+            <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="group-label">Departments &amp; capabilities</div>
+          <div class="nav-list">
+            <a class="nav-btn" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
+            <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
+            <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
+            <a class="nav-btn" href="financial-tracking.html"><span class="nav-dot"></span> Financial Tracking</a>
+            <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">BOAS Doctrine</div>
+          <div class="small">BOAS trust and signature requirements govern future apply actions. This Console has no verified execute, build, or apply route yet.</div>
+        </div>
+      </div>
+    </aside><main class="center glass"><div class="center-scroll">
+<div class="hq-intro"><a href="command-floor.html#office-registry" class="office-door" style="border:0;padding:0">← Headquarters / Office Floors</a><span class="eyebrow" style="margin-top:16px">Institutional department · Corporate HQ</span><h1 id="officeTitle">Opening office…</h1><p id="officeSummary">Reading the authorized Corporate office registry.</p></div>
+<section class="intel-board" aria-label="Office state"><div class="intel-head"><h2>Office Brief</h2><small>Corporate registered state · not runtime certification</small></div><div class="intel-grid">
+<div class="intel-card"><span>Office State</span><strong id="officeState">—</strong><small>Source registration</small></div>
+<div class="intel-card"><span>Missions</span><strong id="missionCount">—</strong><small>Owned by this office</small></div>
+<div class="intel-card"><span>Workstreams</span><strong id="workstreamCount">—</strong><small>Linked work</small></div>
+<div class="intel-card"><span>Receipts</span><strong>—</strong><small>Receipt feed not connected here</small></div></div></section>
+<section class="floor-panel"><span class="eyebrow">Authority / Office</span><h2 id="officeName">Office jurisdiction</h2><p class="floor-note" id="officeRole">Authority is read from the Corporate source.</p><p class="floor-note" id="officeProvenance" style="margin-top:10px">Awaiting source.</p></section>
+<section class="floor-panel"><span class="eyebrow">Mission Suites</span><h2>Owned missions</h2><p class="floor-note">Select a mission to inspect linked workstreams and source evidence.</p><div id="missionList" class="detail-text">Awaiting Corporate read.</div></section>
+<section class="floor-panel"><span class="eyebrow">Mission / Workstream</span><h2>Work and evidence</h2><div id="missionDetail" class="detail-text">Select a mission to inspect its source-backed workstreams.</div></section>
+</div></main><aside class="right glass"><div class="pane-head"><div class="pane-title">Office Antechamber</div><div class="pane-sub">Ownership, routing and conversation.</div></div><div class="pane-body">
+<div class="section-card"><div class="section-label">Executive Entry</div><p id="authStatus" class="detail-text">Checking executive session…</p><a class="floor-btn" href="index.html" style="display:inline-block;text-decoration:none;margin-top:12px">Return to entry</a></div>
+<div class="section-card"><div class="section-label">NACE · HQ Voice</div><p class="detail-text">Ask NACE to brief or route this office from the Command Floor. Voice capability does not expand this office’s authority.</p><a class="floor-btn" href="command-floor.html#command-chamber" style="display:inline-block;text-decoration:none;margin-top:12px">Speak with NACE →</a></div>
+<div class="section-card"><div class="section-label">Governed Handoff</div><p class="detail-text">Corporate mission → authorized route → verification → receipt. Systems manufacturing belongs to Mason’s bounded wing.</p></div>
+</div></aside></div><script>
+(()=>{'use strict';
+const gateway='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway';
+const $=id=>document.getElementById(id);
+const officeId=new URLSearchParams(location.search).get('office_id');
+const token=sessionStorage.getItem('pccEntrySession');
+function status(message,bad=false){$('authStatus').textContent=message;$('authStatus').classList.toggle('error',bad)}
+function line(parent,text,tag='p'){const node=document.createElement(tag);node.textContent=text;parent.append(node);return node}
+async function read(path){if(!token)throw Error('Executive entry is required. Return to index.html.');const response=await fetch(gateway+path,{headers:{Authorization:'Bearer '+token},cache:'no-store'});let body;try{body=await response.json()}catch{throw Error('Corporate source response unavailable.')}if(!response.ok)throw Error(body.error||'Corporate source read denied.');return body}
+async function missionDetail(id){const target=$('missionDetail');target.textContent='Reading authorized mission detail…';try{const body=await read('/mission?mission_id='+encodeURIComponent(id));target.replaceChildren();line(target,body.mission_name||id,'h3');for(const work of body.workstreams||[]){line(target,(work.title||'Workstream')+' · '+(work.registered_state||'State unverified')+' · '+(work.actions||[]).length+' actions')}if(!(body.workstreams||[]).length)line(target,'No linked workstream returned by Corporate source.')}catch(error){target.textContent=error.message}}
+async function init(){if(!officeId){status('Choose an office from the Headquarters directory.',true);$('officeTitle').textContent='Office not selected';return}try{const body=await read('/snapshot');const office=(body.offices||[]).find(item=>item.office_id===officeId);if(!office)throw Error('This office was not returned by the authorized Corporate source.');const title=office.display_name||office.office_id;document.title=title+' — Phoenix Command Center';$('officeTitle').textContent=title;$('officeName').textContent=title;$('officeSummary').textContent=(office.role_title||'Corporate office')+' · bounded institutional responsibilities';$('officeRole').textContent=office.role_title||'Corporate office';$('officeState').textContent=office.registered_state||'REGISTERED';$('missionCount').textContent=String(office.mission_count??(office.missions||[]).length);$('workstreamCount').textContent=String(office.workstream_count??0);$('officeProvenance').textContent=office.source_present?'PSC source present · registered state':'PSC source not verified in this read';$('connectionLabel').textContent='Corporate source read';$('sourceChip').style.color='var(--green)';status('PCC executive entry and Corporate source read completed.');const list=$('missionList');list.replaceChildren();for(const mission of office.missions||[]){const card=document.createElement('div');card.className='mission';line(card,mission.name||mission.mission_id,'strong');line(card,(mission.registered_state||'Registered')+' · '+(mission.linked_workstreams||[]).length+' linked workstreams','small');const button=document.createElement('button');button.type='button';button.textContent='Inspect mission →';button.addEventListener('click',()=>missionDetail(mission.mission_id));card.append(button);list.append(card)}if(!(office.missions||[]).length)list.textContent='No missions returned for this office.'}catch(error){status(error.message,true);$('officeTitle').textContent='Office source unavailable';$('missionList').textContent='No office or mission state can be shown without an authorized source read.'}}
+init();
+})();
+</script></body></html>
