@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Voice Casting Room — Phoenix Command Center</title>
+  <style>
+    :root{--ink:#070b10;--navy:#0b1520;--panel:#101d2a;--panel2:#142535;--gold:#c6a15b;--gold2:#f0d18a;--text:#eef2f5;--muted:#9ba8b5;--line:rgba(198,161,91,.28);--cyan:#6ed3e7;--green:#70d6a0;--amber:#f2bd62}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#20364b 0,var(--ink) 52%);color:var(--text);font:15px/1.55 Inter,system-ui,sans-serif;min-height:100vh}a{color:var(--gold2)}
+    header{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(5,10,15,.9);position:sticky;top:0;z-index:2}.brand{display:flex;align-items:center;gap:14px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{display:block;letter-spacing:.12em;color:var(--gold2)}.brand span,.meta{font:600 10px ui-monospace,monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+    main{max-width:1280px;margin:auto;padding:30px}.hero,.panel{border:1px solid var(--line);background:linear-gradient(145deg,rgba(20,37,53,.96),rgba(9,18,27,.96));box-shadow:0 20px 60px rgba(0,0,0,.25)}.hero{padding:30px;border-top:3px solid var(--gold)}h1,h2,h3,p{margin-top:0}h1{font:600 38px Georgia,serif;color:var(--gold2);margin-bottom:8px}.eyebrow{font:700 11px ui-monospace,monospace;color:var(--gold);letter-spacing:.14em;text-transform:uppercase}.truth{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(242,189,98,.35);color:var(--amber);padding:8px 11px;font:700 10px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+    .layout{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}.panel{padding:22px}.voice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.voice{border:1px solid rgba(255,255,255,.1);background:var(--panel2);padding:15px;text-align:left;color:var(--text);cursor:pointer}.voice:hover,.voice.selected{border-color:var(--gold);background:#1a3044}.voice strong{display:block;color:var(--gold2);font-size:16px}.voice span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+    label{display:block;margin:14px 0 6px;color:var(--muted);font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}select,input{width:100%;padding:12px;border:1px solid var(--line);background:#07111a;color:var(--text)}button,.btn{display:inline-block;border:1px solid var(--gold);background:rgba(198,161,91,.13);color:var(--gold2);padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.receipt{margin-top:16px;padding:14px;border-left:3px solid var(--cyan);background:rgba(110,211,231,.06);color:var(--muted)}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--gold);font:700 10px ui-monospace,monospace;text-transform:uppercase}.nav{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}.nav a{text-decoration:none}
+    @media(max-width:850px){header{padding:0 14px}.meta{display:none}main{padding:16px}.layout{grid-template-columns:1fr}.voice-grid{grid-template-columns:1fr}h1{font-size:30px}}
+  </style>
+</head>
+<body>
+<header><div class="brand"><img src="rpe_seal_logo.png" alt="RPE crest"><div><strong>PHOENIX COMMAND CENTER</strong><span>Corporate Voice · Casting Room</span></div></div><div class="meta">Corporate jurisdiction · internal pilot</div></header>
+<main>
+  <section class="hero">
+    <div class="eyebrow">Corporate HQ / Voice identity review</div>
+    <h1>AI Executive &amp; Staff Voice Casting Room</h1>
+    <p>Audition supported OpenAI voices, compare them against each office, and stage a proposed assignment. A voice is a rendering choice—it does not establish identity, office authority, or runtime activation.</p>
+    <span class="truth">Requirements registered · live Realtime session not yet connected</span>
+    <nav class="nav"><a href="command-floor.html">Command Floor</a><a href="war-room.html">War Room</a><a href="voice-engine.html">Voice &amp; Telephony</a><a href="council-staff.html">Council &amp; Staff</a></nav>
+  </section>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="eyebrow">01 · Official built-in candidates</div><h2>Choose a voice to audition</h2>
+      <p style="color:var(--muted)">Use the official OpenAI Voice Studio to hear the selected candidate with the same casting line. Custom voices require separate eligibility, consent, and approval.</p>
+      <div class="voice-grid" id="voiceGrid"></div>
+      <label for="sampleLine">Casting line</label>
+      <input id="sampleLine" value="Phoenix King, this is your Corporate office. I am ready to provide a source-backed briefing.">
+      <div class="actions"><a class="btn" href="https://www.openai.fm/" target="_blank" rel="noopener noreferrer">Open official Voice Studio ↗</a><button id="copyLine" type="button">Copy casting line</button></div>
+      <div class="receipt" id="auditionState">Select a candidate, then hear it in the official Voice Studio. No voice has been approved.</div>
+    </section>
+
+    <section class="panel">
+      <div class="eyebrow">02 · Staged mapping</div><h2>Propose a staff assignment</h2>
+      <label for="staff">Executive or staff office</label><select id="staff"></select>
+      <label for="selectedVoice">Selected OpenAI voice</label><input id="selectedVoice" readonly placeholder="Choose a voice candidate">
+      <div class="actions"><button id="stage" type="button">Stage proposal</button><button id="clear" type="button">Clear local proposals</button></div>
+      <div class="receipt">Assignments below are stored only in this browser for comparison. They are not Corporate Canon, provider configuration, or production bindings.</div>
+      <table><thead><tr><th>Office</th><th>Candidate</th><th>State</th></tr></thead><tbody id="assignments"></tbody></table>
+    </section>
+  </div>
+</main>
+<script>
+(()=>{'use strict';
+const voices=[
+  ['alloy','Balanced and neutral'],['ash','Clear and composed'],['ballad','Warm and expressive'],['coral','Bright and conversational'],
+  ['echo','Measured and direct'],['fable','Narrative and polished'],['onyx','Deep and authoritative'],['nova','Energetic and modern'],
+  ['sage','Calm and deliberate'],['shimmer','Light and articulate'],['verse','Confident and flexible'],['marin','Natural and nuanced'],['cedar','Grounded and steady']
+];
+const staff=['NACE','Alexis Vale — AI Chairwoman','Michael Carrington — AI CEO','Chad G. Pennington — AI COO','Warren Long — Chief Product Strategist','Council Member 01','Council Member 02','Council Member 03','Council Member 04','Council Member 05','Council Member 06','Council Member 07','Council Member 08','Council Member 09','Council Member 10','Council Member 11','Council Member 12','Executive Support Staff'];
+const grid=document.getElementById('voiceGrid'),staffSelect=document.getElementById('staff'),selected=document.getElementById('selectedVoice'),body=document.getElementById('assignments'),state=document.getElementById('auditionState');let current='';
+for(const [name,note] of voices){const b=document.createElement('button');b.type='button';b.className='voice';b.innerHTML='<strong>'+name+'</strong><span>'+note+'</span>';b.addEventListener('click',()=>{current=name;selected.value=name;document.querySelectorAll('.voice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.textContent=name+' selected for audition. Open the official Voice Studio and paste the casting line; selection is not approval.'});grid.append(b)}
+for(const name of staff){const o=document.createElement('option');o.value=o.textContent=name;staffSelect.append(o)}
+const key='rpePccVoiceCastingProposals';const read=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}};
+function render(){body.replaceChildren();const data=read();for(const name of staff){if(!data[name])continue;const tr=document.createElement('tr');for(const value of [name,data[name],'PROPOSED · LOCAL']){const td=document.createElement('td');td.textContent=value;tr.append(td)}body.append(tr)}if(!body.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=3;td.textContent='No voice assignments staged.';tr.append(td);body.append(tr)}}
+document.getElementById('stage').addEventListener('click',()=>{if(!current){state.textContent='Choose and audition a voice before staging an assignment.';return}const data=read();data[staffSelect.value]=current;localStorage.setItem(key,JSON.stringify(data));render()});
+document.getElementById('clear').addEventListener('click',()=>{localStorage.removeItem(key);render()});
+document.getElementById('copyLine').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(document.getElementById('sampleLine').value);state.textContent='Casting line copied. Paste it into the official Voice Studio.'}catch{state.textContent='Clipboard unavailable. Select and copy the casting line manually.'}});render();
+})();
+</script>
+</body></html>
