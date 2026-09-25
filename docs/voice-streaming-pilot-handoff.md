@@ -11,7 +11,7 @@ Status: source inspected from Founder-supplied worker code and Cloudflare screen
 - Founder reports an inbound call works. No call SID, provider trace or recording was inspected in this pass.
 - Health JSON has `ready: true` but is static and does not test Twilio, OpenAI, ElevenLabs, streaming, or PCC command authority.
 
-## Bounded engineering change for Mason / CSE
+## Corporate Voice build — Chad / Corporate
 1. Preserve the production `/twilio/voice` route and the existing number as the fallback. Add a pilot route on the same worker for allowlisted test calls. No Twilio number configuration change during pilot.
 2. For pilot calls return TwiML `<Connect><Stream url="wss://.../twilio/media">...</Stream></Connect>`. Implement a WebSocket server with Twilio start/media/mark/clear/stop events, validate call identity and configured stream authorization, and isolate state by CallSid. Never pass the audio token, caller text, or provider credentials in a URL.
 3. Bridge bidirectional `audio/x-mulaw` 8000 Hz frames between Twilio and a chosen native audio-in/audio-out speech runtime. Confirm actual provider support for native speech output and the approved NACE/Chad voice identities before selection. Do not label a streaming STT → text AI → TTS chain as direct S2S.
@@ -29,4 +29,6 @@ Status: source inspected from Founder-supplied worker code and Cloudflare screen
 - Current `<Gather>` plus full `<Play>` loop prevents proper barge-in.
 - Source excerpts and photos are not a verified deployment diff. Read deployed source and bindings before cutting over.
 
-Corporate PSC: `PSC-A-CORPORATE-PCC-VOICE-S2S-PILOT-ACCEPTANCE-2026-09-25-001`.
+Ownership: Chad / Corporate builds and accepts Corporate Voice, including the System Voice Worker pilot. Mason / CSE is consulted only for integrations crossing into separately owned Systems jurisdiction. Corporate voice work does not confer Systems authority.
+
+Corporate PSC: `PSC-A-CORPORATE-PCC-VOICE-S2S-PILOT-ACCEPTANCE-2026-09-25-001` (ownership corrected by subsequent Founder directive).
