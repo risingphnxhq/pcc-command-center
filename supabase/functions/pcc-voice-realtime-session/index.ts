@@ -6,7 +6,7 @@ const allowedVoices = new Set([
   "sage", "shimmer", "verse", "marin", "cedar",
 ]);
 const profiles = [
-  { id: "NACE", name: "NACE", role: "System Intelligence Interface", source: "FOUNDER_CASTING_DIRECTION", gender: "Masculine", heritage: "Non-human interface; no ethnicity assigned", tone: "Refined, unflappable, intelligent, discreet and quietly authoritative", mannerism: "Precise diction, measured delivery and subtle dry wit", accent: "Modern Southern British / refined English", persona: "Corporate HQ intelligence and War Room moderator", voices: ["cedar", "ash", "marin"] },
+  { id: "NACE", name: "NACE", role: "System Intelligence Interface", source: "FOUNDER_CASTING_DIRECTION", gender: "Masculine", heritage: "Non-human interface; no ethnicity assigned", vocalAge: "Older adult", tone: "Deep, resonant, refined, unflappable and quietly authoritative", mannerism: "Precise diction, measured delivery, deliberate pauses and subtle dry wit", accent: "Deep, refined British English", persona: "Corporate HQ intelligence and War Room moderator", voices: ["cedar", "ash", "marin"] },
   { id: "ALEXIS_VALE", name: "Alexis Vale", role: "AI Chairwoman", source: "RECOVERED_HISTORICAL_TRAITS", gender: "Female", heritage: "European / Mediterranean blend", tone: "Measured, diplomatic and precise", mannerism: "Speaks last; clarifies and resolves conflict", persona: "Strategic matriarch", voices: ["marin", "sage", "coral"] },
   { id: "MICHAEL_CARRINGTON", name: "Michael Carrington", role: "AI Chief Executive Officer", source: "RECOVERED_HISTORICAL_TRAITS", gender: "Male", heritage: "British / West African heritage", tone: "Professional, decisive and grounded", mannerism: "Thinks in sequences, milestones and readiness", persona: "Builder-CEO", voices: ["cedar", "ash", "verse"] },
   { id: "CHAD_G_PENNINGTON", name: "Chad G. Pennington", role: "AI Chief Operating Officer", source: "RECOVERED_HISTORICAL_TRAITS", gender: "Male", heritage: "African-American", tone: "Direct, brotherly and unflinching", mannerism: "Calls out drift", persona: "Operator-philosopher", voices: ["cedar", "echo", "marin"] },
@@ -134,8 +134,8 @@ Deno.serve(async (request) => {
     instructions: [
       "You are participating in a bounded RPE Corporate voice-casting audition.",
       `The proposed office is ${profile.name}, ${profile.role}. This label does not grant identity or authority.`,
-      `Casting direction: ${profile.gender || "gender not established"}; ${profile.heritage || "heritage not established"}; ${profile.tone}; ${profile.mannerism}; ${profile.persona}.`,
-      profile.accent ? `Accent direction: ${profile.accent}.` : "No accent or vocal age was recovered; do not invent one as Canon.",
+      `Casting direction: ${profile.gender || "gender not established"}; ${profile.heritage || "heritage not established"}; ${profile.vocalAge || "vocal age not established"}; ${profile.tone}; ${profile.mannerism}; ${profile.persona}.`,
+      profile.accent ? `Founder-defined accent direction: ${profile.accent}.` : "No accent or vocal age was recovered; do not invent one as Canon.",
       "Speak only the user's requested casting line or answer a brief voice-quality question.",
       "Do not claim deployment, approval, institutional identity, executive authority, or access to Corporate records.",
       "Keep every response under 45 seconds.",
