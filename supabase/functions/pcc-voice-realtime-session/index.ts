@@ -121,7 +121,7 @@ Deno.serve(async (request) => {
   const personaId = url.searchParams.get("persona") || "";
   const profile = profiles.find((item) => item.id === personaId);
   if (!allowedVoices.has(voice)) return json({ error: "VOICE_NOT_ALLOWED" }, 400);
-  if (!profile || !profile.voices.includes(voice)) return json({ error: "PERSONA_VOICE_PAIR_NOT_ALLOWED" }, 400);
+  if (!profile) return json({ error: "PERSONA_NOT_ALLOWED" }, 400);
   if (!request.headers.get("Content-Type")?.startsWith("application/sdp")) {
     return json({ error: "SDP_REQUIRED" }, 415);
   }
