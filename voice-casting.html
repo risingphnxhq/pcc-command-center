@@ -10,7 +10,7 @@
     header{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(5,10,15,.9);position:sticky;top:0;z-index:2}.brand{display:flex;align-items:center;gap:14px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{display:block;letter-spacing:.12em;color:var(--gold2)}.brand span,.meta{font:600 10px ui-monospace,monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
     main{max-width:1280px;margin:auto;padding:30px}.hero,.panel{border:1px solid var(--line);background:linear-gradient(145deg,rgba(20,37,53,.96),rgba(9,18,27,.96));box-shadow:0 20px 60px rgba(0,0,0,.25)}.hero{padding:30px;border-top:3px solid var(--gold)}h1,h2,h3,p{margin-top:0}h1{font:600 38px Georgia,serif;color:var(--gold2);margin-bottom:8px}.eyebrow{font:700 11px ui-monospace,monospace;color:var(--gold);letter-spacing:.14em;text-transform:uppercase}.truth{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(242,189,98,.35);color:var(--amber);padding:8px 11px;font:700 10px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
     .layout{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}.panel{padding:22px}.voice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.voice{border:1px solid rgba(255,255,255,.1);background:var(--panel2);padding:15px;text-align:left;color:var(--text);cursor:pointer}.voice:hover,.voice.selected{border-color:var(--gold);background:#1a3044}.voice strong{display:block;color:var(--gold2);font-size:16px}.voice span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
-    label{display:block;margin:14px 0 6px;color:var(--muted);font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}select,input{width:100%;padding:12px;border:1px solid var(--line);background:#07111a;color:var(--text)}button,.btn{display:inline-block;border:1px solid var(--gold);background:rgba(198,161,91,.13);color:var(--gold2);padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.receipt{margin-top:16px;padding:14px;border-left:3px solid var(--cyan);background:rgba(110,211,231,.06);color:var(--muted)}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--gold);font:700 10px ui-monospace,monospace;text-transform:uppercase}.nav{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}.nav a{text-decoration:none}
+    label{display:block;margin:14px 0 6px;color:var(--muted);font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}select,input{width:100%;padding:12px;border:1px solid var(--line);background:#07111a;color:var(--text)}button,.btn{display:inline-block;border:1px solid var(--gold);background:rgba(198,161,91,.13);color:var(--gold2);padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none}button:disabled{cursor:not-allowed;opacity:.45}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.receipt{margin-top:16px;padding:14px;border-left:3px solid var(--cyan);background:rgba(110,211,231,.06);color:var(--muted)}.receipt.error{border-left-color:#ec7777;color:#f2b1b1}.receipt.live{border-left-color:var(--green);color:var(--green)}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--gold);font:700 10px ui-monospace,monospace;text-transform:uppercase}.nav{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}.nav a{text-decoration:none}
     @media(max-width:850px){header{padding:0 14px}.meta{display:none}main{padding:16px}.layout{grid-template-columns:1fr}.voice-grid{grid-template-columns:1fr}h1{font-size:30px}}
   </style>
 </head>
@@ -21,19 +21,19 @@
     <div class="eyebrow">Corporate HQ / Voice identity review</div>
     <h1>AI Executive &amp; Staff Voice Casting Room</h1>
     <p>Audition supported OpenAI voices, compare them against each office, and stage a proposed assignment. A voice is a rendering choice—it does not establish identity, office authority, or runtime activation.</p>
-    <span class="truth">Requirements registered · live Realtime session not yet connected</span>
+    <span class="truth" id="capabilityState">Pilot client installed · live session requires verified connection</span>
     <nav class="nav"><a href="command-floor.html">Command Floor</a><a href="war-room.html">War Room</a><a href="voice-engine.html">Voice &amp; Telephony</a><a href="council-staff.html">Council &amp; Staff</a></nav>
   </section>
 
   <div class="layout">
     <section class="panel">
       <div class="eyebrow">01 · Official built-in candidates</div><h2>Choose a voice to audition</h2>
-      <p style="color:var(--muted)">Use the official OpenAI Voice Studio to hear the selected candidate with the same casting line. Custom voices require separate eligibility, consent, and approval.</p>
+      <p style="color:var(--muted)">Select a supported Realtime voice, choose the proposed office, and open a temporary live audition. Custom voices require separate eligibility, consent, and approval.</p>
       <div class="voice-grid" id="voiceGrid"></div>
       <label for="sampleLine">Casting line</label>
       <input id="sampleLine" value="Phoenix King, this is your Corporate office. I am ready to provide a source-backed briefing.">
-      <div class="actions"><a class="btn" href="https://www.openai.fm/" target="_blank" rel="noopener noreferrer">Open official Voice Studio ↗</a><button id="copyLine" type="button">Copy casting line</button></div>
-      <div class="receipt" id="auditionState">Select a candidate, then hear it in the official Voice Studio. No voice has been approved.</div>
+      <div class="actions"><button id="startAudition" type="button">Start live audition</button><button id="stopAudition" type="button" disabled>End audition</button><button id="copyLine" type="button">Copy casting line</button></div>
+      <div class="receipt" id="auditionState" role="status" aria-live="polite">Select a candidate. No voice has been approved.</div>
     </section>
 
     <section class="panel">
@@ -50,18 +50,43 @@
 (()=>{'use strict';
 const voices=[
   ['alloy','Balanced and neutral'],['ash','Clear and composed'],['ballad','Warm and expressive'],['coral','Bright and conversational'],
-  ['echo','Measured and direct'],['fable','Narrative and polished'],['onyx','Deep and authoritative'],['nova','Energetic and modern'],
-  ['sage','Calm and deliberate'],['shimmer','Light and articulate'],['verse','Confident and flexible'],['marin','Natural and nuanced'],['cedar','Grounded and steady']
+  ['echo','Measured and direct'],['sage','Calm and deliberate'],['shimmer','Light and articulate'],['verse','Confident and flexible'],
+  ['marin','Natural and nuanced · quality candidate'],['cedar','Grounded and steady · quality candidate']
 ];
-const staff=['NACE','Alexis Vale — AI Chairwoman','Michael Carrington — AI CEO','Chad G. Pennington — AI COO','Warren Long — Chief Product Strategist','Council Member 01','Council Member 02','Council Member 03','Council Member 04','Council Member 05','Council Member 06','Council Member 07','Council Member 08','Council Member 09','Council Member 10','Council Member 11','Council Member 12','Executive Support Staff'];
-const grid=document.getElementById('voiceGrid'),staffSelect=document.getElementById('staff'),selected=document.getElementById('selectedVoice'),body=document.getElementById('assignments'),state=document.getElementById('auditionState');let current='';
-for(const [name,note] of voices){const b=document.createElement('button');b.type='button';b.className='voice';b.innerHTML='<strong>'+name+'</strong><span>'+note+'</span>';b.addEventListener('click',()=>{current=name;selected.value=name;document.querySelectorAll('.voice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.textContent=name+' selected for audition. Open the official Voice Studio and paste the casting line; selection is not approval.'});grid.append(b)}
+const staff=['NACE','Alexis Vale — AI Chairwoman','Michael Carrington — AI CEO','Chad G. Pennington — AI COO','Warren Long — Chief Product Strategist','Council Member 01','Council Member 02','Council Member 03','Council Member 04','Council Member 05','Council Member 06','Council Member 07','Council Member 08','Council Member 09','Council Member 10','Council Member 11','Council Member 12','Executive Support Staff 01','Executive Support Staff 02'];
+const endpoint='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-voice-realtime-session';
+const grid=document.getElementById('voiceGrid'),staffSelect=document.getElementById('staff'),selected=document.getElementById('selectedVoice'),body=document.getElementById('assignments'),state=document.getElementById('auditionState'),start=document.getElementById('startAudition'),stop=document.getElementById('stopAudition');let current='',peer=null,channel=null,stream=null,audio=null;
+function setState(message,kind=''){state.textContent=message;state.className='receipt'+(kind?' '+kind:'')}
+function endAudition(message='Audition ended. No voice assignment was approved.'){
+  if(channel)channel.close();if(peer)peer.close();if(stream)stream.getTracks().forEach(track=>track.stop());if(audio)audio.srcObject=null;
+  channel=peer=stream=audio=null;start.disabled=false;stop.disabled=true;document.getElementById('capabilityState').textContent='Pilot client installed · no live session';if(message)setState(message);
+}
+for(const [name,note] of voices){const b=document.createElement('button');b.type='button';b.className='voice';b.innerHTML='<strong>'+name+'</strong><span>'+note+'</span>';b.addEventListener('click',()=>{if(peer)endAudition('Voice changed. Start a new audition session.');current=name;selected.value=name;document.querySelectorAll('.voice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');setState(name+' selected. Choose the proposed office and start a temporary live audition.')});grid.append(b)}
 for(const name of staff){const o=document.createElement('option');o.value=o.textContent=name;staffSelect.append(o)}
 const key='rpePccVoiceCastingProposals';const read=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}};
 function render(){body.replaceChildren();const data=read();for(const name of staff){if(!data[name])continue;const tr=document.createElement('tr');for(const value of [name,data[name],'PROPOSED · LOCAL']){const td=document.createElement('td');td.textContent=value;tr.append(td)}body.append(tr)}if(!body.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=3;td.textContent='No voice assignments staged.';tr.append(td);body.append(tr)}}
 document.getElementById('stage').addEventListener('click',()=>{if(!current){state.textContent='Choose and audition a voice before staging an assignment.';return}const data=read();data[staffSelect.value]=current;localStorage.setItem(key,JSON.stringify(data));render()});
 document.getElementById('clear').addEventListener('click',()=>{localStorage.removeItem(key);render()});
-document.getElementById('copyLine').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(document.getElementById('sampleLine').value);state.textContent='Casting line copied. Paste it into the official Voice Studio.'}catch{state.textContent='Clipboard unavailable. Select and copy the casting line manually.'}});render();
+document.getElementById('copyLine').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(document.getElementById('sampleLine').value);setState('Casting line copied.')}catch{setState('Clipboard unavailable. Select and copy the casting line manually.','error')}});
+start.addEventListener('click',async()=>{
+  if(!current){setState('Choose a voice candidate first.','error');return}
+  const token=sessionStorage.getItem('pccEntrySession');
+  if(!token){setState('PCC executive entry is required. Return through the HQ entrance.','error');return}
+  start.disabled=true;setState('Requesting microphone and opening a bounded Realtime audition…');
+  try{
+    peer=new RTCPeerConnection();audio=document.createElement('audio');audio.autoplay=true;peer.ontrack=event=>{audio.srcObject=event.streams[0]};
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});stream.getTracks().forEach(track=>peer.addTrack(track,stream));
+    channel=peer.createDataChannel('oai-events');
+    channel.addEventListener('open',()=>{const line=document.getElementById('sampleLine').value.trim();channel.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:'For this voice audition, say exactly: '+line}]}}));channel.send(JSON.stringify({type:'response.create'}));stop.disabled=false;document.getElementById('capabilityState').textContent='Live Realtime audition connected · candidate only';setState(current+' is live for '+staffSelect.value+'. Speak naturally or end the audition.','live')});
+    channel.addEventListener('message',event=>{try{const message=JSON.parse(event.data);if(message.type==='error')setState('Realtime session error. End this audition and try again.','error')}catch{}});
+    peer.addEventListener('connectionstatechange',()=>{if(['failed','disconnected','closed'].includes(peer?.connectionState))endAudition('Realtime audition disconnected.')});
+    const offer=await peer.createOffer();await peer.setLocalDescription(offer);
+    const response=await fetch(endpoint+'?voice='+encodeURIComponent(current)+'&office='+encodeURIComponent(staffSelect.value),{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/sdp'},body:offer.sdp,cache:'no-store'});
+    const answer=await response.text();if(!response.ok){let code='REALTIME_UNAVAILABLE';try{code=JSON.parse(answer).error||code}catch{}throw Error(code)}
+    await peer.setRemoteDescription({type:'answer',sdp:answer});
+  }catch(error){endAudition('');const messages={ENTRY_REQUIRED:'Your HQ visit expired. Re-enter PCC.',OPENAI_REALTIME_NOT_CONFIGURED:'The secure OpenAI Realtime key has not been configured on the Corporate endpoint.',REALTIME_SESSION_FAILED:'OpenAI did not establish the Realtime session.'};setState(messages[error.message]||('Audition unavailable: '+error.message),'error')}
+});
+stop.addEventListener('click',()=>endAudition());window.addEventListener('pagehide',()=>endAudition(''));render();
 })();
 </script>
 </body></html>

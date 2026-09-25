@@ -3,3 +3,6 @@ verify_jwt = true
 
 [functions.pcc-entry-gateway]
 verify_jwt = false
+
+[functions.pcc-voice-realtime-session]
+verify_jwt = false
