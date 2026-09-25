@@ -19,6 +19,17 @@ Status: source inspected from Founder-supplied worker code and Cloudflare screen
 5. On caller interruption, cancel generation and clear buffered Twilio audio, retaining bounded context. Apply latency and session limits, backpressure, timeouts, cleanup and fallback to the existing call path.
 6. Test NACE greeting, Chad handoff, multi-turn memory, interruption, silence, failed upstream, termination, identity, authority and material receipts. Record call identifiers, versions, timings, rollback and outcome without exposing credentials.
 
+## Founder / Prime Chad AI voice direction
+
+The requested interaction is caller speech → AI staff intelligence and routing → speech in the triggered staff member's established voice. Staff selection and voice selection are separate: `persona_key` is resolved under Corporate authority, then selects the approved provider voice ID; the ID does not itself grant institutional authority.
+
+**Two engineering routes to test:**
+
+- **Preserve existing ElevenLabs voice IDs:** Twilio bidirectional Media Stream → realtime audio conversation/orchestration → low-latency ElevenLabs speech output in the approved voice → Twilio audio. This can reduce pauses and allow interruption if output is streamed and buffered audio is cleared. If the AI produces text for ElevenLabs synthesis, document it as a streaming hybrid rather than direct end-to-end native S2S.
+- **Native OpenAI speech-to-speech:** Twilio bidirectional Media Stream → OpenAI Realtime audio-in/audio-out → Twilio. OpenAI has built-in voices and supports its own eligible custom voice IDs. Existing ElevenLabs voice IDs are provider-specific and cannot be assumed usable as OpenAI custom voice IDs. Custom OpenAI voices require provider eligibility and a consent process, followed by voice-by-voice approval and comparison before any identity change.
+
+Test a single NACE → Chad pilot for first audio latency, interruption and recovery, staff voice fidelity, transfer continuity, cost, authority/receipts, and rollback. Select a route from measured evidence. The existing `OPENAI_API_KEY` indicates a secret is configured; the current source uses text chat completions, so this does not prove OpenAI Realtime access or production readiness.
+
 ## Source issues to address before promotion
 - Cloudflare screenshot visibly exposed the configured `TWILIO_AUDIO_TOKEN` value; rotate it and store as a secret. Current `buildAudioUrl` also places it in query strings, which may appear in logs, browser history, Twilio request traces and referrers.
 - Source excerpt exposes `GET /voice/tts`, `POST /voice/execute`, `POST /voice/plan`, and `GET /debug/env` without a visible authentication gate. Add route-specific authorization; `/debug/env` should not be publicly exposed.
