@@ -742,9 +742,18 @@
       if (!response.ok || !result.session) throw Error(result.error || "ENTRY_UNAVAILABLE");
       sessionStorage.setItem("pccEntrySession", result.session);
       document.body.classList.add("authorized");
-      const returnTo = new URLSearchParams(window.location.search).get("return");
-      const destination = returnTo === "founder-suite.html" ? "founder-suite.html" : "command-floor.html";
-      status.textContent = destination === "founder-suite.html" ? "Entry verified. Opening your Suite…" : "Entry verified. Opening Command Floor…";
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get("return");
+      let destination = returnTo === "founder-suite.html" ? "founder-suite.html" : "command-floor.html";
+      if (returnTo === "office.html") {
+        const officeId = params.get("office_id");
+        const missionId = params.get("mission_id");
+        if (officeId && /^[A-Z0-9_]{1,80}$/.test(officeId)) {
+          destination = "office.html?office_id=" + encodeURIComponent(officeId);
+          if (missionId && /^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(missionId)) destination += "&mission_id=" + encodeURIComponent(missionId);
+        }
+      }
+      status.textContent = destination.startsWith("office.html?") ? "Entry verified. Returning to the office…" : destination === "founder-suite.html" ? "Entry verified. Opening your Suite…" : "Entry verified. Opening Command Floor…";
       window.location.assign(destination);
     } catch (error) {
       status.textContent = error.message === "ENTRY_DENIED" ? "Entry denied." :
