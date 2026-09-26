@@ -73,6 +73,12 @@ Deno.serve(async (request) => {
   if (!upstream.ok || !upstream.body) {
     const detail = (await upstream.text()).slice(0, 300);
     console.error("ElevenLabs Chad audition failed", upstream.status, detail);
+    if (upstream.status === 401 || upstream.status === 403) {
+      return json({ error: "ELEVENLABS_AUTH_FAILED", provider_status: upstream.status }, 502);
+    }
+    if (upstream.status === 404 || upstream.status === 422) {
+      return json({ error: "ELEVENLABS_VOICE_ID_REJECTED", provider_status: upstream.status }, 502);
+    }
     return json({ error: "ELEVENLABS_RENDER_FAILED", provider_status: upstream.status }, 502);
   }
   return respond(upstream.body, 200, "audio/mpeg", { "X-PCC-Voice-Provider": "elevenlabs", "X-PCC-Voice-Candidate": candidate });
