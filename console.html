@@ -1122,6 +1122,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
               <div class="exec-actions">
                 <button class="action-btn" id="workerProvisionBtn" type="button">Bind Patrick Worker</button>
                 <button class="primary-btn" id="workerClaimBtn" type="button" disabled>Claim Current Task</button>
+                <button class="action-btn" id="workerStartBtn" type="button" disabled>Start Task</button>
+              </div>
+              <div class="field">
+                <label for="workerEvidenceSummary">Worker Evidence Summary</label>
+                <textarea id="workerEvidenceSummary" maxlength="2000" spellcheck="false" placeholder="Describe the material result produced by the worker. This must be real output, not a planned result."></textarea>
+              </div>
+              <div class="field">
+                <label for="workerEvidenceRef">Evidence Source Reference</label>
+                <input id="workerEvidenceRef" type="text" maxlength="500" spellcheck="false" placeholder="Governed record, repository commit, artifact, or durable evidence reference" />
+              </div>
+              <div class="field-help">Submission creates a durable evidence record. Completion is a separate transition and remains unavailable until evidence is accepted.</div>
+              <div class="exec-actions">
+                <button class="action-btn" id="workerEvidenceBtn" type="button" disabled>Submit Evidence</button>
+                <button class="primary-btn" id="workerCompleteBtn" type="button" disabled>Complete Task</button>
               </div>
             </div>
           </div>
@@ -1364,6 +1378,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       const taskCancelBtn = document.getElementById("taskCancelBtn");
       const workerProvisionBtn = document.getElementById("workerProvisionBtn");
       const workerClaimBtn = document.getElementById("workerClaimBtn");
+      const workerStartBtn = document.getElementById("workerStartBtn");
+      const workerEvidenceBtn = document.getElementById("workerEvidenceBtn");
+      const workerCompleteBtn = document.getElementById("workerCompleteBtn");
+      const workerEvidenceSummary = document.getElementById("workerEvidenceSummary");
+      const workerEvidenceRef = document.getElementById("workerEvidenceRef");
       const buildBtn = document.getElementById("buildBtn");
       const applyBtn = document.getElementById("applyBtn");
       const executeResetBtn = document.getElementById("executeResetBtn");
@@ -1440,6 +1459,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         [
           executeBtn, buildBtn, applyBtn,
           taskAssignBtn, taskAssignment, taskTitle, workerProvisionBtn, workerClaimBtn,
+          workerStartBtn, workerEvidenceBtn, workerCompleteBtn, workerEvidenceSummary, workerEvidenceRef,
           executeResetBtn, buildResetBtn, applyResetBtn, applyLastBtn,
           executeEndpoint, buildEndpoint, applyEndpoint,
           executeCommand, buildCommand, applyPacketId, buildOrigin
@@ -1686,12 +1706,21 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           if (route === "worker-provision") workerClaimBtn.disabled = !taskId.value;
           if (route === "worker-command") {
             workerClaimBtn.disabled = true;
+            if (data.operation === "CLAIM_TASK") workerStartBtn.disabled = false;
+            if (data.operation === "START_TASK") workerEvidenceBtn.disabled = false;
+            if (data.operation === "SUBMIT_EVIDENCE") workerCompleteBtn.disabled = false;
             taskHoldBtn.disabled = false;
             taskCancelBtn.disabled = false;
           }
           naceCopy.textContent = route === "worker-provision"
             ? "Patrick's dedicated Corporate service-worker identity is bound. No direct login credential was exposed."
-            : "Patrick claimed task " + taskId.value + " with receipt " + data.receipt_id + ". Execution and material output remain unclaimed.";
+            : data.operation === "CLAIM_TASK"
+              ? "Patrick claimed task " + taskId.value + " with receipt " + data.receipt_id + ". Execution and material output remain unclaimed."
+              : data.operation === "START_TASK"
+                ? "Patrick started the bounded task with receipt " + data.receipt_id + ". Material output and completion remain unclaimed."
+                : data.operation === "SUBMIT_EVIDENCE"
+                  ? "Patrick submitted durable evidence with receipt " + data.receipt_id + ". Completion remains unclaimed."
+                  : "Patrick completed the task through the governed evidence route with receipt " + data.receipt_id + ".";
         } catch (error) {
           setStatus({ text: "Worker route failed: " + error.message, mode: "error", route: "/" + route,
             http: "ERROR", status: "Held", receipt: "", target: "PATRICK_ROSS" });
@@ -1704,10 +1733,27 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 
       workerProvisionBtn.addEventListener("click", function () { callWorker("worker-provision", {}); });
       taskId.addEventListener("input", function () {
-        workerClaimBtn.disabled = !/^[0-9a-f-]{36}$/i.test(taskId.value.trim());
+        const invalid = !/^[0-9a-f-]{36}$/i.test(taskId.value.trim());
+        workerClaimBtn.disabled = invalid;
+        workerStartBtn.disabled = invalid;
       });
       workerClaimBtn.addEventListener("click", function () {
         callWorker("worker-command", { operation: "CLAIM_TASK", task_id: taskId.value.trim() });
+      });
+      workerStartBtn.addEventListener("click", function () {
+        callWorker("worker-command", { operation: "START_TASK", task_id: taskId.value.trim() });
+      });
+      workerEvidenceBtn.addEventListener("click", async function () {
+        const summary = workerEvidenceSummary.value.trim();
+        const sourceRef = workerEvidenceRef.value.trim();
+        const bytes = new TextEncoder().encode(JSON.stringify({ summary, source_ref: sourceRef }));
+        const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)))
+          .map((b) => b.toString(16).padStart(2, "0")).join("");
+        callWorker("worker-command", { operation: "SUBMIT_EVIDENCE", task_id: taskId.value.trim(),
+          output_summary: summary, source_ref: sourceRef, digest_sha256: digest });
+      });
+      workerCompleteBtn.addEventListener("click", function () {
+        callWorker("worker-command", { operation: "COMPLETE_TASK", task_id: taskId.value.trim() });
       });
 
       buildBtn.addEventListener("click", function () {
