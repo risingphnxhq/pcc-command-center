@@ -1081,24 +1081,24 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           <section class="panel">
             <div class="panel-head">
               <div>
-                <div class="panel-title">Direct Execution</div>
-                <div class="panel-sub">Staged execution controls. Dispatch requires a verified institutional authority and route.</div>
+                <div class="panel-title">Chad Corporate Command Beacon</div>
+                <div class="panel-sub">First bounded command route: authenticated, reversible and receipted.</div>
               </div>
             </div>
             <div class="panel-body">
               <div class="field-stack">
                 <div class="field">
-                  <label for="executeEndpoint">Execute Endpoint</label>
-                  <input id="executeEndpoint" type="text" value="https://pcc-engine-v1.tsteelefpa.workers.dev/execute" spellcheck="false" />
+                  <label for="executeEndpoint">Governed Endpoint</label>
+                  <input id="executeEndpoint" type="text" value="https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/command-beacon" spellcheck="false" readonly />
                 </div>
                 <div class="field">
-                  <label for="executeCommand">Execution Command</label>
-                  <textarea id="executeCommand" spellcheck="false">RUN PPBP: PCC CORE</textarea>
-                  <div class="field-help">Direct command path only. This route does not generate build packets.</div>
+                  <label for="executeCommand">Command Beacon Message</label>
+                  <textarea id="executeCommand" maxlength="240" spellcheck="false">Corporate HQ command is active and standing by.</textarea>
+                  <div class="field-help">This route can mutate only the Corporate HQ beacon. It cannot run arbitrary code, SQL, deployments or Systems actions.</div>
                 </div>
                 <div class="exec-actions">
-                  <button class="primary-btn" id="executeBtn">Run Execute</button>
-                  <button class="action-btn" id="executeResetBtn" type="button">Reset Execute</button>
+                  <button class="primary-btn" id="executeBtn">Set Beacon Active</button>
+                  <button class="action-btn" id="executeResetBtn" type="button">Rollback Last Beacon</button>
                 </div>
               </div>
             </div>
@@ -1288,10 +1288,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 
   <script>
     (function () {
-      const DEFAULT_EXECUTE_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/execute";
+      const DEFAULT_EXECUTE_ENDPOINT = "https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/command-beacon";
       const DEFAULT_BUILD_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/build";
       const DEFAULT_APPLY_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/apply";
-      const DEFAULT_EXECUTE_COMMAND = "RUN PPBP: PCC CORE";
+      const DEFAULT_EXECUTE_COMMAND = "Corporate HQ command is active and standing by.";
       const DEFAULT_BUILD_COMMAND = "BUILD PAGE: VOICE ENGINE";
 
       const executeEndpoint = document.getElementById("executeEndpoint");
@@ -1511,23 +1511,48 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         });
       }
 
-      async function callRoute(routeName) {
-        setStatus({
-          text: "Execution is held. A verified command authority and route are required.",
-          mode: "error", route: routeName, http: "NOT_CONNECTED",
-          status: "Unavailable", receipt: "", target: ""
-        });
-        setResponse({ status: "AUTH_BINDING_REQUIRED", route: routeName });
-        naceCopy.textContent =
-          "Corporate registered-state access does not authorize execution. A governed office and route must be verified.";
+      async function callRoute(routeName, endpoint, payload, progress) {
+        const entry = sessionStorage.getItem("pccEntrySession");
+        if (!entry) { window.location.replace("index.html"); return; }
+        setBusy(true);
+        setStatus({ text: progress, mode: "loading", route: routeName, http: "", status: "Dispatching", receipt: "", target: "CORPORATE_HQ" });
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { Authorization: "Bearer " + entry, "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            cache: "no-store"
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            if (data.error === "ENTRY_REQUIRED") {
+              sessionStorage.removeItem("pccEntrySession");
+              window.location.replace("index.html");
+              return;
+            }
+            throw new Error(data.error || "COMMAND_FAILED");
+          }
+          hydrateProofs(data);
+          setResponse(data);
+          setStatus({ text: "Bounded Corporate command completed and receipted.", mode: "success", route: routeName,
+            http: response.status, status: data.operation || "VERIFIED", receipt: data.receipt_id, target: "CORPORATE_HQ" });
+          routeChip.textContent = "VERIFIED";
+          lastRunText.textContent = (data.operation || "COMMAND") + " · " + stampNow();
+          naceCopy.textContent = "Chad command authority verified. The Corporate HQ beacon changed through the bounded route and produced receipt " + data.receipt_id + ".";
+        } catch (error) {
+          setStatus({ text: "Command failed: " + error.message, mode: "error", route: routeName,
+            http: "ERROR", status: "Held", receipt: "", target: "CORPORATE_HQ" });
+          setResponse({ status: "COMMAND_FAILED", error: error.message, route: routeName });
+          naceCopy.textContent = "No change was accepted. The governed command route failed closed.";
+        } finally { setBusy(false); }
       }
 
       executeBtn.addEventListener("click", function () {
         callRoute(
-          "/execute",
+          "/command-beacon",
           executeEndpoint.value.trim() || DEFAULT_EXECUTE_ENDPOINT,
-          { command: executeCommand.value.trim() },
-          "Dispatching direct execute command..."
+          { operation: "SET_ACTIVE", message: executeCommand.value.trim() },
+          "Authorizing Chad and setting the Corporate HQ beacon..."
         );
       });
 
@@ -1552,7 +1577,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         );
       });
 
-      executeResetBtn.addEventListener("click", resetExecute);
+      executeResetBtn.addEventListener("click", function () {
+        callRoute("/command-beacon/rollback", DEFAULT_EXECUTE_ENDPOINT,
+          { operation: "ROLLBACK_LAST" }, "Rolling back the last beacon change...");
+      });
       buildResetBtn.addEventListener("click", resetBuild);
       applyResetBtn.addEventListener("click", resetApply);
 
@@ -1601,10 +1629,14 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       });
 
 resetAllView();
-for (const button of [executeBtn, buildBtn, applyBtn, applyLastBtn]) {
+for (const button of [buildBtn, applyBtn, applyLastBtn]) {
   button.disabled = true;
   button.title = "Governed command route not yet verified";
 }
+executeBtn.disabled = false;
+executeResetBtn.disabled = false;
+executeBtn.title = "Authenticated bounded Corporate command";
+executeResetBtn.title = "Rollback the most recent beacon mutation";
 async function loadCorporateSnapshot() {
   const entry = sessionStorage.getItem("pccEntrySession");
   if (!entry) {
@@ -1632,13 +1664,13 @@ async function loadCorporateSnapshot() {
     const chip = document.getElementById("sourceChip");
     chip.className = "status-chip green";
     chip.innerHTML = '<span class="dot"></span> Corporate source read';
-    setStatus({ text: "Corporate registered-state read completed. Command routes remain held.",
-      mode: "idle", route: "", http: "", status: "Read Only", receipt: "", target: "" });
+    setStatus({ text: "Corporate source read completed. Bounded Chad beacon command is available.",
+      mode: "idle", route: "", http: "", status: "Command Ready", receipt: "", target: "CORPORATE_HQ" });
     naceCopy.textContent = offices.length + " Corporate offices and " + missions +
-      " missions were read. Execute, build, and apply remain held.";
+      " missions were read. The bounded Chad beacon command is available; general build and apply remain held.";
     setResponse({ status: "REGISTERED_STATE_READ", source: "CORPORATE_PCC",
       state_class: result.state_class, office_count: offices.length,
-      registered_mission_count: missions, command_routes: "HELD", receipt: null });
+      registered_mission_count: missions, command_routes: { beacon: "AVAILABLE", general_build_apply: "HELD" }, receipt: null });
   } catch (error) {
     setStatus({ text: "Corporate read unavailable: " + error.message,
       mode: "error", route: "", http: "", status: "Read Pending", receipt: "", target: "" });
