@@ -1,0 +1,46 @@
+{
+  "source": "Founder-supplied copied voice ID roster, 2026-09-26",
+  "classification": "RECORDED_CANDIDATES_NOT_ACTIVE_IDENTITIES",
+  "authority_domain": "RPE Corporate HQ",
+  "default_for_registered_persona_without_elevenlabs_id": "retain existing OpenAI voice behavior; do not create an activation",
+  "candidate_mappings": [
+    {"persona_id":"ALEXIS_VALE","provider_voice_ref":"AgHBZjWY3b5qxxQ4vcKs"},
+    {"persona_id":"MICHAEL_CARRINGTON","provider_voice_ref":"CZ78DWjyEx9eQimOPqPi"},
+    {"persona_id":"CHAD_G_PENNINGTON","provider_voice_ref":"QFXXcK8p6cIl5Dtc2XE7","label":"CHAD_S2S","evidence":"ElevenLabs audition HTTP 200, Founder reported audible success"},
+    {"persona_id":"JORDAN_HALE","provider_voice_ref":"WGINef1wh4Hi6O62bfO8"},
+    {"persona_id":"PATRICK_ROSS","provider_voice_ref":"Noo2D0uxFyzbTIA6RY8t"},
+    {"persona_id":"AIDEN_MERCER","provider_voice_ref":"5lm1mr2qVzTTtc8lNLgo"},
+    {"persona_id":"REBECCA_LAWSON","provider_voice_ref":"VCUa8W1mPO0QcgrSewvs"},
+    {"persona_id":"OLIVER_GRANT","provider_voice_ref":"tw43HEeA0n5kOjSqCFT9"},
+    {"persona_id":"ADRIAN_BLACKWELL","provider_voice_ref":"Gympn2UbmkJD4IHh5kzM"},
+    {"persona_id":"MARCUS_BELL","provider_voice_ref":"3jR9BuQAOPMWUjWpi0ll"},
+    {"persona_id":"AVERY_COLE","provider_voice_ref":"KzOeyayOIrEe4EKNJvGq"},
+    {"persona_id":"JULIAN_ROWE","provider_voice_ref":"emNETt9bfkECEZrrqDQS","source_label":"Julain"},
+    {"persona_id":"DERRICK_THOMPSON","provider_voice_ref":"lGMJWfnL2SVUwU7i6zQ7"},
+    {"persona_id":"SIMONE_HARPER","provider_voice_ref":"i7vPmJ2yNcoEVAdpHcQa"},
+    {"persona_id":"VICTOR_LANG","provider_voice_ref":"aCF7fSyJwGn1etojgoux"},
+    {"persona_id":"PEGGY_WILSON","provider_voice_ref":"FrzKLwOr0y3qieiphjs2"},
+    {"persona_id":"SYLVIA_SOMERS","provider_voice_ref":"4RZ84U1b4WCqpu57LvIq"}
+  ],
+  "nace_mapping": {
+    "persona_id": "NACE",
+    "source_label": "System_Operator",
+    "provider_voice_ref": "H1GhCI6GEKiSXZcwmUkc",
+    "state": "RECORDED_NOT_ROUTED",
+    "boundary": "NACE's existing System Voice Worker and command route require their own governed consumer verification."
+  },
+  "other_recorded_ids": [
+    {"source_label":"Chad_Voice_ID","provider_voice_ref":"RXk4kQMWjHHtGKbjGN1A","state":"ALTERNATE_NOT_SELECTED"},
+    {"source_label":"Elena","provider_voice_ref":"mu0cr9JFfLgRPAa7fc11","state":"NO_REGISTERED_PCC_PERSONA_MATCH"},
+    {"source_label":"Nathan","provider_voice_ref":"Gr7mLjPA3HhuWxZidxPW","state":"NO_REGISTERED_PCC_PERSONA_MATCH"},
+    {"source_label":"Ariel","provider_voice_ref":"PnQqoNJXT8kCKUFsXfbg","state":"NO_REGISTERED_PCC_PERSONA_MATCH"}
+  ],
+  "registered_without_id": [
+    {"persona_id":"WARREN_LONG","state":"OPENAI_CANDIDATE_PROPOSED_NOT_ACTIVE"},
+    {"persona_id":"LEXINGTON_MARTIN","state":"UNRESOLVED_ROLE_NO_VOICE_ACTIVATION"}
+  ],
+  "separate_authority": [
+    {"persona_id":"MASON_BRIGGS","state":"SYSTEMS_DOMAIN_NO_CORPORATE_VOICE_ACTIVATION"}
+  ],
+  "activation_gate": "Provider lookup and audition, candidate digest, Founder approval, allowed surface, runtime adapter, receipt, and rollback verification are required for each binding."
+}
