@@ -78,7 +78,9 @@ Deno.serve(async (request) => {
     }
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
-  if (request.method !== "GET" || !["snapshot", "mission"].includes(path || "")) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
+  const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
+  if (!isReadRoute && !isCommandBeaconRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
@@ -101,6 +103,29 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },
   });
+  if (isCommandBeaconRoute) {
+    if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let command: { operation?: unknown; message?: unknown };
+    try { command = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    const operation = typeof command.operation === "string" ? command.operation.trim().toUpperCase() : "";
+    const message = typeof command.message === "string" ? command.message.trim() : null;
+    if (!["SET_ACTIVE", "SET_STANDBY", "ROLLBACK_LAST"].includes(operation)) {
+      return reply({ error: "OPERATION_NOT_ALLOWED" }, 400);
+    }
+    if (operation !== "ROLLBACK_LAST" && (!message || message.length > 240)) {
+      return reply({ error: "MESSAGE_REQUIRED" }, 400);
+    }
+    const { data, error } = await client.rpc("pcc_corporate_command_beacon", {
+      p_operation: operation,
+      p_message: message,
+    });
+    if (error) {
+      const authorityFailure = error.code === "42501";
+      return reply({ error: authorityFailure ? "COMMAND_AUTHORITY_REQUIRED" : error.message || "COMMAND_FAILED" }, authorityFailure ? 403 : 409);
+    }
+    return reply(data, 200);
+  }
+
   const missionId = url.searchParams.get("mission_id");
   if (path === "mission" && (!missionId || !/^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(missionId))) return reply({ error: "INVALID_MISSION_ID" }, 400);
   const { data, error } = path === "mission"
