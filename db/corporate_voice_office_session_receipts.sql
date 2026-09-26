@@ -18,6 +18,9 @@ create table if not exists corporate_voice.office_session_receipts (
 );
 
 alter table corporate_voice.office_session_receipts enable row level security;
+create index if not exists office_session_receipts_voice_identity_idx on corporate_voice.office_session_receipts(voice_identity_id);
+create index if not exists office_session_receipts_candidate_idx on corporate_voice.office_session_receipts(candidate_id);
+create index if not exists office_session_receipts_persona_time_idx on corporate_voice.office_session_receipts(persona_id,opened_at desc);
 revoke all on corporate_voice.office_session_receipts from public, anon, authenticated;
 grant select, insert, update on corporate_voice.office_session_receipts to service_role;
 
