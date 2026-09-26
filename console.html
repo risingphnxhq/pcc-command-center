@@ -1688,6 +1688,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       async function callWorker(route, payload) {
         const entry = sessionStorage.getItem("pccEntrySession");
         if (!entry) { window.location.replace("index.html"); return; }
+        const controls = [executeBtn, buildBtn, applyBtn, taskAssignBtn, taskAssignment,
+          taskTitle, workerProvisionBtn, workerClaimBtn, workerStartBtn, workerEvidenceBtn,
+          workerCompleteBtn, workerEvidenceSummary, workerEvidenceRef, executeResetBtn,
+          buildResetBtn, applyResetBtn, applyLastBtn, executeEndpoint, buildEndpoint,
+          applyEndpoint, executeCommand, buildCommand, applyPacketId, buildOrigin];
+        const previousDisabled = controls.map((el) => el ? el.disabled : true);
+        let successfulOperation = "";
         setBusy(true);
         try {
           const endpoint = DEFAULT_TASK_ENDPOINT.replace(/task-command$/, route);
@@ -1698,20 +1705,12 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           });
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || "WORKER_ROUTE_FAILED");
+          successfulOperation = data.operation || "";
           setResponse(data);
           setStatus({ text: route === "worker-provision" ? "Corporate worker binding verified." : "Corporate worker command receipted.",
             mode: "success", route: "/" + route, http: response.status,
             status: data.task?.state || data.runtime_state || data.operation,
             receipt: data.receipt_id || "IDENTITY_BOUND", target: data.actor_id || data.worker_actor_id || "CORPORATE_WORKER" });
-          if (route === "worker-provision") workerClaimBtn.disabled = !taskId.value;
-          if (route === "worker-command") {
-            workerClaimBtn.disabled = true;
-            if (data.operation === "CLAIM_TASK") workerStartBtn.disabled = false;
-            if (data.operation === "START_TASK") workerEvidenceBtn.disabled = false;
-            if (data.operation === "SUBMIT_EVIDENCE") workerCompleteBtn.disabled = false;
-            taskHoldBtn.disabled = false;
-            taskCancelBtn.disabled = false;
-          }
           naceCopy.textContent = route === "worker-provision"
             ? "The registered Corporate worker binding is active. No credential was exposed."
             : data.operation === "CLAIM_TASK"
@@ -1727,7 +1726,18 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           setResponse({ status: "WORKER_ROUTE_FAILED", error: error.message });
         } finally {
           busy = false;
-          workerProvisionBtn.disabled = false;
+          controls.forEach((el, index) => { if (el) el.disabled = previousDisabled[index]; });
+          if (route === "worker-provision" && successfulOperation) {
+            workerClaimBtn.disabled = !/^[0-9a-f-]{36}$/i.test(taskId.value.trim());
+          }
+          if (route === "worker-command" && successfulOperation) {
+            workerClaimBtn.disabled = true;
+            if (successfulOperation === "CLAIM_TASK") workerStartBtn.disabled = false;
+            if (successfulOperation === "START_TASK") syncWorkerEvidenceControls();
+            if (successfulOperation === "SUBMIT_EVIDENCE") workerCompleteBtn.disabled = false;
+            taskHoldBtn.disabled = false;
+            taskCancelBtn.disabled = false;
+          }
         }
       }
 
