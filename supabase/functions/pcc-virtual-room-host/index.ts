@@ -17,7 +17,8 @@ function reply(body: unknown, status: number) {
 Deno.serve(async (request) => {
   if (request.headers.get("Origin") !== origin) return reply({ error: "ORIGIN_DENIED" }, 403);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-  if (request.method !== "POST" || new URL(request.url).pathname.split("/").pop() !== "draft") {
+  const operation = new URL(request.url).pathname.split("/").pop();
+  if (request.method !== "POST" || !["draft", "cancel-draft"].includes(operation || "")) {
     return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   }
   if (Number(request.headers.get("Content-Length") || 0) > 2048) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
@@ -32,6 +33,18 @@ Deno.serve(async (request) => {
   if (authError || !user || user.is_anonymous) return reply({ error: "HOST_AUTH_REQUIRED" }, 401);
   let input: Record<string, unknown>;
   try { input = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+  const admin = createClient(url, service, { auth: { persistSession: false } });
+  if (operation === "cancel-draft") {
+    const meetingId = input.meeting_id;
+    if (typeof meetingId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meetingId)) {
+      return reply({ error: "INVALID_MEETING" }, 400);
+    }
+    const { data, error } = await admin.rpc("pcc_virtual_war_room_meeting_cancel_draft", {
+      p_host_auth_subject: user.id, p_meeting_id: meetingId,
+    });
+    if (error) return reply({ error: error.code === "42501" ? "DRAFT_CANCEL_AUTHORITY_REQUIRED" : "DRAFT_CANCEL_FAILED" }, error.code === "42501" ? 403 : 409);
+    return reply({ cancelled: data === true, meeting_id: meetingId }, 200);
+  }
   const mission = input.mission_ref, title = input.title, starts = input.starts_at, ends = input.ends_at;
   if (typeof mission !== "string" || !/^[A-Z0-9][A-Z0-9_-]{0,159}$/.test(mission) ||
       typeof title !== "string" || title.length < 1 || title.length > 200 ||
@@ -39,7 +52,6 @@ Deno.serve(async (request) => {
       !Number.isFinite(Date.parse(starts)) || !Number.isFinite(Date.parse(ends))) {
     return reply({ error: "INVALID_REQUEST" }, 400);
   }
-  const admin = createClient(url, service, { auth: { persistSession: false } });
   const { data, error } = await admin.rpc("pcc_virtual_war_room_meeting_draft", {
     p_host_auth_subject: user.id, p_mission_ref: mission, p_title: title,
     p_starts_at: starts, p_ends_at: ends,
