@@ -107,42 +107,15 @@ Deno.serve(async (request) => {
     auth: { persistSession: false },
   });
   if (isWorkerProvisionRoute) {
-    const workerEmail = "patrick.ross.worker@rpe.internal";
-    const actorId = "corporate-patrick-ross-worker";
-    const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
-    let worker = listed.users.find((candidate) => candidate.email === workerEmail);
-    if (!worker) {
-      const passwordBytes = crypto.getRandomValues(new Uint8Array(48));
-      const randomPassword = b64url(passwordBytes) + "!9aR";
-      const { data: created, error: createError } = await admin.auth.admin.createUser({
-        email: workerEmail,
-        password: randomPassword,
-        email_confirm: true,
-        app_metadata: {
-          rpe_actor_id: actorId,
-          rpe_office_id: "PATRICK_ROSS",
-          rpe_identity_class: "CORPORATE_SERVICE_WORKER",
-          rpe_authority_domain: "CORPORATE",
-          direct_login: "DISABLED_BY_UNDISCLOSED_RANDOM_CREDENTIAL",
-        },
-      });
-      if (createError || !created.user) return reply({ error: createError?.message || "WORKER_PRINCIPAL_CREATE_FAILED" }, 409);
-      worker = created.user;
-    }
-    if (worker.app_metadata?.rpe_actor_id !== actorId || worker.app_metadata?.rpe_identity_class !== "CORPORATE_SERVICE_WORKER") {
-      return reply({ error: "WORKER_PRINCIPAL_METADATA_MISMATCH" }, 409);
-    }
-    const { data, error } = await admin.rpc("pcc_provision_corporate_worker", {
-      p_commander_subject: expectedSubject,
-      p_worker_subject: worker.id,
-      p_assignment_id: "G1-PATRICK-CORP-ENG",
-      p_actor_id: actorId,
-      p_display_name: "Patrick Ross",
-      p_role_title: "Corporate Engineering Service Worker",
-    });
-    if (error) return reply({ error: error.code === "42501" ? "WORKER_BINDING_AUTHORITY_REQUIRED" : error.message || "WORKER_BINDING_FAILED" }, error.code === "42501" ? 403 : 409);
-    return reply(data, 200);
+    // This route checks an existing registered identity. It never creates credentials.
+    let input: { assignment_id?: unknown };
+    try { input = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    const assignmentId = typeof input.assignment_id === "string" ? input.assignment_id.trim() : "";
+    if (!/^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(assignmentId)) return reply({ error: "ASSIGNMENT_REQUIRED" }, 400);
+    const { data, error } = await admin.rpc("pcc_resolve_corporate_worker", { p_assignment_id: assignmentId });
+    if (error) return reply({ error: "BOUND_CORPORATE_WORKER_REQUIRED" }, 403);
+    return reply({ ok: true, operation: "VERIFY_WORKER_BINDING", assignment_id: data.assignment_id,
+      office_id: data.office_id, actor_id: data.actor_id, authority_domain: "CORPORATE" }, 200);
   }
   if (isWorkerCommandRoute) {
     if (Number(request.headers.get("Content-Length") || 0) > 4096) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
@@ -154,15 +127,13 @@ Deno.serve(async (request) => {
     if (!["CLAIM_TASK", "START_TASK", "SUBMIT_EVIDENCE", "COMPLETE_TASK"].includes(operation) || !taskId) {
       return reply({ error: "WORKER_OPERATION_AND_TASK_ID_REQUIRED" }, 400);
     }
-    const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
-    const worker = listed.users.find((candidate) => candidate.email === "patrick.ross.worker@rpe.internal");
-    if (!worker) return reply({ error: "WORKER_PRINCIPAL_NOT_PROVISIONED" }, 409);
+    const { data: route, error: routeError } = await admin.rpc("pcc_resolve_corporate_task_worker", { p_task_id: taskId });
+    if (routeError || !route?.worker_subject) return reply({ error: "BOUND_CORPORATE_WORKER_REQUIRED" }, 403);
     const rpc = operation === "CLAIM_TASK" ? "pcc_corporate_worker_command" : "pcc_corporate_worker_execution";
     const params = operation === "CLAIM_TASK" ? {
-      p_commander_subject: expectedSubject, p_operation: operation, p_task_id: taskId, p_worker_subject: worker.id,
+      p_commander_subject: expectedSubject, p_operation: operation, p_task_id: taskId, p_worker_subject: route.worker_subject,
     } : {
-      p_commander_subject: expectedSubject, p_operation: operation, p_task_id: taskId, p_worker_subject: worker.id,
+      p_commander_subject: expectedSubject, p_operation: operation, p_task_id: taskId, p_worker_subject: route.worker_subject,
       p_output_summary: typeof command.output_summary === "string" ? command.output_summary.trim() : null,
       p_source_ref: typeof command.source_ref === "string" ? command.source_ref.trim() : null,
       p_digest_sha256: typeof command.digest_sha256 === "string" ? command.digest_sha256.trim().toLowerCase() : null,
