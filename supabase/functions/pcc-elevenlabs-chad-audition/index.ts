@@ -68,7 +68,12 @@ Deno.serve(async (request) => {
     } catch {
       return json({ error: "ELEVENLABS_INVENTORY_UNAVAILABLE" }, 502);
     }
-    if (!upstream.ok) return json({ error: "ELEVENLABS_INVENTORY_REJECTED", provider_status: upstream.status }, 502);
+    if (!upstream.ok) {
+      let detail: { detail?: { code?: string; status?: string; type?: string } } = {};
+      try { detail = await upstream.json(); } catch { /* keep the status only */ }
+      return json({ error: "ELEVENLABS_INVENTORY_REJECTED", provider_status: upstream.status,
+        provider_code: String(detail.detail?.code || detail.detail?.status || detail.detail?.type || "UNKNOWN").slice(0, 80) }, 502);
+    }
     let inventory: { voices?: Array<{ voice_id?: string; name?: string; category?: string; is_owner?: boolean; permission_on_resource?: string }>; has_more?: boolean };
     try { inventory = await upstream.json(); } catch { return json({ error: "ELEVENLABS_INVENTORY_UNREADABLE" }, 502); }
     const found = (inventory.voices || []).filter((v) => typeof v.name === "string" && /chad/i.test(v.name)).slice(0, 100)
