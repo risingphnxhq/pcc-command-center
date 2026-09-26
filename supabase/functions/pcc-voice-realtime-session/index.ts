@@ -216,8 +216,10 @@ Deno.serve(async (request) => {
     audio: {
       input: {
         turn_detection: {
-          type: "semantic_vad",
-          eagerness: "auto",
+          type: "server_vad",
+          threshold: 0.42,
+          prefix_padding_ms: 400,
+          silence_duration_ms: 700,
           create_response: true,
           interrupt_response: true,
         },
