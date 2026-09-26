@@ -1069,7 +1069,7 @@ async function auditionElevenLabsChad(){
     await audio.play();state.textContent='Playing '+$('elevenLabsChadCandidate').selectedOptions[0].text+'. Listen for identity, warmth and natural delivery.';
   }catch(error){
     const code=String(error?.message||error);
-    state.textContent=code==='ELEVENLABS_MANAGED_SECRET_REQUIRED'?'The managed ElevenLabs secret is not available to the function yet.':code==='ELEVENLABS_RENDER_FAILED'?'This recorded voice ID did not resolve at ElevenLabs. Try the next PSC variant.':'Audition failed: '+code;
+    state.textContent=code==='ELEVENLABS_MANAGED_SECRET_REQUIRED'?'The managed ElevenLabs secret is not available to the function yet.':code==='ELEVENLABS_AUTH_FAILED'?'ElevenLabs rejected the API key. Replace the managed ELEVENLABS_API_KEY secret before testing any voice ID.':code==='ELEVENLABS_VOICE_ID_REJECTED'?'This recorded voice ID did not resolve at ElevenLabs. Try the next PSC variant.':code==='ELEVENLABS_RENDER_FAILED'?'ElevenLabs could not render this audition. No voice identity was changed.':'Audition failed: '+code;
   }finally{button.disabled=false}
 }
 async function endOfficeVoice(message='Office conversation ended.'){
