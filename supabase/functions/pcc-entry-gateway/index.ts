@@ -81,7 +81,9 @@ Deno.serve(async (request) => {
   const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
   const isTaskCommandRoute = request.method === "POST" && path === "task-command";
-  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  const isWorkerProvisionRoute = request.method === "POST" && path === "worker-provision";
+  const isWorkerCommandRoute = request.method === "POST" && path === "worker-command";
+  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
@@ -104,6 +106,64 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },
   });
+  if (isWorkerProvisionRoute) {
+    const workerEmail = "patrick.ross.worker@rpe.internal";
+    const actorId = "corporate-patrick-ross-worker";
+    const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
+    let worker = listed.users.find((candidate) => candidate.email === workerEmail);
+    if (!worker) {
+      const passwordBytes = crypto.getRandomValues(new Uint8Array(48));
+      const randomPassword = b64url(passwordBytes) + "!9aR";
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
+        email: workerEmail,
+        password: randomPassword,
+        email_confirm: true,
+        app_metadata: {
+          rpe_actor_id: actorId,
+          rpe_office_id: "PATRICK_ROSS",
+          rpe_identity_class: "CORPORATE_SERVICE_WORKER",
+          rpe_authority_domain: "CORPORATE",
+          direct_login: "DISABLED_BY_UNDISCLOSED_RANDOM_CREDENTIAL",
+        },
+      });
+      if (createError || !created.user) return reply({ error: createError?.message || "WORKER_PRINCIPAL_CREATE_FAILED" }, 409);
+      worker = created.user;
+    }
+    if (worker.app_metadata?.rpe_actor_id !== actorId || worker.app_metadata?.rpe_identity_class !== "CORPORATE_SERVICE_WORKER") {
+      return reply({ error: "WORKER_PRINCIPAL_METADATA_MISMATCH" }, 409);
+    }
+    const { data, error } = await admin.rpc("pcc_provision_corporate_worker", {
+      p_commander_subject: expectedSubject,
+      p_worker_subject: worker.id,
+      p_assignment_id: "G1-PATRICK-CORP-ENG",
+      p_actor_id: actorId,
+      p_display_name: "Patrick Ross",
+      p_role_title: "Corporate Engineering Service Worker",
+    });
+    if (error) return reply({ error: error.code === "42501" ? "WORKER_BINDING_AUTHORITY_REQUIRED" : error.message || "WORKER_BINDING_FAILED" }, error.code === "42501" ? 403 : 409);
+    return reply(data, 200);
+  }
+  if (isWorkerCommandRoute) {
+    if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let command: { operation?: unknown; task_id?: unknown };
+    try { command = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    const operation = typeof command.operation === "string" ? command.operation.trim().toUpperCase() : "";
+    const taskId = typeof command.task_id === "string" && /^[0-9a-f-]{36}$/i.test(command.task_id) ? command.task_id : null;
+    if (operation !== "CLAIM_TASK" || !taskId) return reply({ error: "CLAIM_TASK_AND_TASK_ID_REQUIRED" }, 400);
+    const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
+    const worker = listed.users.find((candidate) => candidate.email === "patrick.ross.worker@rpe.internal");
+    if (!worker) return reply({ error: "WORKER_PRINCIPAL_NOT_PROVISIONED" }, 409);
+    const { data, error } = await admin.rpc("pcc_corporate_worker_command", {
+      p_commander_subject: expectedSubject,
+      p_operation: operation,
+      p_task_id: taskId,
+      p_worker_subject: worker.id,
+    });
+    if (error) return reply({ error: error.code === "42501" ? "BOUND_WORKER_REQUIRED" : error.message || "WORKER_COMMAND_FAILED" }, error.code === "42501" ? 403 : 409);
+    return reply(data, 200);
+  }
   if (isCommandBeaconRoute) {
     if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let command: { operation?: unknown; message?: unknown };

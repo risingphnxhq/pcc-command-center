@@ -1118,6 +1118,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
                 <button class="action-btn" id="taskHoldBtn" type="button" disabled>Hold Task</button>
                 <button class="action-btn" id="taskCancelBtn" type="button" disabled>Cancel Task</button>
               </div>
+              <div class="field-help">Worker identity is separate from assignment. Provisioning creates Patrick's dedicated non-interactive Corporate service principal; claiming does not assert execution or material output.</div>
+              <div class="exec-actions">
+                <button class="action-btn" id="workerProvisionBtn" type="button">Bind Patrick Worker</button>
+                <button class="primary-btn" id="workerClaimBtn" type="button" disabled>Claim Current Task</button>
+              </div>
             </div>
           </div>
         </section>
@@ -1357,6 +1362,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       const taskAssignBtn = document.getElementById("taskAssignBtn");
       const taskHoldBtn = document.getElementById("taskHoldBtn");
       const taskCancelBtn = document.getElementById("taskCancelBtn");
+      const workerProvisionBtn = document.getElementById("workerProvisionBtn");
+      const workerClaimBtn = document.getElementById("workerClaimBtn");
       const buildBtn = document.getElementById("buildBtn");
       const applyBtn = document.getElementById("applyBtn");
       const executeResetBtn = document.getElementById("executeResetBtn");
@@ -1432,7 +1439,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         busy = isBusy;
         [
           executeBtn, buildBtn, applyBtn,
-          taskAssignBtn, taskAssignment, taskTitle,
+          taskAssignBtn, taskAssignment, taskTitle, workerProvisionBtn, workerClaimBtn,
           executeResetBtn, buildResetBtn, applyResetBtn, applyLastBtn,
           executeEndpoint, buildEndpoint, applyEndpoint,
           executeCommand, buildCommand, applyPacketId, buildOrigin
@@ -1657,6 +1664,48 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       taskAssignBtn.addEventListener("click", function () { callTask("CREATE_TASK"); });
       taskHoldBtn.addEventListener("click", function () { callTask("HOLD_TASK"); });
       taskCancelBtn.addEventListener("click", function () { callTask("CANCEL_TASK"); });
+
+      async function callWorker(route, payload) {
+        const entry = sessionStorage.getItem("pccEntrySession");
+        if (!entry) { window.location.replace("index.html"); return; }
+        setBusy(true);
+        try {
+          const endpoint = DEFAULT_TASK_ENDPOINT.replace(/task-command$/, route);
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { Authorization: "Bearer " + entry, "Content-Type": "application/json" },
+            body: JSON.stringify(payload || {}), cache: "no-store"
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "WORKER_ROUTE_FAILED");
+          setResponse(data);
+          setStatus({ text: route === "worker-provision" ? "Patrick worker identity bound." : "Patrick claimed the current task.",
+            mode: "success", route: "/" + route, http: response.status,
+            status: data.task?.state || data.runtime_state || data.operation,
+            receipt: data.receipt_id || "IDENTITY_BOUND", target: data.actor_id || data.worker_actor_id || "PATRICK_ROSS" });
+          if (route === "worker-provision") workerClaimBtn.disabled = !taskId.value;
+          if (route === "worker-command") {
+            workerClaimBtn.disabled = true;
+            taskHoldBtn.disabled = false;
+            taskCancelBtn.disabled = false;
+          }
+          naceCopy.textContent = route === "worker-provision"
+            ? "Patrick's dedicated Corporate service-worker identity is bound. No direct login credential was exposed."
+            : "Patrick claimed task " + taskId.value + " with receipt " + data.receipt_id + ". Execution and material output remain unclaimed.";
+        } catch (error) {
+          setStatus({ text: "Worker route failed: " + error.message, mode: "error", route: "/" + route,
+            http: "ERROR", status: "Held", receipt: "", target: "PATRICK_ROSS" });
+          setResponse({ status: "WORKER_ROUTE_FAILED", error: error.message });
+        } finally {
+          busy = false;
+          workerProvisionBtn.disabled = false;
+        }
+      }
+
+      workerProvisionBtn.addEventListener("click", function () { callWorker("worker-provision", {}); });
+      workerClaimBtn.addEventListener("click", function () {
+        callWorker("worker-command", { operation: "CLAIM_TASK", task_id: taskId.value });
+      });
 
       buildBtn.addEventListener("click", function () {
         callRoute(
