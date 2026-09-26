@@ -107,11 +107,43 @@ Deno.serve(async (request) => {
     auth: { persistSession: false },
   });
   if (isWorkerProvisionRoute) {
-    // This route checks an existing registered identity. It never creates credentials.
+    if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let input: { assignment_id?: unknown };
     try { input = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
     const assignmentId = typeof input.assignment_id === "string" ? input.assignment_id.trim() : "G1-PATRICK-CORP-ENG";
     if (!/^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(assignmentId)) return reply({ error: "ASSIGNMENT_REQUIRED" }, 400);
+    if (assignmentId === "G1-PEGGY-SUPPORT") {
+      const email = "peggy.wilson.worker@rpe.internal";
+      const actorId = "corporate-peggy-wilson-worker";
+      const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
+      let worker = listed.users.find((candidate) => candidate.email === email);
+      if (!worker) {
+        const bytes = crypto.getRandomValues(new Uint8Array(48));
+        const password = b64url(bytes) + "!9aR";
+        const { data: created, error: createError } = await admin.auth.admin.createUser({
+          email, password, email_confirm: true,
+          app_metadata: {
+            rpe_actor_id: actorId, rpe_office_id: "PEGGY_WILSON",
+            rpe_identity_class: "CORPORATE_SERVICE_WORKER",
+            rpe_authority_domain: "CORPORATE",
+            direct_login: "DISABLED_BY_UNDISCLOSED_RANDOM_CREDENTIAL",
+          },
+        });
+        if (createError || !created.user) return reply({ error: "PEGGY_PRINCIPAL_CREATE_FAILED" }, 409);
+        worker = created.user;
+      }
+      if (worker.app_metadata?.rpe_actor_id !== actorId ||
+          worker.app_metadata?.rpe_office_id !== "PEGGY_WILSON" ||
+          worker.app_metadata?.rpe_authority_domain !== "CORPORATE" ||
+          worker.app_metadata?.rpe_identity_class !== "CORPORATE_SERVICE_WORKER") {
+        return reply({ error: "PEGGY_PRINCIPAL_METADATA_MISMATCH" }, 409);
+      }
+      const { error: bindError } = await admin.rpc("pcc_register_peggy_worker", {
+        p_commander_subject: expectedSubject, p_worker_subject: worker.id,
+      });
+      if (bindError) return reply({ error: bindError.code === "42501" ? "PEGGY_BINDING_AUTHORITY_REQUIRED" : "PEGGY_BINDING_FAILED" }, 409);
+    }
     const { data, error } = await admin.rpc("pcc_resolve_corporate_worker", { p_assignment_id: assignmentId });
     if (error) return reply({ error: "BOUND_CORPORATE_WORKER_REQUIRED" }, 403);
     return reply({ ok: true, operation: "VERIFY_WORKER_BINDING", assignment_id: data.assignment_id,
