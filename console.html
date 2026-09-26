@@ -1732,11 +1732,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       }
 
       workerProvisionBtn.addEventListener("click", function () { callWorker("worker-provision", {}); });
+      function syncWorkerEvidenceControls() {
+        const validTask = /^[0-9a-f-]{36}$/i.test(taskId.value.trim());
+        const validSummary = workerEvidenceSummary.value.trim().length >= 20;
+        const validSource = workerEvidenceRef.value.trim().length >= 5;
+        workerEvidenceBtn.disabled = !(validTask && validSummary && validSource);
+      }
       taskId.addEventListener("input", function () {
         const invalid = !/^[0-9a-f-]{36}$/i.test(taskId.value.trim());
         workerClaimBtn.disabled = invalid;
         workerStartBtn.disabled = invalid;
+        syncWorkerEvidenceControls();
       });
+      workerEvidenceSummary.addEventListener("input", syncWorkerEvidenceControls);
+      workerEvidenceRef.addEventListener("input", syncWorkerEvidenceControls);
       workerClaimBtn.addEventListener("click", function () {
         callWorker("worker-command", { operation: "CLAIM_TASK", task_id: taskId.value.trim() });
       });
