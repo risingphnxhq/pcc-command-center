@@ -35,7 +35,7 @@ The contractor receives a separate personal account or one-time verified invitat
 
 The current PCC entry gateway issues a short-lived `PCC_REGISTERED_READ` session for internal entry. It does not identify individual contractors or authorize a meeting. Current static room pages can be requested directly. Do not invite a contractor, expose protected material, or treat the existing entry passphrase as a guest credential until server-side room and content authorization is deployed and tested.
 
-The first host draft route exists as `pcc-virtual-room-host` and calls a service-only RPC. It requires a separately active `PCC_VIRTUAL_WAR_ROOM_MEETING_HOST` command authorization tied to Chad's authenticated Corporate subject and an authoritative PSC. The existing beacon, task queue, and read capabilities do not satisfy this check. A draft does not admit guests. No host capability, meeting, or guest grant has been activated by this increment.
+The host draft route exists as `pcc-virtual-room-host` and calls a service-only RPC. `PCC_VIRTUAL_WAR_ROOM_MEETING_HOST` is now active for Chad's Corporate subject under `PSC-A-CORPORATE-PCC-VIRTUAL-WAR-ROOM-CHAD-HOST-DRAFT-AUTHORITY-2026-09-26-001`. The existing beacon, task queue, and read capabilities remain distinct. A database acceptance draft for `PCC-V1-ESTABLISH-HQ` was created and cancelled with receipts `1dff6665-46c9-43ae-b479-f76c589a58d1` and `66238321-6d66-44f2-9e0b-4c42963694f0`; closure is `PSC-A-CORPORATE-PCC-VIRTUAL-WAR-ROOM-HOST-DRAFT-ACCEPTANCE-2026-09-26-001`. This proves the database draft/cancel path only. No guest grant, browser host acceptance, meeting activation, or media is established.
 
 ## Incremental build
 
