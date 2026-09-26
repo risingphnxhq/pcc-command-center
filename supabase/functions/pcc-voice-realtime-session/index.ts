@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const allowedOrigin = "https://command.risingphoenixhq.com";
 const allowedVoices = new Set([
@@ -34,11 +35,12 @@ const cors = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Expose-Headers": "x-pcc-voice-session-receipt, x-pcc-voice-receipt-digest",
   "Access-Control-Max-Age": "600",
   Vary: "Origin",
 };
 
-function respond(body: string, status: number, contentType = "application/json") {
+function respond(body: string, status: number, contentType = "application/json", extraHeaders: Record<string,string> = {}) {
   return new Response(body, {
     status,
     headers: {
@@ -46,6 +48,7 @@ function respond(body: string, status: number, contentType = "application/json")
       "Content-Type": contentType,
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
+      ...extraHeaders,
     },
   });
 }
@@ -104,6 +107,11 @@ Deno.serve(async (request) => {
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await validPccSession(token, signingKey)) return json({ error: "ENTRY_REQUIRED" }, 401);
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRole) return json({ error: "VOICE_RECEIPT_STORE_UNAVAILABLE" }, 503);
+  const admin = createClient(supabaseUrl, serviceRole, { auth: { persistSession: false } });
+
   if (request.method === "GET") {
     return json({
       authority_state: "CASTING_RECOMMENDATIONS_NOT_CANON",
@@ -113,33 +121,86 @@ Deno.serve(async (request) => {
     }, 200);
   }
 
+  const url = new URL(request.url);
+  const mode = url.searchParams.get("mode") || "casting";
+
+  if (mode === "receipt") {
+    if (!request.headers.get("Content-Type")?.startsWith("application/json")) return json({ error: "JSON_REQUIRED" }, 415);
+    let body: Record<string,unknown>;
+    try { body = await request.json(); } catch { return json({ error: "INVALID_REQUEST" }, 400); }
+    const receiptId = String(body.session_receipt_id || "");
+    const state = String(body.session_state || "");
+    const firstAudioMs = body.first_audio_ms == null ? null : Number(body.first_audio_ms);
+    if (!/^[0-9a-f-]{36}$/i.test(receiptId) || !["AUDIO_STARTED","ENDED","FAILED"].includes(state)) {
+      return json({ error: "INVALID_RECEIPT_UPDATE" }, 400);
+    }
+    const evidence = {
+      source: "PCC_OFFICE_PILOT_CLIENT",
+      audible: body.audible === true,
+      peer_connection_state: String(body.peer_connection_state || "unknown").slice(0, 40),
+    };
+    const { data, error } = await admin.rpc("pcc_voice_office_session_update", {
+      p_session_receipt_id: receiptId,
+      p_session_state: state,
+      p_first_audio_ms: Number.isFinite(firstAudioMs) ? Math.round(firstAudioMs as number) : null,
+      p_client_evidence: evidence,
+    });
+    if (error) return json({ error: "SESSION_RECEIPT_UPDATE_FAILED" }, 409);
+    return json(data, 200);
+  }
+
   const openAiKey = Deno.env.get("OPENAI_API_KEY");
   if (!openAiKey) return json({ error: "OPENAI_REALTIME_NOT_CONFIGURED" }, 503);
 
-  const url = new URL(request.url);
-  const voice = url.searchParams.get("voice") || "";
   const personaId = url.searchParams.get("persona") || "";
   const profile = profiles.find((item) => item.id === personaId);
-  if (!allowedVoices.has(voice)) return json({ error: "VOICE_NOT_ALLOWED" }, 400);
   if (!profile) return json({ error: "PERSONA_NOT_ALLOWED" }, 400);
+  let voice = url.searchParams.get("voice") || "";
+  let resolution: Record<string,unknown> | null = null;
+
+  if (mode === "office") {
+    const surface = url.searchParams.get("surface") || "";
+    const officeId = url.searchParams.get("office_id") || "";
+    if (surface !== "PCC_OFFICE_PILOT" || officeId !== personaId) return json({ error: "OFFICE_ROUTE_DENIED" }, 403);
+    const resolved = await admin.rpc("pcc_voice_bank_resolve", { p_persona_id: personaId, p_surface: surface });
+    if (resolved.error || !resolved.data) return json({ error: "VOICE_IDENTITY_NOT_ACTIVE" }, 404);
+    resolution = resolved.data as Record<string,unknown>;
+    voice = String(resolution.provider_voice_ref || "");
+    if (resolution.provider !== "openai" || resolution.provider_model !== "gpt-realtime-2.1") {
+      return json({ error: "VOICE_PROVIDER_NOT_SUPPORTED_FOR_OFFICE_PILOT" }, 409);
+    }
+  }
+
+  if (!allowedVoices.has(voice)) return json({ error: "VOICE_NOT_ALLOWED" }, 400);
   if (!request.headers.get("Content-Type")?.startsWith("application/sdp")) {
     return json({ error: "SDP_REQUIRED" }, 415);
   }
   const sdp = await request.text();
   if (!sdp || sdp.length > 100_000) return json({ error: "INVALID_SDP" }, 400);
 
+  const castingInstructions = [
+    "You are participating in a bounded RPE Corporate voice-casting audition.",
+    `The proposed office is ${profile.name}, ${profile.role}. This label does not grant identity or authority.`,
+    `Casting direction: ${profile.gender || "gender not established"}; ${profile.heritage || "heritage not established"}; ${profile.vocalAge || "vocal age not established"}; ${profile.tone}; ${profile.mannerism}; ${profile.persona}.`,
+    profile.accent ? `Founder-defined accent direction: ${profile.accent}.` : "No accent or vocal age was recovered; do not invent one as Canon.",
+    "Speak only the user's requested casting line or answer a brief voice-quality question.",
+    "Do not claim deployment, approval, institutional identity, executive authority, or access to Corporate records.",
+    "Keep every response under 45 seconds.",
+  ];
+  const officeInstructions = [
+    `You are ${profile.name}, ${profile.role}, speaking inside the authenticated RPE Phoenix Command Center office pilot.`,
+    `Voice identity was resolved from the governed Corporate Voice Bank for ${profile.name}; voice rendering does not expand authority.`,
+    `Operating character: ${profile.tone}; ${profile.mannerism}; ${profile.persona}.`,
+    "Serve the Phoenix King in concise executive language. Separate PSC-backed fact, observed runtime evidence, inference, and proposal.",
+    "Do not invent Corporate records, metrics, approvals, deployments, receipts, revenue, or authority.",
+    "Do not claim access to records not supplied in this session. Request a governed source read when evidence is missing.",
+    "Corporate and Systems are separate jurisdictions. Do not assume Mason or Systems authority and do not expose secrets.",
+    "This is a bounded conversational pilot only; do not execute external actions.",
+  ];
   const session = JSON.stringify({
     type: "realtime",
     model: "gpt-realtime-2.1",
-    instructions: [
-      "You are participating in a bounded RPE Corporate voice-casting audition.",
-      `The proposed office is ${profile.name}, ${profile.role}. This label does not grant identity or authority.`,
-      `Casting direction: ${profile.gender || "gender not established"}; ${profile.heritage || "heritage not established"}; ${profile.vocalAge || "vocal age not established"}; ${profile.tone}; ${profile.mannerism}; ${profile.persona}.`,
-      profile.accent ? `Founder-defined accent direction: ${profile.accent}.` : "No accent or vocal age was recovered; do not invent one as Canon.",
-      "Speak only the user's requested casting line or answer a brief voice-quality question.",
-      "Do not claim deployment, approval, institutional identity, executive authority, or access to Corporate records.",
-      "Keep every response under 45 seconds.",
-    ].join(" "),
+    instructions: (mode === "office" ? officeInstructions : castingInstructions).join(" "),
     audio: {
       input: { turn_detection: { type: "semantic_vad" } },
       output: { voice },
@@ -162,5 +223,23 @@ Deno.serve(async (request) => {
     console.error("OpenAI Realtime session failed", upstream.status, body.slice(0, 500));
     return json({ error: "REALTIME_SESSION_FAILED" }, 502);
   }
-  return respond(body, 200, "application/sdp");
+  if (mode !== "office") return respond(body, 200, "application/sdp");
+
+  const surface = "PCC_OFFICE_PILOT";
+  const officeId = url.searchParams.get("office_id") || "";
+  const opened = await admin.rpc("pcc_voice_office_session_open", {
+    p_persona_id: personaId,
+    p_surface: surface,
+    p_office_id: officeId,
+    p_opened_by: "PHOENIX_KING_PCC_SESSION",
+  });
+  if (opened.error || !opened.data) {
+    console.error("Office voice receipt open failed", opened.error?.code);
+    return json({ error: "VOICE_SESSION_RECEIPT_FAILED" }, 503);
+  }
+  const receipt = opened.data as Record<string,unknown>;
+  return respond(body, 200, "application/sdp", {
+    "X-PCC-Voice-Session-Receipt": String(receipt.session_receipt_id || ""),
+    "X-PCC-Voice-Receipt-Digest": String(receipt.receipt_digest || ""),
+  });
 });
