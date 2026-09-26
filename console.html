@@ -1738,6 +1738,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         const validSource = workerEvidenceRef.value.trim().length >= 5;
         workerEvidenceBtn.disabled = !(validTask && validSummary && validSource);
       }
+      function scheduleWorkerEvidenceControlSync() {
+        [0, 50, 250, 1000].forEach(function (delay) {
+          window.setTimeout(syncWorkerEvidenceControls, delay);
+        });
+      }
       taskId.addEventListener("input", function () {
         const invalid = !/^[0-9a-f-]{36}$/i.test(taskId.value.trim());
         workerClaimBtn.disabled = invalid;
@@ -1746,6 +1751,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       });
       workerEvidenceSummary.addEventListener("input", syncWorkerEvidenceControls);
       workerEvidenceRef.addEventListener("input", syncWorkerEvidenceControls);
+      workerEvidenceSummary.addEventListener("change", syncWorkerEvidenceControls);
+      workerEvidenceRef.addEventListener("change", syncWorkerEvidenceControls);
+      workerEvidenceSummary.addEventListener("paste", scheduleWorkerEvidenceControlSync);
+      workerEvidenceRef.addEventListener("paste", scheduleWorkerEvidenceControlSync);
+      window.addEventListener("pageshow", scheduleWorkerEvidenceControlSync);
+      window.addEventListener("focus", scheduleWorkerEvidenceControlSync);
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) scheduleWorkerEvidenceControlSync();
+      });
+      scheduleWorkerEvidenceControlSync();
       workerClaimBtn.addEventListener("click", function () {
         callWorker("worker-command", { operation: "CLAIM_TASK", task_id: taskId.value.trim() });
       });
