@@ -80,7 +80,8 @@ Deno.serve(async (request) => {
   }
   const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
-  if (!isReadRoute && !isCommandBeaconRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  const isTaskCommandRoute = request.method === "POST" && path === "task-command";
+  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
@@ -123,6 +124,27 @@ Deno.serve(async (request) => {
     if (error) {
       const authorityFailure = error.code === "42501";
       return reply({ error: authorityFailure ? "COMMAND_AUTHORITY_REQUIRED" : error.message || "COMMAND_FAILED" }, authorityFailure ? 403 : 409);
+    }
+    return reply(data, 200);
+  }
+  if (isTaskCommandRoute) {
+    if (Number(request.headers.get("Content-Length") || 0) > 2048) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let command: { operation?: unknown; task_id?: unknown; assignment_id?: unknown; title?: unknown };
+    try { command = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    const operation = typeof command.operation === "string" ? command.operation.trim().toUpperCase() : "";
+    if (!["CREATE_TASK", "HOLD_TASK", "CANCEL_TASK"].includes(operation)) return reply({ error: "OPERATION_NOT_ALLOWED" }, 400);
+    const taskId = typeof command.task_id === "string" && /^[0-9a-f-]{36}$/i.test(command.task_id) ? command.task_id : null;
+    const assignmentId = typeof command.assignment_id === "string" && /^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(command.assignment_id) ? command.assignment_id : null;
+    const title = typeof command.title === "string" ? command.title.trim() : null;
+    if (operation === "CREATE_TASK" && (!assignmentId || !title || title.length > 240)) return reply({ error: "ASSIGNMENT_AND_TITLE_REQUIRED" }, 400);
+    if (operation !== "CREATE_TASK" && !taskId) return reply({ error: "TASK_ID_REQUIRED" }, 400);
+    const { data, error } = await admin.rpc("pcc_corporate_task_command", {
+      p_auth_subject: expectedSubject, p_operation: operation, p_task_id: taskId,
+      p_assignment_id: assignmentId, p_title: title,
+    });
+    if (error) {
+      const authorityFailure = error.code === "42501";
+      return reply({ error: authorityFailure ? "COMMAND_AUTHORITY_REQUIRED" : error.message || "TASK_COMMAND_FAILED" }, authorityFailure ? 403 : 409);
     }
     return reply(data, 200);
   }

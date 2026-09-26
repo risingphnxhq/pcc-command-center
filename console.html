@@ -1077,6 +1077,51 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           </div>
         </section>
 
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Corporate Workforce Task Command</div>
+              <div class="panel-sub">Assign, hold, or cancel a bounded Corporate task through Chad's authenticated command route.</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="field-stack">
+              <div class="field">
+                <label for="taskEndpoint">Governed Task Endpoint</label>
+                <input id="taskEndpoint" type="text" value="https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/task-command" readonly />
+              </div>
+              <div class="field">
+                <label for="taskAssignment">Corporate Assignment</label>
+                <select id="taskAssignment">
+                  <option value="G1-PATRICK-CORP-ENG" selected>Patrick Ross — Corporate Engineering</option>
+                  <option value="G1-PEGGY-SUPPORT">Peggy Wilson — Executive Support</option>
+                  <option value="G1-SYLVIA-SUPPORT">Sylvia Somers — Executive Support Staff</option>
+                  <option value="G1-REBECCA-LEGAL">Rebecca Lawson — Legal &amp; Compliance</option>
+                  <option value="G1-MARCUS-COMMS">Marcus Bell — Marketing &amp; Communications</option>
+                  <option value="G1-WARREN-PRODUCT">Warren Long — Product &amp; Portfolio</option>
+                  <option value="G1-AVERY-MEDIA">Avery Cole — Media &amp; Production</option>
+                  <option value="G1-OLIVER-FINANCE">Oliver Grant — Finance</option>
+                  <option value="G1-AIDEN-AUDIT">Aiden Mercer — Audit &amp; Verification</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="taskTitle">Mission Task</label>
+                <textarea id="taskTitle" maxlength="240" spellcheck="false">Founder acceptance test — assign Patrick Ross to verify the bounded Corporate task-command connection.</textarea>
+                <div class="field-help">Queue mutation is not worker execution. A successful command must return a task ID and receipt.</div>
+              </div>
+              <div class="field">
+                <label for="taskId">Current Task ID</label>
+                <input id="taskId" type="text" readonly placeholder="Returned after Assign Task" />
+              </div>
+              <div class="exec-actions">
+                <button class="primary-btn" id="taskAssignBtn" type="button">Assign Task</button>
+                <button class="action-btn" id="taskHoldBtn" type="button" disabled>Hold Task</button>
+                <button class="action-btn" id="taskCancelBtn" type="button" disabled>Cancel Task</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="ops-grid">
           <section class="panel">
             <div class="panel-head">
@@ -1289,12 +1334,17 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
   <script>
     (function () {
       const DEFAULT_EXECUTE_ENDPOINT = "https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/command-beacon";
+      const DEFAULT_TASK_ENDPOINT = "https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/task-command";
       const DEFAULT_BUILD_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/build";
       const DEFAULT_APPLY_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/apply";
       const DEFAULT_EXECUTE_COMMAND = "Corporate HQ command is active and standing by.";
       const DEFAULT_BUILD_COMMAND = "BUILD PAGE: VOICE ENGINE";
 
       const executeEndpoint = document.getElementById("executeEndpoint");
+      const taskEndpoint = document.getElementById("taskEndpoint");
+      const taskAssignment = document.getElementById("taskAssignment");
+      const taskTitle = document.getElementById("taskTitle");
+      const taskId = document.getElementById("taskId");
       const buildEndpoint = document.getElementById("buildEndpoint");
       const applyEndpoint = document.getElementById("applyEndpoint");
 
@@ -1304,6 +1354,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       const buildOrigin = document.getElementById("buildOrigin");
 
       const executeBtn = document.getElementById("executeBtn");
+      const taskAssignBtn = document.getElementById("taskAssignBtn");
+      const taskHoldBtn = document.getElementById("taskHoldBtn");
+      const taskCancelBtn = document.getElementById("taskCancelBtn");
       const buildBtn = document.getElementById("buildBtn");
       const applyBtn = document.getElementById("applyBtn");
       const executeResetBtn = document.getElementById("executeResetBtn");
@@ -1379,6 +1432,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         busy = isBusy;
         [
           executeBtn, buildBtn, applyBtn,
+          taskAssignBtn, taskAssignment, taskTitle,
           executeResetBtn, buildResetBtn, applyResetBtn, applyLastBtn,
           executeEndpoint, buildEndpoint, applyEndpoint,
           executeCommand, buildCommand, applyPacketId, buildOrigin
@@ -1555,6 +1609,54 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           "Authorizing Chad and setting the Corporate HQ beacon..."
         );
       });
+
+      async function callTask(operation) {
+        const entry = sessionStorage.getItem("pccEntrySession");
+        if (!entry) { window.location.replace("index.html"); return; }
+        setBusy(true);
+        try {
+          const payload = operation === "CREATE_TASK"
+            ? { operation, assignment_id: taskAssignment.value, title: taskTitle.value.trim() }
+            : { operation, task_id: taskId.value };
+          const response = await fetch(taskEndpoint.value || DEFAULT_TASK_ENDPOINT, {
+            method: "POST",
+            headers: { Authorization: "Bearer " + entry, "Content-Type": "application/json" },
+            body: JSON.stringify(payload), cache: "no-store"
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            if (data.error === "ENTRY_REQUIRED") {
+              sessionStorage.removeItem("pccEntrySession");
+              window.location.replace("index.html");
+              return;
+            }
+            throw new Error(data.error || "TASK_COMMAND_FAILED");
+          }
+          taskId.value = data.task?.task_id || taskId.value;
+          setResponse(data);
+          setStatus({ text: "Corporate task command completed and receipted.", mode: "success", route: "/task-command",
+            http: response.status, status: data.task?.state || data.operation, receipt: data.receipt_id,
+            target: data.task?.assignment_id || "CORPORATE_TASK" });
+          routeChip.textContent = "VERIFIED";
+          lastRunText.textContent = (data.operation || "TASK_COMMAND") + " · " + stampNow();
+          naceCopy.textContent = "Chad task authority verified. Task " + taskId.value + " is " + data.task?.state + " with receipt " + data.receipt_id + ".";
+        } catch (error) {
+          setStatus({ text: "Task command failed: " + error.message, mode: "error", route: "/task-command",
+            http: "ERROR", status: "Held", receipt: "", target: "CORPORATE_TASK" });
+          setResponse({ status: "TASK_COMMAND_FAILED", error: error.message });
+        } finally {
+          busy = false;
+          [executeBtn, buildBtn, applyBtn, executeResetBtn, buildResetBtn, applyResetBtn, applyLastBtn,
+            executeEndpoint, buildEndpoint, applyEndpoint, executeCommand, buildCommand, applyPacketId, buildOrigin,
+            taskAssignBtn, taskAssignment, taskTitle].forEach((el) => { if (el) el.disabled = false; });
+          taskHoldBtn.disabled = !taskId.value;
+          taskCancelBtn.disabled = !taskId.value;
+        }
+      }
+
+      taskAssignBtn.addEventListener("click", function () { callTask("CREATE_TASK"); });
+      taskHoldBtn.addEventListener("click", function () { callTask("HOLD_TASK"); });
+      taskCancelBtn.addEventListener("click", function () { callTask("CANCEL_TASK"); });
 
       buildBtn.addEventListener("click", function () {
         callRoute(
