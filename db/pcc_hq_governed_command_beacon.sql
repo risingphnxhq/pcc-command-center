@@ -56,7 +56,11 @@ where s.actor_id='corporate-coo-chad-g-pennington'
 on conflict (actor_id,auth_subject,capability) do update
 set authority_psc_id=excluded.authority_psc_id,state='ACTIVE';
 
+revoke all on function public.pcc_corporate_command_beacon(text,text) from public,anon,authenticated;
+drop function if exists public.pcc_corporate_command_beacon(text,text);
+
 create or replace function public.pcc_corporate_command_beacon(
+  p_auth_subject uuid,
   p_operation text,
   p_message text default null
 ) returns jsonb
@@ -65,7 +69,7 @@ security definer
 set search_path = pg_catalog,public,pcc_hq,corporate_psc,extensions
 as $$
 declare
-  v_subject uuid := auth.uid();
+  v_subject uuid := p_auth_subject;
   v_operation text := upper(btrim(coalesce(p_operation,'')));
   v_message text;
   v_action_id uuid;
@@ -155,7 +159,7 @@ begin
 end;
 $$;
 
-revoke all on function public.pcc_corporate_command_beacon(text,text) from public,anon;
-grant execute on function public.pcc_corporate_command_beacon(text,text) to authenticated;
+revoke all on function public.pcc_corporate_command_beacon(uuid,text,text) from public,anon,authenticated;
+grant execute on function public.pcc_corporate_command_beacon(uuid,text,text) to service_role;
 
 commit;
