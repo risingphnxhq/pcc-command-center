@@ -1,9 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// Deployed source is authoritative in Corporate Supabase. This repository copy
-// preserves the bounded Chad ElevenLabs audition route for review and rollback.
-// Voice IDs come from Corporate PSC reconciliation and remain candidates until
-// provider verification and Founder physical acceptance.
 const allowedOrigin = "https://command.risingphoenixhq.com";
 const encoder = new TextEncoder();
 const voices: Record<string, string> = {
@@ -20,8 +16,12 @@ const cors = {
   "Access-Control-Max-Age": "600",
   Vary: "Origin",
 };
+
 function respond(body: BodyInit | null, status: number, contentType = "application/json", extra: Record<string,string> = {}) {
-  return new Response(body, { status, headers: { ...cors, "Content-Type": contentType, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", ...extra }});
+  return new Response(body, { status, headers: {
+    ...cors, "Content-Type": contentType, "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff", ...extra,
+  }});
 }
 function json(body: unknown, status: number) { return respond(JSON.stringify(body), status); }
 function unb64url(value: string) {
@@ -40,20 +40,58 @@ async function validPccSession(token: string, secret: string) {
     const verified = await crypto.subtle.verify("HMAC", await hmacKey(secret), unb64url(parts[1]), encoder.encode(parts[0]));
     if (!verified) return false;
     const payload = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
-    return payload.scope === "PCC_REGISTERED_READ" && Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 10 * 60_000;
+    return payload.scope === "PCC_REGISTERED_READ" &&
+      Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 10 * 60_000;
   } catch { return false; }
 }
+
 Deno.serve(async (request) => {
   const origin = request.headers.get("Origin");
   if (origin !== allowedOrigin) return json({ error: "ORIGIN_DENIED" }, 403);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (!["GET", "POST"].includes(request.method)) return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+
   const signingKey = Deno.env.get("PCC_GATE_SIGNING_KEY");
   if (!signingKey || signingKey.length < 32) return json({ error: "PCC_SESSION_VALIDATION_UNAVAILABLE" }, 503);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await validPccSession(token, signingKey)) return json({ error: "ENTRY_REQUIRED" }, 401);
+
   const configured = Boolean(Deno.env.get("ELEVENLABS_API_KEY"));
-  if (request.method === "GET") return json({ provider: "elevenlabs", configured, persona_id: "CHAD_G_PENNINGTON", candidates: Object.keys(voices), state: configured ? "READY_FOR_BOUNDED_AUDITION" : "MANAGED_SECRET_REQUIRED" }, 200);
+  if (request.method === "GET" && new URL(request.url).pathname.endsWith("/inventory")) {
+    const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
+    if (!apiKey) return json({ error: "ELEVENLABS_MANAGED_SECRET_REQUIRED" }, 503);
+    let upstream: Response;
+    try {
+      upstream = await fetch("https://api.elevenlabs.io/v2/voices?search=Chad&page_size=100&include_total_count=false", {
+        headers: { "xi-api-key": apiKey, Accept: "application/json" },
+      });
+    } catch {
+      return json({ error: "ELEVENLABS_INVENTORY_UNAVAILABLE" }, 502);
+    }
+    if (!upstream.ok) return json({ error: "ELEVENLABS_INVENTORY_REJECTED", provider_status: upstream.status }, 502);
+    let inventory: { voices?: Array<{ voice_id?: string; name?: string; category?: string; is_owner?: boolean; permission_on_resource?: string }>; has_more?: boolean };
+    try { inventory = await upstream.json(); } catch { return json({ error: "ELEVENLABS_INVENTORY_UNREADABLE" }, 502); }
+    const found = (inventory.voices || []).filter((v) => typeof v.name === "string" && /chad/i.test(v.name)).slice(0, 100)
+      .map((v) => ({ name: v.name, voice_id: v.voice_id, category: v.category, is_owner: v.is_owner, permission_on_resource: v.permission_on_resource }));
+    return json({
+      provider: "elevenlabs", state: "READ_ONLY_INVENTORY", persona_id: "CHAD_G_PENNINGTON",
+      voices: found, has_more: Boolean(inventory.has_more),
+      recorded_candidates: Object.fromEntries(Object.entries(voices).map(([key, id]) => [key, {
+        recorded_voice_id: id, accessible_in_listing: found.some((voice) => voice.voice_id === id),
+      }])),
+      activation: "UNCHANGED",
+    }, 200);
+  }
+  if (request.method === "GET") {
+    return json({
+      provider: "elevenlabs",
+      configured,
+      persona_id: "CHAD_G_PENNINGTON",
+      candidates: Object.keys(voices),
+      state: configured ? "READY_FOR_BOUNDED_AUDITION" : "MANAGED_SECRET_REQUIRED",
+    }, 200);
+  }
+
   if (!request.headers.get("Content-Type")?.startsWith("application/json")) return json({ error: "JSON_REQUIRED" }, 415);
   let input: Record<string, unknown>;
   try { input = await request.json(); } catch { return json({ error: "INVALID_REQUEST" }, 400); }
@@ -63,13 +101,22 @@ Deno.serve(async (request) => {
   if (!voiceId) return json({ error: "VOICE_CANDIDATE_NOT_ALLOWED" }, 400);
   const text = String(input.text || "").trim();
   if (!text || text.length > 600) return json({ error: "TEXT_LENGTH_INVALID" }, 400);
+
   const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
   if (!apiKey) return json({ error: "ELEVENLABS_MANAGED_SECRET_REQUIRED" }, 503);
-  const upstream = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}/stream?output_format=mp3_44100_128&optimize_streaming_latency=3`, {
-    method: "POST",
-    headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
-    body: JSON.stringify({ text, model_id: "eleven_flash_v2_5", voice_settings: { stability: 0.48, similarity_boost: 0.78, style: 0.25, use_speaker_boost: true } }),
-  });
+
+  const upstream = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}/stream?output_format=mp3_44100_128&optimize_streaming_latency=3`,
+    {
+      method: "POST",
+      headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_flash_v2_5",
+        voice_settings: { stability: 0.48, similarity_boost: 0.78, style: 0.25, use_speaker_boost: true },
+      }),
+    },
+  );
   if (!upstream.ok || !upstream.body) {
     const detail = (await upstream.text()).slice(0, 300);
     console.error("ElevenLabs Chad audition failed", upstream.status, detail);
@@ -81,5 +128,8 @@ Deno.serve(async (request) => {
     }
     return json({ error: "ELEVENLABS_RENDER_FAILED", provider_status: upstream.status }, 502);
   }
-  return respond(upstream.body, 200, "audio/mpeg", { "X-PCC-Voice-Provider": "elevenlabs", "X-PCC-Voice-Candidate": candidate });
+  return respond(upstream.body, 200, "audio/mpeg", {
+    "X-PCC-Voice-Provider": "elevenlabs",
+    "X-PCC-Voice-Candidate": candidate,
+  });
 });
