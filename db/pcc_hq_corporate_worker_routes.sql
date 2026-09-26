@@ -176,8 +176,8 @@ begin
     (action_id,evidence_id,verifier_office_id,verification_result,verification_note,canon_psc_id)
   values
     (v_action_id,v_evidence_id,'AIDEN_MERCER','PASS',
-     'Bound Corporate worker identity and atomic CLAIMED postcondition verified. Execution and material output are not claimed.',
-     (select authority_psc from pcc_hq.corporate_worker_routes where assignment_id=v_task.assignment_id))
+     'Bound Corporate worker identity and atomic CLAIMED postcondition verified. Canon closure pending.',
+     null)
   returning receipt_id into v_receipt_id;
 
   return jsonb_build_object(
@@ -258,7 +258,7 @@ begin
     if v_task.state<>'CLAIMED' then raise exception using errcode='P0001',message='TASK_NOT_STARTABLE'; end if;
     v_next_state:='IN_PROGRESS';
     v_evidence_kind:='WORKER_START_POSTCONDITION';
-    v_note:='Bounded Corporate worker start transition verified. Material output and completion are not claimed.';
+    v_note:='Bounded Corporate worker start transition verified. Canon closure pending.';
   elsif v_operation='SUBMIT_EVIDENCE' then
     if v_task.state<>'IN_PROGRESS' then raise exception using errcode='P0001',message='TASK_NOT_ACCEPTING_EVIDENCE'; end if;
     if length(btrim(coalesce(p_output_summary,''))) not between 20 and 2000
@@ -268,7 +268,7 @@ begin
     end if;
     v_next_state:='EVIDENCE_SUBMITTED';
     v_evidence_kind:='WORKER_OUTPUT_SUBMISSION';
-    v_note:='Corporate worker submitted bounded output evidence. Receipt verifies durable submission only, not quality or completion.';
+    v_note:='Corporate worker submitted durable output evidence. Canon closure pending.';
   else
     if v_task.state<>'EVIDENCE_SUBMITTED' then raise exception using errcode='P0001',message='TASK_NOT_COMPLETABLE'; end if;
     if not exists (select 1 from pcc_hq.corporate_task_outputs o where o.task_id=p_task_id and o.worker_actor_id=v_actor_id and o.evidence_state='SUBMITTED') then
@@ -276,7 +276,7 @@ begin
     end if;
     v_next_state:='COMPLETED';
     v_evidence_kind:='WORKER_COMPLETION_POSTCONDITION';
-    v_note:='Task completion transition verified against a durable submitted-output record.';
+    v_note:='Task completion transition verified against a bound worker output. Canon closure pending.';
   end if;
 
   v_before:=to_jsonb(v_task);
@@ -320,7 +320,7 @@ begin
     (action_id,evidence_id,verifier_office_id,verification_result,verification_note,canon_psc_id)
   values
     (v_action_id,v_evidence_id,'AIDEN_MERCER','PASS',v_note,
-     (select authority_psc from pcc_hq.corporate_worker_routes where assignment_id=v_task.assignment_id))
+     null)
   returning receipt_id into v_receipt_id;
 
   return jsonb_build_object(
