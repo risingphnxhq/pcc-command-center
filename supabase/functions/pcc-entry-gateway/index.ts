@@ -149,7 +149,8 @@ Deno.serve(async (request) => {
     let command: { operation?: unknown; task_id?: unknown };
     try { command = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
     const operation = typeof command.operation === "string" ? command.operation.trim().toUpperCase() : "";
-    const taskId = typeof command.task_id === "string" && /^[0-9a-f-]{36}$/i.test(command.task_id) ? command.task_id : null;
+    const normalizedTaskId = typeof command.task_id === "string" ? command.task_id.trim() : "";
+    const taskId = /^[0-9a-f-]{36}$/i.test(normalizedTaskId) ? normalizedTaskId : null;
     if (operation !== "CLAIM_TASK" || !taskId) return reply({ error: "CLAIM_TASK_AND_TASK_ID_REQUIRED" }, 400);
     const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
