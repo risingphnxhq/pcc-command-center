@@ -4,7 +4,7 @@ const allowedOrigin = "https://command.risingphoenixhq.com";
 const encoder = new TextEncoder();
 const voices: Record<string, string> = {
   chad_operator: "RXk4kQMwjHHtGkbjGN1A",
-  chad_s2s: "QFXXcK8p6cII5Dtt2XE7",
+  chad_s2s: "QFXXcK8p6cIl5Dtc2XE7",
   chad_database_identity: "RXk4kQMNjHHtGKbJGN1A",
   chad_database_mapping: "RXk4kQMWjHHtGKbJGN1A",
 };
