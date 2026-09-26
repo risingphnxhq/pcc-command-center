@@ -145,23 +145,29 @@ Deno.serve(async (request) => {
     return reply(data, 200);
   }
   if (isWorkerCommandRoute) {
-    if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
-    let command: { operation?: unknown; task_id?: unknown };
+    if (Number(request.headers.get("Content-Length") || 0) > 4096) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let command: { operation?: unknown; task_id?: unknown; output_summary?: unknown; source_ref?: unknown; digest_sha256?: unknown };
     try { command = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
     const operation = typeof command.operation === "string" ? command.operation.trim().toUpperCase() : "";
     const normalizedTaskId = typeof command.task_id === "string" ? command.task_id.trim() : "";
     const taskId = /^[0-9a-f-]{36}$/i.test(normalizedTaskId) ? normalizedTaskId : null;
-    if (operation !== "CLAIM_TASK" || !taskId) return reply({ error: "CLAIM_TASK_AND_TASK_ID_REQUIRED" }, 400);
+    if (!["CLAIM_TASK", "START_TASK", "SUBMIT_EVIDENCE", "COMPLETE_TASK"].includes(operation) || !taskId) {
+      return reply({ error: "WORKER_OPERATION_AND_TASK_ID_REQUIRED" }, 400);
+    }
     const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (listError) return reply({ error: "WORKER_DIRECTORY_UNAVAILABLE" }, 503);
     const worker = listed.users.find((candidate) => candidate.email === "patrick.ross.worker@rpe.internal");
     if (!worker) return reply({ error: "WORKER_PRINCIPAL_NOT_PROVISIONED" }, 409);
-    const { data, error } = await admin.rpc("pcc_corporate_worker_command", {
-      p_commander_subject: expectedSubject,
-      p_operation: operation,
-      p_task_id: taskId,
-      p_worker_subject: worker.id,
-    });
+    const rpc = operation === "CLAIM_TASK" ? "pcc_corporate_worker_command" : "pcc_corporate_worker_execution";
+    const params = operation === "CLAIM_TASK" ? {
+      p_commander_subject: expectedSubject, p_operation: operation, p_task_id: taskId, p_worker_subject: worker.id,
+    } : {
+      p_commander_subject: expectedSubject, p_operation: operation, p_task_id: taskId, p_worker_subject: worker.id,
+      p_output_summary: typeof command.output_summary === "string" ? command.output_summary.trim() : null,
+      p_source_ref: typeof command.source_ref === "string" ? command.source_ref.trim() : null,
+      p_digest_sha256: typeof command.digest_sha256 === "string" ? command.digest_sha256.trim().toLowerCase() : null,
+    };
+    const { data, error } = await admin.rpc(rpc, params);
     if (error) return reply({ error: error.code === "42501" ? "BOUND_WORKER_REQUIRED" : error.message || "WORKER_COMMAND_FAILED" }, error.code === "42501" ? 403 : 409);
     return reply(data, 200);
   }
