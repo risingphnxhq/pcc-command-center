@@ -202,7 +202,14 @@ Deno.serve(async (request) => {
     model: "gpt-realtime-2.1",
     instructions: (mode === "office" ? officeInstructions : castingInstructions).join(" "),
     audio: {
-      input: { turn_detection: { type: "semantic_vad" } },
+      input: {
+        turn_detection: {
+          type: "semantic_vad",
+          eagerness: "auto",
+          create_response: true,
+          interrupt_response: true,
+        },
+      },
       output: { voice },
     },
   });
