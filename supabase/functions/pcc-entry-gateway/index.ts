@@ -115,7 +115,8 @@ Deno.serve(async (request) => {
     if (operation !== "ROLLBACK_LAST" && (!message || message.length > 240)) {
       return reply({ error: "MESSAGE_REQUIRED" }, 400);
     }
-    const { data, error } = await client.rpc("pcc_corporate_command_beacon", {
+    const { data, error } = await admin.rpc("pcc_corporate_command_beacon", {
+      p_auth_subject: expectedSubject,
       p_operation: operation,
       p_message: message,
     });
