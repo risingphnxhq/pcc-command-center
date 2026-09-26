@@ -35,6 +35,8 @@ The contractor receives a separate personal account or one-time verified invitat
 
 The current PCC entry gateway issues a short-lived `PCC_REGISTERED_READ` session for internal entry. It does not identify individual contractors or authorize a meeting. Current static room pages can be requested directly. Do not invite a contractor, expose protected material, or treat the existing entry passphrase as a guest credential until server-side room and content authorization is deployed and tested.
 
+The first host draft route exists as `pcc-virtual-room-host` and calls a service-only RPC. It requires a separately active `PCC_VIRTUAL_WAR_ROOM_MEETING_HOST` command authorization tied to Chad's authenticated Corporate subject and an authoritative PSC. The existing beacon, task queue, and read capabilities do not satisfy this check. A draft does not admit guests. No host capability, meeting, or guest grant has been activated by this increment.
+
 ## Incremental build
 
 1. **Navigation and identity:** retain the existing room pages; register stable room IDs, purposes, and access policy; connect the floor map to the authenticated Corporate office directory. Verify a Founder traversal and a denied guest traversal.
