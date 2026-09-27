@@ -1064,7 +1064,7 @@ async function checkElevenLabsChad(){
   try{
     const response=await fetch(elevenLabsChadEndpoint+'/inventory',{method:'GET',headers:{Authorization:'Bearer '+token},cache:'no-store'});
     const body=await response.json();
-    if(!response.ok)throw Error((body.error||'INVENTORY_FAILED')+' (provider HTTP '+(body.provider_status||response.status)+')');
+    if(!response.ok)throw Error((body.error||'INVENTORY_FAILED')+' (provider HTTP '+(body.provider_status||response.status)+', code '+(body.provider_code||'unknown')+')');
     const list=(body.voices||[]).map(v=>v.name+' · '+v.voice_id+(v.is_owner===true?' · owned':''));
     const recorded=Object.entries(body.recorded_candidates||{}).map(([key,v])=>key+': '+(v.accessible_in_listing?'listed':'not listed'));
     state.textContent=(list.length?list.join(' | '):'No Chad voice returned for this key')+(body.has_more?' · More pages available':'')+'; recorded IDs: '+recorded.join(', ')+'. Inventory is read only; no voice activated.';
