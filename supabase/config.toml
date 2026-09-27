@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.pcc-voice-realtime-session]
 verify_jwt = false
+
+[functions.pcc-office-elevenlabs-speech]
+verify_jwt = false

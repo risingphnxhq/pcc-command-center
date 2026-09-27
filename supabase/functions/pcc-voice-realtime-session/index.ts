@@ -158,6 +158,7 @@ Deno.serve(async (request) => {
   let voice = url.searchParams.get("voice") || "";
   let resolution: Record<string,unknown> | null = null;
   let governedContext: Record<string,unknown> | null = null;
+  let elevenLabsOffice = false;
 
   if (mode === "office") {
     const surface = url.searchParams.get("surface") || "";
@@ -166,8 +167,9 @@ Deno.serve(async (request) => {
     const resolved = await admin.rpc("pcc_voice_bank_resolve", { p_persona_id: personaId, p_surface: surface });
     if (resolved.error || !resolved.data) return json({ error: "VOICE_IDENTITY_NOT_ACTIVE" }, 404);
     resolution = resolved.data as Record<string,unknown>;
+    elevenLabsOffice = resolution.provider === "elevenlabs";
     voice = String(resolution.provider_voice_ref || "");
-    if (resolution.provider !== "openai" || resolution.provider_model !== "gpt-realtime-2.1") {
+    if (!elevenLabsOffice && (resolution.provider !== "openai" || resolution.provider_model !== "gpt-realtime-2.1")) {
       return json({ error: "VOICE_PROVIDER_NOT_SUPPORTED_FOR_OFFICE_PILOT" }, 409);
     }
     const contextResult = await admin.rpc("pcc_voice_office_context", {
@@ -181,7 +183,7 @@ Deno.serve(async (request) => {
     governedContext = contextResult.data as Record<string,unknown>;
   }
 
-  if (!allowedVoices.has(voice)) return json({ error: "VOICE_NOT_ALLOWED" }, 400);
+  if (!elevenLabsOffice && !allowedVoices.has(voice)) return json({ error: "VOICE_NOT_ALLOWED" }, 400);
   if (!request.headers.get("Content-Type")?.startsWith("application/sdp")) {
     return json({ error: "SDP_REQUIRED" }, 415);
   }
@@ -217,6 +219,7 @@ Deno.serve(async (request) => {
     type: "realtime",
     model: "gpt-realtime-2.1",
     instructions: (mode === "office" ? officeInstructions : castingInstructions).join(" "),
+    ...(elevenLabsOffice ? { output_modalities: ["text"] } : {}),
     audio: {
       input: {
         turn_detection: {
@@ -228,7 +231,7 @@ Deno.serve(async (request) => {
           interrupt_response: true,
         },
       },
-      output: { voice },
+      ...(!elevenLabsOffice ? { output: { voice } } : {}),
     },
   });
   const form = new FormData();
