@@ -135,6 +135,20 @@ Deno.serve(async req=>{
     return reply(data,200)
   }
 
+  if(path==="approve-rooms"&&req.method==="POST"){
+    let body:any;try{body=await req.json()}catch{return reply({error:"INVALID_REQUEST"},400)}
+    if(!body||typeof body!=="object")return reply({error:"INVALID_REQUEST"},400);
+    const approval=await verifyToken(req.headers.get("X-Voice-Approval")||"",signing,"PCC_VOICE_BANK_APPROVE");
+    const candidateId=String(body.candidate_id||""),digest=String(body.candidate_digest||"");
+    if(!/^[0-9a-f-]{36}$/i.test(candidateId)||!/^[0-9a-f]{64}$/.test(digest))return reply({error:"INVALID_REQUEST"},400);
+    if(!approval||approval.candidate_id!==candidateId||approval.candidate_digest!==digest)return reply({error:"FOUNDER_APPROVAL_REQUIRED"},403);
+    const {data,error}=await admin.rpc("pcc_voice_bank_approve_room_surfaces",{
+      p_candidate_id:candidateId,p_candidate_digest:digest,p_governing_psc_id:governingPsc
+    });
+    if(error)return reply({error:"ROOM_BINDING_REJECTED",detail:error.message?.includes("BINDING_EXISTS")?"GOVERNED_ROLLBACK_REQUIRED":"CANDIDATE_OR_APPROVAL_REJECTED"},409);
+    return reply(data,200)
+  }
+
   if(path==="resolve"&&req.method==="GET"){
     const u=new URL(req.url),personaId=u.searchParams.get("persona_id")||"",surface=u.searchParams.get("surface")||"";
     if(!personas.has(personaId)||!/^PCC_[A-Z0-9_]{2,60}$/.test(surface))return reply({error:"INVALID_RESOLUTION_REQUEST"},400);
