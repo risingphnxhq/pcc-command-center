@@ -41,6 +41,8 @@ The protected meeting read route `pcc-virtual-room-content` accepts an individua
 
 **Corporate host route correction:** Chad is a Corporate AI office, and PCC already has a governed command route. `pcc-entry-gateway` now serves `POST /war-room-draft`, `POST /war-room-cancel-draft`, and `GET /war-room-meeting?meeting_id=...` after validating its 10-minute PCC command session, resolving the exact registered Corporate machine subject, and calling the service-only meeting RPCs. The database still checks Chad's active `PCC_VIRTUAL_WAR_ROOM_MEETING_HOST` capability and the meeting's authority PSC. No individual Chad browser login is needed for this host path. The standalone `pcc-virtual-room-host` remains a separate Auth-JWT route; it is not the PCC host path. Contractor access still requires an individual guest identity and meeting-specific grant. The gateway host route was deployed as v24; calls without a PCC session returned 401 for all three routes. A positive gateway draft/read/cancel browser test remains to be performed, and no guest grant was created.
 
+The PR War Room page includes a Corporate meeting test panel that uses the current PCC session for create/read/cancel. This is a draft-only host control; it does not enroll guests or open a live room. The panel is not yet on the production page until the PR is merged and deployed.
+
 ## Incremental build
 
 1. **Navigation and identity:** retain the existing room pages; register stable room IDs, purposes, and access policy; connect the floor map to the authenticated Corporate office directory. Verify a Founder traversal and a denied guest traversal.
