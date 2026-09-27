@@ -152,7 +152,7 @@ Deno.serve(async req=>{
   if(path==="resolve"&&req.method==="GET"){
     const u=new URL(req.url),personaId=u.searchParams.get("persona_id")||"",surface=u.searchParams.get("surface")||"";
     if(!personas.has(personaId)||!/^PCC_[A-Z0-9_]{2,60}$/.test(surface))return reply({error:"INVALID_RESOLUTION_REQUEST"},400);
-    const room=surface==="PCC_BOARD_ROOM"||surface==="PCC_WAR_ROOM";
+    const room=surface==="PCC_BOARD_ROOM"||surface==="PCC_WAR_ROOM"||(surface==="PCC_ENTRY"&&personaId==="NACE");
     const {data,error}=await admin.rpc(room?"pcc_voice_bank_resolve_surface":"pcc_voice_bank_resolve",{p_persona_id:personaId,p_surface:surface});
     if(error)return reply({error:error.message?.includes("NOT_ACTIVE")?"VOICE_IDENTITY_NOT_ACTIVE":error.message?.includes("SURFACE")?"SURFACE_NOT_AUTHORIZED":"VOICE_RESOLUTION_FAILED"},404);
     return reply(data,200)
