@@ -1178,6 +1178,31 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
             </div>
           </div>
         </section>
+
+        <section class="command-shell" aria-labelledby="meetingHostTitle">
+          <div class="command-head">
+            <div>
+              <div class="command-title" id="meetingHostTitle">Corporate Meeting Draft</div>
+              <div class="panel-sub">Bounded host test. A draft grants no contractor entry or media access.</div>
+            </div>
+          </div>
+          <div class="command-wrap">
+            <div class="command-row">
+              <div style="display:grid;gap:10px;flex:1;min-width:220px">
+                <label>Corporate mission <input id="meetingMission" class="command-input" value="PCC-V1-ESTABLISH-HQ" maxlength="160" autocomplete="off"></label>
+                <label>Meeting title <input id="meetingTitle" class="command-input" maxlength="200" autocomplete="off" placeholder="Bounded meeting title"></label>
+                <label>Start <input id="meetingStart" class="command-input" type="datetime-local"></label>
+                <label>End <input id="meetingEnd" class="command-input" type="datetime-local"></label>
+                <div class="btn-stack" style="flex-direction:row;flex-wrap:wrap">
+                  <button class="btn" id="meetingDraft" type="button">Create Draft</button>
+                  <button class="btn secondary" id="meetingRead" type="button" disabled>Read Draft</button>
+                  <button class="btn red" id="meetingCancel" type="button" disabled>Cancel Draft</button>
+                </div>
+                <div class="hint" id="meetingResult" role="status" aria-live="polite">Enter PCC through the front door first. This control uses the current short-lived session.</div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
 
@@ -1215,5 +1240,48 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
   </div>
    
 
+  <script>
+    (() => {
+      const gateway='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway';
+      const $=id=>document.getElementById(id);
+      let meetingId=null;
+      let busy=false;
+      function state(message){$('meetingResult').textContent=message;$('meetingDraft').disabled=busy;$('meetingRead').disabled=busy||!meetingId;$('meetingCancel').disabled=busy||!meetingId}
+      async function call(route,body){
+        const token=sessionStorage.getItem('pccEntrySession');
+        if(!token)throw Error('PCC entry is required. Return to the front door and enter again.');
+        const response=await fetch(gateway+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+        const result=await response.json();
+        if(!response.ok)throw Error(result.error==='ENTRY_REQUIRED'?'PCC session expired. Re-enter through the front door.':result.error||'Meeting operation denied.');
+        return result;
+      }
+      async function run(operation){
+        if(busy)return;
+        busy=true;state('Checking Corporate meeting authority…');
+        try{
+          if(operation==='draft'){
+            const starts=$('meetingStart').value,ends=$('meetingEnd').value;
+            if(!starts||!ends)throw Error('Enter start and end times.');
+            const result=await call('/war-room-draft',{mission_ref:$('meetingMission').value.trim(),title:$('meetingTitle').value.trim(),starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString()});
+            meetingId=result.meeting_id;
+            state('Draft '+meetingId+' created. Guest access denied.');
+          }else if(operation==='read'){
+            if(!meetingId)throw Error('Create a draft first.');
+            const result=await call('/war-room-meeting?meeting_id='+encodeURIComponent(meetingId));
+            state('Read confirmed: '+result.title+' · '+result.state+' · '+result.role+'. No materials or media granted.');
+          }else{
+            if(!meetingId)throw Error('Create a draft first.');
+            await call('/war-room-cancel-draft',{meeting_id:meetingId});
+            const cancelled=meetingId;meetingId=null;
+            state('Draft '+cancelled+' cancelled.');
+          }
+        }catch(error){state(error instanceof Error?error.message:'Meeting operation unavailable.');}
+        finally{busy=false;state($('meetingResult').textContent);}
+      }
+      $('meetingDraft').addEventListener('click',()=>run('draft'));
+      $('meetingRead').addEventListener('click',()=>run('read'));
+      $('meetingCancel').addEventListener('click',()=>run('cancel'));
+    })();
+  </script>
 </body>
 </html> 
