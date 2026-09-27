@@ -50,19 +50,21 @@ Deno.serve(async request => {
     return json({ error: "ELEVENLABS_IDENTITY_NOT_ACTIVE" }, 409);
   const voiceId = String(resolved.data.provider_voice_ref || "");
   if (!/^[A-Za-z0-9]{20}$/.test(voiceId)) return json({ error: "INVALID_VOICE_BINDING" }, 409);
-  const { data: receipt, error } = await admin.rpc("pcc_voice_office_session_validate", {
+  const { data: receipt, error } = await admin.rpc("pcc_voice_office_session_reserve_render", {
     p_session_receipt_id: receiptId, p_persona_id: persona, p_provider_voice_ref: voiceId,
+    p_characters: text.trim().length,
   });
   if (error || !receipt || receipt.persona_id !== persona || receipt.provider !== "elevenlabs" ||
     receipt.provider_voice_ref !== voiceId || receipt.surface !== "PCC_OFFICE_PILOT" ||
     !["PROVIDER_ACCEPTED", "AUDIO_STARTED"].includes(receipt.session_state) ||
-    Date.now() - Date.parse(receipt.opened_at) > 10 * 60_000)
+    !Number.isFinite(Date.parse(receipt.opened_at)) || Date.now() - Date.parse(receipt.opened_at) > 10 * 60_000)
     return json({ error: "VOICE_SESSION_NOT_ACTIVE" }, 403);
 
   // Only an approved office identity can render; text is sent to ElevenLabs for the requested spoken turn.
   const upstream = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream?output_format=mp3_44100_128`, {
     method: "POST", headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
     body: JSON.stringify({ text: text.trim(), model_id: "eleven_flash_v2_5" }),
+    signal: AbortSignal.timeout(20_000),
   }).catch(() => null);
   if (!upstream?.ok || !upstream.body) return json({ error: "VOICE_RENDER_FAILED" }, 502);
   return new Response(upstream.body, { status: 200, headers: { ...cors, "Content-Type": "audio/mpeg",
