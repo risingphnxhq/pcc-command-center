@@ -131,7 +131,7 @@ Deno.serve(async (request) => {
       p_host_auth_subject: expectedSubject, p_mission_ref: mission, p_title: title,
       p_starts_at: starts, p_ends_at: ends,
     });
-    if (error) return reply({ error: error.code === "42501" ? "MEETING_HOST_AUTHORITY_REQUIRED" : "MEETING_DRAFT_FAILED" }, error.code === "42501" ? 403 : 400);
+    if (error) return reply({ error: error.code === "42501" ? "MEETING_HOST_AUTHORITY_REQUIRED" : error.code === "22023" ? "INVALID_MEETING_DATES_OR_TITLE" : "MEETING_DRAFT_FAILED" }, error.code === "42501" ? 403 : 400);
     return reply({ state: "DRAFT", meeting_id: data, guest_access: "DENIED" }, 201);
   }
   if (isMeetingReadRoute) {
