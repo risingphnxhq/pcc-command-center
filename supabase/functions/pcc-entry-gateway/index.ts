@@ -83,7 +83,10 @@ Deno.serve(async (request) => {
   const isTaskCommandRoute = request.method === "POST" && path === "task-command";
   const isWorkerProvisionRoute = request.method === "POST" && path === "worker-provision";
   const isWorkerCommandRoute = request.method === "POST" && path === "worker-command";
-  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  const isMeetingDraftRoute = request.method === "POST" && path === "war-room-draft";
+  const isMeetingCancelRoute = request.method === "POST" && path === "war-room-cancel-draft";
+  const isMeetingReadRoute = request.method === "GET" && path === "war-room-meeting";
+  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
@@ -106,6 +109,41 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },
   });
+  if (isMeetingDraftRoute || isMeetingCancelRoute) {
+    if (Number(request.headers.get("Content-Length") || 0) > 2048) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let input: Record<string, unknown>;
+    try { input = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    if (isMeetingCancelRoute) {
+      const meetingId = input.meeting_id;
+      if (typeof meetingId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meetingId)) return reply({ error: "INVALID_MEETING" }, 400);
+      const { data, error } = await admin.rpc("pcc_virtual_war_room_meeting_cancel_draft", {
+        p_host_auth_subject: expectedSubject, p_meeting_id: meetingId,
+      });
+      if (error) return reply({ error: error.code === "42501" ? "DRAFT_CANCEL_AUTHORITY_REQUIRED" : "DRAFT_CANCEL_FAILED" }, error.code === "42501" ? 403 : 409);
+      return reply({ cancelled: data === true, meeting_id: meetingId }, 200);
+    }
+    const mission = input.mission_ref, title = input.title, starts = input.starts_at, ends = input.ends_at;
+    if (typeof mission !== "string" || !/^[A-Z0-9][A-Z0-9_-]{0,159}$/.test(mission) ||
+        typeof title !== "string" || title.length < 1 || title.length > 200 ||
+        typeof starts !== "string" || typeof ends !== "string" ||
+        !Number.isFinite(Date.parse(starts)) || !Number.isFinite(Date.parse(ends))) return reply({ error: "INVALID_REQUEST" }, 400);
+    const { data, error } = await admin.rpc("pcc_virtual_war_room_meeting_draft", {
+      p_host_auth_subject: expectedSubject, p_mission_ref: mission, p_title: title,
+      p_starts_at: starts, p_ends_at: ends,
+    });
+    if (error) return reply({ error: error.code === "42501" ? "MEETING_HOST_AUTHORITY_REQUIRED" : "MEETING_DRAFT_FAILED" }, error.code === "42501" ? 403 : 400);
+    return reply({ state: "DRAFT", meeting_id: data, guest_access: "DENIED" }, 201);
+  }
+  if (isMeetingReadRoute) {
+    const meetingId = url.searchParams.get("meeting_id") || "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meetingId)) return reply({ error: "INVALID_MEETING" }, 400);
+    const { data, error } = await admin.rpc("pcc_virtual_war_room_room_view", {
+      p_auth_subject: expectedSubject, p_meeting_id: meetingId,
+    });
+    if (error) return reply({ error: "ROOM_CONTENT_UNAVAILABLE" }, 503);
+    if (!data || data.role !== "HOST") return reply({ error: "ROOM_ACCESS_DENIED" }, 403);
+    return reply(data, 200);
+  }
   if (isWorkerProvisionRoute) {
     if (Number(request.headers.get("Content-Length") || 0) > 1024) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let input: { assignment_id?: unknown };
