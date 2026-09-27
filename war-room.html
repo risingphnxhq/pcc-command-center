@@ -1262,7 +1262,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           if(operation==='draft'){
             const starts=$('meetingStart').value,ends=$('meetingEnd').value;
             if(!starts||!ends)throw Error('Enter start and end times.');
-            const result=await call('/war-room-draft',{mission_ref:$('meetingMission').value.trim(),title:$('meetingTitle').value.trim(),starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString()});
+            const startDate=new Date(starts),endDate=new Date(ends),now=Date.now();
+            if(!Number.isFinite(startDate.getTime())||!Number.isFinite(endDate.getTime()))throw Error('Enter valid local start and end dates.');
+            if(startDate.getTime()<=now)throw Error('Start must be in the future. Check the month, day, and year.');
+            if(startDate.getTime()>now+30*24*60*60*1000)throw Error('Start must be within the next 30 days.');
+            if(endDate.getTime()<=startDate.getTime())throw Error('End must be after Start. Check both dates.');
+            if(endDate.getTime()>startDate.getTime()+24*60*60*1000)throw Error('A draft meeting cannot exceed 24 hours.');
+            const result=await call('/war-room-draft',{mission_ref:$('meetingMission').value.trim(),title:$('meetingTitle').value.trim(),starts_at:startDate.toISOString(),ends_at:endDate.toISOString()});
             meetingId=result.meeting_id;
             state('Draft '+meetingId+' created. Guest access denied.');
           }else if(operation==='read'){
