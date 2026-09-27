@@ -119,6 +119,26 @@ Deno.serve(async req=>{
     return reply({approval_session:await issueApproval(signing,candidateId,digest),expires_in:120},200)
   }
 
+  if(path==="approval-sessions"&&req.method==="POST"){
+    let body:any;try{body=await req.json()}catch{return reply({error:"INVALID_REQUEST"},400)}
+    const candidates=body.candidates,passphrase=body.passphrase;
+    if(!Array.isArray(candidates)||candidates.length<1||candidates.length>18||
+      typeof passphrase!=="string"||passphrase.length>256)return reply({error:"INVALID_REQUEST"},400);
+    const ids=new Set<string>();
+    for(const candidate of candidates){
+      if(!candidate||!/^[0-9a-f-]{36}$/i.test(String(candidate.candidate_id||""))||
+        !/^[0-9a-f]{64}$/.test(String(candidate.candidate_digest||""))||
+        ids.has(candidate.candidate_id))return reply({error:"INVALID_CANDIDATE_SET"},400);
+      ids.add(candidate.candidate_id);
+    }
+    if(!await equalSecrets(passphrase,gate))return reply({error:"FOUNDER_REAUTH_DENIED"},401);
+    const approvals=[];
+    for(const candidate of candidates)approvals.push({candidate_id:candidate.candidate_id,
+      candidate_digest:candidate.candidate_digest,
+      approval_session:await issueApproval(signing,candidate.candidate_id,candidate.candidate_digest)});
+    return reply({approvals,expires_in:120},200);
+  }
+
   if(path==="decide"&&req.method==="POST"){
     let body:any;try{body=await req.json()}catch{return reply({error:"INVALID_REQUEST"},400)}
     const approval=await verifyToken(req.headers.get("X-Voice-Approval")||"",signing,"PCC_VOICE_BANK_APPROVE");
