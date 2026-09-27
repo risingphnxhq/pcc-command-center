@@ -7,6 +7,7 @@
 <a href="voice-casting.html">← Voice Casting Room</a><h1>Corporate Staff Voice Bindings</h1>
 <p class="note">These are your existing ElevenLabs voice IDs. Stage checks the exact ID and records a digest-bound candidate. Approve rooms requires Founder reauthentication and binds that candidate to Board and War Rooms without replacing an office voice. Audio and conversation remain separate gates. Warren retains the OpenAI path. Mason remains in Systems.</p>
 <p id="status" role="status" aria-live="polite">Enter PCC through the front door before staging a binding.</p>
+<div class="note"><b>Approve the staged roster</b><p>One Founder reauthentication issues a separate two-minute approval for each exact candidate digest shown below. Each candidate receives its own approval and activation receipt. Chad’s existing office voice is replaced only when his exact candidate is approved.</p><input id="batchPassphrase" type="password" autocomplete="current-password" placeholder="Founder passphrase" aria-label="Founder passphrase"><button id="approveRoster" type="button" disabled>Approve staged voices for offices and rooms</button></div>
 <section id="roster" aria-label="Founder supplied voice candidates"></section>
 </main><script>
 (()=>{'use strict';
@@ -15,13 +16,40 @@ const groups=[['Executive Command',[['ALEXIS_VALE','Alexis Vale'],['MICHAEL_CARR
 const status=document.getElementById('status');
 function token(){return sessionStorage.getItem('pccEntrySession')}
 const staged=new Map();
+const batchButton=document.getElementById('approveRoster'),batchPassphrase=document.getElementById('batchPassphrase');
 async function stage(id){if(!token()){status.textContent='PCC entry required. Re-enter from the front door.';return}const row=document.querySelector('[data-persona="'+id+'"]'),button=row.querySelector('.stage');button.disabled=true;status.textContent='Staging '+id+'…';try{
- const response=await fetch(bank+'/elevenlabs-candidate',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({persona_id:id}),cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'CANDIDATE_WRITE_FAILED');row.querySelector('span').textContent='Staged · '+data.state+' · digest '+data.candidate_digest;status.textContent=id+' staged as candidate '+data.candidate_id+'. No activation occurred.';staged.set(id,{candidate_id:data.candidate_id,candidate_digest:data.candidate_digest});row.querySelector('.approve').disabled=false;
+ const response=await fetch(bank+'/elevenlabs-candidate',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({persona_id:id}),cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'CANDIDATE_WRITE_FAILED');row.querySelector('span').textContent='Staged · '+data.state+' · digest '+data.candidate_digest;status.textContent=id+' staged as candidate '+data.candidate_id+'. No activation occurred.';staged.set(id,{candidate_id:data.candidate_id,candidate_digest:data.candidate_digest});row.querySelector('.approve').disabled=false;batchButton.disabled=false;
  }catch(e){row.querySelector('span').textContent='Stage failed: '+e.message;status.textContent=id+': '+e.message}finally{button.disabled=false}}
 async function approve(id){const candidate=staged.get(id);if(!candidate||!token()){status.textContent='Stage under a current PCC session first.';return}const passphrase=window.prompt('Founder passphrase to approve this exact candidate for '+(id==='NACE'?'PCC entry, Board and War Rooms':'Board and War Rooms')+':');if(passphrase===null)return;const row=document.querySelector('[data-persona="'+id+'"]'),button=row.querySelector('.approve');button.disabled=true;status.textContent='Approving '+id+'…';try{
  const auth=await fetch(bank+'/approval-session',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({...candidate,passphrase}),cache:'no-store'});const a=await auth.json();if(!auth.ok)throw Error(a.error||'FOUNDER_REAUTH_DENIED');
  const response=await fetch(bank+'/approve-rooms',{method:'POST',headers:{Authorization:'Bearer '+token(),'X-Voice-Approval':a.approval_session,'Content-Type':'application/json'},body:JSON.stringify(candidate),cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'ROOM_BINDING_REJECTED');row.querySelector('span').textContent=id==='NACE'?'Approved · Board, War Room, and PCC entry bindings created':'Approved · Board and War Room binding records created';status.textContent=id==='NACE'?'NACE entry greeting is eligible for a live voice test; conversational commands remain separate.':id+' bound to both rooms. Audio and conversation are not active yet.';
  }catch(e){status.textContent=id+': '+e.message}finally{button.disabled=false}}
+batchButton.onclick=async()=>{
+  if(!token()||!staged.size||!batchPassphrase.value){status.textContent='PCC session, staged candidates, and Founder reauthentication are required.';return}
+  const candidates=[...staged.entries()].map(([persona_id,c])=>({persona_id,...c}));
+  const passphrase=batchPassphrase.value;batchPassphrase.value='';batchButton.disabled=true;
+  const results=[];try{
+    status.textContent='Reauthenticating the exact staged roster…';
+    let response=await fetch(bank+'/approval-sessions',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({candidates,passphrase}),cache:'no-store'});
+    let body=await response.json();if(!response.ok)throw Error(body.error||'FOUNDER_REAUTH_DENIED');
+    const approvals=new Map(body.approvals.map(a=>[a.candidate_id,a]));
+    for(const item of candidates){
+      const approval=approvals.get(item.candidate_id);if(!approval||approval.candidate_digest!==item.candidate_digest){results.push(item.persona_id+': approval mismatch');continue}
+      const headers={Authorization:'Bearer '+token(),'X-Voice-Approval':approval.approval_session,'Content-Type':'application/json'};
+      try{
+        response=await fetch(bank+'/approve-rooms',{method:'POST',headers,body:JSON.stringify(item),cache:'no-store'});body=await response.json();if(!response.ok)throw Error(body.error||'ROOM_BINDING_REJECTED');
+        if(item.persona_id!=='NACE'){
+          response=await fetch(bank+'/decide',{method:'POST',headers,body:JSON.stringify({...item,decision:'APPROVE'}),cache:'no-store'});body=await response.json();if(!response.ok)throw Error(body.error||'OFFICE_ACTIVATION_FAILED');
+        }
+        document.querySelector('[data-persona="'+item.persona_id+'"]').querySelector('span').textContent=item.persona_id==='NACE'?'Approved · Entry, Board and War Room bound':'Active · Office, Board and War Room bound';
+        staged.delete(item.persona_id);results.push(item.persona_id+': active');
+      }catch(error){results.push(item.persona_id+': '+error.message)}
+      status.textContent=results.length+' / '+candidates.length+' processed · '+results.filter(r=>r.endsWith(': active')).length+' active';
+    }
+    status.textContent='Roster result: '+results.join(' · ');
+  }catch(error){status.textContent='Roster approval failed: '+error.message}
+  finally{batchButton.disabled=!staged.size}
+};
 const root=document.getElementById('roster');for(const [group,people] of groups){const h=document.createElement('h2');h.textContent=group;root.append(h);for(const [id,name] of people){const row=document.createElement('div');row.className='row';row.dataset.persona=id;const detail=document.createElement('div'),label=document.createElement('strong'),state=document.createElement('span');label.textContent=name;state.textContent='Founder ID recorded · not bound to active identity';detail.append(label,state);const actions=document.createElement('div');const button=document.createElement('button');button.className='stage';button.textContent='Stage binding';button.onclick=()=>stage(id);const approval=document.createElement('button');approval.className='approve';approval.textContent=id==='NACE'?'Approve rooms + entry':'Approve rooms';approval.disabled=true;approval.onclick=()=>approve(id);actions.append(button,approval);row.append(detail,actions);root.append(row)}}
 })();
 </script></body></html>
