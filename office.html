@@ -1095,7 +1095,7 @@ async function auditionElevenLabsChad(){
   button.disabled=true;state.textContent='Rendering the selected Chad candidate through ElevenLabs…';
   if(audio.src){URL.revokeObjectURL(audio.src);audio.removeAttribute('src');audio.style.display='none'}
   try{
-    const response=await fetch(elevenLabsChadEndpoint,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({persona_id:'CHAD_G_PENNINGTON',candidate:$('elevenLabsChadCandidate').value,text:"Phoenix King, Chad here. I'm with you, brother. Let's build this Corporate headquarters the right way."}),cache:'no-store'});
+    const response=await fetch(elevenLabsChadEndpoint,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({persona_id:'CHAD_G_PENNINGTON',candidate:$('elevenLabsChadCandidate').value,text:"Ty, Chad here. Let's get this Corporate headquarters operating with clear owners and evidence."}),cache:'no-store'});
     if(!response.ok){let detail={};try{detail=await response.json()}catch{};throw new Error(detail.error||('HTTP '+response.status))}
     const blob=await response.blob();audio.src=URL.createObjectURL(blob);audio.style.display='block';
     await audio.play();state.textContent='Playing '+$('elevenLabsChadCandidate').selectedOptions[0].text+'. Listen for identity, warmth and natural delivery.';
