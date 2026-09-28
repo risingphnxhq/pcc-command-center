@@ -34,6 +34,14 @@ select jsonb_build_object(
   'scope','registered workload and verified PCC actions; not a company-wide performance score',
   'offices',coalesce((select jsonb_agg(to_jsonb(office) order by display_name) from office),'[]'::jsonb),
   'meetings',(select items from meetings),
+  'enterprise_rls',jsonb_build_object(
+    'state','UNASSESSED','tier',null,'readiness_percentage',null,'scoring_basis',null,
+    'color',null,'accountable_leader',null,'measurement_owner',null,'independent_verifier',null,
+    'evidence_refs','[]'::jsonb,'dependency_state',null,'blockers','[]'::jsonb,
+    'isolated_work','[]'::jsonb,'correction_action',null,'required_authorization',null,
+    'receipt_id',null,'decision_timestamp',null,'next_gate',null,'green_exception_authorization',null,
+    'doctrine_refs',jsonb_build_array('RPE-SYS-WORKFORCE-TEST-READINESS-CHARTER-002',
+      'RPE-ENTERPRISE-PSC-EFBP-TQL-TQM-RLS-OPERATING-DOCTRINE-2026-09-19-015')),
   'financial_standing',jsonb_build_object('state','FEED_UNAVAILABLE'),
   'systems_health',jsonb_build_object('state','FEED_UNAVAILABLE','authority','MASON_CSE'),
   'error_reports',jsonb_build_object('state','FEED_UNAVAILABLE')
