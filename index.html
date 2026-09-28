@@ -784,7 +784,7 @@
       document.body.classList.add("authorized");
       const params = new URLSearchParams(window.location.search);
       const returnTo = params.get("return");
-      let destination = returnTo === "founder-suite.html" ? "founder-suite.html" : "command-floor.html";
+      let destination = returnTo === "founder-suite.html" ? "founder-suite.html" : returnTo === "founder-intelligence.html" ? "founder-intelligence.html" : "command-floor.html";
       if (returnTo === "office.html") {
         const officeId = params.get("office_id");
         const missionId = params.get("mission_id");
