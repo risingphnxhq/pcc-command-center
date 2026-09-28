@@ -6,7 +6,7 @@
 </style></head><body><main>
 <a href="voice-casting.html">← Voice Casting Room</a><h1>Corporate Staff Voice Bindings</h1>
 <p class="note">These are your existing ElevenLabs voice IDs. Stage checks the exact ID and records a digest-bound candidate. Approve rooms requires Founder reauthentication and binds that candidate to Board and War Rooms without replacing an office voice. Audio and conversation remain separate gates. Warren retains the OpenAI path. Mason remains in Systems.</p>
-<p id="status" role="status" aria-live="polite">Enter PCC through the front door before staging a binding.</p>
+<p id="status" role="status" aria-live="polite">Checking saved voice approvals…</p><p><a id="reenter" href="index.html" hidden>Re-enter PCC, then return to this page</a></p>
 <div class="note"><b>Approve the staged roster</b><p>One Founder reauthentication issues a separate two-minute approval for each exact candidate digest shown below. Each candidate receives its own approval and activation receipt. Chad’s existing office voice is replaced only when his exact candidate is approved.</p><input id="batchPassphrase" type="password" autocomplete="current-password" placeholder="Founder passphrase" aria-label="Founder passphrase"><button id="approveRoster" type="button" disabled>Approve staged voices for offices and rooms</button></div>
 <section id="roster" aria-label="Founder supplied voice candidates"></section>
 </main><script>
@@ -16,7 +16,25 @@ const groups=[['Executive Command',[['ALEXIS_VALE','Alexis Vale'],['MICHAEL_CARR
 const status=document.getElementById('status');
 function token(){return sessionStorage.getItem('pccEntrySession')}
 const staged=new Map();
-const batchButton=document.getElementById('approveRoster'),batchPassphrase=document.getElementById('batchPassphrase');
+const batchButton=document.getElementById('approveRoster'),batchPassphrase=document.getElementById('batchPassphrase'),reenter=document.getElementById('reenter');
+async function restorePending(){
+ if(!token()){status.textContent='PCC entry required. Re-enter PCC, then return here to restore saved approvals.';reenter.hidden=false;return}
+ try{
+  const response=await fetch(bank+'/pending-office-candidates',{headers:{Authorization:'Bearer '+token()},cache:'no-store'});
+  const body=await response.json();if(!response.ok)throw Error(body.error||'RECOVERY_FAILED');
+  for(const item of body.candidates||[]){
+   if(!groups.some(([,people])=>people.some(([id])=>id===item.persona_id))||item.persona_id==='NACE')continue;
+   staged.set(item.persona_id,{candidate_id:item.candidate_id,candidate_digest:item.candidate_digest});
+   document.querySelector('[data-persona="'+item.persona_id+'"]').querySelector('span').textContent='Approved · exact digest '+item.candidate_digest+' · office activation pending';
+  }
+  batchButton.disabled=!staged.size;reenter.hidden=true;
+  status.textContent=staged.size?staged.size+' saved Founder approvals restored. Enter the passphrase once to activate these offices.':'No pending office activations found.';
+ }catch(error){
+  status.textContent=error.message==='ENTRY_REQUIRED'?'Your PCC session expired. Re-enter PCC, then return here; saved approvals will reload.':'Saved approvals unavailable: '+error.message;
+  reenter.hidden=error.message!=='ENTRY_REQUIRED';
+ }
+}
+batchPassphrase.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();if(!batchButton.disabled)batchButton.click()}});
 async function stage(id){if(!token()){status.textContent='PCC entry required. Re-enter from the front door.';return}const row=document.querySelector('[data-persona="'+id+'"]'),button=row.querySelector('.stage');button.disabled=true;status.textContent='Staging '+id+'…';try{
  const response=await fetch(bank+'/elevenlabs-candidate',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({persona_id:id}),cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'CANDIDATE_WRITE_FAILED');row.querySelector('span').textContent='Staged · '+data.state+' · digest '+data.candidate_digest;status.textContent=id+' staged as candidate '+data.candidate_id+'. No activation occurred.';staged.set(id,{candidate_id:data.candidate_id,candidate_digest:data.candidate_digest});row.querySelector('.approve').disabled=false;batchButton.disabled=false;
  }catch(e){row.querySelector('span').textContent='Stage failed: '+e.message;status.textContent=id+': '+e.message}finally{button.disabled=false}}
@@ -47,9 +65,10 @@ batchButton.onclick=async()=>{
       status.textContent=results.length+' / '+candidates.length+' processed · '+results.filter(r=>r.endsWith(': active')).length+' active';
     }
     status.textContent='Roster result: '+results.join(' · ');
-  }catch(error){status.textContent='Roster approval failed: '+error.message}
+  }catch(error){status.textContent=error.message==='ENTRY_REQUIRED'?'Your PCC session expired. Re-enter PCC, then return here; saved approvals will reload.':'Roster approval failed: '+error.message;reenter.hidden=error.message!=='ENTRY_REQUIRED'}
   finally{batchButton.disabled=!staged.size}
 };
 const root=document.getElementById('roster');for(const [group,people] of groups){const h=document.createElement('h2');h.textContent=group;root.append(h);for(const [id,name] of people){const row=document.createElement('div');row.className='row';row.dataset.persona=id;const detail=document.createElement('div'),label=document.createElement('strong'),state=document.createElement('span');label.textContent=name;state.textContent='Founder ID recorded · not bound to active identity';detail.append(label,state);const actions=document.createElement('div');const button=document.createElement('button');button.className='stage';button.textContent='Stage binding';button.onclick=()=>stage(id);const approval=document.createElement('button');approval.className='approve';approval.textContent=id==='NACE'?'Approve rooms + entry':'Approve rooms';approval.disabled=true;approval.onclick=()=>approve(id);actions.append(button,approval);row.append(detail,actions);root.append(row)}}
+restorePending();
 })();
 </script></body></html>
