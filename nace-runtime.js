@@ -20,9 +20,13 @@ function naceCurrentPage() {
   return PAGE_CONTEXT[file] || file.replace(".html", "").replaceAll("-", " ");
 }
 
-async function naceSpeak(text) {
-  if (!text) return;
+let naceSpeechInFlight = false;
 
+async function naceSpeak(text) {
+  if (!text || naceSpeechInFlight) return false;
+  naceSpeechInFlight = true;
+  let audioUrl = null;
+  let audio = null;
   try {
     const res = await fetch(SVW_ENDPOINT, {
       method: "POST",
@@ -34,18 +38,24 @@ async function naceSpeak(text) {
         }
       })
     });
-
     if (!res.ok) throw new Error("SVW voice request failed");
 
     const audioBlob = await res.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    await audio.play();
-    audio.addEventListener("ended", () => URL.revokeObjectURL(audioUrl), { once: true });
+    audioUrl = URL.createObjectURL(audioBlob);
+    audio = new Audio(audioUrl);
+    await new Promise((resolve, reject) => {
+      audio.addEventListener("ended", resolve, { once: true });
+      audio.addEventListener("error", () => reject(new Error("NACE audio playback failed")), { once: true });
+      audio.play().catch(reject);
+    });
     return true;
   } catch (err) {
     console.error("NACE voice error:", err);
     return false;
+  } finally {
+    if (audio) { audio.pause(); audio.removeAttribute("src"); audio.load(); }
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    naceSpeechInFlight = false;
   }
 }
 
