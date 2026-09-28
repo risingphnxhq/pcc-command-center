@@ -57,7 +57,7 @@ batchButton.onclick=async()=>{
       try{
         response=await fetch(bank+'/approve-rooms',{method:'POST',headers,body:JSON.stringify(item),cache:'no-store'});body=await response.json();if(!response.ok)throw Error(body.error||'ROOM_BINDING_REJECTED');
         if(item.persona_id!=='NACE'){
-          response=await fetch(bank+'/decide',{method:'POST',headers,body:JSON.stringify({...item,decision:'APPROVE'}),cache:'no-store'});body=await response.json();if(!response.ok)throw Error(body.error||'OFFICE_ACTIVATION_FAILED');
+          response=await fetch(bank+'/approve-office',{method:'POST',headers,body:JSON.stringify(item),cache:'no-store'});body=await response.json();if(!response.ok)throw Error(body.error||'OFFICE_ACTIVATION_FAILED');
         }
         document.querySelector('[data-persona="'+item.persona_id+'"]').querySelector('span').textContent=item.persona_id==='NACE'?'Approved · Entry, Board and War Room bound':'Active · Office, Board and War Room bound';
         staged.delete(item.persona_id);results.push(item.persona_id+': active');
