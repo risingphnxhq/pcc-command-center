@@ -705,8 +705,8 @@
             <div class="auth-status" id="authStatus" aria-live="polite"></div>
             <section id="naceEntry" hidden aria-label="NACE system greeting" style="margin-top:16px;border:1px solid #c6a15b;padding:16px;background:#101d2a">
               <strong style="color:#f0d18a">NACE · System Voice</strong>
-              <p>Phoenix King, welcome aboard. I am NACE, the system voice of Phoenix Command Center. Your entry is verified. I am ready to assist.</p>
-              <p id="naceVoiceStatus" role="status" aria-live="polite">Checking approved voice…</p>
+              <p id="naceBriefText" aria-live="polite">Preparing your current Corporate briefing…</p>
+              <p id="naceVoiceStatus" role="status" aria-live="polite">Reading verified Corporate sources…</p>
               <button type="button" id="naceReplay" disabled>Hear NACE</button>
               <button type="button" id="naceContinue">Continue into PCC</button>
             </section>
@@ -737,6 +737,7 @@
   const button = document.getElementById("enterButton");
   const nacePanel = document.getElementById("naceEntry");
   const voiceStatus = document.getElementById("naceVoiceStatus");
+  const briefText = document.getElementById("naceBriefText");
   const replay = document.getElementById("naceReplay");
   const proceed = document.getElementById("naceContinue");
   let voiceAudio = null;
@@ -744,26 +745,30 @@
   async function playNace() {
     if (!voiceAudio) return;
     try { voiceAudio.currentTime = 0; await voiceAudio.play(); voiceStatus.textContent = "NACE speaking."; }
-    catch { voiceStatus.textContent = "Audio was blocked. Select Hear NACE to play the greeting."; }
+    catch { voiceStatus.textContent = "Audio was blocked. Select Hear NACE to play the briefing."; }
   }
   replay.addEventListener("click", playNace);
   window.addEventListener("pagehide", () => { if (voiceUrl) URL.revokeObjectURL(voiceUrl); });
   async function greetNace(session) {
     try {
-      const response = await fetch("https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-nace-presence/greeting", {
+      const response = await fetch("https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-nace-presence/briefing", {
         method: "POST", headers: { Authorization: "Bearer " + session }, cache: "no-store"
       });
+      const result = await response.json();
+      if (result.text) briefText.textContent = result.text;
       if (!response.ok) {
-        const result = await response.json();
         throw Error(result.error || "NACE_VOICE_UNAVAILABLE");
       }
-      voiceUrl = URL.createObjectURL(await response.blob());
+      if (!result.audio_base64 || !result.text) throw Error("NACE_BRIEFING_INCOMPLETE");
+      const binary = atob(result.audio_base64);
+      const audioBytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+      voiceUrl = URL.createObjectURL(new Blob([audioBytes], { type: "audio/mpeg" }));
       voiceAudio = new Audio(voiceUrl);
-      voiceAudio.addEventListener("ended", () => { voiceStatus.textContent = "NACE greeting complete."; });
+      voiceAudio.addEventListener("ended", () => { voiceStatus.textContent = "NACE briefing complete."; });
       replay.disabled = false;
       await playNace();
     } catch (error) {
-      voiceStatus.textContent = "NACE voice is not available for this entry (" + error.message + ").";
+      voiceStatus.textContent = "Live NACE briefing unavailable (" + error.message + ").";
     }
   }
   form.addEventListener("submit", async event => {
@@ -784,7 +789,7 @@
       document.body.classList.add("authorized");
       const params = new URLSearchParams(window.location.search);
       const returnTo = params.get("return");
-      let destination = returnTo === "founder-suite.html" ? "founder-suite.html" : "command-floor.html";
+      let destination = returnTo === "founder-suite.html" ? "founder-suite.html" : returnTo === "founder-intelligence.html" ? "founder-intelligence.html" : "command-floor.html";
       if (returnTo === "office.html") {
         const officeId = params.get("office_id");
         const missionId = params.get("mission_id");
@@ -793,7 +798,7 @@
           if (missionId && /^[A-Z0-9][A-Z0-9_-]{0,127}$/.test(missionId)) destination += "&mission_id=" + encodeURIComponent(missionId);
         }
       }
-      status.textContent = "Entry verified. NACE is presenting himself before you continue.";
+      status.textContent = "Entry verified. NACE is preparing your current briefing.";
       nacePanel.hidden = false;
       proceed.onclick = () => window.location.assign(destination);
       await greetNace(result.session);
