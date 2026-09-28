@@ -4,12 +4,23 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // First physical gate only: confirm a read-only Mercury token can enumerate
 // account identities. This endpoint never returns balances or bank coordinates.
 // No function deployment is authorized by the existence of this source file.
+const allowedOrigin = "https://command.risingphoenixhq.com";
+const cors = {
+  "access-control-allow-origin": allowedOrigin,
+  "access-control-allow-methods": "GET, OPTIONS",
+  "access-control-allow-headers": "authorization, apikey, content-type",
+  vary: "Origin",
+};
 const json = (body: unknown, status: number) => new Response(JSON.stringify(body), {
   status,
-  headers: { "content-type": "application/json", "cache-control": "no-store" },
+  headers: { ...cors, "content-type": "application/json", "cache-control": "no-store" },
 });
 
 Deno.serve(async (request: Request) => {
+  if (request.headers.get("origin") && request.headers.get("origin") !== allowedOrigin) {
+    return json({ error: "ORIGIN_DENIED" }, 403);
+  }
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (request.method !== "GET") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
   const authorization = request.headers.get("authorization") || "";
   if (!/^Bearer\s+\S+$/i.test(authorization)) return json({ error: "AUTH_REQUIRED" }, 401);
