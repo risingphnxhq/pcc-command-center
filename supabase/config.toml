@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.pcc-office-elevenlabs-speech]
 verify_jwt = false
+
+[functions.pcc-finance-mercury-account-probe]
+verify_jwt = true

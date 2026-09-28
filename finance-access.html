@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>RPE Finance Access</title>
+  <style>
+    body{background:#071019;color:#f4efe5;font:16px system-ui,sans-serif;margin:0;min-height:100vh;display:grid;place-items:center}
+    main{width:min(92vw,460px);background:#0e1824;border:1px solid #74613e;border-radius:18px;padding:28px}
+    h1{font-size:1.6rem;margin:0 0 8px}p{color:#c4c6c8;line-height:1.5}
+    label{display:block;margin:18px 0 6px}input{box-sizing:border-box;width:100%;padding:12px;background:#071019;color:#fff;border:1px solid #8490a0;border-radius:8px;font:inherit}
+    button{margin:18px 0 0;padding:12px 18px;background:#c6a15b;color:#111;border:0;border-radius:8px;font:inherit;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.5;cursor:wait}#codeStep{display:none}#status{min-height:3em}a{color:#e5bd70}
+  </style>
+</head>
+<body><main>
+  <h1>Finance sign-in</h1>
+  <p>Use the individual email and password enrolled for your private RPE Finance access. Enter credentials only on this page.</p>
+  <form id="signIn"><label for="email">Enrolled email</label><input id="email" type="email" autocomplete="email" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button type="submit">Sign in</button></form>
+  <p id="status" role="status" aria-live="polite">Finance data is unavailable until individual access is verified.</p>
+  <p><a href="index.html">Return to PCC</a></p>
+</main>
+<script>
+(() => {
+  const base='https://ttkceizmjeckrorhkhfr.supabase.co';
+  // Supabase publishable key; deliberately safe for a browser. No provider key is here.
+  const apiKey='sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO';
+  const $=id=>document.getElementById(id), form=$('signIn'), status=$('status');
+  async function post(path, body){
+    const response=await fetch(base+path,{method:'POST',headers:{'apikey':apiKey,'content-type':'application/json'},body:JSON.stringify(body),cache:'no-store'});
+    if(!response.ok)throw Error('The sign-in request could not be completed. Check enrollment and try again.');
+    return response.json();
+  }
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();form.querySelector('button').disabled=true;status.textContent='Verifying access…';
+    try{
+      const auth=await post('/auth/v1/token?grant_type=password',{email:$('email').value.trim().toLowerCase(),password:$('password').value});
+      $('password').value='';
+      const access=auth.access_token;if(!access)throw Error('NO_SESSION');
+      // The access token remains in memory only. It is never placed in a URL, localStorage, or logs.
+      const response=await fetch(base+'/functions/v1/pcc-finance-mercury-account-probe',{headers:{'apikey':apiKey,'authorization':'Bearer '+access},cache:'no-store'});
+      const result=await response.json();
+      if(response.status===403)status.textContent='Individual sign-in verified. Finance access is pending the individual account binding.';
+      else if(response.status===503)status.textContent='Individual sign-in verified. The Finance connection is not configured yet.';
+      else if(!response.ok)status.textContent='Individual sign-in verified. The Mercury read is unavailable; no account status can be claimed.';
+      else status.textContent='Read-only account identity check completed: '+result.account_count_on_page+' account(s) on the first page. Account details remain restricted.';
+    }catch{status.textContent='Sign-in could not be verified. Check the account credentials or contact the account administrator.';}
+    finally{form.querySelector('button').disabled=false;$('password').value='';}
+  });
+})();
+</script>
+</body></html>
