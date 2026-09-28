@@ -63,6 +63,17 @@ Deno.serve(async req=>{
   const path=new URL(req.url).pathname.split("/").pop()||"";
   const admin=createClient(url,service,{auth:{persistSession:false}});
 
+  if(path==="pending-office-candidates"&&req.method==="GET"){
+    const {data,error}=await admin.rpc("pcc_voice_bank_pending_office_candidates");
+    if(error)return reply({error:"PENDING_CANDIDATES_UNAVAILABLE"},503);
+    const pending=Array.isArray(data)?data:[];
+    return reply({candidates:pending.filter((item:any)=>
+      elevenlabs.has(item.persona_id)&&item.persona_id!=="NACE"&&
+      /^[0-9a-f-]{36}$/i.test(String(item.candidate_id||""))&&
+      /^[0-9a-f]{64}$/.test(String(item.candidate_digest||""))
+    )},200);
+  }
+
   if(path==="elevenlabs-candidate"&&req.method==="POST"){
     let body:any;try{body=await req.json()}catch{return reply({error:"INVALID_REQUEST"},400)}
     const personaId=String(body.persona_id||""),personaName=personas.get(personaId),voice=elevenlabs.get(personaId);
