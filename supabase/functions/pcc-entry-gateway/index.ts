@@ -78,7 +78,7 @@ Deno.serve(async (request) => {
     }
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
-  const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
+  const isReadRoute = request.method === "GET" && ["snapshot", "mission", "intelligence"].includes(path || "");
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
   const isTaskCommandRoute = request.method === "POST" && path === "task-command";
   const isWorkerProvisionRoute = request.method === "POST" && path === "worker-provision";
@@ -109,6 +109,11 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },
   });
+  if (path === "intelligence" && isReadRoute) {
+    const { data, error } = await admin.rpc("pcc_founder_intelligence_summary");
+    if (error || !data) return reply({ error: "INTELLIGENCE_SOURCE_UNAVAILABLE" }, 503);
+    return reply(data, 200);
+  }
   if (isMeetingDraftRoute || isMeetingCancelRoute) {
     if (Number(request.headers.get("Content-Length") || 0) > 2048) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let input: Record<string, unknown>;
