@@ -28,12 +28,26 @@ with office as (
     'starts_at',starts_at,'ends_at',ends_at,'state',state) order by starts_at),'[]'::jsonb) items
   from (select title,host_office_id,starts_at,ends_at,state from pcc_hq.virtual_war_room_meetings
     where starts_at >= now() and state not in ('CANCELLED') order by starts_at limit 12) upcoming
+), tasks as (
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'task_id',t.task_id,'title',t.title,'office_id',w.office_id,'task_state',t.state,
+    'impact_tier',d.impact_tier,'readiness_percentage',d.readiness_percentage,
+    'disposition',d.disposition,'dependency_state',d.dependency_state,
+    'blockers',coalesce(to_jsonb(d.blockers),'[]'::jsonb),
+    'verification_receipt_id',d.verification_receipt_id,
+    'decision_timestamp',d.decision_timestamp,'next_gate',d.next_gate)
+    order by t.updated_at desc),'[]'::jsonb) items
+  from pcc_hq.corporate_task_queue t
+  left join pcc_hq.workforce_assignments w on w.assignment_id=t.assignment_id
+  left join lateral (select * from pcc_hq.corporate_task_rls_decisions r
+    where r.task_id=t.task_id order by r.decision_timestamp desc,r.assessed_at desc limit 1) d on true
 )
 select jsonb_build_object(
   'as_of',now(), 'source','CORPORATE_PCC_REGISTRIES_AND_ACTION_RECEIPTS',
   'scope','registered workload and verified PCC actions; not a company-wide performance score',
   'offices',coalesce((select jsonb_agg(to_jsonb(office) order by display_name) from office),'[]'::jsonb),
   'meetings',(select items from meetings),
+  'corporate_tasks',(select items from tasks),
   'enterprise_rls',jsonb_build_object(
     'state','UNASSESSED','tier',null,'readiness_percentage',null,'scoring_basis',null,
     'color',null,'accountable_leader',null,'measurement_owner',null,'independent_verifier',null,
