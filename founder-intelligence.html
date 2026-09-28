@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Founder Intelligence — Phoenix Command Center</title>
+<style>
+:root{color-scheme:dark;--bg:#07101a;--panel:#111e2c;--line:#304456;--text:#f4f1e9;--muted:#a8b9c7;--gold:#e4b966;--cyan:#6bd5ef;--green:#6cdb9e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#17293b,var(--bg) 55%);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}
+header,main{max-width:1320px;margin:auto;padding:22px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line)}a{color:var(--gold)}h1{font:clamp(28px,4vw,48px)/1.1 Georgia,serif;color:var(--gold);margin:12px 0}h2{font:26px Georgia,serif;margin:0 0 10px}p{margin:6px 0 14px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan)}.muted,small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.panel{background:linear-gradient(160deg,#152536,var(--panel));border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}.number{font-size:34px;font-weight:700;color:var(--text)}.label{color:var(--gold);font-size:12px;letter-spacing:.08em;text-transform:uppercase}.section{margin-top:22px}.two{display:grid;grid-template-columns:2fr 1fr;gap:14px}.row{padding:12px 0;border-top:1px solid var(--line)}.row:first-child{border-top:0}.row-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline}.track{height:9px;background:#07111b;border-radius:20px;margin:9px 0;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:20px}.pill{display:inline-block;border:1px solid var(--line);padding:5px 9px;border-radius:30px;color:var(--muted);font-size:12px}.warning{color:var(--gold)}button{background:var(--gold);color:#15202b;border:0;border-radius:8px;padding:10px 15px;font-weight:700;cursor:pointer}.status{min-height:25px;margin:16px 0}.status.error{color:#f3a1a1}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}@media(max-width:550px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}
+</style></head><body>
+<header><div><div class="eyebrow">Phoenix Command Center · Founder view</div><h1>Enterprise Intelligence</h1></div><nav><a href="command-floor.html">Command Floor</a> · <a href="console.html">Corporate Console</a> · <a href="systems-console.html">Systems</a></nav></header>
+<main><p>Office work, verified actions, meetings, and source gaps in one place. Counts reflect the Corporate PCC records returned at the time shown; they are not revenue, profitability, or a rating of anyone’s judgment.</p>
+<button id="refresh" type="button">Refresh source</button><div id="status" class="status" role="status">Checking authorized Corporate source…</div>
+<div class="grid" aria-label="Corporate activity summary">
+<div class="panel"><div class="label">Offices returned</div><div class="number" id="officeCount">—</div><small>Registered Corporate offices</small></div>
+<div class="panel"><div class="label">Registered missions</div><div class="number" id="missionCount">—</div><small>Registration is not completion</small></div>
+<div class="panel"><div class="label">Verified actions</div><div class="number" id="verifiedCount">—</div><small>Action state verified and PASS receipt</small></div>
+<div class="panel"><div class="label">Recorded actions without PASS</div><div class="number" id="unverifiedCount">—</div><small>Investigate state and evidence</small></div>
+</div>
+<div class="two section"><section class="panel"><h2>Officer work and evidence</h2><p class="muted">Bars compare verified PCC action counts. An office with no action record has no performance percentage.</p><div id="offices"></div></section>
+<aside><section class="panel"><h2>Health and standing</h2><div class="row"><strong>Systems health</strong><p class="warning">Feed unavailable · Mason/CSE source required</p></div><div class="row"><strong>Financial standing</strong><p class="warning">Feed unavailable · verified Finance report required</p></div><div class="row"><strong>Error reports</strong><p class="warning">Feed unavailable · incident source required</p></div></section>
+<section class="panel section"><h2>Corporate meetings</h2><div id="meetings" class="muted">Awaiting source read.</div></section></aside></div>
+<p class="muted section" id="provenance">Source: Corporate PCC registries and action receipts. Reporting PSC: PSC-A-CORPORATE-PCC-REPORTING-AND-EXECUTIVE-INTELLIGENCE-2026-09-23-001.</p>
+</main><script>
+const $=id=>document.getElementById(id),endpoint='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/intelligence';
+function cell(tag,value,klass){const el=document.createElement(tag);if(klass)el.className=klass;el.textContent=value;return el}
+function render(data){const offices=Array.isArray(data.offices)?data.offices:[];const total=key=>offices.reduce((n,o)=>n+(Number(o[key])||0),0);
+ $('officeCount').textContent=String(offices.length);$('missionCount').textContent=String(total('missions'));
+ $('verifiedCount').textContent=String(total('verified_actions'));$('unverifiedCount').textContent=String(total('unverified_actions'));
+ const max=Math.max(1,...offices.map(o=>Number(o.verified_actions)||0));$('offices').replaceChildren();
+ for(const o of offices){const row=cell('div','', 'row'),head=cell('div','', 'row-head');head.append(cell('strong',o.display_name||o.office_id),cell('span',String(Number(o.verified_actions)||0)+' verified', 'pill'));row.append(head);
+ const track=cell('div','','track'),bar=cell('div','','fill');bar.style.width=(Math.max(0,Number(o.verified_actions)||0)/max*100)+'%';track.append(bar);row.append(track);
+ row.append(cell('small',`${Number(o.missions)||0} registered missions · ${Number(o.workstreams)||0} workstreams · ${Number(o.actions)||0} recorded actions${o.last_verified_at?' · last PASS '+new Date(o.last_verified_at).toLocaleString():''}`));$('offices').append(row)}
+ const meetings=Array.isArray(data.meetings)?data.meetings:[];$('meetings').replaceChildren();if(!meetings.length)$('meetings').textContent='No upcoming active meetings in the connected War Room schedule.';
+ for(const m of meetings){const row=cell('div','','row');row.append(cell('strong',m.title||'Untitled meeting'),cell('p',new Date(m.starts_at).toLocaleString()+' · '+(m.state||'State unavailable')));$('meetings').append(row)}
+ $('status').className='status';$('status').textContent='Corporate source read · as of '+new Date(data.as_of).toLocaleString();
+}
+async function load(){const token=sessionStorage.getItem('pccEntrySession');if(!token){location.href='index.html?return=founder-intelligence.html';return}
+ $('status').textContent='Reading Corporate evidence…';try{const response=await fetch(endpoint,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const data=await response.json();if(!response.ok){if(data.error==='ENTRY_REQUIRED'){sessionStorage.removeItem('pccEntrySession');location.href='index.html?return=founder-intelligence.html';return}throw Error(data.error||'SOURCE_UNAVAILABLE')}render(data)}catch(e){$('status').className='status error';$('status').textContent='Source unavailable: '+e.message}}
+$('refresh').addEventListener('click',load);load();
+</script></body></html>
