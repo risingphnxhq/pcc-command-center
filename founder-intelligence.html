@@ -16,6 +16,10 @@ header,main{max-width:1320px;margin:auto;padding:22px}header{display:flex;align-
 <div class="panel"><div class="label">Verified actions</div><div class="number" id="verifiedCount">—</div><small>Action state verified and PASS receipt</small></div>
 <div class="panel"><div class="label">Recorded actions without PASS</div><div class="number" id="unverifiedCount">—</div><small>Investigate state and evidence</small></div>
 </div>
+<section class="panel section" aria-labelledby="readinessTitle"><div class="eyebrow">RLS · Readiness Level System</div><h2 id="readinessTitle">Enterprise readiness</h2>
+<p>Green, Yellow, and Red classifications require the governing RLS PSC, a named authority, a measured scope, current evidence, and a dated decision. No color is assigned from registration or action counts alone.</p>
+<div class="grid"><div><span class="pill">Green · criteria pending PSC</span></div><div><span class="pill">Yellow · criteria pending PSC</span></div><div><span class="pill">Red · criteria pending PSC</span></div><div><span class="pill">Current level · unclassified</span></div></div>
+<p class="muted">Required for each division: level, reason, owner, source and receipt, measured at, expiry or review date, and next action.</p></section>
 <div class="two section"><section class="panel"><h2>Officer work and evidence</h2><p class="muted">Bars compare verified PCC action counts. An office with no action record has no performance percentage.</p><div id="offices"></div></section>
 <aside><section class="panel"><h2>Health and standing</h2><div class="row"><strong>Systems health</strong><p class="warning">Feed unavailable · Mason/CSE source required</p></div><div class="row"><strong>Financial standing</strong><p class="warning">Feed unavailable · verified Finance report required</p></div><div class="row"><strong>Error reports</strong><p class="warning">Feed unavailable · incident source required</p></div></section>
 <section class="panel section"><h2>Corporate meetings</h2><div id="meetings" class="muted">Awaiting source read.</div></section></aside></div>
@@ -29,7 +33,7 @@ function render(data){const offices=Array.isArray(data.offices)?data.offices:[];
  const max=Math.max(1,...offices.map(o=>Number(o.verified_actions)||0));$('offices').replaceChildren();
  for(const o of offices){const row=cell('div','', 'row'),head=cell('div','', 'row-head');head.append(cell('strong',o.display_name||o.office_id),cell('span',String(Number(o.verified_actions)||0)+' verified', 'pill'));row.append(head);
  const track=cell('div','','track'),bar=cell('div','','fill');bar.style.width=(Math.max(0,Number(o.verified_actions)||0)/max*100)+'%';track.append(bar);row.append(track);
- row.append(cell('small',`${Number(o.missions)||0} registered missions · ${Number(o.workstreams)||0} workstreams · ${Number(o.actions)||0} recorded actions${o.last_verified_at?' · last PASS '+new Date(o.last_verified_at).toLocaleString():''}`));$('offices').append(row)}
+ row.append(cell('small',`${Number(o.missions)||0} registered missions · ${Number(o.workstreams)||0} workstreams · ${Number(o.actions)||0} recorded actions · RLS unclassified${o.last_verified_at?' · last PASS '+new Date(o.last_verified_at).toLocaleString():''}`));$('offices').append(row)}
  const meetings=Array.isArray(data.meetings)?data.meetings:[];$('meetings').replaceChildren();if(!meetings.length)$('meetings').textContent='No upcoming active meetings in the connected War Room schedule.';
  for(const m of meetings){const row=cell('div','','row');row.append(cell('strong',m.title||'Untitled meeting'),cell('p',new Date(m.starts_at).toLocaleString()+' · '+(m.state||'State unavailable')));$('meetings').append(row)}
  $('status').className='status';$('status').textContent='Corporate source read · as of '+new Date(data.as_of).toLocaleString();
