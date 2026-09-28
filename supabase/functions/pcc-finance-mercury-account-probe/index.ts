@@ -43,11 +43,17 @@ Deno.serve(async (request: Request) => {
       headers: { authorization: `Bearer ${mercuryToken}`, accept: "application/json" },
       signal: AbortSignal.timeout(10000),
     });
-    if (!response.ok) return json({ error: "MERCURY_READ_FAILED", provider_status: response.status }, 502);
+    if (!response.ok) {
+      console.warn("FINANCE_PROBE_PROVIDER_HTTP", response.status);
+      return json({ error: "MERCURY_READ_FAILED", provider_status: response.status }, 502);
+    }
     const payload = await response.json();
     const accounts = Array.isArray(payload?.accounts) ? payload.accounts : [];
     // A malformed or changed provider response is UNKNOWN, not a zero-account result.
-    if (!Array.isArray(payload?.accounts)) return json({ error: "MERCURY_RESPONSE_UNRECOGNIZED" }, 502);
+    if (!Array.isArray(payload?.accounts)) {
+      console.warn("FINANCE_PROBE_RESPONSE_SHAPE");
+      return json({ error: "MERCURY_RESPONSE_UNRECOGNIZED" }, 502);
+    }
     return json({
       status: "READ_ONLY_ACCOUNT_PROBE",
       observed_at: new Date().toISOString(),
@@ -59,6 +65,7 @@ Deno.serve(async (request: Request) => {
       })),
     }, 200);
   } catch {
+    console.warn("FINANCE_PROBE_NETWORK_OR_PARSE");
     return json({ error: "MERCURY_READ_UNAVAILABLE" }, 502);
   }
 });
