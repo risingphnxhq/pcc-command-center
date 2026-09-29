@@ -5,7 +5,7 @@ const allowedOrigin = "https://command.risingphoenixhq.com";
 const cors = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-pcc-individual-authorization, apikey, content-type",
   "Access-Control-Max-Age": "600",
   Vary: "Origin",
 };
@@ -79,6 +79,7 @@ Deno.serve(async (request) => {
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
   const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
+  const isNaceAgendaRoute = request.method === "GET" && path === "nace-agenda";
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
   const isTaskCommandRoute = request.method === "POST" && path === "task-command";
   const isWorkerProvisionRoute = request.method === "POST" && path === "worker-provision";
@@ -86,7 +87,7 @@ Deno.serve(async (request) => {
   const isMeetingDraftRoute = request.method === "POST" && path === "war-room-draft";
   const isMeetingCancelRoute = request.method === "POST" && path === "war-room-cancel-draft";
   const isMeetingReadRoute = request.method === "GET" && path === "war-room-meeting";
-  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  if (!isReadRoute && !isNaceAgendaRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
@@ -97,6 +98,14 @@ Deno.serve(async (request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return reply({ error: "MACHINE_AUTH_NOT_CONFIGURED" }, 503);
   const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
+  if (isNaceAgendaRoute || isCommandBeaconRoute || isTaskCommandRoute || isWorkerCommandRoute || isWorkerProvisionRoute) {
+    const individual = (request.headers.get("X-PCC-Individual-Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!individual) return reply({ error: "INDIVIDUAL_FOUNDER_SIGN_IN_REQUIRED" }, 401);
+    const { data: individualUser, error: individualError } = await admin.auth.getUser(individual);
+    if (individualError || !individualUser.user?.email_confirmed_at) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+    const { data: founder, error: founderError } = await admin.rpc("pcc_founder_private_subject", { p_subject: individualUser.user.id });
+    if (founderError || founder !== true) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+  }
   const { data: expected, error: lookupError } = await admin.auth.admin.getUserById(expectedSubject);
   if (lookupError || !expected.user) return reply({ error: "MACHINE_SUBJECT_UNAVAILABLE" }, 503);
   const machineEmail = expected.user.email;
@@ -105,6 +114,11 @@ Deno.serve(async (request) => {
   const { data: login, error: loginError } = await machine.auth.signInWithPassword({ email: machineEmail, password });
   if (loginError || !login.session?.access_token) return reply({ error: "MACHINE_CREDENTIALS_REJECTED" }, 503);
   if (login.user?.id !== expectedSubject) return reply({ error: "MACHINE_IDENTITY_MISMATCH" }, 503);
+  if (isNaceAgendaRoute) {
+    const { data, error } = await admin.rpc("pcc_nace_corporate_agenda", { p_commander_subject: expectedSubject });
+    if (error) return reply({ error: error.code === "42501" ? "COMMAND_AUTHORITY_REQUIRED" : "AGENDA_UNAVAILABLE" }, error.code === "42501" ? 403 : 503);
+    return reply(data, 200);
+  }
   const client = createClient(corporateUrl, publishable, {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },

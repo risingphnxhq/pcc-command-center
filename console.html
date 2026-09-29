@@ -1085,6 +1085,12 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
             </div>
           </div>
           <div class="panel-body">
+            <form id="founderCommandSignIn" class="field-stack" autocomplete="on">
+              <div class="field-help">Corporate task and worker commands require both HQ entry and your individual Founder sign-in. The passphrase alone cannot issue a command.</div>
+              <div class="field"><label for="founderCommandEmail">Individual sign-in email</label><input id="founderCommandEmail" type="email" autocomplete="username" required /></div>
+              <div class="field"><label for="founderCommandPassword">Password</label><input id="founderCommandPassword" type="password" autocomplete="current-password" required /></div>
+              <div class="exec-actions"><button class="action-btn" type="submit">Sign in for Corporate command</button><span id="founderCommandStatus" role="status">Checking individual sign-in…</span></div>
+            </form>
             <div class="field-stack">
               <div class="field">
                 <label for="taskEndpoint">Governed Task Endpoint</label>
@@ -1095,13 +1101,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
                 <select id="taskAssignment">
                   <option value="G1-PATRICK-CORP-ENG" selected>Patrick Ross — Corporate Engineering</option>
                   <option value="G1-PEGGY-SUPPORT">Peggy Wilson — Executive Support</option>
-                  <option value="G1-SYLVIA-SUPPORT">Sylvia Somers — Executive Support Staff</option>
-                  <option value="G1-REBECCA-LEGAL">Rebecca Lawson — Legal &amp; Compliance</option>
-                  <option value="G1-MARCUS-COMMS">Marcus Bell — Marketing &amp; Communications</option>
-                  <option value="G1-WARREN-PRODUCT">Warren Long — Product &amp; Portfolio</option>
-                  <option value="G1-AVERY-MEDIA">Avery Cole — Media &amp; Production</option>
-                  <option value="G1-OLIVER-FINANCE">Oliver Grant — Finance</option>
-                  <option value="G1-AIDEN-AUDIT">Aiden Mercer — Audit &amp; Verification</option>
                 </select>
               </div>
               <div class="field">
@@ -1350,6 +1349,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
     </aside>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
   <script>
     (function () {
       const DEFAULT_EXECUTE_ENDPOINT = "https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-entry-gateway/command-beacon";
@@ -1358,6 +1358,28 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       const DEFAULT_APPLY_ENDPOINT = "https://pcc-engine-v1.tsteelefpa.workers.dev/apply";
       const DEFAULT_EXECUTE_COMMAND = "Corporate HQ command is active and standing by.";
       const DEFAULT_BUILD_COMMAND = "BUILD PAGE: VOICE ENGINE";
+      const identity = window.supabase.createClient("https://ttkceizmjeckrorhkhfr.supabase.co",
+        "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO", { auth: { persistSession: true, autoRefreshToken: true } });
+      const founderCommandStatus = document.getElementById("founderCommandStatus");
+      async function individualHeaders() {
+        const { data: { session } } = await identity.auth.getSession();
+        if (!session?.access_token) throw new Error("Sign in with your individual Founder identity above.");
+        return { Authorization: "Bearer " + sessionStorage.getItem("pccEntrySession"),
+          "X-PCC-Individual-Authorization": "Bearer " + session.access_token,
+          "Content-Type": "application/json" };
+      }
+      document.getElementById("founderCommandSignIn").addEventListener("submit", async function (event) {
+        event.preventDefault(); founderCommandStatus.textContent = "Signing in…";
+        const email = document.getElementById("founderCommandEmail").value.trim();
+        const password = document.getElementById("founderCommandPassword");
+        const { error } = await identity.auth.signInWithPassword({ email, password: password.value });
+        password.value = "";
+        founderCommandStatus.textContent = error ? "Individual sign-in failed: " + error.message : "Individual sign-in ready. Corporate authority is checked with each command.";
+      });
+      identity.auth.getSession().then(({ data }) => {
+        if (data.session) founderCommandStatus.textContent = "Individual sign-in ready. Corporate authority is checked with each command.";
+        else founderCommandStatus.textContent = "Individual Founder sign-in required for commands.";
+      });
 
       const executeEndpoint = document.getElementById("executeEndpoint");
       const taskEndpoint = document.getElementById("taskEndpoint");
@@ -1600,7 +1622,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         try {
           const response = await fetch(endpoint, {
             method: "POST",
-            headers: { Authorization: "Bearer " + entry, "Content-Type": "application/json" },
+            headers: await individualHeaders(),
             body: JSON.stringify(payload),
             cache: "no-store"
           });
@@ -1647,7 +1669,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
             : { operation, task_id: taskId.value };
           const response = await fetch(taskEndpoint.value || DEFAULT_TASK_ENDPOINT, {
             method: "POST",
-            headers: { Authorization: "Bearer " + entry, "Content-Type": "application/json" },
+            headers: await individualHeaders(),
             body: JSON.stringify(payload), cache: "no-store"
           });
           const data = await response.json();
@@ -1700,7 +1722,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           const endpoint = DEFAULT_TASK_ENDPOINT.replace(/task-command$/, route);
           const response = await fetch(endpoint, {
             method: "POST",
-            headers: { Authorization: "Bearer " + entry, "Content-Type": "application/json" },
+            headers: await individualHeaders(),
             body: JSON.stringify(payload || {}), cache: "no-store"
           });
           const data = await response.json();
