@@ -5,7 +5,7 @@ const allowedOrigin = "https://command.risingphoenixhq.com";
 const cors = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-pcc-individual-authorization, x-pcc-founder-session",
   "Access-Control-Max-Age": "600",
   Vary: "Origin",
 };
@@ -40,6 +40,11 @@ async function issue(secret: string) {
   const signature = b64url(new Uint8Array(await crypto.subtle.sign("HMAC", await key(secret), encoder.encode(data))));
   return data + "." + signature;
 }
+async function issueFounderPrivate(secret: string, subject: string) {
+  const data = b64url(encoder.encode(JSON.stringify({ scope: "PCC_FOUNDER_PRIVATE", sub: subject, exp: Date.now() + 30 * 60_000, nonce: crypto.randomUUID() })));
+  const signature = b64url(new Uint8Array(await crypto.subtle.sign("HMAC", await key(secret), encoder.encode(data))));
+  return data + "." + signature;
+}
 async function valid(token: string, secret: string) {
   const parts = token.split(".");
   if (parts.length !== 2 || parts[0].length > 1024 || parts[1].length > 128) return false;
@@ -49,6 +54,18 @@ async function valid(token: string, secret: string) {
     const payload = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
     return payload.scope === "PCC_REGISTERED_READ" && Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 10 * 60_000;
   } catch { return false; }
+}
+async function founderPrivateSubject(token: string, secret: string): Promise<string | null> {
+  const parts = token.split(".");
+  if (parts.length !== 2 || parts[0].length > 1024 || parts[1].length > 128) return null;
+  try {
+    const ok = await crypto.subtle.verify("HMAC", await key(secret), unb64url(parts[1]), encoder.encode(parts[0]));
+    if (!ok) return null;
+    const payload = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
+    return payload.scope === "PCC_FOUNDER_PRIVATE" && typeof payload.sub === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.sub) &&
+      Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 30 * 60_000 ? payload.sub : null;
+  } catch { return null; }
 }
 Deno.serve(async (request) => {
   const origin = request.headers.get("Origin");
@@ -78,6 +95,22 @@ Deno.serve(async (request) => {
     }
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
+  if (path === "authorize-private" && request.method === "POST") {
+    const entry = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!await valid(entry, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
+    const corporateUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!corporateUrl || !serviceKey) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    const individual = (request.headers.get("X-PCC-Individual-Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!individual) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+    const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
+    const { data, error } = await admin.auth.getUser(individual);
+    if (error || !data.user || !data.user.email_confirmed_at) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+    const { data: authorized, error: bindingError } = await admin.rpc("pcc_founder_private_subject", { p_subject: data.user.id });
+    if (bindingError) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    if (authorized !== true) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+    return reply({ session: await issueFounderPrivate(signingKey, data.user.id), expires_in: 1800 }, 200);
+  }
   const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
   const isTaskCommandRoute = request.method === "POST" && path === "task-command";
@@ -86,9 +119,22 @@ Deno.serve(async (request) => {
   const isMeetingDraftRoute = request.method === "POST" && path === "war-room-draft";
   const isMeetingCancelRoute = request.method === "POST" && path === "war-room-cancel-draft";
   const isMeetingReadRoute = request.method === "GET" && path === "war-room-meeting";
-  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  const isAttentionReadRoute = request.method === "GET" && path === "officer-attention";
+  const isAttentionAckRoute = request.method === "POST" && path === "officer-attention-ack";
+  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute && !isAttentionReadRoute && !isAttentionAckRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
+  if (isAttentionReadRoute || isAttentionAckRoute) {
+    const privateToken = request.headers.get("X-PCC-Founder-Session") || "";
+    const subject = await founderPrivateSubject(privateToken, signingKey);
+    if (!subject) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+    const corporateUrl = Deno.env.get("SUPABASE_URL"), serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!corporateUrl || !serviceKey) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    const verifier = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
+    const { data: authorized, error: bindingError } = await verifier.rpc("pcc_founder_private_subject", { p_subject: subject });
+    if (bindingError) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    if (authorized !== true) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+  }
   const corporateUrl = Deno.env.get("SUPABASE_URL");
   const publishable = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   const password = Deno.env.get("PCC_MACHINE_AUTH_PASSWORD");
@@ -109,6 +155,20 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },
   });
+  if (isAttentionReadRoute) {
+    const { data, error } = await admin.rpc("pcc_founder_attention_list");
+    if (error) return reply({ error: "OFFICER_ATTENTION_UNAVAILABLE" }, 503);
+    return reply({ requests: data, checked_at: new Date().toISOString() }, 200);
+  }
+  if (isAttentionAckRoute) {
+    if (Number(request.headers.get("Content-Length") || 0) > 256) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let input: Record<string, unknown>;
+    try { input = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    if (typeof input.request_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.request_id)) return reply({ error: "INVALID_REQUEST" }, 400);
+    const { data, error } = await admin.rpc("pcc_founder_attention_ack", { p_request_id: input.request_id });
+    if (error) return reply({ error: "ACKNOWLEDGMENT_UNAVAILABLE" }, 503);
+    return reply({ acknowledged: data === true, request_id: input.request_id }, data === true ? 200 : 409);
+  }
   if (isMeetingDraftRoute || isMeetingCancelRoute) {
     if (Number(request.headers.get("Content-Length") || 0) > 2048) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let input: Record<string, unknown>;
