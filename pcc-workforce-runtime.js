@@ -78,6 +78,9 @@
     const checkpointButton = ["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)
       ? `<button type="button" data-work-action="checkpoint" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Write Checkpoint</button>`
       : "";
+    const agentButton = ["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)
+      ? `<button type="button" data-work-action="agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Identify Agent Lane</button>`
+      : "";
     return `<article class="work">
       <div class="label">${escapeHtml(w.workforce_role)} · ${escapeHtml(w.status)}</div>
       <strong>${escapeHtml(w.title)}</strong>
@@ -86,6 +89,7 @@
         <button type="button" data-work-action="activation" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Retrieve Activation</button>
         ${claimButton}
         ${checkpointButton}
+        ${agentButton}
       </div>
     </article>`;
   }
@@ -129,12 +133,19 @@
         state: "ACTIVE",
         summary: "Authenticated Mason runtime retrieved the activation package, claimed the PCC workforce assignment, and established the first governed execution checkpoint.",
         evidence: ["PCC Workforce Console", "Authenticated runtime subject", "Work order claim and checkpoint receipts"]
+      }],
+      agent: ["REGISTER_AGENT_EXECUTION", {
+        stream_id: streamId,
+        work_order_id: workOrderId,
+        provider: "OPENAI_AGENT_API",
+        provider_account_lane: $("accountLane").value,
+        metadata: { registration_source: "PCC_WORKFORCE_CONSOLE" }
       }]
     };
     const request = payloads[action];
     if (!request) return;
     button.disabled = true;
-    button.textContent = action === "activation" ? "Retrieving…" : action === "claim" ? "Claiming…" : "Writing…";
+    button.textContent = action === "activation" ? "Retrieving…" : action === "claim" ? "Claiming…" : action === "agent" ? "Identifying…" : "Writing…";
     try {
       show(await invoke(request[0], request[1]));
       await refreshWork();
