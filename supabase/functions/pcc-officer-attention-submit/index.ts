@@ -31,7 +31,9 @@ Deno.serve(async (request) => {
   const subject = input.subject, reason = input.reason_and_requested_outcome, source = input.source_or_evidence_ref;
   const confidentiality = input.confidentiality_scope;
   const due = input.due_at;
-  if (category !== 'BUSINESS' || !['ROUTINE','TIME_SENSITIVE','URGENT'].includes(String(priority)) ||
+  const permittedCategory = route.office_id === 'PEGGY_WILSON' ? 'BUSINESS' :
+    route.office_id === 'PATRICK_ROSS' ? 'SYSTEMS' : null;
+  if (category !== permittedCategory || !['ROUTINE','TIME_SENSITIVE','URGENT'].includes(String(priority)) ||
       !['CONVERSATION','MEETING','DECISION','REVIEW'].includes(String(contact)) ||
       !['FOUNDER_PRIVATE','CORPORATE_RESTRICTED'].includes(String(confidentiality)) ||
       typeof subject !== 'string' || subject.length < 3 || subject.length > 160 ||
