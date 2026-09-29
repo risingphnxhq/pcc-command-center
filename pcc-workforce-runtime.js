@@ -4,6 +4,8 @@
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
   const FUNCTION_NAME = "pcc-workforce-adapter-v1";
   const AGENT_INVOKER_NAME = "pcc-agent-invoker-v1";
+  const PRIME_RUNTIME_SUBJECT = "ce00b026-246c-4167-a2c9-4f4d7e3c4a51";
+  const NEW_MASON_RUNTIME_SUBJECT = "c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
   const client = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
@@ -60,10 +62,13 @@
   async function verifyRuntime() {
     setReady(false, "VERIFYING MASON RUNTIME");
     try {
+      const { data: { session } } = await client.auth.getSession();
+      if (!session?.user?.id) throw new Error("AUTHENTICATED_SESSION_REQUIRED");
       const body = await invoke("HEALTH", {});
+      if (body.authenticated_subject !== session.user.id) throw new Error("SESSION_SUBJECT_MISMATCH");
       $("actor").textContent = body.result.actor_id;
       setReady(true, "MASON RUNTIME VERIFIED");
-      $("authMessage").textContent = "PCC adapter accepted this authenticated subject.";
+      $("authMessage").textContent = `PCC accepted ${session.user.email || "unknown email"} as ${body.authenticated_subject}.`;
       show(body);
       await refreshWork();
     } catch (error) {
@@ -76,14 +81,26 @@
     if (!session) {
       loginForm.classList.remove("hidden");
       sessionPanel.classList.add("hidden");
+      $("sessionEmail").textContent = "";
       $("subject").textContent = "";
+      $("runtimeLane").textContent = "";
       $("actor").textContent = "Pending adapter verification";
       setReady(false, "AUTHENTICATION REQUIRED");
       return;
     }
     loginForm.classList.add("hidden");
     sessionPanel.classList.remove("hidden");
-    $("subject").textContent = session.user.id;
+    const subject = session.user.id;
+    const lane = subject === NEW_MASON_RUNTIME_SUBJECT
+      ? "NEW_MASON_ACCOUNT"
+      : subject === PRIME_RUNTIME_SUBJECT
+        ? "PRIME_SYSTEMS_BRIDGE_RUNTIME"
+        : "UNRECOGNIZED_RUNTIME";
+    $("sessionEmail").textContent = session.user.email || "Unavailable";
+    $("subject").textContent = subject;
+    $("runtimeLane").textContent = lane;
+    if (lane === "NEW_MASON_ACCOUNT") $("accountLane").value = "NEW_MASON_ACCOUNT";
+    if (lane === "PRIME_SYSTEMS_BRIDGE_RUNTIME") $("accountLane").value = "PRIME_MASON_ACCOUNT";
     await verifyRuntime();
   }
   function workOrderCard(w, execution) {
@@ -151,11 +168,23 @@
     event.preventDefault();
     setReady(false, "AUTHENTICATING");
     $("authMessage").textContent = "";
-    const { error } = await client.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
+    const email = $("email").value.trim();
+    const password = $("password").value;
+    const { data: { session: existingSession } } = await client.auth.getSession();
+    if (existingSession) {
+      const { error: signOutError } = await client.auth.signOut({ scope: "local" });
+      if (signOutError) {
+        $("password").value = "";
+        setReady(false, "SESSION SWITCH FAILED", true);
+        $("authMessage").textContent = signOutError.message;
+        return;
+      }
+    }
+    const { error } = await client.auth.signInWithPassword({ email, password });
     $("password").value = "";
     if (error) { setReady(false, "AUTHENTICATION FAILED", true); $("authMessage").textContent = error.message; }
   });
-  $("signOutButton").addEventListener("click", () => client.auth.signOut());
+  $("signOutButton").addEventListener("click", () => client.auth.signOut({ scope: "local" }));
   $("healthButton").addEventListener("click", verifyRuntime);
   $("refreshWork").addEventListener("click", refreshWork);
   $("workList").addEventListener("click", async event => {
