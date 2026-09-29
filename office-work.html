@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Corporate Office Work — Phoenix Command Center</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color:#e9e4db;background:#071018}*{box-sizing:border-box}
+body{margin:0}main{max-width:900px;margin:auto;padding:24px 16px 70px}a{color:#dbb978}
+h1{font-size:1.8rem;margin:15px 0 6px}h2{font-size:1.15rem}p{color:#b6bdc5}
+.card{background:#101e29;border:1px solid #3b4c53;border-radius:14px;padding:18px;margin:17px 0}
+label{display:block;margin:10px 0 4px}input,textarea,button{font:inherit;border-radius:8px}
+input,textarea{width:100%;padding:11px;background:#06121b;border:1px solid #607078;color:white}
+textarea{min-height:110px}button{padding:10px 18px;margin:12px 8px 0 0;background:#bd9450;border:0;color:#06121b;font-weight:700;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}.entry{border-left:3px solid #aa8850;padding:8px 12px;margin:10px 0;background:#0a1720;white-space:pre-wrap}
+.meta{font-size:.85rem;color:#a8b6bd}.error{color:#ffaba6}.hidden{display:none}
+</style></head><body><main>
+<a id="back" href="office.html">← Return to office</a><h1 id="title">Corporate office work</h1>
+<p>Continue a private work thread with this Corporate office. The typed question, recent thread and bounded office brief go to OpenAI for an advisory draft. This text route sends nothing to ElevenLabs. Decisions and execution require their own authorization and receipts.</p>
+<section class="card" id="signIn"><h2>Individual Founder sign-in</h2><p>HQ entry and your individual Corporate identity are both required.</p>
+<form id="login"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+<button>Sign in</button></form><p id="authMessage"></p></section>
+<section class="card hidden" id="work"><h2>Office work thread</h2><p id="identity"></p><div id="entries"></div>
+<form id="ask"><label for="message">Direction or question</label><textarea id="message" maxlength="2000" required placeholder="Ask for a dated finding, recommendation, owner and next decision."></textarea>
+<button id="send">Send to office</button></form><p id="state"></p><button id="newThread" type="button">Start a new thread</button><button id="signOut" type="button">Sign out</button></section>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script><script>
+(()=>{'use strict';
+const project='https://ttkceizmjeckrorhkhfr.supabase.co';
+const publishable='sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO';
+const client=window.supabase.createClient(project,publishable,{auth:{persistSession:true,autoRefreshToken:true}});
+const office=new URLSearchParams(location.search).get('office_id')||'';
+const $=id=>document.getElementById(id);const threadKey='pccOfficeWorkThread:'+office;let thread=sessionStorage.getItem(threadKey);
+if(!/^[A-Z][A-Z0-9_]{1,63}$/.test(office)){ $('title').textContent='Choose an office';$('signIn').classList.add('hidden');return }
+$('title').textContent=office.replaceAll('_',' ')+' · Work';$('back').href='office.html?office_id='+encodeURIComponent(office);
+async function session(){const {data:{session}}=await client.auth.getSession();return session}
+async function display(session){$('signIn').classList.toggle('hidden',!!session);$('work').classList.toggle('hidden',!session);$('identity').textContent=session?'Signed in as '+session.user.email:'';
+ if(session&&thread){try{const saved=await call('READ',{thread_id:thread});$('entries').replaceChildren();for(const entry of saved.entries||[])line(entry.entry_kind.replaceAll('_',' '),entry.body,entry.created_at);}
+ catch(error){thread=null;sessionStorage.removeItem(threadKey);$('state').textContent=error.message}}}
+async function call(operation,values={}){
+ const entry=sessionStorage.getItem('pccEntrySession'),individual=await session();
+ if(!entry)throw Error('HQ entry expired. Return to the office and re-enter HQ.');
+ if(!individual?.access_token)throw Error('Individual sign-in required.');
+ const response=await fetch(project+'/functions/v1/pcc-corporate-office-work',{method:'POST',headers:{
+   Authorization:'Bearer '+entry,'X-PCC-Individual-Authorization':'Bearer '+individual.access_token,
+   'Content-Type':'application/json'},body:JSON.stringify({operation,office_id:office,...values}),cache:'no-store'});
+ const body=await response.json().catch(()=>({error:'OFFICE_RESPONSE_UNAVAILABLE'}));
+ if(!response.ok){if(body.thread_id){thread=body.thread_id;sessionStorage.setItem(threadKey,thread)}throw Error(body.error||'OFFICE_WORK_FAILED')}return body;
+}
+function line(kind,body,meta){const node=document.createElement('div');node.className='entry';
+ const heading=document.createElement('div');heading.className='meta';heading.textContent=kind+(meta?' · '+meta:'');
+ const text=document.createElement('div');text.textContent=body;node.append(heading,text);$('entries').append(node)}
+$('login').addEventListener('submit',async event=>{event.preventDefault();$('authMessage').textContent='Signing in…';
+ const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+ $('password').value='';$('authMessage').textContent=error?error.message:'';display(await session())});
+$('ask').addEventListener('submit',async event=>{event.preventDefault();const message=$('message').value.trim();if(!message)return;
+ $('send').disabled=true;$('state').textContent='Recording direction and preparing office analysis…';
+ try{const result=await call('ASK',{thread_id:thread||undefined,message});thread=result.thread_id;sessionStorage.setItem(threadKey,thread);
+   const saved=await call('READ',{thread_id:thread});$('entries').replaceChildren();for(const entry of saved.entries||[])line(entry.entry_kind.replaceAll('_',' '),entry.body,entry.created_at);
+   $('message').value='';$('state').textContent='Saved to Corporate office thread '+thread+'.';
+ }catch(error){$('state').textContent=error.message;$('state').className='error'}finally{$('send').disabled=false}});
+$('newThread').addEventListener('click',()=>{thread=null;sessionStorage.removeItem(threadKey);$('entries').replaceChildren();$('state').textContent='New thread ready.'});
+$('signOut').addEventListener('click',async()=>{await client.auth.signOut();thread=null;sessionStorage.removeItem(threadKey);$('entries').replaceChildren();display(null)});
+session().then(display);
+})();
+</script></body></html>
