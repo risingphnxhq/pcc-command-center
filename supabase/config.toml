@@ -12,3 +12,6 @@ verify_jwt = false
 
 [functions.pcc-finance-mercury-account-probe]
 verify_jwt = true
+
+[functions.pcc-agent-invoker-v1]
+verify_jwt = true
