@@ -3,6 +3,7 @@
   const PROJECT_URL = "https://oyjmpbuxvfxusmbouldi.supabase.co";
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
   const FUNCTION_NAME = "pcc-workforce-adapter-v1";
+  const AGENT_INVOKER_NAME = "pcc-agent-invoker-v1";
   const client = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
@@ -39,6 +40,23 @@
     if (!response.ok || !body.ok) throw Object.assign(new Error(body.error || `HTTP_${response.status}`), { body, status: response.status });
     return body;
   }
+  async function invokeAgent(action, executionId) {
+    const { data: { session } } = await client.auth.getSession();
+    if (!session?.access_token) throw new Error("AUTHENTICATED_SESSION_REQUIRED");
+    const response = await fetch(`${PROJECT_URL}/functions/v1/${AGENT_INVOKER_NAME}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": PUBLISHABLE_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ action, execution_id: executionId }),
+      cache: "no-store"
+    });
+    const body = await response.json().catch(() => ({ error: "INVALID_AGENT_INVOKER_RESPONSE" }));
+    if (!response.ok || !body.ok) throw Object.assign(new Error(body.error || `HTTP_${response.status}`), { body, status: response.status });
+    return body;
+  }
   async function verifyRuntime() {
     setReady(false, "VERIFYING MASON RUNTIME");
     try {
@@ -68,7 +86,7 @@
     $("subject").textContent = session.user.id;
     await verifyRuntime();
   }
-  function workOrderCard(w) {
+  function workOrderCard(w, execution) {
     const streamId = escapeHtml(w.workforce_stream_id || "");
     const workOrderId = escapeHtml(w.work_order_id || "");
     const status = String(w.status || "").toUpperCase();
@@ -78,9 +96,20 @@
     const checkpointButton = ["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)
       ? `<button type="button" data-work-action="checkpoint" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Write Checkpoint</button>`
       : "";
-    const agentButton = ["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)
-      ? `<button type="button" data-work-action="agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Identify Agent Lane</button>`
-      : "";
+    const executionId = escapeHtml(execution?.execution_id || "");
+    const executionStatus = String(execution?.status || "").toUpperCase();
+    let agentButton = "";
+    if (["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)) {
+      if (!execution) {
+        agentButton = `<button type="button" data-work-action="agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Identify Agent Lane</button>`;
+      } else if (executionStatus === "REGISTERED") {
+        agentButton = `<button type="button" data-work-action="launch-agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}" data-execution-id="${executionId}">Launch Agent Session</button>`;
+      } else if (executionStatus === "ACTIVE") {
+        agentButton = `<button type="button" disabled>Agent Active · ${executionId}</button>`;
+      } else {
+        agentButton = `<button type="button" disabled>Agent ${escapeHtml(executionStatus)} · ${executionId}</button>`;
+      }
+    }
     return `<article class="work">
       <div class="label">${escapeHtml(w.workforce_role)} · ${escapeHtml(w.status)}</div>
       <strong>${escapeHtml(w.title)}</strong>
@@ -95,9 +124,21 @@
   }
   async function refreshWork() {
     try {
-      const body = await invoke("LIST_OPEN_WORK", {});
-      const orders = body.result.work_orders || [];
-      $("workList").innerHTML = orders.length ? orders.map(workOrderCard).join("") : '<div class="help">No open workforce assignments.</div>';
+      const [workBody, executionBody] = await Promise.all([
+        invoke("LIST_OPEN_WORK", {}),
+        invoke("LIST_AGENT_EXECUTIONS", {})
+      ]);
+      const orders = workBody.result.work_orders || [];
+      const executions = executionBody.result.agent_executions || [];
+      const executionByWorkOrder = new Map();
+      for (const execution of executions) {
+        if (!executionByWorkOrder.has(execution.work_order_id) && ["REGISTERED", "ACTIVE", "PAUSED"].includes(execution.status)) {
+          executionByWorkOrder.set(execution.work_order_id, execution);
+        }
+      }
+      $("workList").innerHTML = orders.length
+        ? orders.map(order => workOrderCard(order, executionByWorkOrder.get(order.work_order_id))).join("")
+        : '<div class="help">No open workforce assignments.</div>';
     } catch (error) {
       $("workList").innerHTML = `<div class="help">Retrieval blocked: ${escapeHtml(error.message)}</div>`;
     }
@@ -123,6 +164,20 @@
     const streamId = button.dataset.streamId;
     const workOrderId = button.dataset.workOrderId;
     const action = button.dataset.workAction;
+    const executionId = button.dataset.executionId;
+    if (action === "launch-agent") {
+      button.disabled = true;
+      button.textContent = "Launching…";
+      try {
+        show(await invokeAgent("LAUNCH", executionId));
+        await refreshWork();
+      } catch (error) {
+        show(error.body || { ok:false,error:error.message });
+        button.disabled = false;
+        button.textContent = "Launch Agent Session";
+      }
+      return;
+    }
     const payloads = {
       activation: ["READ_ACTIVATION_PACKAGE", { stream_id: streamId, work_order_id: workOrderId }],
       claim: ["CLAIM_WORK_ORDER", { stream_id: streamId, work_order_id: workOrderId }],
