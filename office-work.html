@@ -13,10 +13,11 @@ button:disabled{opacity:.55;cursor:wait}.entry{border-left:3px solid #aa8850;pad
 </style></head><body><main>
 <a id="back" href="office.html">← Return to office</a><h1 id="title">Corporate office work</h1>
 <p>Continue a private work thread with this Corporate office. The typed question, recent thread and bounded office brief go to OpenAI for an advisory draft. This text route sends nothing to ElevenLabs. Decisions and execution require their own authorization and receipts.</p>
-<section class="card" id="signIn"><h2>Individual Founder sign-in</h2><p>HQ entry and your individual Corporate identity are both required.</p>
+<section class="card" id="signIn"><h2>Individual Founder sign-in</h2><p>HQ entry uses a passphrase. This private work thread also requires your existing individual Corporate Auth account. If you have never set its password, request a recovery link for its registered email.</p>
 <form id="login"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
 <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
-<button>Sign in</button></form><p id="authMessage"></p></section>
+<button>Sign in</button></form><button id="recover" type="button">Send password setup link</button><p id="authMessage"></p></section>
+<section class="card hidden" id="reset"><h2>Set your individual password</h2><p>Use the recovery link from your registered email. Then choose a password for your individual Corporate account.</p><form id="resetForm"><label for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" minlength="12" required><button>Set password</button></form><p id="resetMessage"></p></section>
 <section class="card hidden" id="work"><h2>Office work thread</h2><p id="identity"></p><div id="entries"></div>
 <form id="ask"><label for="message">Direction or question</label><textarea id="message" maxlength="2000" required placeholder="Ask for a dated finding, recommendation, owner and next decision."></textarea>
 <button id="send">Send to office</button></form><p id="state"></p><button id="newThread" type="button">Start a new thread</button><button id="signOut" type="button">Sign out</button></section>
@@ -30,7 +31,8 @@ const $=id=>document.getElementById(id);const threadKey='pccOfficeWorkThread:'+o
 if(!/^[A-Z][A-Z0-9_]{1,63}$/.test(office)){ $('title').textContent='Choose an office';$('signIn').classList.add('hidden');return }
 $('title').textContent=office.replaceAll('_',' ')+' · Work';$('back').href='office.html?office_id='+encodeURIComponent(office);
 async function session(){const {data:{session}}=await client.auth.getSession();return session}
-async function display(session){$('signIn').classList.toggle('hidden',!!session);$('work').classList.toggle('hidden',!session);$('identity').textContent=session?'Signed in as '+session.user.email:'';
+let recovering=false;
+async function display(session){$('signIn').classList.toggle('hidden',!!session||recovering);$('work').classList.toggle('hidden',!session||recovering);$('reset').classList.toggle('hidden',!recovering);$('identity').textContent=session?'Signed in as '+session.user.email:'';
  if(session&&thread){try{const saved=await call('READ',{thread_id:thread});$('entries').replaceChildren();for(const entry of saved.entries||[])line(entry.entry_kind.replaceAll('_',' '),entry.body,entry.created_at);}
  catch(error){thread=null;sessionStorage.removeItem(threadKey);$('state').textContent=error.message}}}
 async function call(operation,values={}){
@@ -49,6 +51,16 @@ function line(kind,body,meta){const node=document.createElement('div');node.clas
 $('login').addEventListener('submit',async event=>{event.preventDefault();$('authMessage').textContent='Signing in…';
  const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
  $('password').value='';$('authMessage').textContent=error?error.message:'';display(await session())});
+$('recover').addEventListener('click',async()=>{const email=$('email').value.trim();if(!$('email').checkValidity()){ $('email').reportValidity();return }
+ $('recover').disabled=true;$('authMessage').textContent='Requesting your recovery link…';
+ const redirectTo=location.origin+'/office-work.html?office_id='+encodeURIComponent(office);
+ const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});
+ $('authMessage').textContent=error?error.message:'If this is the registered account, check its inbox for a password setup link. Open the link on this device, then return to HQ.';
+ $('recover').disabled=false});
+$('resetForm').addEventListener('submit',async event=>{event.preventDefault();const password=$('newPassword').value;
+ $('resetMessage').textContent='Setting password…';const {error}=await client.auth.updateUser({password});$('newPassword').value='';
+ if(error){$('resetMessage').textContent=error.message;return}recovering=false;$('resetMessage').textContent='Password set. Re-enter HQ if your session expired.';display(await session())});
+client.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){recovering=true;display(null)}});
 $('ask').addEventListener('submit',async event=>{event.preventDefault();const message=$('message').value.trim();if(!message)return;
  $('send').disabled=true;$('state').textContent='Recording direction and preparing office analysis…';
  try{const result=await call('ASK',{thread_id:thread||undefined,message});thread=result.thread_id;sessionStorage.setItem(threadKey,thread);
