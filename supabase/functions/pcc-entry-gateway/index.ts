@@ -55,16 +55,17 @@ async function valid(token: string, secret: string) {
     return payload.scope === "PCC_REGISTERED_READ" && Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 10 * 60_000;
   } catch { return false; }
 }
-async function validFounderPrivate(token: string, secret: string, expectedSubject: string) {
+async function founderPrivateSubject(token: string, secret: string): Promise<string | null> {
   const parts = token.split(".");
-  if (parts.length !== 2 || parts[0].length > 1024 || parts[1].length > 128) return false;
+  if (parts.length !== 2 || parts[0].length > 1024 || parts[1].length > 128) return null;
   try {
     const ok = await crypto.subtle.verify("HMAC", await key(secret), unb64url(parts[1]), encoder.encode(parts[0]));
-    if (!ok) return false;
+    if (!ok) return null;
     const payload = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
-    return payload.scope === "PCC_FOUNDER_PRIVATE" && payload.sub === expectedSubject &&
-      Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 30 * 60_000;
-  } catch { return false; }
+    return payload.scope === "PCC_FOUNDER_PRIVATE" && typeof payload.sub === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.sub) &&
+      Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 30 * 60_000 ? payload.sub : null;
+  } catch { return null; }
 }
 Deno.serve(async (request) => {
   const origin = request.headers.get("Origin");
@@ -97,16 +98,18 @@ Deno.serve(async (request) => {
   if (path === "authorize-private" && request.method === "POST") {
     const entry = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     if (!await valid(entry, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
-    const founderSubject = Deno.env.get("PCC_FOUNDER_AUTH_SUBJECT");
     const corporateUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (!founderSubject || !corporateUrl || !serviceKey) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    if (!corporateUrl || !serviceKey) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
     const individual = (request.headers.get("X-PCC-Individual-Authorization") || "").replace(/^Bearer\s+/i, "");
     if (!individual) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
     const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
     const { data, error } = await admin.auth.getUser(individual);
-    if (error || !data.user || data.user.id !== founderSubject || !data.user.email_confirmed_at) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
-    return reply({ session: await issueFounderPrivate(signingKey, founderSubject), expires_in: 1800 }, 200);
+    if (error || !data.user || !data.user.email_confirmed_at) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+    const { data: authorized, error: bindingError } = await admin.rpc("pcc_founder_private_subject", { p_subject: data.user.id });
+    if (bindingError) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    if (authorized !== true) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+    return reply({ session: await issueFounderPrivate(signingKey, data.user.id), expires_in: 1800 }, 200);
   }
   const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
@@ -122,10 +125,15 @@ Deno.serve(async (request) => {
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   if (isAttentionReadRoute || isAttentionAckRoute) {
-    const founderSubject = Deno.env.get("PCC_FOUNDER_AUTH_SUBJECT");
-    if (!founderSubject) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
     const privateToken = request.headers.get("X-PCC-Founder-Session") || "";
-    if (!await validFounderPrivate(privateToken, signingKey, founderSubject)) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+    const subject = await founderPrivateSubject(privateToken, signingKey);
+    if (!subject) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+    const corporateUrl = Deno.env.get("SUPABASE_URL"), serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!corporateUrl || !serviceKey) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    const verifier = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
+    const { data: authorized, error: bindingError } = await verifier.rpc("pcc_founder_private_subject", { p_subject: subject });
+    if (bindingError) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    if (authorized !== true) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
   }
   const corporateUrl = Deno.env.get("SUPABASE_URL");
   const publishable = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
