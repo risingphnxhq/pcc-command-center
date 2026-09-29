@@ -5,7 +5,7 @@ const allowedOrigin = "https://command.risingphoenixhq.com";
 const cors = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-pcc-individual-authorization, x-pcc-founder-session",
   "Access-Control-Max-Age": "600",
   Vary: "Origin",
 };
@@ -40,6 +40,11 @@ async function issue(secret: string) {
   const signature = b64url(new Uint8Array(await crypto.subtle.sign("HMAC", await key(secret), encoder.encode(data))));
   return data + "." + signature;
 }
+async function issueFounderPrivate(secret: string, subject: string) {
+  const data = b64url(encoder.encode(JSON.stringify({ scope: "PCC_FOUNDER_PRIVATE", sub: subject, exp: Date.now() + 30 * 60_000, nonce: crypto.randomUUID() })));
+  const signature = b64url(new Uint8Array(await crypto.subtle.sign("HMAC", await key(secret), encoder.encode(data))));
+  return data + "." + signature;
+}
 async function valid(token: string, secret: string) {
   const parts = token.split(".");
   if (parts.length !== 2 || parts[0].length > 1024 || parts[1].length > 128) return false;
@@ -48,6 +53,17 @@ async function valid(token: string, secret: string) {
     if (!ok) return false;
     const payload = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
     return payload.scope === "PCC_REGISTERED_READ" && Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 10 * 60_000;
+  } catch { return false; }
+}
+async function validFounderPrivate(token: string, secret: string, expectedSubject: string) {
+  const parts = token.split(".");
+  if (parts.length !== 2 || parts[0].length > 1024 || parts[1].length > 128) return false;
+  try {
+    const ok = await crypto.subtle.verify("HMAC", await key(secret), unb64url(parts[1]), encoder.encode(parts[0]));
+    if (!ok) return false;
+    const payload = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
+    return payload.scope === "PCC_FOUNDER_PRIVATE" && payload.sub === expectedSubject &&
+      Number.isFinite(payload.exp) && payload.exp > Date.now() && payload.exp < Date.now() + 30 * 60_000;
   } catch { return false; }
 }
 Deno.serve(async (request) => {
@@ -78,6 +94,20 @@ Deno.serve(async (request) => {
     }
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
+  if (path === "authorize-private" && request.method === "POST") {
+    const entry = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!await valid(entry, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
+    const founderSubject = Deno.env.get("PCC_FOUNDER_AUTH_SUBJECT");
+    const corporateUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!founderSubject || !corporateUrl || !serviceKey) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    const individual = (request.headers.get("X-PCC-Individual-Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!individual) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+    const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
+    const { data, error } = await admin.auth.getUser(individual);
+    if (error || !data.user || data.user.id !== founderSubject || !data.user.email_confirmed_at) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
+    return reply({ session: await issueFounderPrivate(signingKey, founderSubject), expires_in: 1800 }, 200);
+  }
   const isReadRoute = request.method === "GET" && ["snapshot", "mission"].includes(path || "");
   const isCommandBeaconRoute = request.method === "POST" && path === "command-beacon";
   const isTaskCommandRoute = request.method === "POST" && path === "task-command";
@@ -91,6 +121,12 @@ Deno.serve(async (request) => {
   if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute && !isAttentionReadRoute && !isAttentionAckRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
+  if (isAttentionReadRoute || isAttentionAckRoute) {
+    const founderSubject = Deno.env.get("PCC_FOUNDER_AUTH_SUBJECT");
+    if (!founderSubject) return reply({ error: "PRIVATE_IDENTITY_NOT_CONFIGURED" }, 503);
+    const privateToken = request.headers.get("X-PCC-Founder-Session") || "";
+    if (!await validFounderPrivate(privateToken, signingKey, founderSubject)) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
+  }
   const corporateUrl = Deno.env.get("SUPABASE_URL");
   const publishable = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   const password = Deno.env.get("PCC_MACHINE_AUTH_PASSWORD");
