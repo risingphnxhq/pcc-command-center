@@ -42,7 +42,7 @@
     if (!response.ok || !body.ok) throw Object.assign(new Error(body.error || `HTTP_${response.status}`), { body, status: response.status });
     return body;
   }
-  async function invokeAgent(action, executionId) {
+  async function invokeAgent(action, input = {}) {
     const { data: { session } } = await client.auth.getSession();
     if (!session?.access_token) throw new Error("AUTHENTICATED_SESSION_REQUIRED");
     const response = await fetch(`${PROJECT_URL}/functions/v1/${AGENT_INVOKER_NAME}`, {
@@ -52,7 +52,7 @@
         "apikey": PUBLISHABLE_KEY,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ action, execution_id: executionId }),
+      body: JSON.stringify({ action, ...input }),
       cache: "no-store"
     });
     const body = await response.json().catch(() => ({ error: "INVALID_AGENT_INVOKER_RESPONSE" }));
@@ -107,8 +107,11 @@
     const streamId = escapeHtml(w.workforce_stream_id || "");
     const workOrderId = escapeHtml(w.work_order_id || "");
     const status = String(w.status || "").toUpperCase();
+    const dispatchButton = status === "ISSUED"
+      ? `<button type="button" data-work-action="dispatch-agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Dispatch Governed Agent</button>`
+      : "";
     const claimButton = status === "ISSUED"
-      ? `<button type="button" data-work-action="claim" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Claim Assignment</button>`
+      ? `<button type="button" class="secondary" data-work-action="claim" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Manual Claim Only</button>`
       : "";
     const checkpointButton = ["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)
       ? `<button type="button" data-work-action="checkpoint" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Write Checkpoint</button>`
@@ -133,6 +136,7 @@
       <small>${workOrderId}<br>${streamId}</small>
       <div class="work-actions">
         <button type="button" data-work-action="activation" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Retrieve Activation</button>
+        ${dispatchButton}
         ${claimButton}
         ${checkpointButton}
         ${agentButton}
@@ -194,11 +198,24 @@
     const workOrderId = button.dataset.workOrderId;
     const action = button.dataset.workAction;
     const executionId = button.dataset.executionId;
+    if (action === "dispatch-agent") {
+      button.disabled = true;
+      button.textContent = "Dispatching…";
+      try {
+        show(await invokeAgent("DISPATCH", { work_order_id: workOrderId }));
+        await refreshWork();
+      } catch (error) {
+        show(error.body || { ok:false,error:error.message });
+        button.disabled = false;
+        button.textContent = "Dispatch Governed Agent";
+      }
+      return;
+    }
     if (action === "launch-agent") {
       button.disabled = true;
       button.textContent = "Launching…";
       try {
-        show(await invokeAgent("LAUNCH", executionId));
+        show(await invokeAgent("LAUNCH", { execution_id: executionId }));
         await refreshWork();
       } catch (error) {
         show(error.body || { ok:false,error:error.message });
