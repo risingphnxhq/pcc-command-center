@@ -86,7 +86,9 @@ Deno.serve(async (request) => {
   const isMeetingDraftRoute = request.method === "POST" && path === "war-room-draft";
   const isMeetingCancelRoute = request.method === "POST" && path === "war-room-cancel-draft";
   const isMeetingReadRoute = request.method === "GET" && path === "war-room-meeting";
-  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
+  const isAttentionReadRoute = request.method === "GET" && path === "officer-attention";
+  const isAttentionAckRoute = request.method === "POST" && path === "officer-attention-ack";
+  if (!isReadRoute && !isCommandBeaconRoute && !isTaskCommandRoute && !isWorkerProvisionRoute && !isWorkerCommandRoute && !isMeetingDraftRoute && !isMeetingCancelRoute && !isMeetingReadRoute && !isAttentionReadRoute && !isAttentionAckRoute) return reply({ error: "ROUTE_NOT_FOUND" }, 404);
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!await valid(token, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
   const corporateUrl = Deno.env.get("SUPABASE_URL");
@@ -109,6 +111,20 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: "Bearer " + login.session.access_token } },
     auth: { persistSession: false },
   });
+  if (isAttentionReadRoute) {
+    const { data, error } = await admin.rpc("pcc_founder_attention_list");
+    if (error) return reply({ error: "OFFICER_ATTENTION_UNAVAILABLE" }, 503);
+    return reply({ requests: data, checked_at: new Date().toISOString() }, 200);
+  }
+  if (isAttentionAckRoute) {
+    if (Number(request.headers.get("Content-Length") || 0) > 256) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
+    let input: Record<string, unknown>;
+    try { input = await request.json(); } catch { return reply({ error: "INVALID_REQUEST" }, 400); }
+    if (typeof input.request_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.request_id)) return reply({ error: "INVALID_REQUEST" }, 400);
+    const { data, error } = await admin.rpc("pcc_founder_attention_ack", { p_request_id: input.request_id });
+    if (error) return reply({ error: "ACKNOWLEDGMENT_UNAVAILABLE" }, 503);
+    return reply({ acknowledged: data === true, request_id: input.request_id }, data === true ? 200 : 409);
+  }
   if (isMeetingDraftRoute || isMeetingCancelRoute) {
     if (Number(request.headers.get("Content-Length") || 0) > 2048) return reply({ error: "REQUEST_TOO_LARGE" }, 413);
     let input: Record<string, unknown>;
