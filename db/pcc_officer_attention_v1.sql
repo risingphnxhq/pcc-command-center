@@ -1,4 +1,27 @@
 -- Review and apply as a controlled Corporate migration. No seed requests.
+create table if not exists pcc_hq.founder_private_subjects (
+  auth_subject uuid primary key references auth.users(id),
+  office_id text not null references pcc_hq.office_registry(office_id),
+  authority_psc text not null,
+  state text not null check (state in ('ACTIVE','REVOKED')),
+  established_at timestamptz not null default now()
+);
+alter table pcc_hq.founder_private_subjects enable row level security;
+revoke all on pcc_hq.founder_private_subjects from public,anon,authenticated;
+grant select on pcc_hq.founder_private_subjects to service_role;
+insert into pcc_hq.founder_private_subjects(auth_subject,office_id,authority_psc,state)
+select u.id,'PHOENIX_KING','PSC-A-RPE-CORPORATE-PSC-V1-EXECUTIVE-INTERACTION-AND-FOUNDER-ATTENTION-2026-09-28-001','ACTIVE'
+from auth.users u where lower(u.email)='tsteelefpa@gmail.com' and u.email_confirmed_at is not null
+on conflict (auth_subject) do nothing;
+
+create or replace function public.pcc_founder_private_subject(p_subject uuid)
+returns boolean language sql stable security invoker set search_path = pg_catalog,pcc_hq as $$
+  select exists (select 1 from pcc_hq.founder_private_subjects
+    where auth_subject=p_subject and office_id='PHOENIX_KING' and state='ACTIVE');
+$$;
+revoke all on function public.pcc_founder_private_subject(uuid) from public,anon,authenticated;
+grant execute on function public.pcc_founder_private_subject(uuid) to service_role;
+
 create table if not exists pcc_hq.officer_attention_requests (
   request_id uuid primary key default gen_random_uuid(),
   requesting_office text not null references pcc_hq.office_registry(office_id),
