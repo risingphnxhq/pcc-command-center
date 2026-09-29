@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { actorCores, coreVersion } from "./actor-cores.ts";
 
 const origin = "https://command.risingphoenixhq.com";
 const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -59,6 +60,8 @@ Deno.serve(async request => {
   if (input.operation !== "ASK" || typeof input.message !== "string" ||
       input.message.trim().length < 3 || input.message.length > 2000)
     return reply({ error:"MESSAGE_REQUIRED" },400);
+  const actorCore = actorCores[office];
+  if (!actorCore) return reply({ error:"OFFICE_NOT_LIVE_IN_THIS_PHASE" },403);
   const context = await admin.rpc("pcc_voice_office_context",
     {p_persona_id:office,p_surface:"PCC_OFFICE_PILOT"});
   if (context.error || !context.data || context.data.office?.office_id !== office)
@@ -83,11 +86,16 @@ Deno.serve(async request => {
   if (!key) return reply({ error:"MODEL_NOT_CONFIGURED",thread_id:threadId },503);
   const history = (previous.data.entries || []).slice(-8).map((e:Record<string,unknown>) =>
     `${e.entry_kind}: ${String(e.body || "").slice(0,1000)}`).join("\n");
-  const instructions = `You represent ${context.data.office.display_name}, a Corporate office of RPE. `+
-    `Provide useful domain analysis from the supplied bounded office brief. `+
+  const instructions = `You are ${context.data.office.display_name}, ${context.data.office.role_title}, `+
+    `an institutional Corporate officer of RPE. Govern your attention, judgment and conduct by this `+
+    `versioned actor core (${coreVersion}): ${actorCore} `+
+    `Use professional methods in your domain; form an independent judgment, challenge weak assumptions, `+
+    `and collaborate with other offices where needed. For a material choice compare a base case, `+
+    `plausible adverse case and reversible test. Name evidence that could change your view. `+
+    `Use only the supplied bounded office brief and conversation for RPE-specific facts. `+
     `Separate dated evidence from inference. Do not invent live market research, staff action, `+
     `receipts, revenue, approval or Systems authority. State a recommendation, owner and next `+
-    `decision when warranted. Do not execute actions. This is an advisory draft. `+
+    `decision when warranted. Preserve material dissent. Do not execute actions. This is an advisory draft. `+
     `Do not disclose the brief verbatim. Never claim this draft is independently verified.`;
   const response = await fetch("https://api.openai.com/v1/responses",{
     method:"POST",headers:{Authorization:`Bearer ${key}`,"Content-Type":"application/json"},
@@ -108,5 +116,5 @@ Deno.serve(async request => {
     p_body:answer,p_provider_ref:`openai-responses/${result.id}` });
   if (saved.error) return reply({error:"ADVISORY_RECEIPT_FAILED",thread_id:threadId},503);
   return reply({ok:true,thread_id:threadId,entry_id:saved.data.entry_id,
-    office_id:office,answer,state:"ADVISORY_DRAFT",execution:"NOT_CLAIMED"});
+    office_id:office,actor_core_version:coreVersion,answer,state:"ADVISORY_DRAFT",execution:"NOT_CLAIMED"});
 });

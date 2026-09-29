@@ -26,8 +26,10 @@ const project='https://ttkceizmjeckrorhkhfr.supabase.co';
 const publishable='sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO';
 const client=window.supabase.createClient(project,publishable,{auth:{persistSession:true,autoRefreshToken:true}});
 const office=new URLSearchParams(location.search).get('office_id')||'';
+const liveOffices=new Set(['ALEXIS_VALE','MICHAEL_CARRINGTON','CHAD_G_PENNINGTON','OLIVER_GRANT','PEGGY_WILSON','SYLVIA_SOMERS']);
 const $=id=>document.getElementById(id);const threadKey='pccOfficeWorkThread:'+office;let thread=sessionStorage.getItem(threadKey);
 if(!/^[A-Z][A-Z0-9_]{1,63}$/.test(office)){ $('title').textContent='Choose an office';$('signIn').classList.add('hidden');return }
+if(!liveOffices.has(office)){$('title').textContent='Office work is not open yet';$('signIn').classList.add('hidden');$('work').classList.add('hidden');return}
 $('title').textContent=office.replaceAll('_',' ')+' · Work';$('back').href='office.html?office_id='+encodeURIComponent(office);
 async function session(){const {data:{session}}=await client.auth.getSession();return session}
 async function display(session){$('signIn').classList.toggle('hidden',!!session);$('work').classList.toggle('hidden',!session);$('identity').textContent=session?'Signed in as '+session.user.email:'';
