@@ -59,3 +59,12 @@ test('Corporate command mutations and private agenda require individual Founder 
   assert.match(sql, /revoke all on function public\.pcc_nace_corporate_agenda\(uuid\) from public, anon, authenticated/);
   new vm.Script(consolePage.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1]);
 });
+
+test('Office work and voice pilot stay on six-office activation scope', () => {
+  const officePage = readFileSync(new URL('../office.html', import.meta.url), 'utf8');
+  const voice = readFileSync(new URL('../supabase/functions/pcc-voice-realtime-session/index.ts', import.meta.url), 'utf8');
+  assert.match(officePage, /liveOfficeIds\.has\(officeId\)/);
+  assert.match(voice, /OFFICE_NOT_LIVE_IN_THIS_PHASE/);
+  assert.match(voice, /SYLVIA_SOMERS/);
+  new vm.Script(officePage.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1]);
+});

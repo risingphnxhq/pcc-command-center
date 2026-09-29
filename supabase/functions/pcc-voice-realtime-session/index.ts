@@ -164,6 +164,8 @@ Deno.serve(async (request) => {
     const surface = url.searchParams.get("surface") || "";
     const officeId = url.searchParams.get("office_id") || "";
     if (surface !== "PCC_OFFICE_PILOT" || officeId !== personaId) return json({ error: "OFFICE_ROUTE_DENIED" }, 403);
+    if (!["ALEXIS_VALE","MICHAEL_CARRINGTON","CHAD_G_PENNINGTON","OLIVER_GRANT","PEGGY_WILSON","SYLVIA_SOMERS"].includes(officeId))
+      return json({ error: "OFFICE_NOT_LIVE_IN_THIS_PHASE" }, 403);
     const resolved = await admin.rpc("pcc_voice_bank_resolve", { p_persona_id: personaId, p_surface: surface });
     if (resolved.error || !resolved.data) return json({ error: "VOICE_IDENTITY_NOT_ACTIVE" }, 404);
     resolution = resolved.data as Record<string,unknown>;

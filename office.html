@@ -1054,7 +1054,9 @@ const elevenLabsSpeechEndpoint='https://ttkceizmjeckrorhkhfr.supabase.co/functio
 const elevenLabsChadEndpoint='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-elevenlabs-chad-audition';
 const $=id=>document.getElementById(id);
 const officeId=new URLSearchParams(location.search).get('office_id');
-if(officeId)$('officeWorkLink').href='office-work.html?office_id='+encodeURIComponent(officeId);
+const liveOfficeIds=new Set(['ALEXIS_VALE','MICHAEL_CARRINGTON','CHAD_G_PENNINGTON','OLIVER_GRANT','PEGGY_WILSON','SYLVIA_SOMERS']);
+if(officeId&&liveOfficeIds.has(officeId))$('officeWorkLink').href='office-work.html?office_id='+encodeURIComponent(officeId);
+else{$('officeWorkLink').hidden=true;$('officeWorkLink').previousElementSibling.textContent='This office is registered; its work conversation is not active in Corporate V1.'}
 const token=sessionStorage.getItem('pccEntrySession');
 const entryParams=new URLSearchParams({return:'office.html',office_id:officeId||''});const requestedMission=new URLSearchParams(location.search).get('mission_id');if(requestedMission)entryParams.set('mission_id',requestedMission);$('officeEntryLink').href='index.html?'+entryParams.toString();
 function status(message,bad=false){$('authStatus').textContent=message;$('authStatus').classList.toggle('error',bad)}
@@ -1137,6 +1139,7 @@ async function missionDetail(id){const target=$('missionDetail');target.textCont
 async function prepareOfficeVoice(){
   $('elevenLabsChadPanel').hidden=officeId!=='CHAD_G_PENNINGTON';
   if(!token){$('officeVoiceState').textContent='Re-enter HQ to start this conversation.';return}
+  if(!liveOfficeIds.has(officeId)){$('officeVoiceState').textContent='Voice conversation is not active for this office in Corporate V1.';return}
   $('officeVoiceState').textContent='Checking this office’s conversation…';
   try{
     const response=await fetch(voiceBankEndpoint+'?'+new URLSearchParams({persona_id:officeId,surface:'PCC_OFFICE_PILOT'}),{headers:{Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(10000)});
