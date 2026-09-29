@@ -1,7 +1,7 @@
 -- Review and apply as a controlled Corporate migration. No seed requests.
 create table if not exists pcc_hq.officer_attention_requests (
   request_id uuid primary key default gen_random_uuid(),
-  requesting_office text not null references pcc_hq.source_identity_registry(actor_id),
+  requesting_office text not null references pcc_hq.office_registry(office_id),
   category text not null check (category in ('BUSINESS','SYSTEMS')),
   priority text not null check (priority in ('ROUTINE','TIME_SENSITIVE','URGENT')),
   subject text not null check (char_length(subject) between 3 and 160),
