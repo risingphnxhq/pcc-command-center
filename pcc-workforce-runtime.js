@@ -68,11 +68,32 @@
     $("subject").textContent = session.user.id;
     await verifyRuntime();
   }
+  function workOrderCard(w) {
+    const streamId = escapeHtml(w.workforce_stream_id || "");
+    const workOrderId = escapeHtml(w.work_order_id || "");
+    const status = String(w.status || "").toUpperCase();
+    const claimButton = status === "ISSUED"
+      ? `<button type="button" data-work-action="claim" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Claim Assignment</button>`
+      : "";
+    const checkpointButton = ["CLAIMED", "ACTIVE", "CHECKPOINTED"].includes(status)
+      ? `<button type="button" data-work-action="checkpoint" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Write Checkpoint</button>`
+      : "";
+    return `<article class="work">
+      <div class="label">${escapeHtml(w.workforce_role)} · ${escapeHtml(w.status)}</div>
+      <strong>${escapeHtml(w.title)}</strong>
+      <small>${workOrderId}<br>${streamId}</small>
+      <div class="work-actions">
+        <button type="button" data-work-action="activation" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Retrieve Activation</button>
+        ${claimButton}
+        ${checkpointButton}
+      </div>
+    </article>`;
+  }
   async function refreshWork() {
     try {
       const body = await invoke("LIST_OPEN_WORK", {});
       const orders = body.result.work_orders || [];
-      $("workList").innerHTML = orders.length ? orders.map(w => `<article class="work"><div class="label">${escapeHtml(w.workforce_role)} · ${escapeHtml(w.status)}</div><strong>${escapeHtml(w.title)}</strong><small>${escapeHtml(w.work_order_id)}<br>${escapeHtml(w.workforce_stream_id || "")}</small></article>`).join("") : '<div class="help">No open workforce assignments.</div>';
+      $("workList").innerHTML = orders.length ? orders.map(workOrderCard).join("") : '<div class="help">No open workforce assignments.</div>';
     } catch (error) {
       $("workList").innerHTML = `<div class="help">Retrieval blocked: ${escapeHtml(error.message)}</div>`;
     }
@@ -92,6 +113,36 @@
   $("signOutButton").addEventListener("click", () => client.auth.signOut());
   $("healthButton").addEventListener("click", verifyRuntime);
   $("refreshWork").addEventListener("click", refreshWork);
+  $("workList").addEventListener("click", async event => {
+    const button = event.target.closest("button[data-work-action]");
+    if (!button) return;
+    const streamId = button.dataset.streamId;
+    const workOrderId = button.dataset.workOrderId;
+    const action = button.dataset.workAction;
+    const payloads = {
+      activation: ["READ_ACTIVATION_PACKAGE", { stream_id: streamId, work_order_id: workOrderId }],
+      claim: ["CLAIM_WORK_ORDER", { stream_id: streamId, work_order_id: workOrderId }],
+      checkpoint: ["WRITE_CHECKPOINT", {
+        stream_id: streamId,
+        work_order_id: workOrderId,
+        checkpoint_type: "PROGRESS",
+        state: "ACTIVE",
+        summary: "Authenticated Mason runtime retrieved the activation package, claimed the PCC workforce assignment, and established the first governed execution checkpoint.",
+        evidence: ["PCC Workforce Console", "Authenticated runtime subject", "Work order claim and checkpoint receipts"]
+      }]
+    };
+    const request = payloads[action];
+    if (!request) return;
+    button.disabled = true;
+    button.textContent = action === "activation" ? "Retrieving…" : action === "claim" ? "Claiming…" : "Writing…";
+    try {
+      show(await invoke(request[0], request[1]));
+      await refreshWork();
+    } catch (error) {
+      show(error.body || { ok:false,error:error.message });
+      button.disabled = false;
+    }
+  });
   $("clearOutput").addEventListener("click", () => show("No operation executed."));
   $("designForm").addEventListener("submit", async event => {
     event.preventDefault();
