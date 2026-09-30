@@ -124,6 +124,24 @@ Deno.serve(async (request) => {
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") || "casting";
 
+  if (mode === "turn") {
+    if (!request.headers.get("Content-Type")?.startsWith("application/json")) return json({ error: "JSON_REQUIRED" }, 415);
+    let body: Record<string,unknown>;
+    try { body = await request.json(); } catch { return json({ error: "INVALID_REQUEST" }, 400); }
+    const receiptId = String(body.session_receipt_id || "");
+    const itemId = String(body.provider_item_id || "");
+    const speaker = String(body.speaker || "");
+    const transcript = String(body.transcript || "").trim();
+    if (!/^[0-9a-f-]{36}$/i.test(receiptId) || !itemId || itemId.length > 128 ||
+        !["FOUNDER","OFFICER"].includes(speaker) || !transcript || transcript.length > 10000)
+      return json({ error: "INVALID_TURN" }, 400);
+    const { data, error } = await admin.rpc("pcc_voice_office_turn_record", {
+      p_session_receipt_id:receiptId,p_provider_item_id:itemId,p_speaker:speaker,p_transcript:transcript
+    });
+    if (error) return json({ error: "TURN_STORE_UNAVAILABLE" }, 503);
+    return json(data,200);
+  }
+
   if (mode === "receipt") {
     if (!request.headers.get("Content-Type")?.startsWith("application/json")) return json({ error: "JSON_REQUIRED" }, 415);
     let body: Record<string,unknown>;
