@@ -17,6 +17,8 @@ test('NACE discloses gaps and maintains office context without inventing receipt
   assert.match(nace.briefing(sample), /agenda is unavailable until individual Founder sign-in/i);
   const agenda = { open_task_count: 1, current_action_receipt_count: 2, generated_at: '2026-09-29T23:00:00Z', tasks: [{ title:'Bounded Patrick test', assignment_id:'G1-PATRICK-CORP-ENG', state:'ASSIGNED' }] };
   assert.match(nace.respond('What next?', sample, agenda), /Bounded Patrick test/);
+  assert.match(nace.respond('Is Patrick working on it?', sample, agenda), /awaiting the worker.s own claim/i);
+  assert.doesNotMatch(nace.respond('Is Patrick working on it?', sample, agenda), /Patrick is working/i);
   nace.select(sample.offices[0]);
   assert.match(nace.respond('Tell me more', sample), /Chad G. Pennington/);
   assert.match(nace.respond('Show receipts', sample, agenda), /does not prove independent verification/);
@@ -58,6 +60,17 @@ test('Corporate command mutations and private agenda require individual Founder 
   assert.doesNotMatch(consolePage, /G1-SYLVIA-SUPPORT/);
   assert.match(sql, /revoke all on function public\.pcc_nace_corporate_agenda\(uuid\) from public, anon, authenticated/);
   new vm.Script(consolePage.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1]);
+});
+
+test('Founder entry uses the bound individual identity and preserves the directory fallback', () => {
+  const gateway = readFileSync(new URL('../supabase/functions/pcc-entry-gateway/index.ts', import.meta.url), 'utf8');
+  const entry = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(gateway, /path === "authorize-founder"/);
+  assert.match(gateway, /admin\.auth\.getUser\(individual\)/);
+  assert.match(gateway, /pcc_founder_private_subject/);
+  assert.match(entry, /X-PCC-Individual-Authorization/);
+  assert.match(entry, /Use HQ passphrase for directory access/);
+  new vm.Script(entry.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1]);
 });
 
 test('Office work and voice pilot stay on six-office activation scope', () => {
