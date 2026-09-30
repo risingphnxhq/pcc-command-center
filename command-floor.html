@@ -1047,7 +1047,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 <a class="hq-room" href="execution.html"><small>09 · DELIVERY</small><strong>Execution Office</strong><span>Route · verify · receipt</span></a>
 </div><p class="hq-passage">Corporate and Systems authority remain separate. Room labels describe jurisdiction; live status appears only with verified source evidence.</p></section>
   <div class="floor-head" id="command-chamber"><div><span class="eyebrow">Corporate HQ / Executive Command</span><h1>Command Floor</h1><p>Speak with NACE. Inspect the enterprise. Follow authority and evidence to every result.</p></div><span class="lineage">ENTERPRISE → OFFICE → MISSION → RECEIPT</span></div>
-  <section class="floor-panel"><div class="nace-head"><div><span class="eyebrow">Vocal Intelligence Layer</span><h2>NACE · Corporate voice &amp; intelligence</h2></div><button class="floor-btn" id="hearNace" type="button" disabled>Hear NACE greeting</button></div>
+  <section class="floor-panel"><div class="nace-head"><div><span class="eyebrow">Vocal Intelligence Layer</span><h2>NACE · Corporate voice &amp; intelligence</h2></div><button class="floor-btn" id="hearNace" type="button" disabled>Hear NACE greeting</button></div><audio id="naceGreetingPlayer" controls preload="none" style="display:none;width:100%;margin:10px 0" aria-label="NACE greeting"></audio>
   <div class="nace-stage"><div class="nace-emblem" aria-hidden="true">N</div><div><span class="eyebrow" id="naceState">HQ DIRECTORY NOT LOADED</span><h3>Your enterprise, in conversation.</h3><p class="floor-note">Ask NACE for source-backed office and mission context. Commands follow Corporate authority, verification, and receipts.</p></div></div>
   <form id="nacePrivateSignIn" class="command-row"><label for="nacePrivateEmail">Individual Founder sign-in for private task briefing</label><input id="nacePrivateEmail" type="email" autocomplete="username" placeholder="Email" required><input id="nacePrivatePassword" type="password" autocomplete="current-password" placeholder="Password" required><button class="floor-btn" type="submit">Sign in</button></form><p id="nacePrivateStatus" class="floor-note">HQ entry shows the directory; private tasks require your individual sign-in.</p>
   <div class="conversation" id="conversation" role="log" aria-live="polite"><div class="bubble" id="initialBubble"><small>NACE · SYSTEM</small>Checking PCC entry and the Corporate source…</div></div>
@@ -1079,17 +1079,20 @@ function bubble(who,message){const el=document.createElement('div');el.className
 async function playNaceGreeting(){
  if(!token||greetingPlaying)return;
  greetingPlaying=true;$('hearNace').disabled=true;$('voiceStatus').textContent='Opening NACE’s approved entry voice…';
- let url=null;
+ let url=null;const player=$('naceGreetingPlayer');
  try{
   const response=await fetch(base+'/functions/v1/pcc-nace-presence/greeting',{method:'POST',headers:{Authorization:'Bearer '+token},cache:'no-store'});
   if(!response.ok)throw Error(response.status===401?'HQ session expired. Re-enter HQ.':'NACE greeting unavailable.');
   if(response.headers.get('X-PCC-Persona')!=='NACE'||response.headers.get('X-PCC-Surface')!=='PCC_ENTRY')throw Error('NACE voice identity was not confirmed.');
-  url=URL.createObjectURL(await response.blob());greetingAudio=new Audio(url);
-  await greetingAudio.play();$('voiceStatus').textContent='NACE is speaking. Private reports stay on screen.';
-  await new Promise(resolve=>{greetingAudio.onended=resolve;greetingAudio.onerror=resolve});
-  $('voiceStatus').textContent='NACE greeting finished. Private reports remain text-only.';
- }catch(error){$('voiceStatus').textContent=error.name==='NotAllowedError'?'Select Hear NACE greeting to allow browser audio.':error.message;}
- finally{if(url)URL.revokeObjectURL(url);greetingAudio=null;greetingPlaying=false;$('hearNace').disabled=!token||!snapshot;}
+  const audio=await response.blob();if(!audio.size||!audio.type.startsWith('audio/'))throw Error('NACE returned no playable audio.');
+  if(player.dataset.objectUrl)URL.revokeObjectURL(player.dataset.objectUrl);
+  url=URL.createObjectURL(audio);player.dataset.objectUrl=url;player.src=url;player.style.display='block';greetingAudio=player;
+  player.onplaying=()=>{$('voiceStatus').textContent='NACE audio is playing.'};
+  player.onended=()=>{$('voiceStatus').textContent='NACE greeting finished.'};
+  player.onerror=()=>{$('voiceStatus').textContent='NACE audio could not be decoded. Try the player again.'};
+  try{await player.play()}catch(error){$('voiceStatus').textContent='Press Play on the NACE audio player. '+(error.name==='NotAllowedError'?'Your browser requires a direct tap.':'Playback was blocked.');}
+ }catch(error){$('voiceStatus').textContent=error.message;}
+ finally{greetingPlaying=false;$('hearNace').disabled=!token||!snapshot;}
 }
 function state(message,bad=false){$('authStatus').textContent=message;$('authStatus').classList.toggle('error',bad)}
 async function read(missionId){if(!token)throw Error('PCC entry required.');const suffix=missionId?'/mission?mission_id='+encodeURIComponent(missionId):'/snapshot';const res=await fetch(gateway+suffix,{headers:{Authorization:'Bearer '+token},cache:'no-store'});let body;try{body=await res.json()}catch{throw Error('Corporate source response unavailable.')}if(!res.ok)throw Error(body.error||'Corporate read denied.');return body}
