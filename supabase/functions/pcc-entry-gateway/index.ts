@@ -95,20 +95,6 @@ Deno.serve(async (request) => {
     }
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
-  if (path === "authorize-founder" && request.method === "POST") {
-    const corporateUrl = Deno.env.get("SUPABASE_URL");
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (!corporateUrl || !serviceKey) return reply({ error: "FOUNDER_IDENTITY_NOT_CONFIGURED" }, 503);
-    const individual = (request.headers.get("X-PCC-Individual-Authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!individual) return reply({ error: "INDIVIDUAL_SIGN_IN_REQUIRED" }, 401);
-    const admin = createClient(corporateUrl, serviceKey, { auth: { persistSession: false } });
-    const { data, error } = await admin.auth.getUser(individual);
-    if (error || !data.user?.email_confirmed_at) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
-    const { data: authorized, error: bindingError } = await admin.rpc("pcc_founder_private_subject", { p_subject: data.user.id });
-    if (bindingError) return reply({ error: "FOUNDER_IDENTITY_NOT_CONFIGURED" }, 503);
-    if (authorized !== true) return reply({ error: "FOUNDER_IDENTITY_REQUIRED" }, 403);
-    return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
-  }
   if (path === "authorize-private" && request.method === "POST") {
     const entry = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     if (!await valid(entry, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);

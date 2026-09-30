@@ -66,6 +66,7 @@ test('HQ entry retains the original passphrase form while private commands requi
   const gateway = readFileSync(new URL('../supabase/functions/pcc-entry-gateway/index.ts', import.meta.url), 'utf8');
   const entry = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(gateway, /path === "authorize"/);
+  assert.doesNotMatch(gateway, /path === "authorize-founder"/);
   assert.match(gateway, /admin\.auth\.getUser\(individual\)/);
   assert.match(gateway, /pcc_founder_private_subject/);
   assert.match(entry, /id="entryForm"/);
