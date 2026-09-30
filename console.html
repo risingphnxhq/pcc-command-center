@@ -1375,9 +1375,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         const { error } = await identity.auth.signInWithPassword({ email, password: password.value });
         password.value = "";
         founderCommandStatus.textContent = error ? "Individual sign-in failed: " + error.message : "Individual sign-in ready. Corporate authority is checked with each command.";
+        if (!error) document.getElementById("founderCommandSignIn").style.display = "none";
       });
       identity.auth.getSession().then(({ data }) => {
-        if (data.session) founderCommandStatus.textContent = "Individual sign-in ready. Corporate authority is checked with each command.";
+        if (data.session) {
+          founderCommandStatus.textContent = "Founder identity ready. Corporate authority is checked with each command.";
+          document.getElementById("founderCommandSignIn").style.display = "none";
+        }
         else founderCommandStatus.textContent = "Individual Founder sign-in required for commands.";
       });
 
