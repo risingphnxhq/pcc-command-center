@@ -34,7 +34,10 @@ test('Command Floor refreshes source and holds private briefing audio', () => {
   assert.match(inline, /snapshot=await read\(\)/);
   assert.match(inline, /agenda=await readAgenda\(\)/);
   assert.match(inline, /I will not answer from stale state/);
-  assert.match(inline, /Private source briefings are text-only/);
+  assert.match(inline, /Private source briefings remain text-only/);
+  assert.match(inline, /pcc-nace-presence\/greeting/);
+  assert.match(inline, /X-PCC-Persona/);
+  assert.doesNotMatch(inline, /NACE\.speak\(lastSourceReply\)/);
   assert.doesNotMatch(inline, /lastSourceReply=message/);
 });
 
