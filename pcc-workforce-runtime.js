@@ -124,6 +124,8 @@
         agentButton = `<button type="button" data-work-action="agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}">Identify Agent Lane</button>`;
       } else if (executionStatus === "REGISTERED") {
         agentButton = `<button type="button" data-work-action="launch-agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}" data-execution-id="${executionId}">Launch Agent Session</button>`;
+      } else if (executionStatus === "ACTIVE" && !execution.latest_response_id) {
+        agentButton = `<button type="button" data-work-action="launch-agent" data-stream-id="${streamId}" data-work-order-id="${workOrderId}" data-execution-id="${executionId}">Launch Agent Session</button>`;
       } else if (executionStatus === "ACTIVE") {
         agentButton = `<button type="button" disabled>Agent Active · ${executionId}</button>`;
       } else {
