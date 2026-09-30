@@ -9,19 +9,33 @@
     return {
       select(office) { selected = office; lastTopic = 'office'; },
       reset() { selected = null; lastTopic = 'brief'; },
+      taskState(task) {
+        const state = String(task?.state || '').toUpperCase();
+        if (state === 'ASSIGNED') return 'It is assigned and awaiting the worker’s own claim. Assignment does not mean work has begun.';
+        if (state === 'CLAIMED') return 'The worker claim is recorded; material work and output are not yet established.';
+        if (state === 'IN_PROGRESS') return 'The task is marked in progress; inspect material output before calling it complete.';
+        if (state === 'EVIDENCE_SUBMITTED') return 'Evidence was submitted; independent verification and closure still need their own proof.';
+        if (state === 'HELD') return 'The task is on hold.';
+        return `The recorded state is ${state || 'unknown'}; inspect its receipt before inferring execution.`;
+      },
       briefing(snapshot, agenda) {
         if (!snapshot) return 'I cannot read the Corporate source in this session. Please verify PCC entry.';
         const list = snapshot.offices || [];
         const missing = list.filter(x => !x.source_present).length;
-        const work = agenda ? ` The private task queue reports ${agenda.open_task_count} open tasks at ${agenda.generated_at}. ${agenda.tasks?.find(x=>!['CANCELLED','COMPLETED'].includes(x.state))?.title || 'No open task is listed in this projection.'} Systems runtime remains unknown without a PSC-C feed.` : ' The private task agenda is unavailable until individual Founder sign-in. Systems runtime remains unknown without a PSC-C feed.';
+        const open = agenda?.tasks?.find(x=>!['CANCELLED','COMPLETED'].includes(x.state));
+        const work = agenda ? ` The private task queue reports ${agenda.open_task_count} open tasks at ${agenda.generated_at}. ${open ? `${open.title} ${this.taskState(open)}` : 'No open task is listed in this projection.'} Systems runtime remains unknown without a PSC-C feed.` : ' The private task agenda is unavailable until individual Founder sign-in. Systems runtime remains unknown without a PSC-C feed.';
         return `I have a current Corporate directory read: ${list.length} registered offices and ${missions(list)} registered missions. Registration is not worker activation. ${missing ? `PSC source is unverified for ${missing} offices.` : 'Office source coverage is present, but runtime activation needs separate receipts.'}${work}`;
       },
       respond(input, snapshot, agenda) {
         const q = String(input || '').toLowerCase().trim();
         if (!snapshot) return this.briefing(null);
         const list = snapshot.offices || [];
+        if (/\b(patrick|assigned|claim|working on|task status|where did|routed)\b/.test(q)) {
+          const open = agenda?.tasks?.find(x=>!['CANCELLED','COMPLETED'].includes(x.state));
+          return open ? `Chad routed ${open.title} to ${open.assignment_id}. ${this.taskState(open)} I have no independent worker result to report from this agenda.` : 'I cannot see an open Corporate task in the private agenda. Sign in individually to read private work, or ask Chad to inspect the task record.';
+        }
         if (/\b(brief|status|summary|what is happening|what changed)\b/.test(q)) { lastTopic = 'brief'; return this.briefing(snapshot, agenda) }
-        if (/\b(next|priority|what should we do|what do you recommend)\b/.test(q)) { lastTopic = 'next'; const open=agenda?.tasks?.find(x=>!['CANCELLED','COMPLETED'].includes(x.state)); return open ? `The first visible open Corporate task is ${open.title}, assigned to ${open.assignment_id}, state ${open.state}. Chad should review its evidence and owner before acting. I cannot rank Systems work without its bounded feed.` : 'No open Corporate task is visible in the private agenda. Chad should establish a bounded mission order through the authenticated console. I cannot rank Systems work without its bounded feed.' }
+        if (/\b(next|priority|what should we do|what do you recommend)\b/.test(q)) { lastTopic = 'next'; const open=agenda?.tasks?.find(x=>!['CANCELLED','COMPLETED'].includes(x.state)); return open ? `The first visible open Corporate task is ${open.title}, assigned to ${open.assignment_id}. ${this.taskState(open)} Chad should review its evidence and owner before acting. I cannot rank Systems work without its bounded feed.` : 'No open Corporate task is visible in the private agenda. Chad should establish a bounded mission order through the authenticated console. I cannot rank Systems work without its bounded feed.' }
         if (/\b(source|evidence|how do you know|why)\b/.test(q)) return selected ? `${selected.display_name || selected.office_id} is in the authenticated Corporate directory. Its registration and mission counts do not establish an active worker or completed task.` : 'The authenticated Corporate directory supplies office and mission registration. It does not include a certified live task agenda or execution receipts in this view.';
         if (/\b(receipts?|verified|verification|completed|done)\b/.test(q)) { lastTopic = 'receipt'; return agenda ? `The task projection links ${agenda.current_action_receipt_count} current-action receipts. This count does not prove independent verification or Canon closure; inspect a specific task receipt.` : 'The private task receipt projection is unavailable until individual Founder sign-in. I cannot certify completion from an office registration.' }
         if (/\b(office|who is here|team)\b/.test(q)) { lastTopic = 'offices'; return `${list.length} offices are registered. Select one to inspect its missions. Registration does not establish live cognition or worker activation.` }
