@@ -62,14 +62,15 @@ test('Corporate command mutations and private agenda require individual Founder 
   new vm.Script(consolePage.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1]);
 });
 
-test('Founder entry uses the bound individual identity and preserves the directory fallback', () => {
+test('HQ entry retains the original passphrase form while private commands require individual identity', () => {
   const gateway = readFileSync(new URL('../supabase/functions/pcc-entry-gateway/index.ts', import.meta.url), 'utf8');
   const entry = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(gateway, /path === "authorize-founder"/);
+  assert.match(gateway, /path === "authorize"/);
   assert.match(gateway, /admin\.auth\.getUser\(individual\)/);
   assert.match(gateway, /pcc_founder_private_subject/);
-  assert.match(entry, /X-PCC-Individual-Authorization/);
-  assert.match(entry, /Use HQ passphrase for directory access/);
+  assert.match(entry, /id="entryForm"/);
+  assert.match(entry, /ENTER COMMAND OR PASSKEY/);
+  assert.doesNotMatch(entry, /id="founderEntryForm"/);
   new vm.Script(entry.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1]);
 });
 
