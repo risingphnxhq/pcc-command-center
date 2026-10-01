@@ -25,18 +25,24 @@ test('NACE discloses gaps and maintains office context without inventing receipt
   assert.match(nace.respond('Brief me', null), /cannot read the Corporate source/);
 });
 
-test('Command Floor refreshes source and holds private briefing audio', () => {
+test('Command Floor opens distinct live NACE route after Corporate source read', () => {
   const page = readFileSync(new URL('../command-floor.html', import.meta.url), 'utf8');
+  const runtime = readFileSync(new URL('../nace-runtime.js', import.meta.url), 'utf8');
+  const service = readFileSync(new URL('../supabase/functions/pcc-nace-conversation/index.ts', import.meta.url), 'utf8');
   const inline = page.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];
   assert.ok(inline);
   new vm.Script(inline);
   assert.match(inline, /async function handle\(input\)/);
   assert.match(inline, /snapshot=await read\(\)/);
   assert.match(inline, /agenda=await readAgenda\(\)/);
-  assert.match(inline, /I will not answer from stale state/);
-  assert.match(inline, /Private source briefings remain text-only/);
-  assert.match(inline, /pcc-nace-presence\/greeting/);
-  assert.match(inline, /X-PCC-Persona/);
+  assert.match(inline, /window\.NACE\.welcome\(\)/);
+  assert.match(inline, /window\.NACE\.ask\(phrase\)/);
+  assert.match(runtime, /pcc-nace-conversation/);
+  assert.doesNotMatch(runtime, /system-voice-worker/);
+  assert.match(service, /pcc_nace_recent_office_conversations/);
+  assert.match(service, /not a Corporate officer/);
+  assert.match(service, /NACE_TURN_NOT_FOUND/);
+  assert.doesNotMatch(service, /OFFICE_PILOT/);
   assert.doesNotMatch(inline, /NACE\.speak\(lastSourceReply\)/);
   assert.doesNotMatch(inline, /lastSourceReply=message/);
 });
