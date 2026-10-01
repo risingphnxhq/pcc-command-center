@@ -30,4 +30,4 @@ $('approveCandidate').onclick=()=>decideCandidate('APPROVE');$('rejectCandidate'
 $('chooseVoice').onclick=()=>{if(!current)return;const d=read(),p=profiles[index];d[p.id]=current;localStorage.setItem(key,JSON.stringify(d));status(current+' selected locally for '+p.name+'. No activation occurred.','live');review();if(index<profiles.length-1)setTimeout(()=>{index++;render()},650)};$('clear').onclick=()=>{localStorage.removeItem(key);review();status('Local selections cleared.')};window.addEventListener('pagehide',()=>end(''));load();
 })();
 </script>
-<script src="nace-runtime.js?v=20261001c" defer></script></body></html>
+<script src="nace-runtime.js?v=20261001d" defer></script></body></html>

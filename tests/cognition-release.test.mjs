@@ -56,8 +56,29 @@ test('NACE enters every Corporate page as a system presence without a floating c
   assert.match(chamber, /window\.NACE\.welcome\(\);window\.NACE\.listen\(\)/);
   for (const name of ['board-room.html','council-staff.html','office.html','war-room.html','voice-engine.html']) {
     const page = readFileSync(new URL('../'+name, import.meta.url), 'utf8');
-    assert.match(page, /nace-runtime\.js\?v=20261001c/);
+    assert.match(page, /nace-runtime\.js\?v=20261001d/);
   }
+});
+
+test('Stop interrupts an in-flight NACE turn and leaves the conversation usable', async () => {
+  const runtime = readFileSync(new URL('../nace-runtime.js', import.meta.url), 'utf8');
+  const requests = [];
+  const context = {
+    window: {}, document: { addEventListener() {} }, location: { pathname:'/command-floor.html' },
+    sessionStorage: { getItem(key) { return key === 'pccEntrySession' ? 'test-session' : null; }, setItem() {} },
+    fetch(_url, options) { requests.push(options); return new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name:'AbortError' })))); },
+    AbortController,
+  };
+  vm.runInNewContext(runtime, context);
+  const pending = context.window.NACE.ask('Give me an update');
+  assert.equal(requests.length, 1);
+  await context.window.NACE.ask('Stop');
+  assert.equal(requests[0].signal.aborted, true);
+  await pending;
+  const resumed = context.window.NACE.ask('Proceed');
+  assert.equal(requests.length, 2);
+  await context.window.NACE.ask('Stop');
+  await resumed;
 });
 
 test('Six office page and backend agree on the activation gate', () => {
