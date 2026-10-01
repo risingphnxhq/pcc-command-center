@@ -47,6 +47,19 @@ test('Command Floor opens distinct live NACE route after Corporate source read',
   assert.doesNotMatch(inline, /lastSourceReply=message/);
 });
 
+test('NACE enters every Corporate page as a system presence without a floating chat panel', () => {
+  const runtime = readFileSync(new URL('../nace-runtime.js', import.meta.url), 'utf8');
+  const chamber = readFileSync(new URL('../command-floor.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(runtime, /pccNacePanel|pccNaceToggle/);
+  assert.doesNotMatch(chamber, /id="hearNace"/);
+  assert.match(runtime, /main\.prepend\(section\);welcome\(\);listen\(\)/);
+  assert.match(chamber, /window\.NACE\.welcome\(\);window\.NACE\.listen\(\)/);
+  for (const name of ['board-room.html','council-staff.html','office.html','war-room.html','voice-engine.html']) {
+    const page = readFileSync(new URL('../'+name, import.meta.url), 'utf8');
+    assert.match(page, /nace-runtime\.js\?v=20261001c/);
+  }
+});
+
 test('Six office page and backend agree on the activation gate', () => {
   const page = readFileSync(new URL('../office-work.html', import.meta.url), 'utf8');
   const functionSource = readFileSync(new URL('../supabase/functions/pcc-corporate-office-work/index.ts', import.meta.url), 'utf8');
