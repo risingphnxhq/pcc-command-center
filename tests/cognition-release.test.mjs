@@ -56,7 +56,7 @@ test('NACE enters every Corporate page as a system presence without a floating c
   assert.match(chamber, /window\.NACE\.welcome\(\);window\.NACE\.listen\(\)/);
   for (const name of ['board-room.html','council-staff.html','office.html','war-room.html','voice-engine.html']) {
     const page = readFileSync(new URL('../'+name, import.meta.url), 'utf8');
-    assert.match(page, /nace-runtime\.js\?v=20261001e/);
+    assert.match(page, /nace-runtime\.js\?v=20261001f/);
   }
 });
 
@@ -79,6 +79,29 @@ test('Stop interrupts an in-flight NACE turn and leaves the conversation usable'
   assert.equal(requests.length, 2);
   await context.window.NACE.ask('Stop');
   await resumed;
+});
+
+test('NACE recovers from browser no-speech and routes a spoken Proceed', async () => {
+  const runtime = readFileSync(new URL('../nace-runtime.js', import.meta.url), 'utf8');
+  const requests = [];
+  let mic;
+  class Recognition { constructor() { mic=this; this.starts=0; } start() { this.starts++; this.onstart?.(); } }
+  const context = {
+    window: { SpeechRecognition:Recognition },
+    document: { documentElement:{lang:'en-US'}, visibilityState:'visible', addEventListener() {} },
+    location: { pathname:'/command-floor.html' },
+    sessionStorage: { getItem(key) { return key === 'pccEntrySession' ? 'test-session' : null; }, setItem() {} },
+    fetch(_url, options) { requests.push(JSON.parse(options.body)); return new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), {name:'AbortError'})))); },
+    AbortController, setTimeout(fn) { fn(); },
+  };
+  vm.runInNewContext(runtime, context);
+  context.window.NACE.listen();
+  mic.onerror({error:'no-speech'});
+  mic.onend();
+  assert.equal(mic.starts, 2);
+  mic.onresult({resultIndex:0,results:[{isFinal:true,0:{transcript:'Proceed'}}]});
+  assert.equal(requests[0].message, 'Proceed');
+  await context.window.NACE.stop();
 });
 
 test('Six office page and backend agree on the activation gate', () => {

@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const endpoint='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-nace-conversation';
 const threadKey='pccNaceThread',token=()=>sessionStorage.getItem('pccEntrySession');
-let threadId=sessionStorage.getItem(threadKey),busy=false,player,url,recognition,lines,status,input,send,welcomeStarted=false,listening=false,enableSound;
+let threadId=sessionStorage.getItem(threadKey),busy=false,player,url,recognition,lines,status,input,send,welcomeStarted=false,listening=false,micActive=false,enableSound;
 let turnController=null,speechController=null,sequence=0;
 const page=()=>location.pathname.split('/').pop()||'index.html';
 function say(who,message){if(!lines)return;const entry=document.createElement('div');entry.className='bubble'+(who==='You'?' user':'');
@@ -35,15 +35,21 @@ function open(){document.getElementById('command-chamber')?.scrollIntoView({beha
 function listen(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!R){state('Microphone transcription is unavailable here. Type to NACE.');return}
  if(!recognition){recognition=new R();recognition.lang=document.documentElement.lang||'en-US';recognition.interimResults=false;recognition.continuous=true;
+  recognition.onstart=()=>{micActive=true;state('NACE is listening. Say Yes, Proceed, or ask a question.')};
   recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(!e.results[i].isFinal)continue;
    const heard=e.results[i][0].transcript.trim();if(!heard)continue;
    const stopCue=/^(?:nace[,\s:]*)?(?:stop|stop talking|be quiet|interrupt|pause|hold on)[.!]?$/i.test(heard);
    const wake=/^nace[,\s:]+/i.test(heard);
    if(stopCue){ask('Stop');continue}if(player&&!player.paused&&!wake)continue;
-   ask(wake?heard.replace(/^nace[,\s:]+/i,''):heard)}};
-  recognition.onerror=e=>{listening=false;if(e.error==='not-allowed'||e.error==='service-not-allowed')state('Microphone permission is needed for hands-free NACE.');else state('Microphone: '+e.error)};
-  recognition.onend=()=>{const restart=listening&&document.visibilityState==='visible';if(restart)try{recognition.start()}catch{listening=false}}}
- try{recognition.start();listening=true;state('NACE is listening for his name.')}catch{listening=false;state('Microphone needs browser permission. You can type to NACE.')}}
+   const message=wake?heard.replace(/^nace[,\s:]+/i,''):heard;state('NACE heard: '+message);ask(message)}};
+  recognition.onerror=e=>{if(e.error==='no-speech'||e.error==='aborted')return;
+   listening=false;if(e.error==='not-allowed'||e.error==='service-not-allowed')state('Microphone permission is needed. Tap MIC to retry or type to NACE.');else state('Microphone: '+e.error+'. Tap MIC to retry.')};
+  recognition.onend=()=>{micActive=false;if(listening&&document.visibilityState==='visible')setTimeout(()=>{if(listening&&!micActive)startMic()},250)};
+  document.addEventListener('visibilitychange',()=>{if(listening&&document.visibilityState==='visible'&&!micActive)startMic()})}
+ if(listening&&micActive)return;listening=true;startMic()}
+function startMic(){if(micActive||!listening||document.visibilityState!=='visible')return;
+ try{recognition.start();micActive=true;state('NACE is listening. Say Yes, Proceed, or ask a question.')}
+ catch(error){if(error.name!=='InvalidStateError'){listening=false;state('Microphone could not start. Tap MIC to retry or type to NACE.')}}}
 function welcome(){if(welcomeStarted||!token())return Promise.resolve();welcomeStarted=true;return ask('', 'welcome')}
 function setupSound(){player=document.createElement('audio');player.setAttribute('aria-label','NACE system voice');player.addEventListener('ended',()=>state('NACE is listening.'));
  enableSound=document.createElement('button');enableSound.type='button';enableSound.textContent='Enable NACE sound';enableSound.hidden=true;enableSound.setAttribute('aria-label','Enable NACE speech in this browser');enableSound.onclick=async()=>{try{await player.play();enableSound.hidden=true;state('NACE is speaking.')}catch{state('Browser audio is blocked. Check this site’s sound permission and device output.')}}}
