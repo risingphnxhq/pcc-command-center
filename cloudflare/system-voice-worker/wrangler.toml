@@ -1,0 +1,14 @@
+name = "system-voice-worker"
+main = "worker.mjs"
+compatibility_date = "2026-04-22"
+
+# Preserve existing provider keys and approved voice bindings on API uploads.
+# Do not run a CLI deployment that replaces existing bindings with this file alone.
+# CALL_RECEIPTS must be bound to the approved D1 database after permission is restored.
+# Required provider configuration is listed in docs/corporate-telephony-streaming-2026-10-01.md.
+
+[vars]
+CORPORATE_PUBLISHABLE_KEY = "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO"
+
+[observability]
+enabled = true
