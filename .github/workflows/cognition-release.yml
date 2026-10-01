@@ -4,6 +4,9 @@ on:
     paths:
       - 'command-floor.html'
       - 'nace-cognition.js'
+      - 'nace-runtime.js'
+      - 'supabase/functions/pcc-nace-conversation/**'
+      - 'db/pcc_nace_live_conversation.sql'
       - 'office-work.html'
       - 'office.html'
       - 'supabase/functions/pcc-voice-realtime-session/**'
