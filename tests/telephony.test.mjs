@@ -1,11 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
-import {telephony,twilioSignature,verifiedTwilio,validDestination} from '../cloudflare/system-voice-worker/telephony.mjs';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {telephony,twilioSignature,verifiedTwilio,validDestination,requestedOffice} from '../cloudflare/system-voice-worker/telephony.mjs';
 import worker from '../cloudflare/system-voice-worker/worker.mjs';
 const sid='CA'+'a'.repeat(32), account='AC'+'b'.repeat(32);
 const env={TWILIO_AUTH_TOKEN:'test-secret-only',TWILIO_ACCOUNT_SID:account,TELEPHONY_TEST_DESTINATIONS:'+15555550100'};
 const voices=key=>key==='nace'?'approved-test-voice':null;
+async function callControls(configured, provider) {
+  const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',disabled:false,textContent:'',listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}});return elements.get(id);};
+  const context={document:{getElementById:element},window:{supabase:{createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'mock-test-only'}}})}})}},crypto,JSON,Error,URLSearchParams,fetch:async(url,options)=>String(url).endsWith('/telephony/readiness')?new Response(JSON.stringify({configured}),{status:200}):provider(url,options)};
+  vm.runInNewContext(readFileSync(new URL('../telephony-runtime.js',import.meta.url),'utf8'),context);
+  await new Promise(resolve=>setImmediate(resolve));return element;
+}
+test('PCC controls hold placement when provider connection is missing',async()=>{
+  const el=await callControls({twilio_auth:false,receipts:false},()=>{throw Error('Provider should not be called');});
+  assert.equal(el('placeCall').disabled,true);assert.match(el('telephonyStatus').textContent,/Calling is held/);
+  await el('callForm').listeners.submit({preventDefault(){}});
+});
+test('PCC retry preserves request id after uncertain provider outcome',async()=>{
+  const requests=[];const el=await callControls({twilio_auth:true,receipts:true},async(url,options)=>{requests.push(JSON.parse(options.body));return new Response(JSON.stringify({error:'PROVIDER_OUTCOME_UNKNOWN'}),{status:502});});
+  el('callTo').value='+15555550100';el('callPersona').value='chad';el('callPurpose').value='Controlled test';
+  await el('callForm').listeners.submit({preventDefault(){}});await el('callForm').listeners.submit({preventDefault(){}});
+  assert.equal(requests.length,2);assert.equal(requests[0].request_id,requests[1].request_id);assert.match(el('callResult').textContent,/must not be redialed automatically/);
+});
 async function signed(path,fields) {
   const url='https://voice.example'+path,body=new URLSearchParams(fields);
   return new Request(url,{method:'POST',body,headers:{'x-twilio-signature':await twilioSignature(env.TWILIO_AUTH_TOKEN,url,body)}});
@@ -25,6 +44,12 @@ test('missing token and forged signatures denied',async()=>{
 test('outbound only allows explicit controlled E.164 destinations',()=>{
   assert.equal(validDestination('+15555550100',env),true);
   for(const n of ['911','+1911','+15555550200','5555550100',null])assert.equal(validDestination(n,env),false);
+});
+test('office handoff requires an explicit transfer request within the six-office pilot',()=>{
+  assert.equal(requestedOffice('Please transfer me to Chad.'),'chad');
+  assert.equal(requestedOffice('May I speak with Alexis Vale?'),'alexis');
+  assert.equal(requestedOffice('Chad told me to call yesterday.'),null);
+  assert.equal(requestedOffice('Transfer me to Mason.'),null);
 });
 test('public readiness reports configuration, never certification',async()=>{
   const r=await telephony(new Request('https://voice.example/telephony/readiness'),{},null,voices);
@@ -76,7 +101,7 @@ test('media pilot forwards live caller frames, speaks partial output, and clears
   try{
     const url='https://voice.example/twilio/media';
     const signature=await twilioSignature(env.TWILIO_AUTH_TOKEN,url);
-    const r=await telephony(new Request(url,{headers:{upgrade:'websocket','x-twilio-signature':signature}}),{...env,CALL_RECEIPTS:db,OPENAI_API_KEY:'test',ELEVENLABS_API_KEY:'test'}, {waitUntil(p){pending.push(p);}},voices);
+    const r=await telephony(new Request(url,{headers:{upgrade:'websocket','x-twilio-signature':signature}}),{...env,CALL_RECEIPTS:db,OPENAI_API_KEY:'test',ELEVENLABS_API_KEY:'test'}, {waitUntil(p){pending.push(p);}},key=>['nace','chad'].includes(key)?'approved-'+key:null);
     assert.equal(r.status,101);
     phone.emit({event:'start',start:{customParameters:{ticket:'test-ticket'},callSid:sid,accountSid:account,streamSid:'MZtest',mediaFormat:{encoding:'audio/x-mulaw',sampleRate:8000}}});await tick();
     assert.equal(ai.sent[0].type,'session.update');
@@ -88,6 +113,9 @@ test('media pilot forwards live caller frames, speaks partial output, and clears
     speech.emit({audio:'AAAA'});assert.ok(phone.sent.some(m=>m.event==='media'));
     ai.emit({type:'input_audio_buffer.speech_started'});assert.ok(phone.sent.some(m=>m.event==='clear'));assert.ok(ai.sent.some(m=>m.type==='response.cancel'));
     const before=speech.sent.length;ai.emit({type:'response.output_text.delta',response_id:'r1',delta:'Late canceled words. '});await tick();assert.equal(speech.sent.length,before);
+    ai.emit({type:'conversation.item.input_audio_transcription.completed',transcript:'Please transfer me to Chad.'});await tick();
+    assert.ok(ai.sent.some(m=>m.type==='session.update' && m.session.instructions.includes('Chad G. Pennington')));
+    assert.ok(evidence.some(w=>w.values.includes('office_handoff') && JSON.parse(w.values[3]).authority_changed===false));
     phone.emit({event:'stop'});await tick();await Promise.all(pending);
     assert.ok(evidence.some(w=>w.values.includes('first_audio')));
   }finally{phone.emit({event:'stop'});await tick();Object.assign(globalThis,old);}

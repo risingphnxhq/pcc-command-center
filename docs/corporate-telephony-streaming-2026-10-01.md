@@ -42,3 +42,15 @@ Outbound payload: `{ "request_id": "<fresh UUID>", "to": "<allowlisted E.164>", 
 Authenticate the provider account; confirm the Corporate number; inspect live number callbacks; test inbound and outbound calls; measure first audio and turn latency; verify custom voice access and native 8 kHz mu-law output; test silence, barge-in, provider loss/fallback and duplicate outbound requests; verify signed status and durable receipts. NACE-to-office handoff, office departmental memory, multilingual acceptance and mission creation require their own governed integration evidence. Emergency calling remains uncertified.
 
 Local checks: `node --test tests/telephony.test.mjs tests/cognition-release.test.mjs`. Mocked transport checks do not certify provider access, actual calls, voice fidelity or V1 completion.
+
+## Follow-up completion — October 1
+
+PCC `voice-engine.html` now includes caller destination, speaking-office and purpose controls with individual Corporate sign-in, connection gating, explicit placement, manual outcome refresh and request-id preservation after an uncertain response. `telephony-runtime.js` reuses the existing Corporate Auth session. The server limits the pilot to NACE plus Alexis, Michael, Chad, Oliver, Peggy and Sylvia. Actor selection is not workforce activation.
+
+Explicit spoken transfer requests switch the streaming session to the named permitted office and its configured voice, preserve the same call/context, clear the previous speech and write a handoff receipt without expanding authority. Merely mentioning an officer does not transfer the call. No private departmental brief or independently activated office worker is asserted by the pilot.
+
+The Corporate caller eligibility function was applied successfully. Readback confirmed a missing subject returns false, anon cannot execute it, and authenticated users can only check their own subject through `auth.uid()`. This function does not expose the Founder registry or grant calling rights to every authenticated user.
+
+22 local checks pass after the handoff and PCC control integration. Public source publication was approved and PR54 created. Twilio credentials, controlled destination, receipt database access, live provider entitlement, and witnessed inbound/outbound acceptance remain open.
+
+Deployment preparation readback: a live Worker replacement was held by automatic approval review pending live acceptance. The safer inactive-version upload was attempted using the dedicated Worker Versions API; Cloudflare returned No access to the specified resource. Neither attempt deployed new code. Browser-render QA could not run because the browser executable was absent and its download failed; PCC control behavior was tested with a DOM harness instead.
