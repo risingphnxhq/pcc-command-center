@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const endpoint='https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-nace-conversation';
 const threadKey='pccNaceThread',token=()=>sessionStorage.getItem('pccEntrySession');
-let threadId=sessionStorage.getItem(threadKey),busy=false,player,url,recognition,lines,status,input,send,welcomeStarted=false,listening=false;
+let threadId=sessionStorage.getItem(threadKey),busy=false,player,url,recognition,lines,status,input,send,welcomeStarted=false,listening=false,enableSound;
 let turnController=null,speechController=null,sequence=0;
 const page=()=>location.pathname.split('/').pop()||'index.html';
 function say(who,message){if(!lines)return;const entry=document.createElement('div');entry.className='bubble'+(who==='You'?' user':'');
@@ -12,15 +12,15 @@ function sources(items){if(!Array.isArray(items)||!items.length||!lines)return;
  const entry=document.createElement('div');entry.className='bubble';const label=document.createElement('small');label.textContent='PUBLIC SOURCES';entry.append(label);
  items.slice(0,8).forEach((item,i)=>{try{const link=new URL(item.url);if(link.protocol!=='https:')return;if(i)entry.append(document.createTextNode(' · '));
   const a=document.createElement('a');a.href=link.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent=String(item.title||link.hostname).slice(0,100);entry.append(a)}catch{}});lines.append(entry)}
-function stop(){if(!player)return;player.pause();if(url){URL.revokeObjectURL(url);url=null}player.removeAttribute('src');player.load();player.hidden=true;player.style.display='none'}
+function stop(){if(!player)return;player.pause();if(url){URL.revokeObjectURL(url);url=null}player.removeAttribute('src');player.load();if(enableSound)enableSound.hidden=true}
 function halt(){sequence++;turnController?.abort();speechController?.abort();turnController=null;speechController=null;stop();busy=false;if(send)send.disabled=false;state('Stopped. NACE is listening.')}
 async function speak(turnId,current){if(!turnId||!threadId||!token()||!player||current!==sequence)return;state('Preparing NACE voice…');
  speechController=new AbortController();
  try{const response=await fetch(endpoint+'/speech',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({thread_id:threadId,turn_id:turnId}),cache:'no-store',signal:speechController.signal});
   if(!response.ok)throw Error('NACE voice is unavailable ('+response.status+').');const audio=await response.blob();if(!audio.size||!audio.type.startsWith('audio/'))throw Error('NACE returned no playable audio.');
   if(current!==sequence)return;
-  stop();url=URL.createObjectURL(audio);player.src=url;player.hidden=false;
-  try{await player.play();state('NACE is speaking.')}catch{state('Browser blocked automatic audio. Press Play to hear NACE.')}
+  stop();url=URL.createObjectURL(audio);player.src=url;
+  try{await player.play();state('NACE is speaking.')}catch{if(enableSound)enableSound.hidden=false;state('Tap Enable NACE sound once to allow speech in this browser.')}
  }catch(error){if(error.name!=='AbortError'&&current===sequence)state(error.message)}finally{if(current===sequence)speechController=null}}
 async function ask(message,mode='ask'){const text=String(message||'').trim();
  if(mode!=='welcome'&&/^(?:nace[,\s:]*)?(?:stop|stop talking|be quiet|interrupt|pause|hold on)[.!]?$/i.test(text)){say('You','Stop');halt();return}
@@ -45,19 +45,19 @@ function listen(){const R=window.SpeechRecognition||window.webkitSpeechRecogniti
   recognition.onend=()=>{const restart=listening&&document.visibilityState==='visible';if(restart)try{recognition.start()}catch{listening=false}}}
  try{recognition.start();listening=true;state('NACE is listening for his name.')}catch{listening=false;state('Microphone needs browser permission. You can type to NACE.')}}
 function welcome(){if(welcomeStarted||!token())return Promise.resolve();welcomeStarted=true;return ask('', 'welcome')}
+function setupSound(){player=document.createElement('audio');player.setAttribute('aria-label','NACE system voice');player.addEventListener('ended',()=>state('NACE is listening.'));
+ enableSound=document.createElement('button');enableSound.type='button';enableSound.textContent='Enable NACE sound';enableSound.hidden=true;enableSound.setAttribute('aria-label','Enable NACE speech in this browser');enableSound.onclick=async()=>{try{await player.play();enableSound.hidden=true;state('NACE is speaking.')}catch{state('Browser audio is blocked. Check this site’s sound permission and device output.')}}}
 function mount(){if(!token())return;
  const chamber=document.getElementById('command-chamber');
  if(chamber){lines=document.getElementById('conversation');status=document.getElementById('voiceStatus');input=document.getElementById('commandInput');send=document.querySelector('#commandForm button[type="submit"]');
-  player=document.createElement('audio');player.controls=true;player.hidden=true;player.setAttribute('aria-label','NACE voice playback');player.style.cssText='display:block;width:min(100%,560px);margin:12px 0';
-  player.style.display='none';player.addEventListener('loadedmetadata',()=>{player.style.display='block'});player.addEventListener('ended',()=>state('NACE is listening.'));const stopButton=document.createElement('button');stopButton.type='button';stopButton.className='floor-btn';stopButton.textContent='STOP NACE';stopButton.setAttribute('aria-label','Stop NACE speaking or responding');stopButton.onclick=halt;document.getElementById('commandForm')?.append(stopButton);chamber.closest('main')?.querySelector('#commandForm')?.after(player);return}
+  setupSound();const stopButton=document.createElement('button');stopButton.type='button';stopButton.className='floor-btn';stopButton.textContent='STOP NACE';stopButton.setAttribute('aria-label','Stop NACE speaking or responding');stopButton.onclick=halt;document.getElementById('commandForm')?.append(stopButton);chamber.closest('main')?.querySelector('#commandForm')?.after(player,enableSound);return}
  const main=document.querySelector('main');if(!main)return;
  const style=document.createElement('style');style.textContent='.nace-presence{margin:8px 0 28px;color:#e9e5d7;font:14px Arial}.nace-presence .nace-lines{max-height:130px;overflow:auto;line-height:1.5}.nace-presence .bubble{padding:5px 0}.nace-presence .bubble small{display:inline;margin-right:9px;color:#e6c378}.nace-presence form{margin-top:8px}.nace-presence input{width:min(100%,560px);padding:6px 0;background:transparent;color:inherit;border:0;border-bottom:1px solid #846d44;outline-offset:4px}.nace-presence h2{font-size:13px;letter-spacing:.12em;color:#e6c378}.nace-presence p{font-size:12px}';document.head.append(style);
  const section=document.createElement('section');section.className='nace-presence';section.setAttribute('aria-label','NACE PCC System Intelligence');
  const heading=document.createElement('h2');heading.textContent='NACE · PCC System Intelligence';heading.style.margin='0 0 8px';
  lines=document.createElement('div');lines.className='nace-lines';lines.setAttribute('role','log');status=document.createElement('p');status.textContent='NACE is ready.';
  const form=document.createElement('form');input=document.createElement('input');input.placeholder='Say “NACE” or type a question here…';input.setAttribute('aria-label','Ask NACE');const stopButton=document.createElement('button');stopButton.type='button';stopButton.textContent='Stop NACE';stopButton.setAttribute('aria-label','Stop NACE speaking or responding');stopButton.onclick=halt;form.append(input,stopButton);form.onsubmit=e=>{e.preventDefault();const value=input.value;input.value='';ask(value)};
- player=document.createElement('audio');player.controls=true;player.hidden=true;player.style.cssText='display:block;width:min(100%,560px);margin-top:10px';player.style.display='none';player.addEventListener('loadedmetadata',()=>{player.style.display='block'});player.addEventListener('ended',()=>state('NACE is listening.'));
- section.append(heading,lines,status,form,player);main.prepend(section);welcome();listen()}
+ setupSound();section.append(heading,lines,status,form,player,enableSound);main.prepend(section);welcome();listen()}
 document.addEventListener('DOMContentLoaded',mount);
 window.NACE={version:'corporate-live-v4',open,ask,listen,stop:halt,welcome,currentPage:page};
 })();

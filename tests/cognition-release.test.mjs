@@ -56,7 +56,7 @@ test('NACE enters every Corporate page as a system presence without a floating c
   assert.match(chamber, /window\.NACE\.welcome\(\);window\.NACE\.listen\(\)/);
   for (const name of ['board-room.html','council-staff.html','office.html','war-room.html','voice-engine.html']) {
     const page = readFileSync(new URL('../'+name, import.meta.url), 'utf8');
-    assert.match(page, /nace-runtime\.js\?v=20261001d/);
+    assert.match(page, /nace-runtime\.js\?v=20261001e/);
   }
 });
 
