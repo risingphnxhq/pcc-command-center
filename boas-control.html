@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PCC — BOAS Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080c;--panel:#0d151f;--panel2:#101b27;--gold:#c6a15b;--cyan:#63d9ff;--text:#f4efe5;--muted:#aab4c0;--line:rgba(198,161,91,.25);--ok:#49d391;--bad:#ea7474}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,rgba(198,161,91,.11),transparent 45%),var(--bg);color:var(--text);font-family:Inter,sans-serif}.shell{max-width:1400px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;border-top:3px solid var(--gold);border-bottom:1px solid var(--line);background:linear-gradient(145deg,#111b27,#070c12);padding:18px}.eyebrow,.label{font:600 11px "IBM Plex Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}h1,h2{font-family:Cinzel,serif;letter-spacing:.07em;margin:.35rem 0}h1{font-size:clamp(24px,4vw,42px)}h2{font-size:20px}.status{font:600 11px "IBM Plex Mono";padding:9px 12px;border:1px solid var(--line);color:var(--muted)}.status.ok{color:var(--ok);border-color:rgba(73,211,145,.35)}.status.bad{color:var(--bad);border-color:rgba(234,116,116,.35)}.grid{display:grid;grid-template-columns:360px 1fr;gap:14px;margin-top:14px}.card{background:linear-gradient(155deg,rgba(16,27,39,.98),rgba(7,12,18,.98));border:1px solid var(--line);padding:18px}.wide{grid-column:2}.full{grid-column:1/-1}.stack{display:grid;gap:12px}label{display:grid;gap:7px;color:var(--muted);font-size:12px}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;background:#050a10;color:var(--text);border:1px solid rgba(255,255,255,.12);padding:12px;outline:none}textarea{min-height:170px;font-family:"IBM Plex Mono";font-size:12px;line-height:1.5;resize:vertical}button{border:1px solid rgba(198,161,91,.4);background:linear-gradient(180deg,rgba(198,161,91,.16),rgba(198,161,91,.05));color:var(--text);padding:12px 14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}button.secondary{border-color:rgba(99,217,255,.3);background:rgba(99,217,255,.08)}button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}.help{font-size:12px;line-height:1.55;color:var(--muted)}pre{margin:0;background:#03070b;border-left:2px solid var(--gold);padding:14px;min-height:180px;max-height:560px;overflow:auto;color:#d7eef8;font:12px/1.6 "IBM Plex Mono";white-space:pre-wrap;word-break:break-word}.entry{border-left:2px solid var(--cyan);background:rgba(255,255,255,.025);padding:12px;margin-bottom:10px}.entry strong{display:block;margin:4px 0}.entry small{color:var(--muted)}a{color:var(--gold)}.hidden{display:none!important}@media(max-width:850px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.top{align-items:flex-start;flex-direction:column}.shell{padding:8px}}
+</style>
+</head>
+<body><main class="shell">
+<header class="top"><div><div class="eyebrow">Rising Phoenix Enterprises · Phoenix Command Center</div><h1>BOAS Control</h1><div class="help">Mandatory Phoenix OS System Stream + Build Order Authorization System control surface.</div></div><div id="runtimeStatus" class="status">AUTHENTICATION REQUIRED</div></header>
+<div class="grid">
+<section class="card"><h2>Mason Runtime</h2><form id="loginForm" class="stack">
+<label>Email<input id="email" type="email" autocomplete="username" required></label>
+<label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+<button type="submit">Authenticate</button></form>
+<div id="sessionPanel" class="stack hidden"><div><div class="label">Subject</div><div id="subject" class="help"></div></div><div><div class="label">Runtime lane</div><div id="runtimeLane" class="help"></div></div><button id="signOutButton">Sign Out</button></div>
+<p class="help"><a href="registry.html">Registry</a> · <a href="systems-console.html">Systems Console</a> · <a href="workforce-console.html">Workforce Console</a></p></section>
+
+<section class="card wide"><h2>BOAS Registry</h2><div class="row"><button id="listButton" class="secondary" disabled>List BOAS Entries</button></div><div id="entryList" style="margin-top:12px"><div class="help">Authenticate to read the governed BOAS registry.</div></div></section>
+
+<section class="card"><h2>Root / Version Registration</h2><div class="help">Prime CSE lane only. The BOAS root is supplied from reconciled lineage; this surface does not invent root syntax.</div><form id="assignForm" class="stack" style="margin-top:12px">
+<label>Action<select id="assignAction"><option>ASSIGN_ROOT_VERSION</option><option>REGISTER_VERSION</option></select></label>
+<label>System Stream ID<input id="systemStreamId" required></label>
+<label>Concept ID<input id="conceptId" placeholder="Required for first root assignment"></label>
+<label>BOAS Root ID<input id="boasRootId" placeholder="Required for first root assignment"></label>
+<label>Version<input id="version" required placeholder="V1.0.0"></label>
+<label>Version PSC ID<input id="versionPscId" required></label>
+<label>Acceptance Criteria Revision<input id="acceptanceRevision" required placeholder="ACCEPTANCE-R1"></label>
+<button type="submit" disabled>Apply Governed Registration</button></form></section>
+
+<section class="card wide"><h2>Admission Gate</h2><div class="help">Build admission = CSE. Audit admission = CATE. Identity mismatch fails closed.</div><div class="stack" style="margin-top:12px">
+<label>Gate<select id="gateAction"><option>BUILD_ADMISSION</option><option>AUDIT_ADMISSION</option></select></label>
+<label>Payload JSON<textarea id="gatePayload">{
+  "system_stream_id": "",
+  "boas_root_id": "",
+  "system_code": "",
+  "version": "",
+  "version_psc_id": "",
+  "acceptance_criteria_revision": "",
+  "build_receipt_id": "",
+  "build_artifact_or_commit_id": "",
+  "testable_target": ""
+}</textarea></label>
+<button id="gateButton" disabled>Run Admission Gate</button></div></section>
+
+<section class="card full"><h2>BOAS Response / Receipt</h2><pre id="output">No BOAS operation executed.</pre></section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script>
+(() => {
+  "use strict";
+  const PROJECT_URL = "https://oyjmpbuxvfxusmbouldi.supabase.co";
+  const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
+  const FUNCTION_NAME = "pcc-boas-control-v1";
+  const PRIME_RUNTIME_SUBJECT = "ce00b026-246c-4167-a2c9-4f4d7e3c4a51";
+  const NEW_MASON_RUNTIME_SUBJECT = "c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
+  const client = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const $ = id => document.getElementById(id);
+  const gated = [$("listButton"),$("assignForm").querySelector("button"),$("gateButton")];
+  function show(v){ $("output").textContent = typeof v==="string"?v:JSON.stringify(v,null,2); }
+  function setReady(ready,text,bad=false){ $("runtimeStatus").textContent=text; $("runtimeStatus").className="status"+(ready?" ok":bad?" bad":""); gated.forEach(x=>x.disabled=!ready); }
+  function laneFor(id){ if(id===PRIME_RUNTIME_SUBJECT)return "PRIME_MASON_ACCOUNT / CSE"; if(id===NEW_MASON_RUNTIME_SUBJECT)return "NEW_MASON_ACCOUNT / CATE"; return "UNRECOGNIZED"; }
+  async function invoke(action,payload={}){
+    const {data:{session}}=await client.auth.getSession();
+    if(!session?.access_token) throw new Error("AUTHENTICATED_SESSION_REQUIRED");
+    const response=await fetch(`${PROJECT_URL}/functions/v1/${FUNCTION_NAME}`,{method:"POST",headers:{"Authorization":`Bearer ${session.access_token}`,"apikey":PUBLISHABLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({action,payload}),cache:"no-store"});
+    const body=await response.json().catch(()=>({error:"INVALID_BOAS_RESPONSE"}));
+    if(!response.ok) throw Object.assign(new Error(body.error||`HTTP_${response.status}`),{body,status:response.status});
+    return body;
+  }
+  async function refreshSession(){
+    const {data:{session}}=await client.auth.getSession();
+    if(!session?.user?.id){$("sessionPanel").classList.add("hidden");setReady(false,"AUTHENTICATION REQUIRED");return;}
+    $("sessionPanel").classList.remove("hidden");$("subject").textContent=session.user.id;$("runtimeLane").textContent=laneFor(session.user.id);
+    const recognized=[PRIME_RUNTIME_SUBJECT,NEW_MASON_RUNTIME_SUBJECT].includes(session.user.id);
+    setReady(recognized,recognized?"MASON RUNTIME VERIFIED":"RUNTIME NOT AUTHORIZED",!recognized);
+  }
+  $("loginForm").addEventListener("submit",async e=>{e.preventDefault();setReady(false,"AUTHENTICATING");const {error}=await client.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){setReady(false,"AUTHENTICATION FAILED",true);show({error:error.message});return;}await refreshSession();});
+  $("signOutButton").addEventListener("click",async()=>{await client.auth.signOut();show("Signed out.");await refreshSession();});
+  $("listButton").addEventListener("click",async()=>{try{const body=await invoke("LIST",{});show(body);const entries=body.entries||[];$("entryList").innerHTML=entries.length?entries.map(e=>`<div class="entry"><div class="label">${e.system_code||""} · ${e.version||""}</div><strong>${e.system_name||""}</strong><small>${e.build_stream_title||""}<br>${e.audit_stream_title||""}<br>BOAS: ${e.boas_root_id||""} · Audit: ${e.audit_state||""} · Certification: ${e.certification_state||""}</small></div>`).join(""):'<div class="help">No BOAS entries registered yet.</div>';}catch(err){show(err.body||{error:err.message});}});
+  $("assignForm").addEventListener("submit",async e=>{e.preventDefault();try{const action=$("assignAction").value;const payload={system_stream_id:$("systemStreamId").value.trim(),concept_id:$("conceptId").value.trim(),boas_root_id:$("boasRootId").value.trim(),version:$("version").value.trim(),version_psc_id:$("versionPscId").value.trim(),acceptance_criteria_revision:$("acceptanceRevision").value.trim()};show(await invoke(action,payload));}catch(err){show(err.body||{error:err.message});}});
+  $("gateButton").addEventListener("click",async()=>{try{const payload=JSON.parse($("gatePayload").value);show(await invoke($("gateAction").value,payload));}catch(err){show(err.body||{error:err.message});}});
+  client.auth.onAuthStateChange(()=>refreshSession()); refreshSession();
+})();
+</script>
+<script src="nace-runtime.js?v=20261001f" defer></script>
+</body></html>
