@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
 import {calling,isCallCommand,resolveStored} from '../cloudflare/system-voice-worker/calling.mjs';
 test('private contact matching is local and ambiguity cannot select a number',()=>{
  const contacts=[{contact_id:'ty',label:'Ty',aliases:'["Phoenix King","me"]'}];
@@ -28,4 +30,15 @@ test('a submitted request is replayed without resolving or dialing again',async(
   const result=await calling(new Request('https://worker.test/telephony/command',{method:'POST',headers:{Origin:'https://command.risingphoenixhq.com',Authorization:'Bearer test','Content-Type':'application/json'},body:JSON.stringify({message:'Call Ty',request_id:'cd179ad9-f75e-4ca6-8490-035ddf5a2c6b'})}),env,{},()=>null);
   assert.equal((await result.json()).replayed,true);assert.equal(providerRequests,0);
  }finally{globalThis.fetch=original;}
+});
+test('conversation client retains the request after uncertain transport and never sends it to a model',async()=>{
+ const requests=[];
+ const window={supabase:{createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'session'}}})}})}};
+ const context={window,crypto:{randomUUID:()=> 'cd179ad9-f75e-4ca6-8490-035ddf5a2c6b'},AbortSignal,fetch:async(url,options)=>{requests.push({url,body:JSON.parse(options.body)});throw Error('network unavailable');}};
+ vm.runInNewContext(readFileSync(new URL('../corporate-calling.js',import.meta.url),'utf8'),context);
+ await assert.rejects(window.PCCCalling.execute('Call me about a test'),/request ID is retained/);
+ await assert.rejects(window.PCCCalling.execute('Call me about a test'),/request ID is retained/);
+ assert.equal(requests[0].body.request_id,requests[1].body.request_id);
+ assert.equal(requests.length,2);
+ for(const request of requests)assert.equal(request.url,'https://system-voice-worker.tsteelefpa.workers.dev/telephony/command');
 });
