@@ -10,7 +10,7 @@ const env={TWILIO_AUTH_TOKEN:'test-secret-only',TWILIO_ACCOUNT_SID:account,TELEP
 const voices=key=>key==='nace'?'approved-test-voice':null;
 async function callControls(configured, provider) {
   const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',disabled:false,textContent:'',listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}});return elements.get(id);};
-  const context={document:{getElementById:element},window:{supabase:{createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'mock-test-only'}}})}})}},crypto,JSON,Error,URLSearchParams,fetch:async(url,options)=>String(url).endsWith('/telephony/readiness')?new Response(JSON.stringify({configured}),{status:200}):provider(url,options)};
+  const context={document:{getElementById:element},window:{supabase:{createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'mock-test-only'}}})}})}},AbortSignal,crypto,JSON,Error,URLSearchParams,fetch:async(url,options)=>String(url).endsWith('/telephony/readiness')?new Response(JSON.stringify({mode:'STREAMING_HYBRID_PILOT',live_certified:false,configured}),{status:200}):provider(url,options)};
   vm.runInNewContext(readFileSync(new URL('../telephony-runtime.js',import.meta.url),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));return element;
 }
@@ -19,8 +19,12 @@ test('PCC controls hold placement when provider connection is missing',async()=>
   assert.equal(el('placeCall').disabled,true);assert.match(el('telephonyStatus').textContent,/Calling is held/);
   await el('callForm').listeners.submit({preventDefault(){}});
 });
+test('PCC holds placement on empty or incomplete readiness evidence',async()=>{
+  for(const configured of [{},{twilio_auth:true,receipts:true}]){const el=await callControls(configured,()=>{throw Error('Must not call provider');});assert.equal(el('placeCall').disabled,true);assert.match(el('telephonyStatus').textContent,/evidence is incomplete/);}
+});
 test('PCC retry preserves request id after uncertain provider outcome',async()=>{
-  const requests=[];const el=await callControls({twilio_auth:true,receipts:true},async(url,options)=>{requests.push(JSON.parse(options.body));return new Response(JSON.stringify({error:'PROVIDER_OUTCOME_UNKNOWN'}),{status:502});});
+  const configured=Object.fromEntries(['twilio_account','twilio_auth','caller_number','receipts','pcc_auth','openai','elevenlabs','test_destinations'].map(name=>[name,true]));
+  const requests=[];const el=await callControls(configured,async(url,options)=>{requests.push(JSON.parse(options.body));return new Response(JSON.stringify({error:'PROVIDER_OUTCOME_UNKNOWN'}),{status:502});});
   el('callTo').value='+15555550100';el('callPersona').value='chad';el('callPurpose').value='Controlled test';
   await el('callForm').listeners.submit({preventDefault(){}});await el('callForm').listeners.submit({preventDefault(){}});
   assert.equal(requests.length,2);assert.equal(requests[0].request_id,requests[1].request_id);assert.match(el('callResult').textContent,/must not be redialed automatically/);
