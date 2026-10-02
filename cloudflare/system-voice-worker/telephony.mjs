@@ -41,7 +41,7 @@ export function validDestination(to, env) {
   return typeof to==='string' && /^\+[1-9]\d{7,14}$/.test(to) &&
     String(env.TELEPHONY_TEST_DESTINATIONS || '').split(',').map(x=>x.trim()).includes(to);
 }
-async function subject(request, env) {
+export async function subject(request, env) {
   const authorization = request.headers.get('authorization');
   if (!authorization?.startsWith('Bearer ') || !env.CORPORATE_PUBLISHABLE_KEY) return null;
   const headers = {authorization, apikey:env.CORPORATE_PUBLISHABLE_KEY};

@@ -1,4 +1,5 @@
 import { telephony } from './telephony.mjs';
+import { calling } from './calling.mjs';
 const SERVICE_NAME = "phoenix_system_voice";
 const SERVICE_VERSION = "v9.5.0-corporate-streaming-pilot";
 const SYSTEM_ID = "SVW";
@@ -18,6 +19,8 @@ export default {
       const callResponse = await telephony(request, env, ctx, (persona, bindings) =>
         ALLOWED_PERSONAS.includes(persona) ? bindings[persona.toUpperCase() + '_VOICE_ID'] : null);
       if (callResponse) return callResponse;
+      const commandResponse = await calling(request, env, ctx, (persona, bindings) => ALLOWED_PERSONAS.includes(persona) ? bindings[persona.toUpperCase() + '_VOICE_ID'] : null);
+      if (commandResponse) return commandResponse;
       if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders() });
       }
