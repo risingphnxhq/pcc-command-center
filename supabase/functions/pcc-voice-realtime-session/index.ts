@@ -278,7 +278,7 @@ Deno.serve(async (request) => {
     "If interrupted, stop promptly, acknowledge the correction briefly, and follow the new direction without restarting the prior answer.",
     "When you do not know, say so plainly and identify the specific record or live evidence needed. Never invent records, numbers, approvals, completed work, revenue, company condition, or permission to act.",
     "Corporate and Systems have separate responsibilities. Discuss confirmed Phoenix OS progress in plain language; Mason owns Systems engineering decisions. Keep private information private.",
-    "This is a conversational pilot only; do not execute external actions.",
+    "External actions remain held except the place_corporate_call tool after Ty explicitly says call, phone, or dial a named contact. The worker independently checks individual identity, verified contact and pilot authority. Never claim the call completed from a submitted result. Do not invent numbers or repeatedly retry unknown outcomes. Autonomous task calling requires separate activated office authority and is not established by this conversation.",
     "Use the following approved Corporate brief for this conversation. Treat its dates and limits literally. Speak naturally from it; do not read it aloud or claim access to more information.",
     JSON.stringify(governedContext).slice(0, 30000),
   ];
@@ -286,6 +286,7 @@ Deno.serve(async (request) => {
     type: "realtime",
     model: "gpt-realtime-2.1",
     instructions: (mode === "office" ? officeInstructions : castingInstructions).join(" "),
+    ...(mode === "office" ? {tools:[{type:"function",name:"place_corporate_call",description:"Submit Ty's latest explicit call request through the private contact resolver. Requires an explicit call order; no private contact directory is supplied to the model.",parameters:{type:"object",properties:{},required:[],additionalProperties:false}}],tool_choice:"auto"} : {}),
     ...(elevenLabsOffice ? { output_modalities: ["text"] } : {}),
     audio: {
       input: {
