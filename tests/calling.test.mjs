@@ -20,3 +20,12 @@ test('cross-origin requests are denied before authentication',async()=>{
  const result=await calling(new Request('https://worker.test/telephony/command',{method:'POST',headers:{Origin:'https://other.test'}}),{}, {},()=>null);
  assert.equal(result.status,403);assert.equal((await result.json()).error,'ORIGIN_DENIED');
 });
+test('a submitted request is replayed without resolving or dialing again',async()=>{
+ const original=globalThis.fetch;let providerRequests=0;
+ globalThis.fetch=async url=>{if(String(url).endsWith('/auth/v1/user'))return Response.json({id:'owner',email_confirmed_at:'2026-10-02'});if(String(url).includes('/rpc/pcc_telephony_caller_authorized'))return Response.json(true);providerRequests++;throw Error('Unexpected external request');};
+ const env={CORPORATE_PUBLISHABLE_KEY:'public',CALL_RECEIPTS:{prepare:()=>({bind:()=>({first:async()=>({subject:'owner',state:'ringing',call_sid:'CA123'})})})}};
+ try{
+  const result=await calling(new Request('https://worker.test/telephony/command',{method:'POST',headers:{Origin:'https://command.risingphoenixhq.com',Authorization:'Bearer test','Content-Type':'application/json'},body:JSON.stringify({message:'Call Ty',request_id:'cd179ad9-f75e-4ca6-8490-035ddf5a2c6b'})}),env,{},()=>null);
+  assert.equal((await result.json()).replayed,true);assert.equal(providerRequests,0);
+ }finally{globalThis.fetch=original;}
+});
