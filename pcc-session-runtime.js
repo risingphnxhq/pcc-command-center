@@ -55,10 +55,6 @@
     const a=e.target.closest?.('a[href]'); if(!a||!token()) return;
     if(insidePcc(a.href)) sessionStorage.setItem('pccInternalNavigation','1');
   },true);
-  window.addEventListener('pagehide',()=>{
-    if(sessionStorage.getItem('pccInternalNavigation')==='1'){sessionStorage.removeItem('pccInternalNavigation');return;}
-    clearState();
-  });
   if(!token()){ location.replace(entryUrl()); return; }
   installSignOut();
   renew();
