@@ -1,0 +1,59 @@
+name: PCC Systems — Deploy Reviewed Supabase Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      migration_path:
+        description: Reviewed migration artifact under supabase/migrations
+        required: true
+        default: supabase/migrations/20261003_pcc_register_system_stream_v1.sql
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pcc-systems-supabase-production-migrations
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: pcc-systems-production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: oyjmpbuxvfxusmbouldi
+    steps:
+      - name: Checkout reviewed main
+        uses: actions/checkout@v4
+
+      - name: Validate reviewed migration artifact
+        shell: bash
+        env:
+          MIGRATION_PATH: ${{ inputs.migration_path }}
+        run: |
+          set -euo pipefail
+          case "$MIGRATION_PATH" in
+            supabase/migrations/*.sql) ;;
+            *) echo "Denied: migration must be a reviewed SQL artifact under supabase/migrations." >&2; exit 64 ;;
+          esac
+          test -f "$MIGRATION_PATH"
+          git diff --exit-code -- "$MIGRATION_PATH"
+          sha256sum "$MIGRATION_PATH"
+
+      - name: Apply reviewed migration through Supabase Management API
+        shell: bash
+        env:
+          MIGRATION_PATH: ${{ inputs.migration_path }}
+        run: |
+          set -euo pipefail
+          MIGRATION_FILE="$(basename "$MIGRATION_PATH")"
+          MIGRATION_NAME="${MIGRATION_FILE%.sql}"
+          jq -n             --rawfile query "$MIGRATION_PATH"             --arg name "$MIGRATION_NAME"             '{query:$query,name:$name}' > "$RUNNER_TEMP/migration.json"
+          HTTP_CODE="$(curl --silent --show-error             --output "$RUNNER_TEMP/response.json"             --write-out "%{http_code}"             --request POST             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"             --header "Content-Type: application/json"             --data-binary @"$RUNNER_TEMP/migration.json"             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/migrations")"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Supabase migration API rejected the request (HTTP $HTTP_CODE)." >&2
+            cat "$RUNNER_TEMP/response.json" >&2
+            exit 1
+          fi
+          echo "Supabase accepted the reviewed migration."
