@@ -2,7 +2,7 @@
 const PROJECT_URL="https://oyjmpbuxvfxusmbouldi.supabase.co";
 const PUBLISHABLE_KEY="sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
 const FUNCTION_NAME="pcc-boas-control-v1";
-const PRIME="ce00b026-246c-4167-a2c9-4f4d7e3c4a51",CATE="c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
+const PRIME="277a74df-5c86-4a16-8e00-1636dad052db",CATE="c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
 const client=window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const controls=()=>[$("boasRegisterStream"),$("boasList"),$("boasSignOut")].filter(Boolean);
