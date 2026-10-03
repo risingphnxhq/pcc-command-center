@@ -1,0 +1,37 @@
+name: PCC Systems — Deploy Reviewed Supabase Migrations
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pcc-systems-supabase-production-migrations
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: pcc-systems-production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PCC_SYSTEMS_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: oyjmpbuxvfxusmbouldi
+    steps:
+      - name: Checkout reviewed main
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link fixed Systems project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Show pending migrations
+        run: supabase migration list
+
+      - name: Apply reviewed migrations
+        run: supabase db push
