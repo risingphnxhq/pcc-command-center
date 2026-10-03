@@ -59,10 +59,6 @@
     if(sessionStorage.getItem('pccInternalNavigation')==='1'){sessionStorage.removeItem('pccInternalNavigation');return;}
     clearState();
   });
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='hidden'&&token()) lock();
-  });
-  window.addEventListener('blur',()=>{ if(token()) lock(); });
   if(!token()){ location.replace(entryUrl()); return; }
   installSignOut();
   renew();
