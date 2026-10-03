@@ -27,7 +27,7 @@ async function ask(message,mode='ask'){const text=String(message||'').trim();
  if(!token()){state('Enter PCC to speak with NACE.');return}if(mode!=='welcome'&&!text)return;
  if(/^(?:nace[,\s:]*)?(?:(?:please|can you|could you)\s+)?(?:call|phone|dial)\b/i.test(text)){
   say('You',text);state('NACE is checking the contact and call authority…');
-  try{if(!window.PCCCalling)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='corporate-calling.js?v=20261002a';script.onload=resolve;script.onerror=()=>reject(Error('Corporate calling could not load.'));document.head.append(script);});const call=await window.PCCCalling.execute(text,'nace');say('NACE',call.message||'Call request recorded.');state(call.message||'Call request recorded.');}catch(error){say('PCC',error.message);state(error.message);}return;
+  try{if(!window.PCCCalling)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='corporate-calling.js?v=20261002b';script.onload=resolve;script.onerror=()=>reject(Error('Corporate calling could not load.'));document.head.append(script);});const call=await window.PCCCalling.execute(text,'nace');say('NACE',call.message||'Call request recorded.');state(call.message||'Call request recorded.');}catch(error){say('PCC',error.message);state(error.message);}return;
  }
  if(busy||player&&!player.paused)halt();const current=++sequence;busy=true;if(send)send.disabled=true;stop();turnController=new AbortController();
  if(mode!=='welcome')say('You',text);state('NACE is checking Corporate PCC…');
