@@ -18,13 +18,13 @@
 <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
 <button type="submit">Authenticate</button></form>
 <div id="sessionPanel" class="stack hidden"><div><div class="label">Subject</div><div id="subject" class="help"></div></div><div><div class="label">Runtime lane</div><div id="runtimeLane" class="help"></div></div><button id="signOutButton">Sign Out</button></div>
-<p class="help"><a href="registry.html">Registry</a> · <a href="systems-console.html">Systems Console</a> · <a href="workforce-console.html">Workforce Console</a></p></section>
+<p class="help"><a href="registry.html">Registry</a> · <a href="systems-console.html">Systems Console</a> · <a href="workforce-console.html">Workforce Console</a> · <a href="build-control.html">Build Control</a></p></section>
 
 <section class="card wide"><h2>BOAS Registry</h2><div class="row"><button id="listButton" class="secondary" disabled>List BOAS Entries</button></div><div id="entryList" style="margin-top:12px"><div class="help">Authenticate to read the governed BOAS registry.</div></div></section>
 
 <section class="card"><h2>Root / Version Registration</h2><div class="help">Prime CSE lane only. The BOAS root is supplied from reconciled lineage; this surface does not invent root syntax.</div><form id="assignForm" class="stack" style="margin-top:12px">
-<label>Action<select id="assignAction"><option>ASSIGN_ROOT_VERSION</option><option>REGISTER_VERSION</option></select></label>
-<label>System Stream ID<input id="systemStreamId" required></label>
+<label>Action<select id="assignAction"><option>REGISTER_SYSTEM_STREAM</option><option>ASSIGN_ROOT_VERSION</option><option>REGISTER_VERSION</option></select></label>
+<label>System Stream ID<input id="systemStreamId" required></label>\n<label>System Code<input id="systemCode" placeholder="PCC"></label>\n<label>System Name<input id="systemName" placeholder="Phoenix Command Center"></label>\n<label>System Class<input id="systemClass" placeholder="ENTERPRISE_COMMAND_CONTROL_SYSTEM"></label>\n<label>Canon / Origin PSC ID<input id="canonId" placeholder="Controlling PCC architecture PSC"></label>
 <label>Concept ID<input id="conceptId" placeholder="Required for first root assignment"></label>
 <label>BOAS Root ID<input id="boasRootId" placeholder="Required for first root assignment"></label>
 <label>Version<input id="version" required placeholder="V1.0.0"></label>
@@ -82,7 +82,7 @@
   $("loginForm").addEventListener("submit",async e=>{e.preventDefault();setReady(false,"AUTHENTICATING");const {error}=await client.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){setReady(false,"AUTHENTICATION FAILED",true);show({error:error.message});return;}await refreshSession();});
   $("signOutButton").addEventListener("click",async()=>{await client.auth.signOut();show("Signed out.");await refreshSession();});
   $("listButton").addEventListener("click",async()=>{try{const body=await invoke("LIST",{});show(body);const entries=body.entries||[];$("entryList").innerHTML=entries.length?entries.map(e=>`<div class="entry"><div class="label">${e.system_code||""} · ${e.version||""}</div><strong>${e.system_name||""}</strong><small>${e.build_stream_title||""}<br>${e.audit_stream_title||""}<br>BOAS: ${e.boas_root_id||""} · Audit: ${e.audit_state||""} · Certification: ${e.certification_state||""}</small></div>`).join(""):'<div class="help">No BOAS entries registered yet.</div>';}catch(err){show(err.body||{error:err.message});}});
-  $("assignForm").addEventListener("submit",async e=>{e.preventDefault();try{const action=$("assignAction").value;const payload={system_stream_id:$("systemStreamId").value.trim(),concept_id:$("conceptId").value.trim(),boas_root_id:$("boasRootId").value.trim(),version:$("version").value.trim(),version_psc_id:$("versionPscId").value.trim(),acceptance_criteria_revision:$("acceptanceRevision").value.trim()};show(await invoke(action,payload));}catch(err){show(err.body||{error:err.message});}});
+  $("assignForm").addEventListener("submit",async e=>{e.preventDefault();try{const action=$("assignAction").value;const payload={system_stream_id:$("systemStreamId").value.trim(),system_code:$("systemCode").value.trim(),system_name:$("systemName").value.trim(),system_class:$("systemClass").value.trim(),canon_id:$("canonId").value.trim(),concept_id:$("conceptId").value.trim(),boas_root_id:$("boasRootId").value.trim(),version:$("version").value.trim(),version_psc_id:$("versionPscId").value.trim(),acceptance_criteria_revision:$("acceptanceRevision").value.trim()};show(await invoke(action,payload));}catch(err){show(err.body||{error:err.message});}});
   $("gateButton").addEventListener("click",async()=>{try{const payload=JSON.parse($("gatePayload").value);show(await invoke($("gateAction").value,payload));}catch(err){show(err.body||{error:err.message});}});
   client.auth.onAuthStateChange(()=>refreshSession()); refreshSession();
 })();
