@@ -95,6 +95,11 @@ Deno.serve(async (request) => {
     }
     return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
   }
+  if (path === "renew" && request.method === "POST") {
+    const entry = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!await valid(entry, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
+    return reply({ session: await issue(signingKey), expires_in: 600 }, 200);
+  }
   if (path === "authorize-private" && request.method === "POST") {
     const entry = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     if (!await valid(entry, signingKey)) return reply({ error: "ENTRY_REQUIRED" }, 401);
