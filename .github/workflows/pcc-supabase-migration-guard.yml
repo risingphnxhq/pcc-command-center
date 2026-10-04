@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/**'
+      - 'build-control.html'
+      - '.github/workflows/pcc-supabase-migration-guard.yml'
   workflow_dispatch:
 
 permissions:
@@ -59,3 +61,26 @@ jobs:
           grep -Fq "revoke all on pcc_institutional.service_authority_bindings from public, anon, authenticated" $FILES
           grep -Fq "revoke all on pcc_institutional.service_execution_receipts from public, anon, authenticated" $FILES
           echo "Additive/fail-closed guard PASS."
+
+
+  pcc-build-control-ui-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate governed Build Control UI corridor
+        shell: bash
+        run: |
+          set -euo pipefail
+          F="build-control.html"
+          test -f "$F"
+          grep -Fq 'F="pcc-build-control-v1"' "$F"
+          grep -Fq 'session.access_token' "$F"
+          grep -Fq 'call("START_GATE"' "$F"
+          grep -Fq 'call("RECORD_EVIDENCE"' "$F"
+          grep -Fq 'call("SET_GATE_OUTCOME"' "$F"
+          if grep -Eiq 'service_role|pcc-prime-systems-executor|SUPABASE_SERVICE_ROLE_KEY' "$F"; then
+            echo "Privileged service credential/reference detected in browser Build Control surface."
+            exit 1
+          fi
+          echo "PCC Build Control UI governed corridor PASS."
