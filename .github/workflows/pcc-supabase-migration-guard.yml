@@ -1,0 +1,86 @@
+name: PCC Supabase Migration Guard
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'build-control.html'
+      - '.github/workflows/pcc-supabase-migration-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pcc-migration-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate PCC service-authority migration invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          A="supabase/migrations/20261004_pcc_service_authority_binding_v1.sql"
+          P="supabase/migrations/20261004_pcc_service_execution_provenance_v1.sql"
+          test -f "$A"
+          test -f "$P"
+
+          grep -Fq "PCC_PRIME_SYSTEMS_EXECUTOR" "$A"
+          grep -Fq "PRIME_MASON_EXECUTOR" "$A"
+          grep -Fq "array['0','1','2','3']" "$A"
+          grep -Fq "'gate4','DENIED'" "$A"
+          grep -Fq "'gate5','DENIED'" "$A"
+
+          grep -Fq "service_execution_receipts" "$P"
+          grep -Fq "SERVICE_EXECUTION_RECEIPTS_IMMUTABLE" "$P"
+          grep -Fq "performed_by service principal is distinct from authority_owner actor" "$P"
+
+          if grep -Eq "array\[[^]]*'4'|array\[[^]]*'5'" "$A"; then
+            echo "Machine service authority must not include Gate 4 or Gate 5."
+            exit 1
+          fi
+
+          if grep -Eq "PRIME_MASON_ACCOUNT.*SERVICE_PRINCIPAL|SERVICE_PRINCIPAL.*PRIME_MASON_ACCOUNT" "$A"; then
+            echo "Machine principal must not impersonate the human Prime lane."
+            exit 1
+          fi
+
+          echo "PCC service-authority invariants PASS."
+
+      - name: Verify migration is additive and fail-closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILES="supabase/migrations/20261004_pcc_service_authority_binding_v1.sql supabase/migrations/20261004_pcc_service_execution_provenance_v1.sql"
+          if grep -Eiq '\b(drop[[:space:]]+table|truncate[[:space:]]+table|alter[[:space:]]+table[^;]+drop[[:space:]]+column)\b' $FILES; then
+            echo "Destructive schema operation detected."
+            exit 1
+          fi
+          grep -Fq "revoke all on pcc_institutional.service_authority_bindings from public, anon, authenticated" $FILES
+          grep -Fq "revoke all on pcc_institutional.service_execution_receipts from public, anon, authenticated" $FILES
+          echo "Additive/fail-closed guard PASS."
+
+
+  pcc-build-control-ui-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate governed Build Control UI corridor
+        shell: bash
+        run: |
+          set -euo pipefail
+          F="build-control.html"
+          test -f "$F"
+          grep -Fq 'F="pcc-build-control-v1"' "$F"
+          grep -Fq 'session.access_token' "$F"
+          grep -Fq 'call("START_GATE"' "$F"
+          grep -Fq 'call("RECORD_EVIDENCE"' "$F"
+          grep -Fq 'call("SET_GATE_OUTCOME"' "$F"
+          if grep -Eiq 'service_role|pcc-prime-systems-executor|SUPABASE_SERVICE_ROLE_KEY' "$F"; then
+            echo "Privileged service credential/reference detected in browser Build Control surface."
+            exit 1
+          fi
+          echo "PCC Build Control UI governed corridor PASS."
