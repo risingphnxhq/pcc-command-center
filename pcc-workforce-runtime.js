@@ -4,7 +4,7 @@
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
   const FUNCTION_NAME = "pcc-workforce-adapter-v1";
   const AGENT_INVOKER_NAME = "pcc-agent-invoker-v1";
-  const PRIME_RUNTIME_SUBJECT = "ce00b026-246c-4167-a2c9-4f4d7e3c4a51";
+  const PRIME_RUNTIME_SUBJECT = "277a74df-5c86-4a16-8e00-1636dad052db";
   const NEW_MASON_RUNTIME_SUBJECT = "c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
   const client = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -94,13 +94,13 @@
     const lane = subject === NEW_MASON_RUNTIME_SUBJECT
       ? "NEW_MASON_ACCOUNT"
       : subject === PRIME_RUNTIME_SUBJECT
-        ? "PRIME_SYSTEMS_BRIDGE_RUNTIME"
+        ? "PRIME_MASON_ACCOUNT"
         : "UNRECOGNIZED_RUNTIME";
     $("sessionEmail").textContent = session.user.email || "Unavailable";
     $("subject").textContent = subject;
     $("runtimeLane").textContent = lane;
     if (lane === "NEW_MASON_ACCOUNT") $("accountLane").value = "NEW_MASON_ACCOUNT";
-    if (lane === "PRIME_SYSTEMS_BRIDGE_RUNTIME") $("accountLane").value = "PRIME_MASON_ACCOUNT";
+    if (lane === "PRIME_MASON_ACCOUNT") $("accountLane").value = "PRIME_MASON_ACCOUNT";
     await verifyRuntime();
   }
   function workOrderCard(w, execution) {
