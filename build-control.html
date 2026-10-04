@@ -21,6 +21,6 @@ function gateBase(){return {build_control_id:$("gbcid").value.trim(),gate_code:$
 function evidence(){const raw=$("gevidence").value.trim();if(!raw)return {};try{return JSON.parse(raw)}catch{throw Error("EVIDENCE_JSON_INVALID")}}
 $("startgate").onclick=async()=>{try{$("out").textContent=JSON.stringify(await call("START_GATE",gateBase()),null,2)}catch(e){$("out").textContent=JSON.stringify(e.body||{error:e.message},null,2)}};
 $("recordevidence").onclick=async()=>{try{$("out").textContent=JSON.stringify(await call("RECORD_EVIDENCE",{...gateBase(),...evidence()}),null,2)}catch(e){$("out").textContent=JSON.stringify(e.body||{error:e.message},null,2)}};
-$("setoutcome").onclick=async()=>{try{$("out").textContent=JSON.stringify(await call("SET_GATE_OUTCOME",{...gateBase(),outcome:$("goutcome").value,completion_evidence:evidence()}),null,2)}catch(e){$("out").textContent=JSON.stringify(e.body||{error:e.message},null,2)}};
+$("setoutcome").onclick=async()=>{try{$("out").textContent=JSON.stringify(await call("SET_GATE_OUTCOME",{...gateBase(),state:$("goutcome").value,completion_evidence:evidence()}),null,2)}catch(e){$("out").textContent=JSON.stringify(e.body||{error:e.message},null,2)}};
 c.auth.onAuthStateChange(()=>setTimeout(refresh,0));refresh()})();
 </script><script src="nace-runtime.js?v=20261001f" defer></script></body></html>
