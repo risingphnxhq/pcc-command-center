@@ -5,6 +5,11 @@ on:
     paths:
       - 'supabase/migrations/**'
       - 'build-control.html'
+      - 'registry.html'
+      - 'execution.html'
+      - 'nhce-monitor.html'
+      - 'pcc-systems-read-runtime.js'
+      - 'supabase/functions/pcc-systems-read-v1/**'
       - '.github/workflows/pcc-supabase-migration-guard.yml'
   workflow_dispatch:
 
@@ -84,3 +89,31 @@ jobs:
             exit 1
           fi
           echo "PCC Build Control UI governed corridor PASS."
+
+
+  pcc-systems-read-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate governed Systems read corridor
+        shell: bash
+        run: |
+          set -euo pipefail
+          E="supabase/functions/pcc-systems-read-v1/index.ts"
+          R="pcc-systems-read-runtime.js"
+          test -f "$E"
+          test -f "$R"
+          grep -Fq 'auth.getUser()' "$E"
+          grep -Fq 'auth_actor_bindings' "$E"
+          grep -Fq 'new Set(["REGISTRY","EXECUTION","NHCE"])' "$E"
+          grep -Fq 'session.access_token' "$R"
+          grep -Fq 'pcc-systems-read-v1' "$R"
+          if grep -Eiq 'SUPABASE_SERVICE_ROLE_KEY|service_role|PCC_BOAS_SERVICE_ROLE_KEY' "$R" registry.html execution.html nhce-monitor.html; then
+            echo "Privileged credential/reference detected in browser Systems surfaces."
+            exit 1
+          fi
+          for F in registry.html execution.html nhce-monitor.html; do
+            grep -Fq 'pcc-systems-read-runtime.js' "$F"
+          done
+          echo "PCC governed Systems read corridor PASS."
