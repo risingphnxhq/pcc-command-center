@@ -57,10 +57,14 @@
 <pre id="pscDOutput">No PSC-D operation executed.</pre>
 </div></section>
 
+<section class="card" style="grid-column:1/-1"><h2>PSC-C Institutional Continuity Mailbox</h2><div class="stack"><div id="pscCState" class="status">AUTHENTICATED SYSTEMS SESSION REQUIRED</div><div class="row"><button id="pscCInbox" class="secondary" disabled>Read Inbox</button></div><label>Action<select id="pscCAction"><option>INBOX</option><option>READ</option><option>SEND</option><option>ACKNOWLEDGE</option><option>REPLY</option></select></label><label>Input JSON<textarea id="pscCInput">{}</textarea></label><div class="row"><button id="pscCExecute" disabled>Execute PSC-C Action</button></div><p class="help">Authenticated institutional mailbox for Stream continuity. Uses the existing Systems Supabase session and pcc-institutional-comms-v1.</p><pre id="pscCOutput">No PSC-C operation executed.</pre></div></section>
+
 <section class="card" style="grid-column:1/-1"><h2>Adapter Response / Receipt</h2><pre id="output">No operation executed.</pre></section>
 </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
 <script src="pcc-workforce-runtime.js"></script>
 <script src="pcc-psc-d-ack-runtime.js"></script>
-<script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>\n</body></html>
+<script src="pcc-institutional-comms-runtime.js"></script>
+<script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>
+</body></html>
