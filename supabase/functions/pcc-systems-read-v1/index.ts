@@ -17,7 +17,7 @@ Deno.serve(async(req)=>{
  const {data:userData,error:userError}=await caller.auth.getUser();
  if(userError||!userData.user)return response({error:"AUTHENTICATED_SUBJECT_REQUIRED"},401);
  const service=createClient(url,serviceRole);
- const {data:binding,error:bindingError}=await service.schema("pcc_institutional").from("auth_actor_bindings").select("actor_id,runtime_lane,status").eq("auth_subject",userData.user.id).eq("status","ACTIVE").maybeSingle();
+ const {data:binding,error:bindingError}=await service.schema("pcc_institutional").from("auth_actor_bindings").select("actor_id,status,metadata").eq("auth_subject",userData.user.id).eq("status","ACTIVE").maybeSingle();
  if(bindingError||!binding)return response({error:"SYSTEMS_READ_AUTHORITY_DENIED"},403);
  const body=await req.json().catch(()=>({}));
  const scope=String(body.scope??"").toUpperCase(),limit=limitOf(body.limit);
@@ -49,6 +49,6 @@ Deno.serve(async(req)=>{
    strategies:await q("public","pcc_strategy_outputs","strategy_id,created_at,updated_at,system_scope,condition,severity,detected_pattern,strategic_recommendation,risk_level,urgency,status","updated_at"),
    repairs:await q("public","pcc_repair_receipts","repair_id,created_at,mismatch_type,mismatch_code,severity,repairable,repair_action,repair_state,rerun_eligible,rerun_state","created_at")
   };
-  return response({ok:true,scope,authenticated_subject:userData.user.id,actor_id:binding.actor_id,runtime_lane:binding.runtime_lane,source:"SYSTEMS_SUPABASE_AUTHORITY",read_at:new Date().toISOString(),data});
+  return response({ok:true,scope,authenticated_subject:userData.user.id,actor_id:binding.actor_id,runtime_lane:String((binding.metadata as Record<string,unknown> | null)?.runtime_lane ?? "UNSPECIFIED"),source:"SYSTEMS_SUPABASE_AUTHORITY",read_at:new Date().toISOString(),data});
  }catch(e){return response({error:"SYSTEMS_READ_FAILED",detail:e instanceof Error?e.message:"UNKNOWN"},500);}
 });
