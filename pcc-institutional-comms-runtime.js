@@ -80,6 +80,36 @@
     await execute();
   });
 
+  // Foreman V0: one bounded continuity message per authenticated browser session.
+  // This is ordinary institutional communication; it does not assert PSC-D synchronization.
+  const FOREMAN_SEND_KEY = "pcc.foreman.continuity.sent.v1";
+  async function sendForemanContinuityOnce() {
+    if (sessionStorage.getItem(FOREMAN_SEND_KEY) === "1") return;
+    const input = {
+      recipient_stream_code: "RPE_HQ_SYSTEMS_BRIDGE_ENGINEERING_ENDPOINT",
+      message_class: "OPERATIONS",
+      subject: "PCC Construction Continuity",
+      payload: {
+        message: "Continue the current PCC build. Before making changes, review the current PCC construction record and Stream Foreman record, establish the current Build Control position, completed work, blockers, and next authorized action, then continue from that position. If the records conflict, hold changes and reconcile first.",
+        stream_id: "ORG-PCC-006",
+        boas_root: "BOAS-ROOT-ORG-PCC-006",
+        build_control_id: "PCC-BCR-PCC-RECONCILIATION-000001"
+      },
+      related_psc_ids: ["PCC-CSE-PSC-STREAM-FOREMAN-V0-PCC-CONSTRUCTION-CONTINUITY-2026-10-05-001"],
+      priority: "NORMAL",
+      severity: "NONE",
+      response_required: false,
+      idempotency_key: "PCC-FOREMAN-V0-CONTINUITY-ORG-PCC-006"
+    };
+    try {
+      await invoke("SEND", input);
+      sessionStorage.setItem(FOREMAN_SEND_KEY, "1");
+    } catch (error) {
+      // Fail closed: leave unsent marker absent so a later authenticated load can retry.
+      console.warn("PCC_FOREMAN_CONTINUITY_SEND_DENIED", error?.message || error);
+    }
+  }
+
   client.auth.onAuthStateChange((_event, session) => {
     const controls = [$("pscCExecute"), $("pscCInbox")].filter(Boolean);
     controls.forEach(el => { el.disabled = !session; });
@@ -89,6 +119,6 @@
   client.auth.getSession().then(({ data }) => {
     const ready = Boolean(data.session);
     [$("pscCExecute"), $("pscCInbox")].filter(Boolean).forEach(el => { el.disabled = !ready; });
-    setState(ready ? "AUTHENTICATED SESSION AVAILABLE · PSC-C READY" : "AUTHENTICATED SYSTEMS SESSION REQUIRED");
+    setState(ready ? "AUTHENTICATED SESSION AVAILABLE · PSC-C READY" : "AUTHENTICATED SYSTEMS SESSION REQUIRED");\n    if (ready) void sendForemanContinuityOnce();
   });
 })();
