@@ -50,9 +50,17 @@
 <div class="row"><button id="executeAction" disabled>Execute Governed Action</button><button id="clearOutput" class="secondary">Clear Output</button></div>
 </div></section>
 
+<section class="card" style="grid-column:1/-1"><h2>PSC-D Cognitive Synchronization</h2><div class="stack">
+<div id="pscDState" class="status">AUTHENTICATED SYSTEMS SESSION REQUIRED</div>
+<div class="row"><button id="pscDReconcileButton" class="secondary">Reconcile PSC-D State</button><button id="pscDAckButton" disabled>ACK Deep Rehydration</button></div>
+<p class="help">Fail-closed continuity control for RPE-MASON-HQ. Reconcile first; ACK only commits through the authenticated Systems session and existing PSC-D corridor.</p>
+<pre id="pscDOutput">No PSC-D operation executed.</pre>
+</div></section>
+
 <section class="card" style="grid-column:1/-1"><h2>Adapter Response / Receipt</h2><pre id="output">No operation executed.</pre></section>
 </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
 <script src="pcc-workforce-runtime.js"></script>
+<script src="pcc-psc-d-ack-runtime.js"></script>
 <script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>\n</body></html>
