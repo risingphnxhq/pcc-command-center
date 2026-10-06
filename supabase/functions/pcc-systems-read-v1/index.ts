@@ -2,8 +2,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 
 const corsHeaders={"access-control-allow-origin":"https://command.risingphoenixhq.com","access-control-allow-headers":"authorization, apikey, content-type","access-control-allow-methods":"POST, OPTIONS","content-type":"application/json","cache-control":"no-store"};
 const response=(body:Record<string,unknown>,status=200)=>new Response(JSON.stringify(body),{status,headers:corsHeaders});
-const scopes=new Set(["REGISTRY","EXECUTION","NHCE"]);
-const limitOf=(v:unknown)=>Math.min(Math.max(Number(v)||25,1),100);
+const scopes=new Set(["REGISTRY","EXECUTION","NHCE","CONTINUITY"]);
+const limitOf=(v:unknown)=>Math.min(Math.max(Number(v)||25,1),100);\nconst FOREMAN_PSC="PCC-CSE-PSC-STREAM-FOREMAN-V0-PCC-CONSTRUCTION-CONTINUITY-2026-10-05-001";\nconst PCC_STREAM="ORG-PCC-006";\nconst PCC_BOAS="BOAS-ROOT-ORG-PCC-006";\nconst PCC_BUILD="PCC-BCR-PCC-RECONCILIATION-000001";
 
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders});
