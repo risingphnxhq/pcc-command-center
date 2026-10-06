@@ -6,6 +6,7 @@ const PRINCIPAL = "PCC_PRIME_SYSTEMS_EXECUTOR";
 const KEY_NAME = "pcc-prime-systems-executor";
 const READ_ONLY = new Set(["STATUS", "READ"]);
 const MUTATIONS = new Set(["START_GATE", "RECORD_EVIDENCE", "SET_GATE_OUTCOME"]);
+const CONTINUITY = new Set(["SIMULATE_END_OF_STREAM", "DISPATCH_CONTINUITY_TEST"]);
 
 function json(status:number, body:Record<string,unknown>) {
   return new Response(JSON.stringify(body), {
@@ -30,8 +31,22 @@ export default {
         ok:true, executor:EXECUTOR, service_principal_id:PRINCIPAL,
         auth_mode:ctx.authMode, credential_scope:KEY_NAME, action,
         state:"GOVERNED_EXECUTOR_ACTIVE", build_control_mutation:true,
+        continuity_dispatch:true,
         allowed_gate_codes:["0","1","2","3"], gate4:"DENIED", gate5:"DENIED"
       });
+    }
+
+    if (CONTINUITY.has(action)) {
+      const idempotencyKey = String(payload.idempotency_key ?? "").trim();
+      if (!idempotencyKey) return json(400,{ok:false,executor:EXECUTOR,action,error:"IDEMPOTENCY_KEY_REQUIRED"});
+      const { data, error } = await ctx.supabase.schema("pcc_institutional").rpc("pcc_foreman_gate2_dispatch_v0", {
+        p_service_principal_id: PRINCIPAL,
+        p_credential_scope: KEY_NAME,
+        p_event_type: "SIMULATED_END_OF_STREAM",
+        p_idempotency_key: idempotencyKey
+      });
+      if (error) return json(500,{ok:false,executor:EXECUTOR,action,error:"FOREMAN_DISPATCH_FAILURE"});
+      return json(200,{ok:true,executor:EXECUTOR,auth_mode:ctx.authMode,credential_scope:KEY_NAME,action,result:data});
     }
 
     if (!MUTATIONS.has(action)) {
