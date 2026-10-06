@@ -15,3 +15,6 @@ verify_jwt = true
 
 [functions.pcc-agent-invoker-v1]
 verify_jwt = true
+
+[functions.pcc-systems-read-v1]
+verify_jwt = true
