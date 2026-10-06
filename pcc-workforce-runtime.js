@@ -70,6 +70,15 @@
       setReady(true, "MASON RUNTIME VERIFIED");
       $("authMessage").textContent = `PCC accepted ${session.user.email || "unknown email"} as ${body.authenticated_subject}.`;
       show(body);
+      // PCC proxy: once the authenticated Systems runtime is verified, prove the
+      // governed Agent invoker is reachable without requiring a Founder click.
+      // READINESS is read-only and remains subject to the invoker's identity gate.
+      try {
+        const readiness = await invokeAgent("READINESS");
+        show({ workforce: body, agent_readiness: readiness });
+      } catch (agentError) {
+        show({ workforce: body, agent_readiness: agentError.body || { ok:false, error:agentError.message } });
+      }
       await refreshWork();
     } catch (error) {
       setReady(false, "IDENTITY GATE DENIED", true);
