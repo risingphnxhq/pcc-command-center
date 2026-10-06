@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const OPENAI_AGENT_ENDPOINT = "https://api.openai.com/v1/agents/sessions";
+const GITHUB_CAPABILITY = "PCC_GITHUB_EXECUTOR";
 
 function headers() {
   return {
@@ -59,13 +60,14 @@ Deno.serve(async (req: Request) => {
     });
     if (error) return json(403, { ok: false, error: "PCC_IDENTITY_GATE_DENIED" });
     return json(200, {
-      ok: true, invoker: "PCC_AGENT_INVOKER_V1", version: 2,
+      ok: true, invoker: "PCC_AGENT_INVOKER_V1", version: 3,
       identity_gate: data,
       openai_api_configured: Boolean(apiKey),
       agent_model_configured: Boolean(model),
-      execution_environment: "NONE",
+      execution_environment: "PCC_GOVERNED_CAPABILITY_ENVELOPE",
       launch_ready: Boolean(apiKey && model),
       supported_actions: ["READINESS", "DISPATCH", "LAUNCH"],
+      capability_classes: [GITHUB_CAPABILITY],
     });
   }
 
@@ -127,11 +129,12 @@ Deno.serve(async (req: Request) => {
   }
   if (execution?.status === "ACTIVE" && execution?.provider_conversation_ref) {
     return json(200, {
-      ok: true, invoker: "PCC_AGENT_INVOKER_V1", version: 2,
+      ok: true, invoker: "PCC_AGENT_INVOKER_V1", version: 3,
       status: "ACTIVE", idempotent: true, execution_id: executionId,
       provider: execution.provider,
       provider_session_ref: execution.provider_conversation_ref,
       model_route: execution.model_route,
+      capability_classes: [GITHUB_CAPABILITY],
       dispatch_receipt: dispatchReceipt,
     });
   }
@@ -143,11 +146,15 @@ Deno.serve(async (req: Request) => {
 
   const instructions = [
     "You are a replaceable RPE Systems workforce execution lane governed by Phoenix Command Center.",
-    "PCC, PSC, and the supplied authority envelope—not the model provider—define identity, role, mission, and authority.",
+    "PCC, PSC, BOAS, Build Control, the work order, and the supplied authority envelope—not the model provider—define identity, role, mission, and authority.",
     "Do not invent missing Canon, source, runtime state, authorization, completion, testing, or certification.",
     "Unknown means retrieve or report blocked. It does not mean rebuild.",
-    "This V1 lane has no infrastructure execution environment. Produce only bounded analysis, planning, specifications, or requested textual artifacts.",
-    "Return material progress and evidence for durable PCC checkpointing.",
+    "Infrastructure actions are permitted only through PCC-governed capability adapters explicitly present in the execution authority envelope.",
+    "Never request, expose, persist, or directly use infrastructure credentials. Capability adapters own credentials and enforce target policy.",
+    "GitHub execution, when authorized, must use the PCC governed GitHub executor with bounded repository, ref, path, operation, BOAS and Build Control policy.",
+    "No direct-main autonomous mutation, no Gate 4 or Gate 5 self-authorization, and no self-audit or self-certification.",
+    "Every material action must terminate in physical readback and durable PCC evidence or receipt.",
+    "Return material progress, evidence, blockers, and required capability calls for durable PCC checkpointing.",
   ].join("\n");
 
   const input = [
@@ -161,6 +168,14 @@ Deno.serve(async (req: Request) => {
       stream: context.stream,
       work_order: context.work_order,
       latest_checkpoint: context.latest_checkpoint,
+      capability_envelope: {
+        default: "DENY",
+        available_capability_classes: [GITHUB_CAPABILITY],
+        authority_source: "PCC_WORK_ORDER_BOAS_BUILD_CONTROL",
+        credential_access: "DENIED_TO_AGENT",
+        gate4: "DENIED",
+        gate5: "DENIED",
+      },
     }),
   ].join("\n\n");
 
@@ -219,12 +234,14 @@ Deno.serve(async (req: Request) => {
       work_order_id: execution.work_order_id,
       checkpoint_type: "AGENT_RUNTIME_ACTIVATION",
       state: "AGENT_RUNTIME_ACTIVE",
-      summary: "PCC Agent runtime launched and correlated to the governed work order.",
+      summary: "PCC Agent runtime launched with a fail-closed governed capability envelope.",
       evidence: {
         execution_id: executionId,
         provider: "OPENAI_AGENTS_API",
         provider_session_ref: sessionId,
         model_route: model,
+        capability_classes: [GITHUB_CAPABILITY],
+        credential_access: "DENIED_TO_AGENT",
         activation_receipt_id: activationResult?.receipt_id ?? null,
       },
     },
@@ -238,10 +255,11 @@ Deno.serve(async (req: Request) => {
   }
 
   return json(200, {
-    ok: true, invoker: "PCC_AGENT_INVOKER_V1", version: 2,
+    ok: true, invoker: "PCC_AGENT_INVOKER_V1", version: 3,
     status: "ACTIVE", execution_id: executionId,
-    provider: "OPENAI_AGENTS_API", provider_session_ref: sessionId,
-    model_route: model, dispatch_receipt: dispatchReceipt,
+    provider: "OPENAI_AGENT_API", provider_session_ref: sessionId,
+    model_route: model, capability_classes: [GITHUB_CAPABILITY],
+    dispatch_receipt: dispatchReceipt,
     activation_receipt: activationResult, checkpoint_receipt: checkpointResult,
   });
 });
