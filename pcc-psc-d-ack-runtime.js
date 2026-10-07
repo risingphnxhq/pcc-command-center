@@ -121,23 +121,34 @@
     }
   }
 
+  async function runContinuityAcceptance() {
+    showState("RUNNING PCC CONTINUITY ACCEPTANCE");
+    sessionStorage.removeItem("pccContinuityReconciled");
+    sessionStorage.removeItem("pccPscDObservedStateVersion");
+    await reconcile();
+    if (sessionStorage.getItem("pccContinuityReconciled") !== "true") return;
+    await acknowledge();
+  }
+
   async function recoverContinuityAutomatically() {
     if (automaticRecoveryInFlight) return;
     automaticRecoveryInFlight = true;
     try {
       showState("PCC RECOVERING INSTITUTIONAL CONTINUITY");
-      await reconcile();
-      if (sessionStorage.getItem("pccContinuityReconciled") === "true") await acknowledge();
+      await runContinuityAcceptance();
     } finally {
       automaticRecoveryInFlight = false;
     }
   }
 
+  $("pscDRunAcceptanceButton")?.addEventListener("click", runContinuityAcceptance);
   $("pscDReconcileButton")?.addEventListener("click", reconcile);
   $("pscDAckButton")?.addEventListener("click", acknowledge);
   window.addEventListener("pcc:systems-runtime-verified", recoverContinuityAutomatically);
 
   client.auth.onAuthStateChange((_event, s) => {
+    const acceptance = $("pscDRunAcceptanceButton");
+    if (acceptance) acceptance.disabled = !s;
     if (!s) {
       sessionStorage.removeItem("pccPscDObservedStateVersion");
       sessionStorage.removeItem("pccContinuityReconciled");
