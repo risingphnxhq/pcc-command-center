@@ -67,6 +67,8 @@
       $("runtimeLane").textContent = body.result.runtime_lane || body.runtime_lane || "INSTITUTIONAL";
       if ($("accountLane") && (body.result.runtime_lane || body.runtime_lane)) $("accountLane").value = body.result.runtime_lane || body.runtime_lane;
       setReady(true, "PCC AUTHORITY VERIFIED");
+      $("systemsLogin")?.classList.add("hidden");
+      $("systemsSignOut")?.classList.remove("hidden");
       $("authMessage").textContent = `PCC institutional authority verified for ${body.result.actor_id}.`;
       show(body);
       // PCC proxy: once the authenticated Systems runtime is verified, prove the
@@ -87,9 +89,12 @@
   }
   async function applySession(session) {
     if (!session) {
-      $("runtimeLane").textContent = "PCC SESSION REQUIRED";
-      $("actor").textContent = "Pending institutional verification";
-      setReady(false, "PCC AUTHORITY REQUIRED", true);
+      $("runtimeLane").textContent = "SYSTEMS SIGN-IN REQUIRED";
+      $("actor").textContent = "Institutional authority not yet verified";
+      $("systemsLogin")?.classList.remove("hidden");
+      $("systemsSignOut")?.classList.add("hidden");
+      $("authMessage").textContent = "Sign in here; PCC resolves the bound institutional actor server-side.";
+      setReady(false, "SYSTEMS SIGN-IN REQUIRED", true);
       return;
     }
     await verifyRuntime();
@@ -162,6 +167,20 @@
   }
 
   $("healthButton").addEventListener("click", verifyRuntime);
+  $("systemsSignIn")?.addEventListener("click", async () => {
+    const email = $("systemsEmail")?.value.trim();
+    const password = $("systemsPassword")?.value || "";
+    if (!email || !password) { $("authMessage").textContent = "Systems email and password are required."; return; }
+    setReady(false, "AUTHENTICATING SYSTEMS");
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if ($("systemsPassword")) $("systemsPassword").value = "";
+    if (error) { setReady(false, "SYSTEMS SIGN-IN DENIED", true); $("authMessage").textContent = error.message; return; }
+    await verifyRuntime();
+  });
+  $("systemsSignOut")?.addEventListener("click", async () => {
+    await client.auth.signOut({ scope: "local" });
+    await applySession(null);
+  });
   $("refreshWork").addEventListener("click", refreshWork);
   $("workList").addEventListener("click", async event => {
     const button = event.target.closest("button[data-work-action]");
