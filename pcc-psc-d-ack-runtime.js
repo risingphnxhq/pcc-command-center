@@ -73,6 +73,8 @@
     return body;
   }
 
+  let automaticRecoveryInFlight = false;
+
   async function reconcile() {
     showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
@@ -119,8 +121,21 @@
     }
   }
 
+  async function recoverContinuityAutomatically() {
+    if (automaticRecoveryInFlight) return;
+    automaticRecoveryInFlight = true;
+    try {
+      showState("PCC RECOVERING INSTITUTIONAL CONTINUITY");
+      await reconcile();
+      if (sessionStorage.getItem("pccContinuityReconciled") === "true") await acknowledge();
+    } finally {
+      automaticRecoveryInFlight = false;
+    }
+  }
+
   $("pscDReconcileButton")?.addEventListener("click", reconcile);
   $("pscDAckButton")?.addEventListener("click", acknowledge);
+  window.addEventListener("pcc:systems-runtime-verified", recoverContinuityAutomatically);
 
   client.auth.onAuthStateChange((_event, s) => {
     if (!s) {
