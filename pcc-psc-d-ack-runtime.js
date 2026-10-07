@@ -73,7 +73,7 @@
     return body;
   }
 
-  async function reconcile() {
+  let automaticRecoveryInFlight = false;\n\n  async function reconcile() {
     showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
       const continuityProjection = await continuity();
