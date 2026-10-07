@@ -1,0 +1,29 @@
+name: PCC Frontend Runtime Guard
+on:
+  pull_request:
+    paths:
+      - "workforce-console.html"
+      - "pcc-workforce-runtime.js"
+      - "systems-console-boas-runtime.js"
+      - ".github/workflows/pcc-frontend-runtime-guard.yml"
+  workflow_dispatch:
+jobs:
+  runtime-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript syntax
+        run: |
+          node --check pcc-workforce-runtime.js
+          node --check systems-console-boas-runtime.js
+      - name: Workforce auth control contract
+        run: |
+          grep -q 'id="systemsLogin"' workforce-console.html
+          grep -q 'id="systemsEmail"' workforce-console.html
+          grep -q 'id="systemsPassword"' workforce-console.html
+          grep -q 'id="systemsSignIn"' workforce-console.html
+          grep -q 'id="systemsSignOut"' workforce-console.html
+      - name: No browser-owned Mason UUID classification
+        run: |
+          ! grep -q '277a74df-5c86-4a16-8e00-1636dad052db' systems-console-boas-runtime.js
+          ! grep -q 'c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1' systems-console-boas-runtime.js
