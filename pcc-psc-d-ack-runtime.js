@@ -4,6 +4,7 @@
   const PROJECT_URL = "https://oyjmpbuxvfxusmbouldi.supabase.co";
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
   const FUNCTION_NAME = "pcc-workforce-sync-v1";
+  const CONTINUITY_FUNCTION_NAME = "pcc-systems-read-v1";
   const ACTOR_ID = "RPE-MASON-HQ";
 
   if (!window.supabase) return;
@@ -54,14 +55,34 @@
     return body;
   }
 
+  async function continuity() {
+    const s = await session();
+    const response = await fetch(`${PROJECT_URL}/functions/v1/${CONTINUITY_FUNCTION_NAME}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${s.access_token}`,
+        apikey: PUBLISHABLE_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ scope: "CONTINUITY", limit: 25 }),
+      cache: "no-store"
+    });
+    const body = await response.json().catch(() => ({ error: "INVALID_CONTINUITY_RESPONSE" }));
+    if (!response.ok || !body?.ok) throw Object.assign(new Error(body?.error || `HTTP_${response.status}`), { body, status: response.status });
+    if (body?.data?.continuity_state === "CONTEXT_REHYDRATION_REQUIRED") throw Object.assign(new Error("CONTEXT_REHYDRATION_REQUIRED"), { body });
+    return body;
+  }
+
   async function reconcile() {
-    showState("READING AUTHORITATIVE PSC-D STATE");
+    showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
-      const body = await pulse("MEMORY", 0, "PCC-PSC-D-COGNITIVE-ACK-V1-PROJECTION");
-      show(body);
+      const continuityProjection = await continuity();
+      const body = await pulse("MEMORY", 0, "PCC-STREAM-FOREMAN-V0-CONTINUITY-RECONCILED");
+      show({ continuity: continuityProjection.data, psc_d: body });
       const version = Number(body?.synchronization?.state_version || 0);
       if (!version) throw new Error("PSC_D_STATE_VERSION_UNAVAILABLE");
       sessionStorage.setItem("pccPscDObservedStateVersion", String(version));
+      sessionStorage.setItem("pccContinuityReconciled", "true");
       showState(body?.synchronization?.state === "REFRESH_REQUIRED"
         ? `REFRESH REQUIRED · AUTHORITATIVE STATE v${version}`
         : `PSC-D STATE v${version} · ${body?.synchronization?.state || "UNKNOWN"}`);
@@ -74,6 +95,10 @@
   }
 
   async function acknowledge() {
+    if (sessionStorage.getItem("pccContinuityReconciled") !== "true") {
+      showState("CONTINUITY RECONCILIATION REQUIRED BEFORE ACK", true);
+      return;
+    }
     const observed = Number(sessionStorage.getItem("pccPscDObservedStateVersion") || 0);
     if (!observed) {
       showState("RECONCILIATION REQUIRED BEFORE ACK", true);
@@ -100,6 +125,7 @@
   client.auth.onAuthStateChange((_event, s) => {
     if (!s) {
       sessionStorage.removeItem("pccPscDObservedStateVersion");
+      sessionStorage.removeItem("pccContinuityReconciled");
       const ack = $("pscDAckButton");
       if (ack) ack.disabled = true;
       showState("AUTHENTICATED SYSTEMS SESSION REQUIRED");
