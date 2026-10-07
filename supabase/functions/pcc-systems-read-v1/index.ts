@@ -21,7 +21,8 @@ Deno.serve(async(req)=>{
  const {data:userData,error:userError}=await caller.auth.getUser();
  if(userError||!userData.user)return response({error:"AUTHENTICATED_SUBJECT_REQUIRED"},401);
  const service=createClient(url,serviceRole);
- const {data:scope,error:bindingError}=await service.rpc("pcc_audit_testing_gateway_v1",{p_auth_subject:userData.user.id,p_action:"HEALTH",p_payload:{}});\n const binding=scope&&["PRIME_BUILD_RUNTIME","READY"].includes(String(scope.status??""))?{actor_id:"RPE-MASON-HQ",status:"ACTIVE",metadata:{runtime_lane:String(scope.runtime_lane??"PRIME_MASON_ACCOUNT")}}:null;
+ const {data:authorityScope,error:bindingError}=await service.rpc("pcc_audit_testing_gateway_v1",{p_auth_subject:userData.user.id,p_action:"HEALTH",p_payload:{}});
+ const binding=authorityScope&&["PRIME_BUILD_RUNTIME","READY"].includes(String(authorityScope.status??""))?{actor_id:"RPE-MASON-HQ",status:"ACTIVE",metadata:{runtime_lane:String(authorityScope.runtime_lane??"PRIME_MASON_ACCOUNT")}}:null;
  if(bindingError)return response({error:"SYSTEMS_READ_AUTHORITY_DENIED",reason:"BINDING_LOOKUP_FAILED",code:bindingError.code??"UNKNOWN"},403);
  if(!binding)return response({error:"SYSTEMS_READ_AUTHORITY_DENIED",reason:"ACTIVE_BINDING_NOT_FOUND"},403);
  const body=await req.json().catch(()=>({}));
