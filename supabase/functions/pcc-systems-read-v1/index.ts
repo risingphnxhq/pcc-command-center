@@ -22,7 +22,8 @@ Deno.serve(async(req)=>{
  if(userError||!userData.user)return response({error:"AUTHENTICATED_SUBJECT_REQUIRED"},401);
  const service=createClient(url,serviceRole);
  const {data:binding,error:bindingError}=await service.schema("pcc_institutional").from("auth_actor_bindings").select("actor_id,status,metadata").eq("auth_subject",userData.user.id).eq("status","ACTIVE").maybeSingle();
- if(bindingError||!binding)return response({error:"SYSTEMS_READ_AUTHORITY_DENIED"},403);
+ if(bindingError)return response({error:"SYSTEMS_READ_AUTHORITY_DENIED",reason:"BINDING_LOOKUP_FAILED",code:bindingError.code??"UNKNOWN"},403);
+ if(!binding)return response({error:"SYSTEMS_READ_AUTHORITY_DENIED",reason:"ACTIVE_BINDING_NOT_FOUND"},403);
  const body=await req.json().catch(()=>({}));
  const scope=String(body.scope??"").toUpperCase(),limit=limitOf(body.limit);
  if(!scopes.has(scope))return response({error:"READ_SCOPE_NOT_PERMITTED"},403);
