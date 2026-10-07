@@ -4,8 +4,6 @@
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
   const FUNCTION_NAME = "pcc-workforce-adapter-v1";
   const AGENT_INVOKER_NAME = "pcc-agent-invoker-v1";
-  const PRIME_RUNTIME_SUBJECT = "277a74df-5c86-4a16-8e00-1636dad052db";
-  const NEW_MASON_RUNTIME_SUBJECT = "c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
   const client = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
@@ -13,7 +11,6 @@
   const $ = id => document.getElementById(id);
   const output = $("output");
   const runtimeStatus = $("runtimeStatus");
-  const loginForm = $("loginForm");
   const sessionPanel = $("sessionPanel");
   const gated = [...document.querySelectorAll("#designForm button, #executeAction, #refreshWork")];
 
@@ -67,8 +64,10 @@
       const body = await invoke("HEALTH", {});
       if (body.authenticated_subject !== session.user.id) throw new Error("SESSION_SUBJECT_MISMATCH");
       $("actor").textContent = body.result.actor_id;
-      setReady(true, "MASON RUNTIME VERIFIED");
-      $("authMessage").textContent = `PCC accepted ${session.user.email || "unknown email"} as ${body.authenticated_subject}.`;
+      $("runtimeLane").textContent = body.result.runtime_lane || body.runtime_lane || "INSTITUTIONAL";
+      if ($("accountLane") && (body.result.runtime_lane || body.runtime_lane)) $("accountLane").value = body.result.runtime_lane || body.runtime_lane;
+      setReady(true, "PCC AUTHORITY VERIFIED");
+      $("authMessage").textContent = `PCC institutional authority verified for ${body.result.actor_id}.`;
       show(body);
       // PCC proxy: once the authenticated Systems runtime is verified, prove the
       // governed Agent invoker is reachable without requiring a Founder click.
@@ -88,28 +87,11 @@
   }
   async function applySession(session) {
     if (!session) {
-      loginForm.classList.remove("hidden");
-      sessionPanel.classList.add("hidden");
-      $("sessionEmail").textContent = "";
-      $("subject").textContent = "";
-      $("runtimeLane").textContent = "";
-      $("actor").textContent = "Pending adapter verification";
-      setReady(false, "AUTHENTICATION REQUIRED");
+      $("runtimeLane").textContent = "PCC SESSION REQUIRED";
+      $("actor").textContent = "Pending institutional verification";
+      setReady(false, "PCC AUTHORITY REQUIRED", true);
       return;
     }
-    loginForm.classList.add("hidden");
-    sessionPanel.classList.remove("hidden");
-    const subject = session.user.id;
-    const lane = subject === NEW_MASON_RUNTIME_SUBJECT
-      ? "NEW_MASON_ACCOUNT"
-      : subject === PRIME_RUNTIME_SUBJECT
-        ? "PRIME_MASON_ACCOUNT"
-        : "UNRECOGNIZED_RUNTIME";
-    $("sessionEmail").textContent = session.user.email || "Unavailable";
-    $("subject").textContent = subject;
-    $("runtimeLane").textContent = lane;
-    if (lane === "NEW_MASON_ACCOUNT") $("accountLane").value = "NEW_MASON_ACCOUNT";
-    if (lane === "PRIME_MASON_ACCOUNT") $("accountLane").value = "PRIME_MASON_ACCOUNT";
     await verifyRuntime();
   }
   function workOrderCard(w, execution) {
@@ -179,27 +161,6 @@
     return String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   }
 
-  loginForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    setReady(false, "AUTHENTICATING");
-    $("authMessage").textContent = "";
-    const email = $("email").value.trim();
-    const password = $("password").value;
-    const { data: { session: existingSession } } = await client.auth.getSession();
-    if (existingSession) {
-      const { error: signOutError } = await client.auth.signOut({ scope: "local" });
-      if (signOutError) {
-        $("password").value = "";
-        setReady(false, "SESSION SWITCH FAILED", true);
-        $("authMessage").textContent = signOutError.message;
-        return;
-      }
-    }
-    const { error } = await client.auth.signInWithPassword({ email, password });
-    $("password").value = "";
-    if (error) { setReady(false, "AUTHENTICATION FAILED", true); $("authMessage").textContent = error.message; }
-  });
-  $("signOutButton").addEventListener("click", () => client.auth.signOut({ scope: "local" }));
   $("healthButton").addEventListener("click", verifyRuntime);
   $("refreshWork").addEventListener("click", refreshWork);
   $("workList").addEventListener("click", async event => {
