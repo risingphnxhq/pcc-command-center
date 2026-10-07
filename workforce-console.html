@@ -45,8 +45,8 @@
 
 <section class="card" style="grid-column:1/-1"><h2>PSC-D Cognitive Synchronization</h2><div class="stack">
 <div id="pscDState" class="status">AUTHENTICATED SYSTEMS SESSION REQUIRED</div>
-<div class="row"><button id="pscDReconcileButton" class="secondary">Reconcile PSC-D State</button><button id="pscDAckButton" disabled>ACK Deep Rehydration</button></div>
-<p class="help">Fail-closed continuity control for RPE-MASON-HQ. Reconcile first; ACK only commits through the authenticated Systems session and existing PSC-D corridor.</p>
+<div class="row"><button id="pscDRunAcceptanceButton" disabled>Run Continuity Acceptance Test</button><button id="pscDReconcileButton" class="secondary">Reconcile PSC-D State</button><button id="pscDAckButton" disabled>ACK Deep Rehydration</button></div>
+<p class="help">Fail-closed continuity control for RPE-MASON-HQ. The acceptance control runs the existing authenticated reconciliation + DEEP_REHYDRATION corridor and returns PASS only when PSC-D reports SYNCHRONIZED with a receipt. Manual controls remain diagnostic fallbacks.</p>
 <pre id="pscDOutput">No PSC-D operation executed.</pre>
 </div></section>
 
