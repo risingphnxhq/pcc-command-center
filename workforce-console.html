@@ -17,9 +17,11 @@
 <div id="sessionPanel" class="stack">
 <div><div class="label">Runtime lane</div><div id="runtimeLane" class="help"></div></div>
 <div><div class="label">Institutional actor</div><div id="actor" class="help">Pending adapter verification</div></div>
-<button id="healthButton" class="secondary">Verify Adapter</button>
+<button id="healthButton" class="secondary">Verify Systems Runtime</button>
+<div id="systemsLogin" class="stack"><label>Systems email<input id="systemsEmail" type="email" autocomplete="username" placeholder="Systems sign-in"></label><label>Systems password<input id="systemsPassword" type="password" autocomplete="current-password" placeholder="Password"></label><button id="systemsSignIn" type="button">Sign In & Verify</button></div>
+<button id="systemsSignOut" class="secondary hidden" type="button">Sign Out Systems</button>
 </div>
-<div id="authMessage" class="help"></div>
+<div id="authMessage" class="help">PCC will verify institutional authority after Systems sign-in.</div>
 <p class="help"><a href="systems-console.html">Return to Systems Console</a></p>
 </div></section>
 
