@@ -67,6 +67,7 @@
       $("runtimeLane").textContent = body.result.runtime_lane || body.runtime_lane || "INSTITUTIONAL";
       if ($("accountLane") && (body.result.runtime_lane || body.runtime_lane)) $("accountLane").value = body.result.runtime_lane || body.runtime_lane;
       setReady(true, "PCC AUTHORITY VERIFIED");
+      window.dispatchEvent(new CustomEvent("pcc:systems-runtime-verified", { detail: { actor_id: body.result.actor_id } }));
       $("systemsLogin")?.classList.add("hidden");
       $("systemsSignOut")?.classList.remove("hidden");
       $("authMessage").textContent = `PCC institutional authority verified for ${body.result.actor_id}.`;
