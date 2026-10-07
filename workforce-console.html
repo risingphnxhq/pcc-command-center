@@ -11,22 +11,13 @@
 </style>
 </head>
 <body><main class="shell">
-<header class="top"><div><div class="eyebrow">Rising Phoenix Enterprises · Phoenix Command Center</div><h1>Systems Workforce Console</h1><div class="help">One institutional Mason. Separate authenticated runtimes. PCC-governed workforce lanes.</div></div><div id="runtimeStatus" class="status">AUTHENTICATION REQUIRED</div></header>
+<header class="top"><div><div class="eyebrow">Rising Phoenix Enterprises · Phoenix Command Center</div><h1>Systems Workforce Console</h1><div class="help">Institutional Systems Command. PCC-governed workforce authority.</div></div><div id="runtimeStatus" class="status">VERIFYING PCC AUTHORITY</div></header>
 <div class="grid">
 <section class="card"><h2>Systems Runtime</h2><div class="stack">
-<form id="loginForm" class="stack">
-<label>Email<input id="email" type="email" autocomplete="username" required></label>
-<label>Password<input id="password" type="password" autocomplete="current-password" required></label>
-<label>Account lane (derived after authentication)<select id="accountLane" disabled><option>PRIME_MASON_ACCOUNT</option><option>NEW_MASON_ACCOUNT</option></select></label>
-<button type="submit">Authenticate Mason Runtime</button>
-</form>
-<div id="sessionPanel" class="stack hidden">
-<div><div class="label">Authenticated email</div><div id="sessionEmail" class="help"></div></div>
-<div><div class="label">Authenticated subject</div><div id="subject" class="help"></div></div>
+<div id="sessionPanel" class="stack">
 <div><div class="label">Runtime lane</div><div id="runtimeLane" class="help"></div></div>
 <div><div class="label">Institutional actor</div><div id="actor" class="help">Pending adapter verification</div></div>
 <button id="healthButton" class="secondary">Verify Adapter</button>
-<button id="signOutButton">Sign Out</button>
 </div>
 <div id="authMessage" class="help"></div>
 <p class="help"><a href="systems-console.html">Return to Systems Console</a></p>
