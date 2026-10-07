@@ -2,18 +2,16 @@
 const PROJECT_URL="https://oyjmpbuxvfxusmbouldi.supabase.co";
 const PUBLISHABLE_KEY="sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
 const FUNCTION_NAME="pcc-boas-control-v1";
-const PRIME="277a74df-5c86-4a16-8e00-1636dad052db",CATE="c8ce89f8-3d1f-47da-bceb-f04ce0cc6bd1";
 const client=window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const controls=()=>[$("boasRegisterStream"),$("boasList"),$("boasSignOut")].filter(Boolean);
 const output=v=>$("boasOutput").textContent=typeof v==="string"?v:JSON.stringify(v,null,2);
-const lane=id=>id===PRIME?"PRIME_MASON_ACCOUNT / CSE":id===CATE?"NEW_MASON_ACCOUNT / CATE":"UNRECOGNIZED";
 async function sessionState(){
  const {data:{session}}=await client.auth.getSession(),id=session?.user?.id;
- const recognized=[PRIME,CATE].includes(id);
- $("boasRuntimeStatus").textContent=recognized?"MASON RUNTIME VERIFIED":id?"RUNTIME NOT AUTHORIZED":"AUTHENTICATION REQUIRED";
- $("boasSession").textContent=id?("Subject: "+id+" · "+lane(id)):"No authenticated Systems session.";
- controls().forEach(x=>x.disabled=!recognized);
+ const authenticated=Boolean(id);
+ $("boasRuntimeStatus").textContent=authenticated?"SYSTEMS SESSION PRESENT · SERVER AUTHORITY GATED":"AUTHENTICATION REQUIRED";
+ $("boasSession").textContent=id?("Authenticated Systems subject: "+id+" · institutional authority resolves server-side."):"No authenticated Systems session.";
+ controls().forEach(x=>x.disabled=!authenticated);
  if($("boasSignOut"))$("boasSignOut").disabled=!id;
  return session;
 }
