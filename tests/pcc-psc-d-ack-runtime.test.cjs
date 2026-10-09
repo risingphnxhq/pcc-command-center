@@ -47,3 +47,23 @@ test("successful read-only recovery is not successor certification",async()=>{
   assert.match(h.elements.pscDState.textContent,/NOT CERTIFIED/);
   assert.equal(h.elements.pscDAckButton.disabled,true);
 });
+
+test("wrong institutional actor rejects recovered projection",async()=>{
+  const h=harness({projection:{ok:true,actor_id:"UNKNOWN_ACTOR",data:{continuity_state:"RECONCILIATION_REQUIRED"}}});
+  await h.events["pscDReconcileButton:click"]();
+  assert.match(h.elements.pscDState.textContent,/CONTEXT_REHYDRATION_REQUIRED/);
+  assert.equal(h.elements.pscDAckButton.disabled,true);
+});
+test("logout disables ACK and requires authenticated session",async()=>{
+  const h=harness();h.listeners.auth("SIGNED_OUT",null);
+  assert.equal(h.elements.pscDAckButton.disabled,true);
+  assert.match(h.elements.pscDState.textContent,/AUTHENTICATED SYSTEMS SESSION REQUIRED/);
+});
+test("repeated acceptance clicks never invoke PSC-D writer",async()=>{
+  const h=harness();
+  await h.events["pscDRunAcceptanceButton:click"]();
+  await h.events["pscDRunAcceptanceButton:click"]();
+  h.events["pscDAckButton:click"]();
+  assert.equal(h.calls.length,2);
+  assert.ok(h.calls.every(call=>call.body.scope==="CONTINUITY" && call.url.includes("pcc-systems-read-v1")));
+});
