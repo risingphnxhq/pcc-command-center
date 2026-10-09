@@ -17,6 +17,7 @@
     verified = true;
     generate.disabled = false;
   });
+  window.addEventListener('pcc:systems-runtime-revoked', lock);
   document.getElementById('systemsSignOut')?.addEventListener('click', lock);
   document.getElementById('systemsSignIn')?.addEventListener('click', lock);
   generate.addEventListener('click', event => {
