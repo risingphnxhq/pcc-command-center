@@ -3,7 +3,6 @@
 
   const PROJECT_URL = "https://oyjmpbuxvfxusmbouldi.supabase.co";
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
-  const FUNCTION_NAME = "pcc-workforce-sync-v1";
   const CONTINUITY_FUNCTION_NAME = "pcc-systems-read-v1";
   const ACTOR_ID = "RPE-MASON-HQ";
 
@@ -31,28 +30,6 @@
     const { data: { session } } = await client.auth.getSession();
     if (!session?.access_token) throw new Error("AUTHENTICATED_SYSTEMS_SESSION_REQUIRED");
     return session;
-  }
-
-  async function pulse(pulseType, observedStateVersion, contextFingerprint) {
-    const s = await session();
-    const response = await fetch(`${PROJECT_URL}/functions/v1/${FUNCTION_NAME}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${s.access_token}`,
-        apikey: PUBLISHABLE_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        actor_id: ACTOR_ID,
-        pulse_type: pulseType,
-        observed_state_version: observedStateVersion,
-        context_fingerprint: contextFingerprint || null
-      }),
-      cache: "no-store"
-    });
-    const body = await response.json().catch(() => ({ error: "INVALID_PSC_D_RESPONSE" }));
-    if (!response.ok) throw Object.assign(new Error(body.error || `HTTP_${response.status}`), { body, status: response.status });
-    return body;
   }
 
   async function continuity() {
