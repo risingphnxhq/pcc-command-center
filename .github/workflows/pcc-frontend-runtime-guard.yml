@@ -4,6 +4,7 @@ on:
     paths:
       - "workforce-console.html"
       - "pcc-workforce-runtime.js"
+      - "pcc-handoff-auth-guard.js"
       - "systems-console-boas-runtime.js"
       - ".github/workflows/pcc-frontend-runtime-guard.yml"
   workflow_dispatch:
@@ -15,6 +16,7 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check pcc-workforce-runtime.js
+          node --check pcc-handoff-auth-guard.js
           node --check systems-console-boas-runtime.js
       - name: Workforce auth control contract
         run: |
@@ -23,6 +25,10 @@ jobs:
           grep -q 'id="systemsPassword"' workforce-console.html
           grep -q 'id="systemsSignIn"' workforce-console.html
           grep -q 'id="systemsSignOut"' workforce-console.html
+      - name: Handoff guard wiring
+        run: |
+          grep -q 'src="pcc-handoff-auth-guard.js"' workforce-console.html
+          grep -q "pcc:systems-runtime-verified" pcc-handoff-auth-guard.js
       - name: No browser-owned Mason UUID classification
         run: |
           ! grep -q '277a74df-5c86-4a16-8e00-1636dad052db' systems-console-boas-runtime.js
