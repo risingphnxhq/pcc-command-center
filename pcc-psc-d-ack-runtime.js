@@ -66,7 +66,15 @@
         data.stream?.system_stream_id === "ORG-PCC-006" &&
         data.boas?.boas_root_id === "BOAS-ROOT-ORG-PCC-006" &&
         data.build_control?.build_control_id === "PCC-BCR-PCC-RECONCILIATION-000001" &&
-        data.psc_d?.actor_id === ACTOR_ID;
+        data.psc_d?.actor_id === ACTOR_ID &&
+        data.build_control?.build_owner_actor_id === ACTOR_ID &&
+        data.build_control?.system_stream_id === "ORG-PCC-006" &&
+        data.build_control?.boas_root_id === "BOAS-ROOT-ORG-PCC-006" &&
+        data.boas?.system_stream_id === "ORG-PCC-006" &&
+        data.boas?.build_control_id === "PCC-BCR-PCC-RECONCILIATION-000001" &&
+        data.foreman?.canon_state === "CONTROLLING" &&
+        Array.isArray(data.gates) &&
+        data.gates.some(g => g.gate_code === "GATE_2" && g.state === "IN_PROGRESS");
       if (!valid) throw Object.assign(new Error("PCC_CONTINUITY_IDENTITY_MISMATCH"), { body: projection });
       show({ continuity: data, acceptance: "NOT_CERTIFIED", mutation: "HOLD" });
       showState("CONTEXT RETRIEVED · SUCCESSOR ACCEPTANCE NOT CERTIFIED");
