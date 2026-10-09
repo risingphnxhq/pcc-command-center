@@ -73,75 +73,45 @@
     return body;
   }
 
+  // Gate 2 containment: continuity recovery is read-only. A browser flag or
+  // successful login is not evidence that a successor consumed PCC context.
   let automaticRecoveryInFlight = false;
 
   async function reconcile() {
-    showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
+    showState("READING AUTHENTICATED PCC CONTINUITY");
+    const ack = $("pscDAckButton");
+    if (ack) ack.disabled = true;
     try {
-      const continuityProjection = await continuity();
-      const body = await pulse("MEMORY", 0, "PCC-STREAM-FOREMAN-V0-CONTINUITY-RECONCILED");
-      show({ continuity: continuityProjection.data, psc_d: body });
-      const version = Number(body?.synchronization?.state_version || 0);
-      if (!version) throw new Error("PSC_D_STATE_VERSION_UNAVAILABLE");
-      sessionStorage.setItem("pccPscDObservedStateVersion", String(version));
-      sessionStorage.setItem("pccContinuityReconciled", "true");
-      showState(body?.synchronization?.state === "REFRESH_REQUIRED"
-        ? `REFRESH REQUIRED · AUTHORITATIVE STATE v${version}`
-        : `PSC-D STATE v${version} · ${body?.synchronization?.state || "UNKNOWN"}`);
-      const ack = $("pscDAckButton");
-      if (ack) ack.disabled = false;
+      const projection = await continuity();
+      const data = projection.data || {};
+      const valid = projection.actor_id === ACTOR_ID &&
+        data.foreman?.psc_id === "PCC-CSE-PSC-STREAM-FOREMAN-V0-PCC-CONSTRUCTION-CONTINUITY-2026-10-05-001" &&
+        data.stream?.system_stream_id === "ORG-PCC-006" &&
+        data.boas?.boas_root_id === "BOAS-ROOT-ORG-PCC-006" &&
+        data.build_control?.build_control_id === "PCC-BCR-PCC-RECONCILIATION-000001" &&
+        data.psc_d?.actor_id === ACTOR_ID;
+      if (!valid) throw Object.assign(new Error("PCC_CONTINUITY_IDENTITY_MISMATCH"), { body: projection });
+      show({ continuity: data, acceptance: "NOT_CERTIFIED", mutation: "HOLD" });
+      showState("CONTEXT RETRIEVED · SUCCESSOR ACCEPTANCE NOT CERTIFIED");
     } catch (error) {
-      showState("PSC-D RECONCILIATION DENIED", true);
+      showState("CONTEXT_REHYDRATION_REQUIRED", true);
       show(error.body || { error: error.message });
     }
   }
 
-  async function acknowledge() {
-    if (sessionStorage.getItem("pccContinuityReconciled") !== "true") {
-      showState("CONTINUITY RECONCILIATION REQUIRED BEFORE ACK", true);
-      return;
-    }
-    const observed = Number(sessionStorage.getItem("pccPscDObservedStateVersion") || 0);
-    if (!observed) {
-      showState("RECONCILIATION REQUIRED BEFORE ACK", true);
-      return;
-    }
-    showState("COMMITTING AUTHENTICATED PSC-D ACK");
-    try {
-      const body = await pulse("DEEP_REHYDRATION", observed, "PCC-STREAM-FOREMAN-V0-COLD-SUCCESSOR-REHYDRATED-2026-10-05");
-      show(body);
-      if (body?.synchronization?.state !== "SYNCHRONIZED") {
-        showState(`ACK NOT SYNCHRONIZED · ${body?.synchronization?.state || "UNKNOWN"}`, true);
-        return;
-      }
-      showState(`SYNCHRONIZED · STATE v${body.synchronization.state_version} · RECEIPT #${body?.receipt?.sync_receipt_id ?? "UNKNOWN"}`);
-    } catch (error) {
-      showState("PSC-D ACK DENIED", true);
-      show(error.body || { error: error.message });
-    }
-  }
-
-  async function runContinuityAcceptance() {
-    showState("RUNNING PCC CONTINUITY ACCEPTANCE");
-    sessionStorage.removeItem("pccContinuityReconciled");
-    sessionStorage.removeItem("pccPscDObservedStateVersion");
-    await reconcile();
-    if (sessionStorage.getItem("pccContinuityReconciled") !== "true") return;
-    await acknowledge();
+  function acknowledge() {
+    showState("ACK BLOCKED · SERVER-VERIFIED SUCCESSOR ACCEPTANCE REQUIRED", true);
+    show({ error: "SUCCESSOR_ACCEPTANCE_NOT_IMPLEMENTED", mutation: "HOLD" });
   }
 
   async function recoverContinuityAutomatically() {
     if (automaticRecoveryInFlight) return;
     automaticRecoveryInFlight = true;
-    try {
-      showState("PCC RECOVERING INSTITUTIONAL CONTINUITY");
-      await runContinuityAcceptance();
-    } finally {
-      automaticRecoveryInFlight = false;
-    }
+    try { await reconcile(); }
+    finally { automaticRecoveryInFlight = false; }
   }
 
-  $("pscDRunAcceptanceButton")?.addEventListener("click", runContinuityAcceptance);
+  $("pscDRunAcceptanceButton")?.addEventListener("click", reconcile);
   $("pscDReconcileButton")?.addEventListener("click", reconcile);
   $("pscDAckButton")?.addEventListener("click", acknowledge);
   window.addEventListener("pcc:systems-runtime-verified", recoverContinuityAutomatically);
@@ -150,8 +120,7 @@
     const acceptance = $("pscDRunAcceptanceButton");
     if (acceptance) acceptance.disabled = !s;
     if (!s) {
-      sessionStorage.removeItem("pccPscDObservedStateVersion");
-      sessionStorage.removeItem("pccContinuityReconciled");
+
       const ack = $("pscDAckButton");
       if (ack) ack.disabled = true;
       showState("AUTHENTICATED SYSTEMS SESSION REQUIRED");
