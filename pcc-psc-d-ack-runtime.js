@@ -114,7 +114,15 @@
         showState(`ACK NOT SYNCHRONIZED · ${body?.synchronization?.state || "UNKNOWN"}`, true);
         return;
       }
-      showState(`SYNCHRONIZED · STATE v${body.synchronization.state_version} · RECEIPT #${body?.receipt?.sync_receipt_id ?? "UNKNOWN"}`);
+      const receiptId = body?.receipt?.sync_receipt_id;
+      const stateVersion = Number(body?.synchronization?.state_version);
+      if (!Number.isSafeInteger(stateVersion) || stateVersion < 1 ||
+          !Number.isSafeInteger(Number(receiptId)) || Number(receiptId) < 1 ||
+          receiptId === null || receiptId === undefined || receiptId === "") {
+        showState("PSC-D ACK UNVERIFIED · VALID RECEIPT REQUIRED", true);
+        return;
+      }
+      showState(`SYNCHRONIZED · STATE v${stateVersion} · RECEIPT #${receiptId}`);
     } catch (error) {
       showState("PSC-D ACK DENIED", true);
       show(error.body || { error: error.message });
