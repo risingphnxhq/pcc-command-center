@@ -21,6 +21,7 @@
     runtimeStatus.textContent = text;
     runtimeStatus.className = "status" + (ready ? " ok" : bad ? " bad" : "");
     gated.forEach(el => el.disabled = !ready);
+    if (!ready) window.dispatchEvent(new Event("pcc:systems-runtime-revoked"));
   }
   async function invoke(action, payload = {}) {
     const { data: { session } } = await client.auth.getSession();
