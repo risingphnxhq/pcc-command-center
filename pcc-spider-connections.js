@@ -1,5 +1,6 @@
 (() => {
  'use strict';
+ const kids=document.body.dataset.channel==='phnx_kids',channelName=kids?'Phoenix Kids':'Phoenix Kitchen';
  const target='https://phoenix-builder-runner.tsteelefpa.workers.dev';
  const client=window.supabase.createClient('https://ttkceizmjeckrorhkhfr.supabase.co','sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO',{auth:{persistSession:true,autoRefreshToken:true}});
  const $=id=>document.getElementById(id),note=$('spiderLaunchStatus');
@@ -10,15 +11,15 @@
  function notice(text,error=false){note.textContent=text;note.classList.toggle('error',error);}
  async function identity(){
   const entry=sessionStorage.getItem('pccEntrySession');
-  if(!entry){location.replace('index.html?return=spider-connections.html');throw Error('PCC entry is required.');}
+  if(!entry){location.replace('index.html?return='+encodeURIComponent(kids?'spider-kids.html':'spider-connections.html')+'');throw Error('PCC entry is required.');}
   const {data:{session}}=await client.auth.getSession();
   if(!session?.access_token)throw Error('Sign in with your existing Founder account on the Command Floor.');
   return {entry,individual:session.access_token};
  }
  async function api(action,args={}){
   const auth=await identity();
-  const r=await fetch(target+'/kitchen/pcc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...auth,action,...args}),cache:'no-store'});
-  const d=await r.json();if(!r.ok)throw Error(d.message||'Kitchen request failed.');return d;
+  const r=await fetch(target+(kids?'/kids/pcc':'/kitchen/pcc'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...auth,action,...args}),cache:'no-store'});
+  const d=await r.json();if(!r.ok)throw Error(d.message||channelName+' request failed.');return d;
  }
  function link(text,url){const a=el('a',text);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
  function rows(){
@@ -67,7 +68,7 @@
  }
  async function refresh(message){
   if(busy)return;busy=true;$('refreshKitchen').disabled=true;$('productionToggle').disabled=true;
-  try{render(await api('status'));notice(message||'Phoenix Kitchen workspace is current. Scheduled uploads remain private until their release time.');}
+  try{render(await api('status'));notice(message||channelName+' workspace is current. Scheduled uploads remain private until their release time.');}
   catch(e){$('kitchenWorkspace').hidden=true;$('spiderFounderSignIn').hidden=false;notice(e.message,true);}
   finally{busy=false;$('refreshKitchen').disabled=false;$('productionToggle').disabled=!current;}
  }
