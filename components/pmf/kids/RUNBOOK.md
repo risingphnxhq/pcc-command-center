@@ -23,3 +23,18 @@ PCC /kids/pcc uses existing Founder entry plus individual authorization, support
 
 ## Deployment
 schema.sql is the already-applied migration pmf_phoenix_kids_channel_schedule. worker-module.mjs is the Kids-only module appended to the shared Worker; existing Kitchen routes remain intact. Worker routes /kids/pcc and /kids/upload dispatch to this module. Connection cards link the verified provider channel and Kids PCC calendar/trailer. Preserve all shared bindings and secrets when deploying.
+
+## Mickey Mouse Protocol — credit-conserving production
+
+User directive October 22, 2026: conserve OpenArt credits and incorporate the Mickey Mouse Protocol for future Angie videos. Recovered PSC reference PHNX-STUDIOS-CSE-PSC-MICKEY-MOUSE-ANIMATION-PHILOSOPHY-RECOVERY-2026-10-14-001 remains PROVISIONAL historical recovery, not certified implementation. This user-directed workflow adopts its recovered principles without upgrading that historical record.
+
+**SOUND LEADS. VISUAL FOLLOWS. MOTION REINFORCES.**
+
+- Follow script → approved voice → timing map → character references → keyframes → in-betweens → frame groups → synchronization → render → frame-level QA → localized correction.
+- Build reusable approved character masters/rigs, mouth shapes, expressions, poses and gesture cycles. Preserve Angie's identity, shirt text, voice, scene state, editable sources and receipts. Reuse assets to tell new stories; do not duplicate complete uploads.
+- Keep the background as a separate static layer. Lock the camera for dialogue unless a deliberate camera move is specified. Animate character layers independently. Inspect scenery and shirt lettering for movement, warping and drift during character motion.
+- Use available local rigging, interpolation and compositing for repeatable motion and audio-driven mouth/expression timing. Validate these capabilities with a short representative sample before describing them as working. If reusable layers or rigs are missing, report the production gap rather than silently replacing the workflow with paid full-scene generation.
+- Use OpenArt selectively for approved missing assets or difficult specialty shots, not every second of an episode. Automatic paid-generation budget remains zero. No numerical credit allocation is asserted by the historical protocol.
+- Before any separately authorized paid generation, record the provider's actual quoted cost, shot count, approved ceiling and remaining authorized budget. Do not guess conversion rates, silently switch paid providers, or repeat failed generations beyond the authorization.
+- Correct only affected poses, frame groups or layers when feasible; retain good voice, background and animation. Approximate 20-frame blocks are optional working guidance, not a fixed standard.
+- Review background stability, character consistency, audio synchronization and final transitions. Preserve current trailer as the accepted launch piece; apply these improvements to subsequent videos. Track actual credit expenditure in production receipts.
