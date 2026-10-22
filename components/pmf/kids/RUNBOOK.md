@@ -38,3 +38,13 @@ User directive October 22, 2026: conserve OpenArt credits and incorporate the Mi
 - Before any separately authorized paid generation, record the provider's actual quoted cost, shot count, approved ceiling and remaining authorized budget. Do not guess conversion rates, silently switch paid providers, or repeat failed generations beyond the authorization.
 - Correct only affected poses, frame groups or layers when feasible; retain good voice, background and animation. Approximate 20-frame blocks are optional working guidance, not a fixed standard.
 - Review background stability, character consistency, audio synchronization and final transitions. Preserve current trailer as the accepted launch piece; apply these improvements to subsequent videos. Track actual credit expenditure in production receipts.
+
+## Independent Phnx Studios process and temporal sampling pilot
+
+The user's target is an independent process equal to or better than the approved OpenArt benchmark, eliminating OpenArt as a production dependency. Do not automatically fall back to OpenArt or any other paid video generator when the local process fails. Improve and test the local process; record missing capabilities. The prior terrible protocol version is not an acceptable release standard.
+
+Before full episodes, compare a short local pilot against approved reference footage for identity, natural movement, facial expression, lip sync, edge fidelity, clothing text and stable scenery. User review of the pilot is required before treating this experimental method as approved production. Keep the accepted trailer unchanged.
+
+User hypothesis: denser, subtler movement steps may improve smoothness. Test equal-duration motion with more distinct intermediate poses and controlled easing; distinguish motion-update frequency from playback FPS and repeated frames. Correct anatomy and pose spacing before increasing sample count. The current 12/24/30 motion-update comparison is rendered at 30fps; 24 updates at 30fps introduces uneven hold cadence, so it cannot isolate frame density perfectly. Use common-multiple playback or divisors of playback rate for a controlled follow-up.
+
+The initial local pilot is a 2.5D compositing and motion-transfer experiment: two reusable still layers, local deformable movement, and stabilized facial performance from the existing approved clip. It uses no new OpenArt requests. Existing reference-derived expressions are not proof of independent fresh-dialogue animation or 3D articulation. Quality equivalence and service readiness remain unproven. Phnx Studios commercialization requires repeatable quality plus measured cost and correction time; no release or revenue claims yet.
