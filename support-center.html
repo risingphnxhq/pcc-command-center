@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Phoenix Command Center — RPE Support Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080c;--panel:#0e1824;--panel2:#0b131c;--line:rgba(255,255,255,.09);--gold:#c6a15b;--cyan:#63d9ff;--green:#49d391;--amber:#f0b35a;--red:#ea7474;--text:#f4efe5;--muted:rgba(244,239,229,.65)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 5%,rgba(99,217,255,.09),transparent 22%),linear-gradient(180deg,#091018,#05080c);color:var(--text);font:13px Inter,sans-serif;min-height:100vh}
+header{padding:22px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:rgba(5,8,12,.88);position:sticky;top:0;z-index:2}
+.brand small{color:var(--gold);letter-spacing:.18em;text-transform:uppercase}.brand h1{font:700 25px Cinzel,serif;margin:6px 0 0}.back{color:var(--text);text-decoration:none;border:1px solid var(--line);padding:10px 14px;border-radius:9px}
+main{max-width:1500px;margin:auto;padding:24px}.intro{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:20px}.intro h2{font:700 31px Cinzel,serif;margin:0 0 8px}.intro p{color:var(--muted);margin:0}.state{font:500 12px IBM Plex Mono,monospace;color:var(--amber)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.metric,.panel{background:linear-gradient(180deg,rgba(17,32,48,.95),rgba(11,19,28,.96));border:1px solid var(--line);border-radius:14px}.metric{padding:16px}.metric span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em}.metric strong{display:block;font:600 27px IBM Plex Mono,monospace;margin-top:8px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.panel{padding:18px;margin-bottom:16px}.panel h3{margin:0 0 4px;font-size:16px}.panel .sub{color:var(--muted);margin-bottom:14px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase}td code{color:var(--cyan);font:12px IBM Plex Mono,monospace}.pill{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--line);font:10px IBM Plex Mono,monospace}.ok{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}.empty{padding:22px;color:var(--muted);text-align:center;border:1px dashed var(--line);border-radius:10px}.email{color:var(--cyan)}
+@media(max-width:900px){.metrics,.grid{grid-template-columns:1fr}.intro{display:block}.state{margin-top:12px}header{align-items:flex-start;gap:12px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><small>Phoenix Command Center</small><h1>RPE Support Center</h1></div><a class="back" href="command-floor.html">Return to Command Floor</a></header>
+<main>
+<section class="intro"><div><h2>Enterprise Customer Support</h2><p>System-identified cases, customer communications, self-healing monitoring, and verified closure receipts.</p></div><div id="support-state" class="state">AUTHENTICATION REQUIRED</div></section>
+<section class="metrics"><div class="metric"><span>Admitted systems</span><strong id="m-systems">—</strong></div><div class="metric"><span>Open cases</span><strong id="m-cases">—</strong></div><div class="metric"><span>Active incidents</span><strong id="m-incidents">—</strong></div><div class="metric"><span>Approved articles</span><strong id="m-articles">—</strong></div></section>
+<div class="grid"><div>
+<section class="panel"><h3>System Support Matrix</h3><div class="sub">Every request must resolve to a registered system identity.</div><div id="systems-host" class="empty">No authorized support data loaded.</div></section>
+<section class="panel"><h3>Open Support Cases</h3><div class="sub">Customer service cases only. Technical repair remains owned by the registered system.</div><div id="cases-host" class="empty">No open cases.</div></section>
+</div><div>
+<section class="panel"><h3>System Health and Self Healing</h3><div class="sub">Customer-safe state and verified receipt references.</div><div id="status-host" class="empty">No system status loaded.</div></section>
+<section class="panel"><h3>Knowledge Base</h3><div class="sub">System and release-specific approved guidance.</div><div id="articles-host" class="empty">No approved articles loaded.</div></section>
+<section class="panel"><h3>Canonical Support Channel</h3><div class="sub">Cloudflare-routed enterprise support email.</div><div class="email">support@risingphoenixhq.com</div></section>
+</div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script src="rpe-support-runtime.js"></script><script src="pcc-session-runtime.js"></script>
+</body></html>
