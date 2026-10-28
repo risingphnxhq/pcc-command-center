@@ -15,7 +15,7 @@ create table if not exists public.pcc_animation_jobs (
   boas_id text check (boas_id is null or length(trim(boas_id)) between 1 and 160),
   knoas_id text check (knoas_id is null or length(trim(knoas_id)) between 1 and 160),
   request_payload jsonb not null default '{}'::jsonb check (jsonb_typeof(request_payload) = 'object'),
-  status text not null default 'WAITING_FOR_SYSTEM_REGISTRATION' check (status in ('WAITING_FOR_SYSTEM_REGISTRATION','QUEUED','SCRIPTING','REVIEW','READY_FOR_PRODUCTION','PRODUCING','QA','COMPLETE','FAILED','CANCELLED')),
+  status text not null default 'WAITING_FOR_SYSTEM_REGISTRATION' check (status in ('WAITING_FOR_SYSTEM_REGISTRATION','QUEUED','SCRIPTING','REVIEW','SCRIPT_REVIEW_PASSED','READY_FOR_PRODUCTION','PRODUCING','QA','COMPLETE','FAILED','CANCELLED')),
   routing_state text not null default 'PENDING_PCC_REGISTRATION' check (routing_state in ('PENDING_PCC_REGISTRATION','READY','BLOCKED')),
   script_bundle jsonb,
   review_receipt jsonb,
