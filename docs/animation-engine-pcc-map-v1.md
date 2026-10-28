@@ -12,8 +12,10 @@ flowchart TD
   PCC["PCC: select brand, deliverable, objective, priority, budget, and render window"]
   Writer["Script Writer: produce a full master and type-specific deliverable"]
   Canon["BOAS + KNOAS: resolve and pin that channel's approved rules and assets"]
-  PMF["PMF: apply output-specific production profile, validate lineage, compile job, queue, run QA, track cost"]
-  GPU["RunPod worker: start only for an admitted job; render; return artifact; stop"]
+  PMF["PMF: production orchestration, profiles, QA, jobs, costs, asset/output records"]
+  PVE["PVE Voice + Voice Script: approved voice identity, script bundle, voice job, audio asset, receipt"]
+  PNG["PNG Rendering: image request, render output, asset receipt"]
+  GPU["RunPod worker: optional admitted video/animation render; return artifact; stop"]
   Review["PCC: show preview, QA disposition, cost, and receipts for review"]
   Spider["SPIDER: separately authorized distribution and platform schedule"]
 
@@ -22,6 +24,10 @@ flowchart TD
   PCC --> Canon
   Writer --> PMF
   Canon --> PMF
+  PMF --> PVE
+  PVE --> PMF
+  PMF --> PNG
+  PNG --> PMF
   PMF --> GPU
   GPU --> PMF
   PMF --> Review
@@ -94,3 +100,20 @@ PCC is the intake and routing decision point. The user supplies an idea, then PC
 Marketing quality gates are distinct from story-quality gates. They cover approved claims, offer/message, audience, brand voice/assets, legal copy, CTA, duration, accessibility, usage rights, and the selected platform's output constraints. Unsupported or unapproved facts are escalated to PCC; they are never improvised. A marketing request can produce one master concept plus surface-specific variants, with provenance back to its PCC request, channel/brand profile, BOAS/KNOAS revisions, and QA receipt.
 
 The diagram describes the target system. The current PR adds intake types and documents these profiles; no writer, Reviewer, PMF dispatch, GPU render, or social publishing runtime is claimed as live.
+
+
+## Existing voice, voice-script, and PNG rendering foundation
+
+The connected Supabase project already contains these system subsystems. PCC/PMF should route through them as the existing production foundation rather than recreate them as one-off RunPod/ComfyUI nodes. The schema confirms the record shapes below; it does not by itself prove that PCC dispatch, provider calls, or artifact return are currently wired end to end.
+
+| Existing subsystem | Existing tables | Animation Engine responsibility |
+|---|---|---|
+| PMF project and media-output control | `pm_projects`, `pm_content_jobs`, `pm_assets`, `pm_content_outputs` | Bind a job to its channel/content family; track ordered work; store preview/final/thumbnail asset references and metadata; return a PCC-reviewable output. |
+| Voice selection and script preparation | `pm_voice_registry`, `pm_voice_assignments`, `pve_script_presets`, `pve_script_bundles`, `pve_script_bundle_items` | Resolve the assigned persona/voice for the chosen channel and output. Keep the full creative master in the Scriptwriter lineage; use PVE bundles/presets for the voice-production script/cues and reusable spoken segments. |
+| PVE voice production and governance | `pve_personas`, `pve_voice_identities`, `pve_voice_authorizations`, `pve_provider_mappings`, `pve_voice_jobs`, `pve_voice_assets`, `pve_voice_receipts`, `pve_voice_asset_events`, `pve_voice_bank_status`, `pve_router_events`, `pve_provider_health`, `pve_tone_profiles`, `pve_surface_authorizations` | Check voice identity, consent/rights scope, channel/surface authorization, language/profile/provider routing and readiness; request narration, dialogue, or commercial audio; capture generated asset, status, hash, fallback, and receipt. |
+| PNG Rendering | `png_requests`, `png_outputs` | Submit supported image/render requests and capture result/status for artwork, stills, or other PNG-backed assets. Bind each result to the PMF project/job before it enters a video render. Exact tool-key mapping and PCC dispatch must be verified before runtime use. |
+| Optional video/animation compute | PMF render job → RunPod worker | Use rented GPU only for admitted video/animation work that the existing image/voice/PMF path cannot complete; it is an optional render worker, not the Animation Engine or a replacement for PVE/PNG. |
+
+A marketing jingle or commercial can therefore use the relevant approved PVE voice and production profile; a social campaign can request channel-specific image assets through PNG where supported; animation can combine approved script, voice, images, and video rendering under one PMF job. Each subsystem returns versioned assets/receipts to PMF, and PCC presents the assembled preview for review. No subsystem may publish directly: SPIDER remains a separate, explicitly authorized distribution step.
+
+The voice and rendering tables are intentional application data. Do not bulk-enable or disable RLS as a blanket action: inspect table grants, service roles, and application access paths, then apply table-specific access policies. In this schema snapshot, the target voice/PNG tables have differing RLS states and no policies were found on the tables checked. This is an access-control audit item, not a reason to remove those modules from the architecture.
