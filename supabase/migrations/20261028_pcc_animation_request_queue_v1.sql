@@ -1,11 +1,12 @@
--- PCC Animation Engine request queue v1
+-- PCC narrative and animation intake queue v1
 -- This is an intake/backlog boundary only. It does not dispatch to PMF or RunPod.
 -- Every new request remains HELD_CONFIGURATION_REQUIRED until channel, BOAS/KNOAS,
 -- PMF admission, QA, and compute controls are wired and verified.
 
 create table if not exists pcc_institutional.pcc_animation_requests (
+  -- BOOK_MANUSCRIPT supports saga/book work; channel_key can be the owning IP/brand key.
   request_id uuid primary key default gen_random_uuid(),
-  request_type text not null check (request_type in ('ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE')),
+  request_type text not null check (request_type in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE')),
   channel_key text not null check (channel_key ~ '^[a-z0-9][a-z0-9._-]{1,79}$'),
   title text not null check (length(trim(title)) between 1 and 160),
   series_or_campaign text check (series_or_campaign is null or length(trim(series_or_campaign)) between 1 and 160),
@@ -105,7 +106,7 @@ begin
   end if;
 
   if v_action = 'CREATE' then
-    if v_type not in ('ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE') or v_channel is null or
+    if v_type not in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE') or v_channel is null or
        v_channel !~ '^[a-z0-9][a-z0-9._-]{1,79}$' or
        v_title is null or length(v_title) > 160 or
        (v_series is not null and length(v_series) > 160) or
