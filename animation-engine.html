@@ -83,7 +83,8 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
     const el=$("readiness"),lock=r.execution_lock||{},pmf=r.pmf_registry||{};
     const lockState=lock.readback==="HASH_MATCH"?"execution lock hash verified":"execution lock hash unverified";
     const version=pmf.version?("PMF "+pmf.version+" · admission "+pmf.admission+" · certification "+pmf.certification):"PMF registry record not found";
-    el.textContent=version+" · "+lockState+" · channel profiles "+r.channel_profiles+" · Scriptwriter "+r.scriptwriter_runtime+" · RunPod "+r.runpod_worker+" · QA "+r.qa_enforcement+". Requests remain held.";
+    const runtime=r.pmf_animation_runtime||"unknown",bridge=r.cross_project_bridge||"unknown";
+    el.textContent=version+" · "+lockState+" · channel profiles "+r.channel_profiles+" · Scriptwriter "+r.scriptwriter_runtime+" · QA "+r.qa_enforcement+" · PMF animation runtime "+runtime+" · PCC→PMF bridge "+bridge+" · RunPod "+r.runpod_worker+". Requests remain held.";
   }
   async function load(){
     if(busy)return;busy=true;refresh.disabled=true;
