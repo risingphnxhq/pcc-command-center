@@ -61,7 +61,7 @@ begin
        or trim(coalesce(p_payload->>'channel_key','')) !~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'
        or length(trim(coalesce(p_payload->>'title',''))) not between 1 and 200
        or length(trim(coalesce(p_payload->>'idea',''))) not between 1 and 12000
-       or coalesce(p_payload->>'output_type','') not in ('EPISODE','AD','REEL','MICRO_DRAMA','BOOK_SCENE','OTHER')
+       or coalesce(p_payload->>'output_type','') not in ('EPISODE','AD','CORPORATE_MARKETING','TV_SPOT','REEL','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE','OTHER')
        or jsonb_typeof(coalesce(p_payload->'request_payload','{}'::jsonb)) is distinct from 'object' then
       raise exception 'PCC_ANIMATION_REQUEST_INVALID';
     end if;
