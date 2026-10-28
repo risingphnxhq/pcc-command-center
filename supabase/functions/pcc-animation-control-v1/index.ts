@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
     const requestPayload = payload.request_payload ?? {};
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
       || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey) || !KNOWN_CHANNEL_KEYS.has(channelKey)
-      || !["EPISODE", "AD", "REEL", "MICRO_DRAMA", "BOOK_SCENE", "OTHER"].includes(outputType ?? "")
+      || !["EPISODE", "AD", "CORPORATE_MARKETING", "TV_SPOT", "REEL", "MICRO_DRAMA", "NOVEL", "BOOK_CHAPTER", "BOOK_SCENE", "OTHER"].includes(outputType ?? "")
       || !idea
       || !requestPayload || Array.isArray(requestPayload) || typeof requestPayload !== "object") {
       return json(400, { error: "ANIMATION_REQUEST_INVALID" });
