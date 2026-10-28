@@ -3,6 +3,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
+// This server allowlist is the currently verified PMF channel registry snapshot.
+// Keep user-supplied arbitrary keys from entering the PCC queue until live registry lookup is wired.
+const KNOWN_CHANNEL_KEYS = new Set(["goldmind", "goldwords", "phnx_kids", "phnx_kitchen", "phnx_sports", "phnx_studio", "rpe", "shadow", "valarian"]);
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
@@ -110,7 +113,7 @@ Deno.serve(async (req: Request) => {
     const idea = text(payload.idea, 12_000);
     const requestPayload = payload.request_payload ?? {};
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
-      || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey)
+      || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey) || !KNOWN_CHANNEL_KEYS.has(channelKey)
       || !["EPISODE", "AD", "REEL", "MICRO_DRAMA", "BOOK_SCENE", "OTHER"].includes(outputType ?? "")
       || !idea
       || !requestPayload || Array.isArray(requestPayload) || typeof requestPayload !== "object") {
