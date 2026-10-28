@@ -143,3 +143,18 @@ The PCC intake draft now stores only the founder-owned request in the PCC projec
 | Ad or reel | Explicit PCC intent, informed by selected brand/channel and objective | Marketing QA for promotional work; narrative QA for story work |
 
 PCC must keep a promotional reel/ad on the corporate marketing path and story-based animation/reels on the narrative path. If intent is ambiguous, it stays in PCC for clarification rather than running both profiles by default. The shared Script Writer can serve both lanes, but each request gets the matching BOAS/KNOAS profile and Reviewer rubric.
+
+## PMF Voice, PVE Voice/Script, and CEP execution mapping
+
+These are existing production components in the Systems Supabase project. PCC supplies a request and its provenance; it does not duplicate these records in the PCC database.
+
+| Component | Existing records and interface | Animation Engine use |
+|---|---|---|
+| PMF voice selection | `pm_voice_registry`, `pm_voice_assignments`, `get_voice_for_job(p_project, p_channel, p_content_type, p_persona)` | Resolve a voice only for the selected PMF project, channel, content type, and persona. Preserve the selected voice ID and assignment context on the production job. |
+| PVE voice and voice script | `pve_script_presets`, `pve_script_bundles`, `pve_script_bundle_items`; PVE identity, authorization, job, asset, and receipt tables | Use approved presets/bundles for voice-ready lines and cues. Check identity, consent/authorization, provider/profile and surface scope before creating voice work. Return audio assets and PVE receipts to the PMF job lineage. |
+| CEP asynchronous execution | `cep_v2_jobs`, `cep_v2_artifacts`; `cep_v2_enqueue_job`, `cep_v2_claim_next_job`, `cep_v2_complete_job`, `cep_v2_fail_job` | Carry an admitted Animation Engine work item through the existing CEP V2 queue and record its resulting artifact/terminal state. CEP is transport and job lifecycle; the animation-specific worker performs the task, while PMF remains authoritative for project, assets, QA and output lineage. |
+| PCC handoff | Authenticated PCC request ID, selected channel and production intent, approved BOAS/KNOAS revisions, complete master/segments, Reviewer receipt | Send a bound, idempotent request to the Systems-side adapter; reconcile its CEP/PMF/PVE receipts back to the same PCC request for review. |
+
+### Execution gate
+
+The CEP V2 queue contract is physically present, but the current queue readback showed only the `risk_readiness` domain. That does not establish an Animation Engine CEP consumer. The bridge must not enqueue a guessed domain or use the known-drift `api.execute_cep_v2_once` wrapper. The build must first register and test the Animation Engine consumer against the exact CEP V2 claim/complete/fail signatures, then route approved script and voice work through it. Until that consumer and the authenticated cross-project binding exist, requests stay held; no voice provider, render worker, GPU spend, or publishing is started.
