@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runAnimationScriptwriter, validateAnimationScript } from "./animation-scriptwriter-v1.mjs";
+import { runAnimationScriptwriter, validateAnimationScript, validateWriterInput } from "./animation-scriptwriter-v1.mjs";
 
 const input = {
   request_id: "req-123", channel_key: "phnx_kids", output_type: "EPISODE", idea: "A phoenix helps a child solve a problem.",
@@ -13,6 +13,13 @@ const good = (payoff = "The child teaches the phoenix to ask for help.") => ({
   channel_segments: [{ index: 1, purpose: "Opening", script: "Scene 1... Scene 2...", estimated_duration_seconds: 30, handoff: "Scene 2" }], production_notes: [],
 });
 const raw = (value) => JSON.stringify(value);
+
+test("accepts the same production types as PCC intake", () => {
+  for (const output_type of ["EPISODE","AD","CORPORATE_MARKETING","TV_SPOT","REEL","MICRO_DRAMA","NOVEL","BOOK_CHAPTER","BOOK_SCENE","OTHER"]) {
+    assert.equal(validateWriterInput({ ...input, output_type }).output_type, output_type);
+  }
+  assert.throws(() => validateWriterInput({ ...input, output_type: "UNSUPPORTED" }), /WRITER_OUTPUT_TYPE_UNSUPPORTED/);
+});
 
 test("requires registered BOAS/KNOAS policy before writing", async () => {
   await assert.rejects(() => runAnimationScriptwriter({ ...input, channel_policy: null }, { model: { complete: async () => "{}" } }), /REGISTERED_BOAS_KNOAS_POLICY_REQUIRED/);
