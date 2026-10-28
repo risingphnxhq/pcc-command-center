@@ -116,7 +116,6 @@ The connected Supabase project already contains these system subsystems. PCC/PMF
 
 A marketing jingle or commercial can therefore use the relevant approved PVE voice and production profile; a social campaign can request channel-specific image assets through PNG where supported; animation can combine approved script, voice, images, and video rendering under one PMF job. Each subsystem returns versioned assets/receipts to PMF, and PCC presents the assembled preview for review. No subsystem may publish directly: SPIDER remains a separate, explicitly authorized distribution step.
 
-The voice and rendering tables are intentional application data. Do not bulk-enable or disable RLS as a blanket action: inspect table grants, service roles, and application access paths, then apply table-specific access policies. In this schema snapshot, the target voice/PNG tables have differing RLS states and no policies were found on the tables checked. This is an access-control audit item, not a reason to remove those modules from the architecture.
 
 
 ## Verified runtime boundary (2026-10-28)
