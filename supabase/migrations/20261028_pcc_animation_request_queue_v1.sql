@@ -10,6 +10,10 @@ create table if not exists pcc_hq.animation_intake_requests (
   -- BOOK_MANUSCRIPT supports saga/book work; channel_key can be the owning IP/brand key.
   request_id uuid primary key default gen_random_uuid(),
   request_type text not null check (request_type in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN')),
+  production_intent text check (
+    (request_type in ('AD','REEL') and production_intent in ('MARKETING','NARRATIVE')) or
+    (request_type not in ('AD','REEL') and production_intent is null)
+  ),
   channel_key text not null check (channel_key ~ '^[a-z0-9][a-z0-9._-]{1,79}$'),
   title text not null check (length(trim(title)) between 1 and 160),
   series_or_campaign text check (series_or_campaign is null or length(trim(series_or_campaign)) between 1 and 160),
@@ -39,12 +43,13 @@ create or replace function public.pcc_animation_queue_v1(
 ) returns jsonb
 language plpgsql
 security definer
-set search_path = 'pcc_institutional','public','pg_temp'
+set search_path = 'pcc_hq','public','pg_temp'
 as $function$
 declare
   v_action text := upper(coalesce(p_action,''));
   v_type text := upper(nullif(trim(coalesce(p_payload->>'request_type','')),''));
   v_channel text := lower(nullif(trim(coalesce(p_payload->>'channel_key','')),''));
+  v_intent text := upper(nullif(trim(coalesce(p_payload->>'production_intent','')),''));
   v_title text := nullif(trim(coalesce(p_payload->>'title','')),'');
   v_series text := nullif(trim(coalesce(p_payload->>'series_or_campaign','')),'');
   v_objective text := nullif(trim(coalesce(p_payload->>'objective','')),'');
@@ -70,7 +75,7 @@ begin
       'scriptwriter_runtime','NOT_CONNECTED',
       'runpod_worker','NOT_CONNECTED',
       'qa_enforcement','NOT_INTEGRATED',
-      'pcc_queue','PCC_QUEUE_API_DEPLOYED',
+      'pcc_queue','PCC_QUEUE_API_DEPLOYMENT_PENDING',
       'pmf_animation_runtime','EXISTS_TRIAL_SCOPED_IN_SEPARATE_PROJECT',
       'voice_and_png_tables','EXIST_IN_SEPARATE_PMF_PROJECT',
       'cross_project_bridge','NOT_CONNECTED',
@@ -79,7 +84,9 @@ begin
   end if;
 
   if v_action = 'CREATE' then
-    if v_type not in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN') or v_channel is null or
+    if v_type not in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN') or
+       (v_type in ('AD','REEL') and v_intent not in ('MARKETING','NARRATIVE')) or
+       (v_type not in ('AD','REEL') and v_intent is not null) or v_channel is null or
        v_channel !~ '^[a-z0-9][a-z0-9._-]{1,79}$' or
        v_title is null or length(v_title) > 160 or
        (v_series is not null and length(v_series) > 160) or
@@ -89,9 +96,9 @@ begin
     end if;
 
     insert into pcc_hq.animation_intake_requests
-      (request_type,channel_key,title,series_or_campaign,objective,creative_brief,requested_by,provenance)
+      (request_type,production_intent,channel_key,title,series_or_campaign,objective,creative_brief,requested_by,provenance)
     values
-      (v_type,v_channel,v_title,v_series,v_objective,v_brief,p_auth_subject,
+      (v_type,v_intent,v_channel,v_title,v_series,v_objective,v_brief,p_auth_subject,
        jsonb_build_object(
          'intake','PCC',
          'boas_knoas_binding','PENDING',
@@ -114,6 +121,7 @@ begin
       'request',jsonb_build_object(
         'request_id',v_row.request_id,
         'request_type',v_type,
+        'production_intent',v_intent,
         'channel_key',v_channel,
         'title',v_title,
         'state',v_row.status,
@@ -125,7 +133,7 @@ begin
     select coalesce(jsonb_agg(to_jsonb(q) order by q.created_at desc),'[]'::jsonb)
       into v_requests
     from (
-      select request_id,request_type,channel_key,title,series_or_campaign,objective,status,created_at,updated_at
+      select request_id,request_type,production_intent,channel_key,title,series_or_campaign,objective,status,created_at,updated_at
       from pcc_hq.animation_intake_requests
       where requested_by=p_auth_subject
       order by created_at desc
@@ -154,7 +162,7 @@ begin
       return jsonb_build_object('status','CANCELLED','request_id',v_row.request_id);
     end if;
 
-    select request_id,request_type,channel_key,title,series_or_campaign,objective,creative_brief,status,
+    select request_id,request_type,production_intent,channel_key,title,series_or_campaign,objective,creative_brief,status,
            provenance,created_at,updated_at
       into v_row
     from pcc_hq.animation_intake_requests
