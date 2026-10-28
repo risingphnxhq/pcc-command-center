@@ -2,9 +2,9 @@
 
 ## Built in this branch
 
-PCC now has an Animation Engine entry point in the department navigation and a channel-first intake screen. An authorized operator supplies a concept, selects an output format and one of the channel keys currently present in PMF's channel registry, and submits a request to the PCC control API. PCC stores it with an idempotency key and lists the operator's recent requests. Reviewer/admin roles can list all requests.
+PCC now has an Animation Engine entry point in the department navigation and a channel-first intake screen. An authorized operator supplies a concept, selects an output format and one of the channel keys currently present in PMF's channel registry, and submits a request to the PCC control API. PCC stores it with an idempotency key, validates the channel against the currently verified nine-key set, and lists the operator's recent requests. Reviewer/admin roles can list all requests.
 
-The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records.
+The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account.
 
 Each request is deliberately stored as `WAITING_FOR_SYSTEM_REGISTRATION` with routing state `PENDING_PCC_REGISTRATION`. It is a PCC intake record, not a script, render job, GPU allocation, or publishing job. The UI says this directly. Nothing starts RunPod and nothing publishes to a channel.
 
@@ -14,7 +14,7 @@ The PMF Systems registry currently identifies PMF 0.3.0 as version-locked to `PM
 
 The existing PMF animation compute service is bound to a private processor, but its current execution admission is limited to the Angie’s World trial identity. This branch does not send production requests to that trial.
 
-The PMF channel registry currently exposes these nine keys: `goldmind`, `goldwords`, `phnx_kids`, `phnx_kitchen`, `phnx_sports`, `phnx_studio`, `rpe`, `shadow`, and `valarian`. The `goldwords` PMF row is X. It does not establish the user's Pinterest account or other social accounts. PHNX Faceless and the additional platforms are not present in the inspected PMF registry and are not offered by this first PCC screen.
+The PMF channel registry currently exposes these nine editorial keys: `goldmind`, `goldwords`, `phnx_kids`, `phnx_kitchen`, `phnx_sports`, `phnx_studio`, `rpe`, `shadow`, and `valarian`. The current row maps `goldwords` to X; the owner has also identified GoldWords on Pinterest and YouTube. Those are distinct publishing destinations and must be represented in SPIDER/platform connections, not inferred from the editorial key. The nine-key server allowlist currently rejects unknown keys until PCC can read the live registry. PHNX Faceless and social destinations beyond these registry records are not represented in this intake.
 
 PVE voice and PNG render workers exist in Systems, but PCC has no verified production handoff to them. The Script Writer, EFPB script breakdown, BOAS/KNOAS Reviewer, voice/PNG selection, RunPod admission, and SPIDER distribution are not implemented by this slice.
 
