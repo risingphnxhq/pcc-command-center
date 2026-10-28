@@ -55,7 +55,9 @@ begin
   if v_action = 'CREATE' then
     if jsonb_typeof(p_payload) is distinct from 'object'
        or length(trim(coalesce(p_payload->>'idempotency_key',''))) not between 8 and 128
+       or trim(coalesce(p_payload->>'idempotency_key','')) !~ '^[A-Za-z0-9._:-]+$'
        or length(trim(coalesce(p_payload->>'channel_code',''))) not between 2 and 64
+       or trim(coalesce(p_payload->>'channel_code','')) !~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'
        or length(trim(coalesce(p_payload->>'title',''))) not between 1 and 200
        or length(trim(coalesce(p_payload->>'idea',''))) not between 1 and 12000
        or length(trim(coalesce(p_payload->>'boas_id',''))) not between 1 and 160
@@ -95,7 +97,8 @@ begin
        or v_job.title is distinct from trim(p_payload->>'title')
        or v_job.idea is distinct from trim(p_payload->>'idea')
        or v_job.boas_id is distinct from trim(p_payload->>'boas_id')
-       or v_job.knoas_id is distinct from trim(p_payload->>'knoas_id') then
+       or v_job.knoas_id is distinct from trim(p_payload->>'knoas_id')
+       or v_job.request_payload is distinct from coalesce(p_payload->'request_payload','{}'::jsonb) then
       raise exception 'PCC_ANIMATION_IDEMPOTENCY_CONFLICT';
     end if;
 
