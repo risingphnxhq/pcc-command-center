@@ -25,15 +25,32 @@ function parseObject(raw, errorCode) {
   if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error(errorCode);
   return parsed;
 }
-function validateDraft(draft) {
-  const ending = draft.ending_first;
-  if (!ending || typeof ending.final_payoff !== "string" || !ending.final_payoff.trim()) throw new Error("SCRIPT_ENDING_REQUIRED");
-  for (const key of ["logline", "synopsis", "full_script"]) {
-    if (typeof draft[key] !== "string" || !draft[key].trim()) throw new Error(`SCRIPT_${key.toUpperCase()}_REQUIRED`);
+function normalizedText(value) { return String(value ?? "").trim().replace(/\\s+/g, " "); }
+
+/** Objective pass/fail checks; story quality remains the Reviewer's job. */
+export function validateAnimationScript(input, draft) {
+  const gates = [];
+  const add = (id, ok, detail) => gates.push({ id, result: ok ? "PASS" : "FAIL", detail });
+  const p = input?.channel_policy;
+  add("REGISTERED_POLICY_IDS", Boolean(p?.boas_id && p?.knoas_id), "BOAS and KNOAS identifiers are required.");
+  add("FULL_SCRIPT_PRESENT", typeof draft?.full_script === "string" && Boolean(draft.full_script.trim()), "The complete script must be present.");
+  add("ENDING_FIRST_PRESENT", Boolean(draft?.ending_first?.final_payoff?.trim?.()) && Boolean(draft?.ending_first?.setup_and_payoff?.trim?.()), "EFPB payoff and setup/payoff explanation are required.");
+  add("CONTINUITY_LEDGER_PRESENT", Array.isArray(draft?.continuity_ledger), "A continuity ledger array is required.");
+  const segments = draft?.channel_segments;
+  add("CHANNEL_SEGMENTS_PRESENT", Array.isArray(segments) && segments.length > 0, "At least one channel segment is required.");
+  if (Array.isArray(segments) && segments.length > 0) {
+    add("SEGMENT_ORDER_CONTIGUOUS", segments.every((s, i) => s?.index === i + 1), "Segment indexes must be contiguous and start at 1.");
+    const fields = segments.every((s) => typeof s?.purpose === "string" && s.purpose.trim() && typeof s?.script === "string" && s.script.trim() && typeof s?.handoff === "string" && s.handoff.trim() && Number.isFinite(s?.estimated_duration_seconds) && s.estimated_duration_seconds >= 0);
+    add("SEGMENT_FIELDS_VALID", fields, "Each segment needs purpose, script, handoff, and a non-negative duration.");
+    const joined = normalizedText(segments.map((s) => s?.script ?? "").join(" "));
+    const complete = Boolean(normalizedText(draft?.full_script)) && joined === normalizedText(draft?.full_script);
+    add("FULL_SCRIPT_SEGMENT_COVERAGE", complete, "Ordered segment text must reproduce the complete script, with whitespace normalized.");
+    const spec = p?.output_spec ?? {};
+    if (Number.isInteger(spec.minimum_segments)) add("MINIMUM_SEGMENTS", segments.length >= spec.minimum_segments, "Below required minimum segment count.");
+    if (Number.isInteger(spec.maximum_segments)) add("MAXIMUM_SEGMENTS", segments.length <= spec.maximum_segments, "Above allowed maximum segment count.");
+    if (Number.isFinite(spec.max_segment_duration_seconds)) add("SEGMENT_DURATION_LIMIT", segments.every((s) => Number.isFinite(s?.estimated_duration_seconds) && s.estimated_duration_seconds <= spec.max_segment_duration_seconds), "A segment exceeds the registered duration limit.");
   }
-  if (!Array.isArray(draft.channel_segments) || draft.channel_segments.length === 0) throw new Error("CHANNEL_SEGMENTS_REQUIRED");
-  if (!Array.isArray(draft.continuity_ledger)) throw new Error("CONTINUITY_LEDGER_REQUIRED");
-  return draft;
+  return { ok: gates.every((gate) => gate.result === "PASS"), gates, failures: gates.filter((gate) => gate.result === "FAIL") };
 }
 
 function writerSystem(mode) {
@@ -64,23 +81,27 @@ export async function runAnimationScriptwriter(input, { model, notify = async ()
   };
   const receipts = [];
   const first = parseObject(await model.complete({ mode: "WRITE", system: writerSystem("WRITE"), user: jsonPrompt(context) }), "SCRIPT_WRITER_JSON_INVALID");
-  let draft = validateDraft(first);
+  let draft = first;
 
   for (let repair = 0; repair <= MAX_REPAIRS; repair++) {
+    const binary = validateAnimationScript(input, draft);
     const review = parseObject(await model.complete({
       mode: "REVIEW",
       system: reviewerSystem(),
-      user: jsonPrompt({ ...context, script_package: draft, previous_review_receipts: receipts }),
+      user: jsonPrompt({ ...context, script_package: draft, binary_validation: binary, previous_review_receipts: receipts }),
     }), "SCRIPT_REVIEW_JSON_INVALID");
     if (!["PASS", "REVISE", "BLOCK"].includes(review.decision) || !Array.isArray(review.issues)) throw new Error("SCRIPT_REVIEW_SHAPE_INVALID");
-    const receipt = { attempt: repair + 1, decision: review.decision, issues: review.issues, summary: String(review.summary ?? "") };
+    const binaryIssues = binary.failures.map((gate) => ({ severity: "ERROR", code: gate.id, message: gate.detail, correction: "Correct the objective gate and regenerate the complete script package." }));
+    const issues = [...review.issues, ...binaryIssues];
+    const decision = binary.ok ? review.decision : (review.decision === "BLOCK" ? "BLOCK" : "REVISE");
+    const receipt = { attempt: repair + 1, decision, issues, summary: String(review.summary ?? ""), binary_validation: binary };
     receipts.push(receipt);
-    const errors = review.issues.filter((issue) => issue?.severity === "ERROR");
-    if (review.decision === "PASS" && errors.length === 0) {
-      return { state: "SCRIPT_REVIEW_PASSED", request_id: input.request_id, script_package: draft, review_receipts: receipts, repair_count: repair };
+    const errors = issues.filter((issue) => issue?.severity === "ERROR");
+    if (decision === "PASS" && errors.length === 0) {
+      return { state: "SCRIPT_REVIEW_PASSED", request_id: input.request_id, script_package: draft, binary_validation: binary, review_receipts: receipts, repair_count: repair };
     }
-    if (review.decision === "BLOCK" || repair === MAX_REPAIRS) {
-      const result = { state: "SCRIPT_REVIEW_NEEDS_ATTENTION", request_id: input.request_id, script_package: draft, review_receipts: receipts, repair_count: repair };
+    if (decision === "BLOCK" || repair === MAX_REPAIRS) {
+      const result = { state: "SCRIPT_REVIEW_NEEDS_ATTENTION", request_id: input.request_id, script_package: draft, binary_validation: binary, review_receipts: receipts, repair_count: repair };
       await notify({ type: "SCRIPT_REVIEW_NEEDS_ATTENTION", request_id: input.request_id, channel_key: input.channel_key, unresolved_issues: errors.length ? errors : review.issues });
       return result;
     }
@@ -89,7 +110,7 @@ export async function runAnimationScriptwriter(input, { model, notify = async ()
       system: writerSystem("REVISE"),
       user: jsonPrompt({ ...context, script_package: draft, review_receipt: receipt }),
     }), "SCRIPT_REVISION_JSON_INVALID");
-    draft = validateDraft(revised);
+    draft = revised;
   }
   throw new Error("SCRIPT_REVIEW_LOOP_UNREACHABLE");
 }
