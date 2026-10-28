@@ -1,6 +1,6 @@
 # PCC animation intake queue v1
 
-This is the first PCC-facing intake slice of the Animation Engine: an authenticated intake for book/volume manuscripts as well as animation, ads, reels, micro-dramas, and series episodes. Each request binds an idea to one channel and may include its series/campaign and intended ending or audience action. This slice is not yet the Scriptwriter, renderer, reviewer, or publisher.
+This is the first PCC-facing intake slice of the Animation Engine: an authenticated intake for book/volume manuscripts, animation, ads, reels, micro-dramas, series episodes, corporate jingles, television commercials, and social media campaigns. Each request binds an idea to one channel and may include its series/campaign and intended ending or audience action. This slice is not yet the Scriptwriter, renderer, reviewer, or publisher.
 
 ## Current behavior
 
@@ -63,3 +63,17 @@ The EFPB Scriptwriter dispatch, channel segmenter, independent Reviewer/self-hea
 ## Deploy gate
 
 This is a draft GitHub change only. The migration must be reviewed and run through the repository's explicit production-migration workflow, and the edge function must be deployed separately. Neither is deployed by this change. The PCC screen must be wired to this API before an end-user workflow is claimed.
+
+
+## RPE marketing and production intelligence profiles
+
+The same shared Scriptwriter serves RPE and its channel brands, but PCC selects a deliverable-specific profile and matching Reviewer rubric. The selected channel/brand and its approved BOAS/KNOAS profile govern voice, audience, claims, continuity, and visual identity. PMF owns production admission, validation, artifact lineage, render coordination, and QA receipts; it does not replace the writer or decide the brand strategy.
+
+- **Corporate jingle:** brief fields include brand/product, audience, approved promise, mandatory words or sonic logo, duration, tone/genre, pronunciation, and usage scope. Deliverables include hook and lyric, singable meter/prosody notes, arrangement/tempo/mood direction, sonic identity cue, and cutdowns when requested. Review checks brand/message accuracy, pronunciation, memorable hook, duration, approved claims, rights/usage notes, and clean versions.
+- **Television commercial:** produce a full concept and timed script/storyboard with scenes, dialogue/VO, supers, product/brand reveal, end card, CTA, runtime, and required legal copy. Review checks brief fidelity, claims against approved evidence, legal copy placement, legible end card, timing, brand and audience fit, and technical delivery specs.
+- **Social media campaign:** create a campaign message and platform-specific variants (for example TikTok, Instagram, YouTube Shorts, X, Threads, or Pinterest only where selected), each with its hook, script/caption, visual/audio direction, CTA, runtime/length, cutdowns, accessibility captions/alt text, and posting metadata. Review checks each surface's current approved specs and brand rules, consistent campaign message, claim substantiation, CTA, safe text/layout, accessibility, and cross-post adaptations. A brand channel is not itself a social platform; PCC must keep the two mappings distinct.
+- **Ads and reels:** use the marketing rubric when the job is promotional; use the story rubric when it is narrative. If both apply, both run, with their results recorded separately.
+
+Reviewer behavior is type-aware. Literary and narrative outputs are checked for EFPB payoff, causal coherence, character/canon continuity, and audience/format fit. Marketing outputs are checked for objective/brief fidelity, brand voice, substantiated claims, required disclaimers, CTA accuracy, duration or platform constraints, accessibility, and asset/usage authorization. A reviewer may make bounded repairs supported by approved source facts, re-run the relevant checks, and report what it fixed; it must escalate unsupported claims, missing legal guidance, conflicting brand rules, or rights questions rather than fabricate a resolution. This is the required intelligence profile, not a claim that an autonomous reviewer/runtime is already wired.
+
+Initial request types now include `CORPORATE_JINGLE`, `TV_COMMERCIAL`, and `SOCIAL_MEDIA_CAMPAIGN`. Intake remains held until PCC-to-PMF dispatch, approved source profiles, QA enforcement, and render controls are implemented and tested.
