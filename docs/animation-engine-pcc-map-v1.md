@@ -1,6 +1,6 @@
 # PCC Animation Engine — system map v1
 
-**Purpose:** produce channel-specific reels, shorts, and episodes from PCC. PCC is the control surface. The founder starts a production request and reviews its result; the founder does not operate ComfyUI, configure model nodes, or manage GPU instances.
+**Purpose:** produce channel-specific books, animation, reels, shorts, episodes, jingles, television commercials, and social campaigns from PCC. PCC is the control surface. The founder starts a production request and reviews its result; the founder does not operate ComfyUI, configure model nodes, or manage GPU instances.
 
 **Status:** architecture map for the first implementation pass. It describes the target behavior; it does not claim that remote rendering or live distribution is already wired.
 
@@ -8,11 +8,11 @@
 
 ```mermaid
 flowchart TD
-  Founder["Founder: start a reel, short, or episode in PCC"]
-  PCC["PCC: choose channel, format, priority, budget, and render window"]
-  Writer["Script Writer: prepare channel-specific script and production brief"]
+  Founder["Founder: submit a production idea in PCC"]
+  PCC["PCC: select brand, deliverable, objective, priority, budget, and render window"]
+  Writer["Script Writer: produce a full master and type-specific deliverable"]
   Canon["BOAS + KNOAS: resolve and pin that channel's approved rules and assets"]
-  PMF["PMF: validate inputs, compile immutable job, queue, run QA, track cost"]
+  PMF["PMF: apply output-specific production profile, validate lineage, compile job, queue, run QA, track cost"]
   GPU["RunPod worker: start only for an admitted job; render; return artifact; stop"]
   Review["PCC: show preview, QA disposition, cost, and receipts for review"]
   Spider["SPIDER: separately authorized distribution and platform schedule"]
@@ -85,3 +85,12 @@ The current SPIDER screenshots show two connected YouTube accounts (PHNX Kids an
 6. Add SPIDER distribution only after review, with a separate platform-target authorization and schedule receipt.
 
 **Success condition:** the founder starts one job in PCC and receives a reviewable artifact and cost/QA receipt in PCC without opening RunPod or ComfyUI. Publishing remains an explicit later decision.
+
+
+## Output intelligence and marketing scope
+
+PCC is the intake and routing decision point. The user supplies an idea, then PCC binds it to the selected brand/channel and requested deliverable. The shared Script Writer resolves that brand's approved BOAS/KNOAS, voice, audience, and campaign/series context; for narrative, it plans ending-first under EFPB and writes the complete master before segmentation. For commercial work, it uses the matching corporate jingle, television commercial, or social-campaign production profile. PMF checks the resulting package and runs the matching Reviewer/production QA contract.
+
+Marketing quality gates are distinct from story-quality gates. They cover approved claims, offer/message, audience, brand voice/assets, legal copy, CTA, duration, accessibility, usage rights, and the selected platform's output constraints. Unsupported or unapproved facts are escalated to PCC; they are never improvised. A marketing request can produce one master concept plus surface-specific variants, with provenance back to its PCC request, channel/brand profile, BOAS/KNOAS revisions, and QA receipt.
+
+The diagram describes the target system. The current PR adds intake types and documents these profiles; no writer, Reviewer, PMF dispatch, GPU render, or social publishing runtime is claimed as live.
