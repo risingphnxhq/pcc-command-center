@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
+const MAX_BODY_BYTES = 64_000;
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
@@ -23,6 +24,36 @@ function text(value: unknown, max: number): string | null {
 function rolesFor(user: { app_metadata?: Record<string, unknown> }): Set<string> {
   const source = user.app_metadata?.pcc_animation_access;
   return new Set(Array.isArray(source) ? source.filter((v): v is string => typeof v === "string") : []);
+}
+
+async function readBoundedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = req.headers.get("content-length");
+  if (declared && (!/^\d+$/.test(declared) || Number(declared) > maxBytes)) return null;
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
 
 Deno.serve(async (req: Request) => {
@@ -47,8 +78,13 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(401, { error: "AUTHENTICATED_SUBJECT_REQUIRED" });
 
   const roles = rolesFor(userData.user);
-  const bodyText = await req.text();
-  if (bodyText.length > 64_000) return json(413, { error: "REQUEST_TOO_LARGE" });
+  let bodyText: string | null;
+  try {
+    bodyText = await readBoundedBody(req, MAX_BODY_BYTES);
+  } catch {
+    return json(400, { error: "UTF8_JSON_REQUIRED" });
+  }
+  if (bodyText === null) return json(413, { error: "REQUEST_TOO_LARGE" });
 
   let body: Record<string, unknown>;
   try {
@@ -75,7 +111,8 @@ Deno.serve(async (req: Request) => {
     const boasId = text(payload.boas_id, 160);
     const knoasId = text(payload.knoas_id, 160);
     const requestPayload = payload.request_payload ?? {};
-    if (!idempotencyKey || idempotencyKey.length < 8 || !channelCode || !/^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$/.test(channelCode)
+    if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
+      || !channelCode || !/^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$/.test(channelCode)
       || !["EPISODE", "AD", "REEL", "MICRO_DRAMA", "BOOK_SCENE", "OTHER"].includes(outputType ?? "")
       || !title || !idea || !boasId || !knoasId
       || !requestPayload || Array.isArray(requestPayload) || typeof requestPayload !== "object") {
