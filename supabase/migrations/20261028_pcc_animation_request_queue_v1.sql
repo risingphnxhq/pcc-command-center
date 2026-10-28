@@ -3,7 +3,7 @@
 -- Every new request remains HELD_CONFIGURATION_REQUIRED until channel, BOAS/KNOAS,
 -- PMF admission, QA, and compute controls are wired and verified.
 
-create table if not exists pcc_institutional.pcc_animation_requests (
+create table if not exists pcc_hq.animation_intake_requests (
   -- BOOK_MANUSCRIPT supports saga/book work; channel_key can be the owning IP/brand key.
   request_id uuid primary key default gen_random_uuid(),
   request_type text not null check (request_type in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN')),
@@ -23,11 +23,11 @@ create table if not exists pcc_institutional.pcc_animation_requests (
 );
 
 create index if not exists pcc_animation_requests_owner_created_idx
-  on pcc_institutional.pcc_animation_requests (requested_by, created_at desc);
+  on pcc_hq.animation_intake_requests (requested_by, created_at desc);
 
-alter table pcc_institutional.pcc_animation_requests enable row level security;
-revoke all on pcc_institutional.pcc_animation_requests from public, anon, authenticated;
-grant select, insert, update on pcc_institutional.pcc_animation_requests to service_role;
+alter table pcc_hq.animation_intake_requests enable row level security;
+revoke all on pcc_hq.animation_intake_requests from public, anon, authenticated;
+grant select, insert, update on pcc_hq.animation_intake_requests to service_role;
 
 create or replace function public.pcc_animation_queue_v1(
   p_auth_subject uuid,
@@ -57,50 +57,20 @@ begin
   end if;
 
   if v_action = 'READINESS' then
-    select boas_entry_id,version,acceptance_criteria_revision,audit_state,
-           certification_state,registry_state,build_control_id,updated_at
-      into v_pmf
-    from pcc_institutional.boas_registry
-    where boas_root_id='BOAS-ROOT-PMF-316a4429-ea8e-4310-a52b-8eb0b52110db'
-      and version='0.3.0'
-    order by updated_at desc
-    limit 1;
-
-    select psc_id,canon_name,canon_state,structured_summary
-      into v_lock
-    from public.phoenix_canon_records
-    where psc_id='PMF-FOUNDER-PSC-ANIMATION-EXECUTION-LOCK-2026-10-23-001'
-    order by created_at desc
-    limit 1;
-
+    -- PCC and PMF/PVE/PNG are in separate Supabase projects. Do not query the
+    -- PMF project's private schemas from PCC or imply cross-project readiness.
     return jsonb_build_object(
       'status','OK',
-      'execution_lock',jsonb_build_object(
-        'lock_id','PMF-ANIMATION-EXECUTION-LOCK-001',
-        'psc_id',coalesce(v_lock.psc_id,'PMF-FOUNDER-PSC-ANIMATION-EXECUTION-LOCK-2026-10-23-001'),
-        'revision',1,
-        'sha256',coalesce(v_lock.structured_summary->>'sha256','877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'),
-        'readback',case when v_lock.psc_id is not null and
-          v_lock.structured_summary->>'sha256'='877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'
-          and v_lock.structured_summary->>'lock_id'='PMF-ANIMATION-EXECUTION-LOCK-001'
-          and v_lock.structured_summary->>'revision'='1'
-          then 'HASH_MATCH' else 'UNVERIFIED' end
-      ),
-      'pmf_registry',case when v_pmf.boas_entry_id is null then
-        jsonb_build_object('state','NOT_FOUND','version','0.3.0')
-      else jsonb_build_object(
-        'state',v_pmf.registry_state,
-        'version',v_pmf.version,
-        'acceptance_criteria_revision',v_pmf.acceptance_criteria_revision,
-        'admission',v_pmf.audit_state,
-        'certification',v_pmf.certification_state,
-        'build_control_id',v_pmf.build_control_id,
-        'updated_at',v_pmf.updated_at
-      ) end,
-      'channel_profiles','NOT_CONFIGURED',
+      'execution_lock',jsonb_build_object('readback','UNVERIFIED'),
+      'pmf_registry',jsonb_build_object('version','0.3.0','admission','NOT_ADMITTED','certification','NOT_CERTIFIED'),
+      'channel_profiles','NOT_CONNECTED',
       'scriptwriter_runtime','NOT_CONNECTED',
       'runpod_worker','NOT_CONNECTED',
       'qa_enforcement','NOT_INTEGRATED',
+      'pcc_queue','CONNECTED_ONLY_IF_THIS_FUNCTION_IS_DEPLOYED',
+      'pmf_animation_runtime','EXISTS_TRIAL_SCOPED_IN_SEPARATE_PROJECT',
+      'voice_and_png_tables','EXIST_IN_SEPARATE_PMF_PROJECT',
+      'cross_project_bridge','NOT_CONNECTED',
       'request_execution','HELD'
     );
   end if;
@@ -115,7 +85,7 @@ begin
       return jsonb_build_object('status','INVALID','error','ANIMATION_REQUEST_FIELDS_INVALID');
     end if;
 
-    insert into pcc_institutional.pcc_animation_requests
+    insert into pcc_hq.animation_intake_requests
       (request_type,channel_key,title,series_or_campaign,objective,creative_brief,requested_by,provenance)
     values
       (v_type,v_channel,v_title,v_series,v_objective,v_brief,p_auth_subject,
@@ -153,7 +123,7 @@ begin
       into v_requests
     from (
       select request_id,request_type,channel_key,title,series_or_campaign,objective,status,created_at,updated_at
-      from pcc_institutional.pcc_animation_requests
+      from pcc_hq.animation_intake_requests
       where requested_by=p_auth_subject
       order by created_at desc
       limit 50
@@ -170,7 +140,7 @@ begin
     end if;
 
     if v_action = 'CANCEL' then
-      update pcc_institutional.pcc_animation_requests
+      update pcc_hq.animation_intake_requests
       set status='CANCELLED',cancelled_at=now(),updated_at=now()
       where request_id=v_id and requested_by=p_auth_subject
         and status='HELD_CONFIGURATION_REQUIRED'
@@ -184,7 +154,7 @@ begin
     select request_id,request_type,channel_key,title,series_or_campaign,objective,creative_brief,status,
            provenance,created_at,updated_at
       into v_row
-    from pcc_institutional.pcc_animation_requests
+    from pcc_hq.animation_intake_requests
     where request_id=v_id and requested_by=p_auth_subject;
     if not found then return jsonb_build_object('status','NOT_FOUND'); end if;
     return jsonb_build_object('status','OK','request',to_jsonb(v_row));
@@ -197,5 +167,5 @@ $function$;
 revoke execute on function public.pcc_animation_queue_v1(uuid,text,jsonb) from public, anon, authenticated;
 grant execute on function public.pcc_animation_queue_v1(uuid,text,jsonb) to service_role;
 
-comment on table pcc_institutional.pcc_animation_requests is
+comment on table pcc_hq.animation_intake_requests is
 'PCC-authenticated animation intake queue. Requests remain held until channel-specific BOAS/KNOAS, PMF admission, QA and approved compute execution are implemented. No RunPod dispatch is performed.';
