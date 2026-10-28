@@ -73,10 +73,12 @@ begin
       'execution_lock',jsonb_build_object(
         'lock_id','PMF-ANIMATION-EXECUTION-LOCK-001',
         'psc_id',coalesce(v_lock.psc_id,'PMF-FOUNDER-PSC-ANIMATION-EXECUTION-LOCK-2026-10-23-001'),
-        'revision',coalesce((v_lock.structured_summary->>'revision')::integer,1),
+        'revision',1,
         'sha256',coalesce(v_lock.structured_summary->>'sha256','877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'),
         'readback',case when v_lock.psc_id is not null and
           v_lock.structured_summary->>'sha256'='877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'
+          and v_lock.structured_summary->>'lock_id'='PMF-ANIMATION-EXECUTION-LOCK-001'
+          and v_lock.structured_summary->>'revision'='1'
           then 'HASH_MATCH' else 'UNVERIFIED' end
       ),
       'pmf_registry',case when v_pmf.boas_entry_id is null then
