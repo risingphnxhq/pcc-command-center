@@ -85,7 +85,7 @@ begin
 
   if v_action = 'CREATE' then
     if v_type not in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN') or
-       (v_type in ('AD','REEL') and v_intent not in ('MARKETING','NARRATIVE')) or
+       (v_type in ('AD','REEL') and (v_intent is null or v_intent not in ('MARKETING','NARRATIVE'))) or
        (v_type not in ('AD','REEL') and v_intent is not null) or v_channel is null or
        v_channel !~ '^[a-z0-9][a-z0-9._-]{1,79}$' or
        v_title is null or length(v_title) > 160 or
