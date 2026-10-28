@@ -51,6 +51,28 @@
       const noteText=document.createElement("small");
       noteText.textContent="PCC request saved. Rendering remains held until the PMF/PCC registration gate is cleared.";
       article.append(noteText);
+      if (job.script_bundle && typeof job.script_bundle === "object") {
+        const details=document.createElement("details");
+        const summary=document.createElement("summary");
+        summary.textContent="View script and QA receipt";
+        const preview=document.createElement("pre");
+        preview.className="script-preview";
+        const segments=Array.isArray(job.script_bundle.channel_segments) ? job.script_bundle.channel_segments : [];
+        const issues=Array.isArray(job.review_receipt?.unresolved_issues) ? job.review_receipt.unresolved_issues : [];
+        preview.textContent=[
+          "SCRIPT",
+          safeText(job.script_bundle.full_script) || "(No full script was saved.)",
+          "",
+          "CHANNEL SEGMENTS",
+          ...segments.map((segment) => "Segment "+safeText(String(segment.index))+": "+safeText(segment.purpose)+"\n"+safeText(segment.script)+"\nHandoff: "+safeText(segment.handoff)),
+          "",
+          "REVIEW",
+          "State: "+safeText(job.review_receipt?.state || job.status),
+          ...(issues.length ? issues.map((issue) => safeText(issue.severity)+" "+safeText(issue.code)+": "+safeText(issue.message)) : ["No unresolved review issues."]),
+        ].join("\n");
+        details.append(summary,preview);
+        article.append(details);
+      }
       if (!job.script_bundle && !["CANCELLED","FAILED","SCRIPTING"].includes(job.status)) {
         const scriptButton=document.createElement("button");
         scriptButton.type="button";
