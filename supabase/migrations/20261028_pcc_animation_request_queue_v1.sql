@@ -44,9 +44,58 @@ declare
   v_id uuid;
   v_row record;
   v_requests jsonb;
+  v_pmf record;
+  v_lock record;
 begin
   if p_auth_subject is null then
     return jsonb_build_object('status','DENIED','error','AUTHENTICATED_SUBJECT_REQUIRED');
+  end if;
+
+  if v_action = 'READINESS' then
+    select boas_entry_id,version,acceptance_criteria_revision,audit_state,
+           certification_state,registry_state,build_control_id,updated_at
+      into v_pmf
+    from pcc_institutional.boas_registry
+    where boas_root_id='BOAS-ROOT-PMF-316a4429-ea8e-4310-a52b-8eb0b52110db'
+      and version='0.3.0'
+    order by updated_at desc
+    limit 1;
+
+    select psc_id,canon_name,canon_state,structured_summary
+      into v_lock
+    from public.phoenix_canon_records
+    where psc_id='PMF-FOUNDER-PSC-ANIMATION-EXECUTION-LOCK-2026-10-23-001'
+    order by created_at desc
+    limit 1;
+
+    return jsonb_build_object(
+      'status','OK',
+      'execution_lock',jsonb_build_object(
+        'lock_id','PMF-ANIMATION-EXECUTION-LOCK-001',
+        'psc_id',coalesce(v_lock.psc_id,'PMF-FOUNDER-PSC-ANIMATION-EXECUTION-LOCK-2026-10-23-001'),
+        'revision',coalesce((v_lock.structured_summary->>'revision')::integer,1),
+        'sha256',coalesce(v_lock.structured_summary->>'sha256','877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'),
+        'readback',case when v_lock.psc_id is not null and
+          v_lock.structured_summary->>'sha256'='877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'
+          then 'HASH_MATCH' else 'UNVERIFIED' end
+      ),
+      'pmf_registry',case when v_pmf.boas_entry_id is null then
+        jsonb_build_object('state','NOT_FOUND','version','0.3.0')
+      else jsonb_build_object(
+        'state',v_pmf.registry_state,
+        'version',v_pmf.version,
+        'acceptance_criteria_revision',v_pmf.acceptance_criteria_revision,
+        'admission',v_pmf.audit_state,
+        'certification',v_pmf.certification_state,
+        'build_control_id',v_pmf.build_control_id,
+        'updated_at',v_pmf.updated_at
+      ) end,
+      'channel_profiles','NOT_CONFIGURED',
+      'scriptwriter_runtime','NOT_CONNECTED',
+      'runpod_worker','NOT_CONNECTED',
+      'qa_enforcement','NOT_INTEGRATED',
+      'request_execution','HELD'
+    );
   end if;
 
   if v_action = 'CREATE' then
