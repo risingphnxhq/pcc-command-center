@@ -49,7 +49,7 @@
       detail.textContent=(labels[job.channel_key]||safeText(job.channel_key)||"Channel pending")+" · "+safeText(job.output_type)+" · "+new Date(job.created_at).toLocaleString();
       article.append(detail);
       const noteText=document.createElement("small");
-      noteText.textContent="PCC request saved. Rendering remains held until the PMF/PCC registration gate is cleared.";
+      noteText.textContent=job.failure_code ? "Previous Script Writer attempt needs retry: "+safeText(job.failure_code)+". Rendering remains held." : "PCC request saved. Rendering remains held until PMF admission/certification and the PCC production connection are complete.";
       article.append(noteText);
       if (job.script_bundle && typeof job.script_bundle === "object") {
         const details=document.createElement("details");
