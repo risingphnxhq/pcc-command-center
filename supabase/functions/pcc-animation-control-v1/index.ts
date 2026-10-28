@@ -201,6 +201,13 @@ Deno.serve(async (req: Request) => {
       return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
     }
 
+    const resolvedPolicy = policy as Record<string, unknown>;
+    if (typeof resolvedPolicy.boas_id !== "string" || !resolvedPolicy.boas_id.trim()
+      || typeof resolvedPolicy.knoas_id !== "string" || !resolvedPolicy.knoas_id.trim()
+      || !resolvedPolicy.channel_profile || !resolvedPolicy.output_spec) {
+      return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
+    }
+
     const claimed = await service.rpc("pcc_animation_job_control_v1", {
       p_action: "CLAIM_SCRIPT",
       p_subject: userData.user.id,
