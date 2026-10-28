@@ -19,14 +19,14 @@ main{max-width:1240px;margin:32px auto;padding:0 18px 48px}.eyebrow{font:600 11p
 <header><a class="brand" href="command-floor.html">PHOENIX COMMAND CENTER<small>RISING PHOENIX ENTERPRISES</small></a><a href="command-floor.html">← Command Floor</a></header>
 <main>
 <span class="eyebrow">PCC / Production Command</span><h1>Animation Engine</h1>
-<p class="intro">Give PCC the concept and intended channel. PCC records the production request and will resolve the channel’s BOAS/KNOAS, script format, reviewer, voice, visual assets, and renderer through the registered system route.</p>
+<p class="intro">Give PCC the idea and RPE channel/series. PCC records the production request; the editorial channel is separate from the social account that may publish it. After registration, PCC resolves that channel’s BOAS/KNOAS, script format, reviewer, voice, assets, and renderer.</p>
 <div class="grid">
 <section class="panel">
 <h2>Start a production request</h2>
-<div class="gate"><strong>System connection gate:</strong> PMF 0.3.0 is version-locked, but its current Systems record is still pending PCC registration. Requests are safely held here; a render will not start until that connection is registered and verified.</div>
+<div class="gate"><strong>System connection gate:</strong> PMF 0.3.0 is version-locked, but its Systems record is pending PCC registration. This intake saves the brief only; it does not generate a script, render, or publish.</div>
 <div class="flow" aria-label="Animation production stages"><span>Idea → channel</span><span>Script Writer · EFPB</span><span>Reviewer · BOAS/KNOAS</span><span>PMF · PVE · PNG</span><span>RunPod render</span><span>PCC review → SPIDER</span></div>
 <form id="requestForm">
-<div class="field"><label for="channel">Channel</label><select id="channel" required>
+<div class="field"><label for="channel">RPE channel / series</label><select id="channel" required>
 <option value="">Choose a channel</option>
 <option value="goldmind">Phoenix GoldMind · YouTube</option><option value="goldwords">GoldWords · X (PMF registry)</option><option value="phnx_kids">PHNX Kids · YouTube</option><option value="phnx_kitchen">PHNX Kitchen · YouTube</option><option value="phnx_sports">PHNX Sports · YouTube</option><option value="phnx_studio">PHNX Studios · YouTube</option><option value="rpe">RPE · YouTube</option><option value="shadow">ShadowFrame · YouTube</option><option value="valarian">Valarian Shadow · YouTube</option>
 </select></div>
