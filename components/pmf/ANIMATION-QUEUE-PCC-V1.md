@@ -1,6 +1,6 @@
 # PCC animation intake queue v1
 
-This is the first PCC-facing intake slice of the Animation Engine: an authenticated request inbox for animation, ads, reels, micro-dramas, and series episodes. Each request binds an idea to one channel and may include its series/campaign and intended ending or audience action. This slice is not yet the Scriptwriter, renderer, reviewer, or publisher.
+This is the first PCC-facing intake slice of the Animation Engine: an authenticated intake for book/volume manuscripts as well as animation, ads, reels, micro-dramas, and series episodes. Each request binds an idea to one channel and may include its series/campaign and intended ending or audience action. This slice is not yet the Scriptwriter, renderer, reviewer, or publisher.
 
 ## Current behavior
 
@@ -10,6 +10,12 @@ This is the first PCC-facing intake slice of the Animation Engine: an authentica
 - A new request is always `HELD_CONFIGURATION_REQUIRED`. The response explicitly records that channel-specific BOAS/KNOAS binding, Scriptwriter dispatch, PMF runtime admission, render worker, QA, and distribution authorization have not happened.
 - The intake captures the starting idea, output type, channel, optional series/campaign, and optional ending/conversion objective. It does not pretend the user has written a full script.
 
+## One canon, book and animation outputs
+
+The story system should maintain one approved canon and allow multiple production paths from it. For the Obsidian Core Saga, the Scriptwriter can produce a complete book or volume manuscript, and the Animation Engine can adapt approved book chapters/story arcs into animation scripts and channel-sized segments. Both retain links to the same BOAS/KNOAS and canon revisions so an adaptation can be checked against the source work.
+
+The book path needs manuscript structure (saga/volume, chapter, scene, continuity references) and a literary Reviewer pass. The animation path needs episode/shot/segment structure and a production Reviewer pass. Shared canon does not mean forcing a book chapter into a short video format; PCC selects the deliverable path and its matching Reviewer checklist.
+
 ## Scriptwriter contract (required next integration)
 
 The Scriptwriter is one shared service dispatched by PCC, not one writer per channel. For every request it must:
@@ -17,16 +23,16 @@ The Scriptwriter is one shared service dispatched by PCC, not one writer per cha
 1. Resolve the selected channel's approved BOAS/KNOAS profile, series/campaign bible, audience, format rules, and any required source assets. If required context is absent or conflicting, return `HELD_CONTEXT_REQUIRED` with the exact missing fields; do not invent established canon.
 2. Apply EFPB (End From Beginning Protocol): identify the intended ending, resolution, or audience action first; check that it matches the brief and channel strategy.
 3. Produce a complete, versioned master script, retaining the request ID, channel key, series/campaign key, objective, source profile revisions, and EFPB decision in provenance.
-4. Segment that approved master script for the selected channel and output type. Each segment carries ordered segment IDs, duration/word or character limits, scene/action/audio/dialogue cues as applicable, and a link to its exact master-script revision. Platform formatting is an adapter driven by the channel profile, not guesswork in the shared writer.
+4. Produce the requested deliverable from that approved master: for a book manuscript, structure the full work into volumes/chapters/scenes; for channel output, segment it to the selected output type and channel. Each part carries ordered IDs, applicable length/duration limits and a link to the exact master/canon revisions. Platform formatting is an adapter driven by the profile, not guesswork in the shared writer.
 5. Run script and segmentation checks, then send the bundle to PMF. No render can begin until PMF accepts the bundle and all configured QA and spend controls pass.
 
-A full episode or ad can therefore be drafted once as a master script and then transformed into the channel's required reel, scene, clip, or delivery segments without losing the source version.
+The Obsidian Core Saga can therefore have a complete book manuscript and approved animation adaptations derived from the same canon, while short-form outputs can be segmented without losing source provenance.
 
 ## Independent Reviewer and self-healing QA (required next integration)
 
-The shared Scriptwriter must hand each full script and its channel-specific segments to a Reviewer before PMF/render admission. The Reviewer is an independent QA role/service; it checks story coherence and application fit against the selected channel's approved BOAS/KNOAS, series/campaign canon, audience, and output format.
+The shared Scriptwriter must hand each full script and its channel-specific segments to a Reviewer before PMF/render admission. The Reviewer is an independent QA role/service; it checks story coherence against approved BOAS/KNOAS and canon, then applies the matching literary, animation, or channel-output checklist.
 
-For each review, it should return a versioned report tied to the request and exact script/segment revisions, including checks passed, issues found, severity, proposed or applied corrections, and notification status. It should check at minimum: EFPB ending is achieved by the story; cause-and-effect and character/story continuity make sense; the script satisfies the channel's intended output type and audience; and segments preserve the master script without breaking required format limits.
+For each review, it should return a versioned report tied to the request and exact script/segment revisions, including checks passed, issues found, severity, proposed or applied corrections, and notification status. It should check at minimum: EFPB ending is achieved by the story; cause-and-effect and character/story continuity make sense; the manuscript/episode fits its intended deliverable and audience; and any channel segments preserve the approved master without breaking format limits.
 
 Self-healing loop:
 1. For a fix that is clear from approved BOAS/KNOAS or the brief, Reviewer proposes/applies the correction, saves a new script revision, and re-runs the same checks.
@@ -44,7 +50,7 @@ PCC should maintain a per-channel, per-series/campaign count of outputs that are
 
 ## PCC to production path
 
-1. Founder submits an idea, selects output type and channel, and optionally supplies series/campaign and intended ending/action.
+1. Founder submits an idea, selects a book/volume or screen output type and owning story world/channel, and optionally supplies series/campaign and intended ending/action.
 2. PCC resolves that channel's approved BOAS/KNOAS profile and Scriptwriter route.
 3. Scriptwriter applies EFPB, creates the full master script, then segments it for the channel; the independent Reviewer checks coherence and channel fit, applies bounded safe repairs, and reports issues to PCC.
 4. PMF evaluates the script bundle and Reviewer report.
