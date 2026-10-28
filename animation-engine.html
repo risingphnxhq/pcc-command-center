@@ -33,6 +33,7 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
 <section class="card"><h2>Start a request</h2>
 <form id="requestForm">
 <label for="requestType">What are we making?</label><select id="requestType" required><option value="BOOK_MANUSCRIPT">Book / volume manuscript</option><option value="ANIMATION">Animation</option><option value="AD">Ad</option><option value="REEL">Reel</option><option value="MICRO_DRAMA">Micro-drama</option><option value="SERIES_EPISODE">Series episode</option><option value="CORPORATE_JINGLE">Corporate jingle</option><option value="TV_COMMERCIAL">Television commercial</option><option value="SOCIAL_MEDIA_CAMPAIGN">Social media campaign</option></select>
+<div id="intentWrap" hidden><label for="productionIntent">Ad/reel purpose</label><select id="productionIntent"><option value="">Choose the production lane</option><option value="MARKETING">RPE corporate marketing</option><option value="NARRATIVE">Channel story / narrative</option></select><p class="notice">Promotional ads/reels use RPE corporate marketing QA. Story reels use the selected channel’s BOAS/KNOAS and narrative QA.</p></div>
 <label for="channel">Channel / brand / story world</label><select id="channel" required>
 <option value="obsidian-core-saga">Obsidian Core Saga</option><option value="phoenix-goldmind">Phoenix GoldMind</option><option value="valarian-shadow">Valarian Shadow</option><option value="shadowframe">ShadowFrame</option><option value="phnx-studios">PHNX Studios</option><option value="phnx-sports">PHNX Sports</option><option value="phnx-kids">PHNX Kids</option><option value="phnx-kitchen">PHNX Kitchen</option><option value="rpe">RPE / Rising Phoenix</option><option value="phnx-faceless">PHNX Faceless Reels</option><option value="phoenix-gold-words">Phoenix Gold Words</option></select>
 <label for="title">Working title</label><input id="title" maxlength="160" required placeholder="Give the output a name">
@@ -63,13 +64,16 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
     return result;
   }
   function safe(tag,text,cls){const e=document.createElement(tag);if(text!==undefined&&text!==null)e.textContent=text;if(cls)e.className=cls;return e;}
+  const intentWrap=$("intentWrap"), requestType=$("requestType"), productionIntent=$("productionIntent");
+  function syncIntent(){const needed=["AD","REEL"].includes(requestType.value);intentWrap.hidden=!needed;productionIntent.required=needed;if(!needed)productionIntent.value="";}
+  requestType.addEventListener("change",syncIntent);syncIntent();
   function render(items){
     requests.replaceChildren();
     if(!items.length){requests.append(safe("div","No animation requests yet.","empty"));return;}
     for(const item of items){
       const row=safe("article",undefined,"request"),body=document.createElement("div");
       body.append(safe("h3",item.title));
-      body.append(safe("p",({BOOK_MANUSCRIPT:"Book / volume manuscript",ANIMATION:"Animation",AD:"Ad",REEL:"Reel",MICRO_DRAMA:"Micro-drama",SERIES_EPISODE:"Series episode",CORPORATE_JINGLE:"Corporate jingle",TV_COMMERCIAL:"Television commercial",SOCIAL_MEDIA_CAMPAIGN:"Social media campaign"}[item.request_type]||item.request_type)+" · "+item.channel_key+(item.series_or_campaign?" · "+item.series_or_campaign:"")));
+      body.append(safe("p",({BOOK_MANUSCRIPT:"Book / volume manuscript",ANIMATION:"Animation",AD:"Ad",REEL:"Reel",MICRO_DRAMA:"Micro-drama",SERIES_EPISODE:"Series episode",CORPORATE_JINGLE:"Corporate jingle",TV_COMMERCIAL:"Television commercial",SOCIAL_MEDIA_CAMPAIGN:"Social media campaign"}[item.request_type]||item.request_type)+" · "+item.channel_key+(item.production_intent?" · "+(item.production_intent==="MARKETING"?"RPE corporate marketing":"channel narrative"):"")+(item.series_or_campaign?" · "+item.series_or_campaign:"")));
       body.append(safe("span",item.status==="CANCELLED"?"Cancelled":"Held — channel setup required","badge"));
       body.append(safe("div",new Date(item.created_at).toLocaleString(),"req-foot"));
       row.append(body);
@@ -101,7 +105,8 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
   form.addEventListener("submit",async event=>{
     event.preventDefault();if(busy)return;busy=true;submit.disabled=true;refresh.disabled=true;
     try{
-      const result=await call("CREATE",{request_type:$("requestType").value,channel_key:$("channel").value,title:$("title").value,series_or_campaign:$("series").value,objective:$("objective").value,creative_brief:$("brief").value});
+      const type=requestType.value;
+      const result=await call("CREATE",{request_type:type,production_intent:["AD","REEL"].includes(type)?productionIntent.value:null,channel_key:$("channel").value,title:$("title").value,series_or_campaign:$("series").value,objective:$("objective").value,creative_brief:$("brief").value});
       $("title").value="";$("series").value="";$("objective").value="";$("brief").value="";
       setNotice("Saved in PCC as "+(result.request?.state||"held")+"; no GPU was started.");
     }catch(e){setNotice(e.message,true);}
