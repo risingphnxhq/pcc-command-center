@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runAnimationScriptwriter } from "./animation-scriptwriter-v1.mjs";
+import { runAnimationScriptwriter, validateAnimationScript } from "./animation-scriptwriter-v1.mjs";
 
 const input = {
   request_id: "req-123", channel_key: "phnx_kids", output_type: "EPISODE", idea: "A phoenix helps a child solve a problem.",
@@ -10,7 +10,7 @@ const good = (payoff = "The child teaches the phoenix to ask for help.") => ({
   ending_first: { final_payoff: payoff, setup_and_payoff: "The early mistake teaches the ending lesson." },
   logline: "A child and phoenix solve a problem together.", synopsis: "The child learns to ask for help.", full_script: "Scene 1... Scene 2...",
   continuity_ledger: [{ fact: "The phoenix is curious", source: "idea" }],
-  channel_segments: [{ index: 1, purpose: "Opening", script: "Scene 1", estimated_duration_seconds: 30, handoff: "Scene 2" }], production_notes: [],
+  channel_segments: [{ index: 1, purpose: "Opening", script: "Scene 1... Scene 2...", estimated_duration_seconds: 30, handoff: "Scene 2" }], production_notes: [],
 });
 const raw = (value) => JSON.stringify(value);
 
@@ -46,4 +46,12 @@ test("sends a notice and holds rather than halting the queue after repair limit"
   assert.equal(result.repair_count, 2);
   assert.equal(notices.length, 1);
   assert.equal(notices[0].type, "SCRIPT_REVIEW_NEEDS_ATTENTION");
+});
+
+test("binary validator rejects incomplete segment coverage even if the AI reviewer passes", () => {
+  const draft = good();
+  draft.channel_segments[0].script = "Scene 1";
+  const result = validateAnimationScript(input, draft);
+  assert.equal(result.ok, false);
+  assert.ok(result.failures.some((gate) => gate.id === "FULL_SCRIPT_SEGMENT_COVERAGE"));
 });
