@@ -5,9 +5,11 @@
 
 create table if not exists pcc_institutional.pcc_animation_requests (
   request_id uuid primary key default gen_random_uuid(),
-  request_type text not null check (request_type in ('REEL','EPISODE')),
+  request_type text not null check (request_type in ('ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE')),
   channel_key text not null check (channel_key ~ '^[a-z0-9][a-z0-9._-]{1,79}$'),
   title text not null check (length(trim(title)) between 1 and 160),
+  series_or_campaign text check (series_or_campaign is null or length(trim(series_or_campaign)) between 1 and 160),
+  objective text check (objective is null or length(trim(objective)) between 1 and 1000),
   creative_brief text not null check (length(trim(creative_brief)) between 1 and 12000),
   status text not null default 'HELD_CONFIGURATION_REQUIRED'
     check (status in ('HELD_CONFIGURATION_REQUIRED','CANCELLED')),
@@ -40,6 +42,8 @@ declare
   v_type text := upper(nullif(trim(coalesce(p_payload->>'request_type','')),''));
   v_channel text := lower(nullif(trim(coalesce(p_payload->>'channel_key','')),''));
   v_title text := nullif(trim(coalesce(p_payload->>'title','')),'');
+  v_series text := nullif(trim(coalesce(p_payload->>'series_or_campaign','')),'');
+  v_objective text := nullif(trim(coalesce(p_payload->>'objective','')),'');
   v_brief text := nullif(trim(coalesce(p_payload->>'creative_brief','')),'');
   v_id uuid;
   v_row record;
@@ -101,17 +105,19 @@ begin
   end if;
 
   if v_action = 'CREATE' then
-    if v_type not in ('REEL','EPISODE') or v_channel is null or
+    if v_type not in ('ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE') or v_channel is null or
        v_channel !~ '^[a-z0-9][a-z0-9._-]{1,79}$' or
        v_title is null or length(v_title) > 160 or
+       (v_series is not null and length(v_series) > 160) or
+       (v_objective is not null and length(v_objective) > 1000) or
        v_brief is null or length(v_brief) > 12000 then
       return jsonb_build_object('status','INVALID','error','ANIMATION_REQUEST_FIELDS_INVALID');
     end if;
 
     insert into pcc_institutional.pcc_animation_requests
-      (request_type,channel_key,title,creative_brief,requested_by,provenance)
+      (request_type,channel_key,title,series_or_campaign,objective,creative_brief,requested_by,provenance)
     values
-      (v_type,v_channel,v_title,v_brief,p_auth_subject,
+      (v_type,v_channel,v_title,v_series,v_objective,v_brief,p_auth_subject,
        jsonb_build_object(
          'intake','PCC',
          'boas_knoas_binding','PENDING',
@@ -145,7 +151,7 @@ begin
     select coalesce(jsonb_agg(to_jsonb(q) order by q.created_at desc),'[]'::jsonb)
       into v_requests
     from (
-      select request_id,request_type,channel_key,title,status,created_at,updated_at
+      select request_id,request_type,channel_key,title,series_or_campaign,objective,status,created_at,updated_at
       from pcc_institutional.pcc_animation_requests
       where requested_by=p_auth_subject
       order by created_at desc
@@ -174,7 +180,7 @@ begin
       return jsonb_build_object('status','CANCELLED','request_id',v_row.request_id);
     end if;
 
-    select request_id,request_type,channel_key,title,creative_brief,status,
+    select request_id,request_type,channel_key,title,series_or_campaign,objective,creative_brief,status,
            provenance,created_at,updated_at
       into v_row
     from pcc_institutional.pcc_animation_requests
