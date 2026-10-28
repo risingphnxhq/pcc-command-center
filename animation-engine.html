@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PCC — Animation Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#060a10;--panel:#101b27;--panel2:#0b131c;--line:#273847;--gold:#c6a15b;--cyan:#63d9ff;--text:#f4efe5;--muted:#a9b4bf;--amber:#f0b35a;--green:#49d391;--red:#ea7474}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#102339,var(--bg) 60%);color:var(--text);font:15px Inter,system-ui,sans-serif;min-height:100vh}
+a{color:var(--cyan)}header{padding:22px clamp(18px,5vw,64px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{font:700 18px Cinzel,serif;letter-spacing:.06em}.brand small{display:block;color:var(--gold);font:600 10px Inter,sans-serif;letter-spacing:.22em;text-transform:uppercase;margin-bottom:5px}
+main{max-width:1180px;margin:32px auto;padding:0 20px}.intro{margin-bottom:24px}.intro h1{font:700 clamp(28px,4vw,42px) Cinzel,serif;margin:0 0 8px}.intro p{color:var(--muted);line-height:1.6;margin:0;max-width:800px}
+.grid{display:grid;grid-template-columns:minmax(300px,430px) 1fr;gap:18px;align-items:start}.card{background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 18px 45px #0005}
+h2{font-size:17px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 7px}
+input,select,textarea{width:100%;border:1px solid #344858;background:#071019;color:var(--text);border-radius:9px;padding:12px;font:inherit}textarea{min-height:140px;resize:vertical;line-height:1.5}
+button{border:1px solid #54788a;background:#17364a;color:var(--text);border-radius:9px;padding:11px 16px;font:700 13px Inter,sans-serif;cursor:pointer}
+button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#49bfdc}button:disabled{opacity:.55;cursor:wait}
+.actions{display:flex;gap:9px;align-items:center;margin-top:16px;flex-wrap:wrap}.notice{min-height:22px;color:var(--muted);font-size:13px;margin:12px 0 0;line-height:1.5}.notice.error{color:var(--red)}
+.hold{border:1px solid #745d36;background:#2a2418;color:#f2d8a7;padding:13px;border-radius:10px;font-size:12px;line-height:1.55;margin-top:16px}
+.requests{display:grid;gap:10px}.empty{padding:24px;text-align:center;border:1px dashed #344858;border-radius:12px;color:var(--muted)}
+.request{display:grid;grid-template-columns:1fr auto;gap:12px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#09121b}
+.request h3{margin:0 0 5px;font-size:15px}.request p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.badge{display:inline-block;border:1px solid #846d42;color:#f1ca80;border-radius:100px;padding:5px 8px;font-size:10px;font-weight:800;letter-spacing:.05em;margin-top:10px}
+.req-foot{font-size:11px;color:#8fa1af;margin-top:9px}.cancel{align-self:start;padding:7px 10px;background:transparent;border-color:#59484a;color:#e6b6b6}
+.engine-map{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.engine-map span{font-size:11px;border:1px solid #344858;border-radius:100px;padding:7px 10px;color:#d0dbe3}
+@media(max-width:760px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.card{padding:17px}}
+</style></head>
+<body>
+<header><div class="brand"><small>Phoenix Command Center</small>Animation Engine</div><nav><a href="command-floor.html">Command Floor</a> &nbsp;·&nbsp; <a href="console.html">PCC Console</a></nav></header>
+<main>
+<section class="intro"><h1>Animation Engine</h1><p>Start a Reel or Episode for a specific channel. PCC records the request and its creative brief here. The request stays held until that channel’s BOAS/KNOAS profile, Scriptwriter route, PMF admission, QA, and approved render controls are connected.</p><div class="engine-map"><span>Channel voice → BOAS/KNOAS</span><span>Script → PMF</span><span>On-demand render → PCC review</span><span>Approved release → SPIDER</span></div></section>
+<div class="grid">
+<section class="card"><h2>Start a request</h2>
+<form id="requestForm">
+<label for="requestType">Format</label><select id="requestType" required><option value="REEL">Reel</option><option value="EPISODE">Episode</option></select>
+<label for="channel">Channel / brand</label><select id="channel" required>
+<option value="phoenix-goldmind">Phoenix GoldMind</option><option value="valarian-shadow">Valarian Shadow</option><option value="shadowframe">ShadowFrame</option><option value="phnx-studios">PHNX Studios</option><option value="phnx-sports">PHNX Sports</option><option value="phnx-kids">PHNX Kids</option><option value="phnx-kitchen">PHNX Kitchen</option><option value="rpe">RPE / Rising Phoenix</option><option value="phnx-faceless">PHNX Faceless Reels</option><option value="phoenix-gold-words">Phoenix Gold Words</option></select>
+<label for="title">Working title</label><input id="title" maxlength="160" required placeholder="Name this Reel or Episode">
+<label for="brief">Creative brief</label><textarea id="brief" maxlength="12000" required placeholder="What should this piece communicate? Include the intended audience, key beats, and any required source material."></textarea>
+<div class="actions"><button class="primary" id="submit" type="submit">Save request in PCC</button><button id="refresh" type="button">Refresh queue</button></div><p class="notice" id="notice" role="status" aria-live="polite"></p>
+</form><div class="hold"><strong>Render gate:</strong> saving a request does not generate a script, start a GPU, spend credits, publish content, or authorize distribution. The present PMF runtime is trial-scoped, so every new request will show as held for configuration.</div></section>
+<section class="card"><h2>Requests waiting in PCC</h2><div class="requests" id="requests"><div class="empty">Loading your requests…</div></div></section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script src="pcc-session-runtime.js"></script>
+<script>
+(() => {
+  const project = "https://ttkceizmjeckrorhkhfr.supabase.co";
+  const key = "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO";
+  const api = project + "/functions/v1/pcc-animation-queue-v1";
+  const identity = window.supabase.createClient(project,key,{auth:{persistSession:true,autoRefreshToken:true}});
+  const $ = id => document.getElementById(id);
+  const form=$("requestForm"), notice=$("notice"), requests=$("requests"), submit=$("submit"), refresh=$("refresh");
+  let busy=false;
+  function setNotice(text,error=false){notice.textContent=text;notice.classList.toggle("error",error);}
+  async function call(action,payload={}) {
+    const {data:{session}}=await identity.auth.getSession();
+    if(!session?.access_token) throw new Error("PCC individual sign-in is needed. Return to PCC Command Floor and sign in there.");
+    const response=await fetch(api,{method:"POST",headers:{Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify({action,payload}),cache:"no-store"});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.error||"PCC animation queue is not available yet.");
+    return result;
+  }
+  function safe(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e;}
+  function render(items){
+    requests.replaceChildren();
+    if(!items.length){requests.append(safe("div","No animation requests yet.","empty"));return;}
+    for(const item of items){
+      const row=safe("article",undefined,"request"),body=document.createElement("div");
+      body.append(safe("h3",item.title));
+      body.append(safe("p",(item.request_type==="REEL"?"Reel":"Episode")+" · "+item.channel_key));
+      body.append(safe("span",item.status==="CANCELLED"?"Cancelled":"Held — channel setup required","badge"));
+      body.append(safe("div",new Date(item.created_at).toLocaleString(),"req-foot"));
+      row.append(body);
+      if(item.status!=="CANCELLED"){
+        const cancel=safe("button","Cancel","cancel");cancel.type="button";cancel.onclick=()=>cancelRequest(item.request_id);row.append(cancel);
+      }
+      requests.append(row);
+    }
+  }
+  async function load(){
+    if(busy)return;busy=true;refresh.disabled=true;
+    try{const result=await call("LIST");render(Array.isArray(result.requests)?result.requests:[]);setNotice("Queue loaded from PCC.");}
+    catch(e){requests.replaceChildren(safe("div",e.message,"empty"));setNotice(e.message,true);}
+    finally{busy=false;refresh.disabled=false;}
+  }
+  async function cancelRequest(id){
+    if(busy)return;busy=true;refresh.disabled=true;
+    try{await call("CANCEL",{request_id:id});setNotice("Request cancelled in PCC.");}
+    catch(e){setNotice(e.message,true);}
+    finally{busy=false;refresh.disabled=false;load();}
+  }
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();if(busy)return;busy=true;submit.disabled=true;refresh.disabled=true;
+    try{
+      const result=await call("CREATE",{request_type:$("requestType").value,channel_key:$("channel").value,title:$("title").value,creative_brief:$("brief").value});
+      $("title").value="";$("brief").value="";
+      setNotice("Saved in PCC as "+(result.request?.state||"held")+"; no GPU was started.");
+    }catch(e){setNotice(e.message,true);}
+    finally{busy=false;submit.disabled=false;refresh.disabled=false;load();}
+  });
+  refresh.addEventListener("click",load);
+  if(!sessionStorage.getItem("pccEntrySession")) location.replace("index.html?return="+encodeURIComponent("animation-engine.html"));
+  else load();
+})();
+</script></body></html>
