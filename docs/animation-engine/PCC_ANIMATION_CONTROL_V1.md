@@ -1,53 +1,53 @@
-# PCC Animation Control V1
+# PCC Animation Engine — Control Slice V1
 
-## What is built
+## Built in this branch
 
-This change adds the first PCC-owned animation job intake boundary:
+PCC now has an Animation Engine entry point in the department navigation and a channel-first intake screen. An authorized operator supplies a concept, selects an output format and one of the channel keys currently present in PMF's channel registry, and submits a request to the PCC control API. PCC stores it with an idempotency key and lists the operator's recent requests. Reviewer/admin roles can list all requests.
 
-- Authenticated PCC users can submit a bounded animation request for a channel and output type.
-- Requests are stored as PCC jobs with BOAS/KNOAS references and an idempotency key.
-- Request and reviewer roles are checked from server-verified Supabase Auth `app_metadata.pcc_animation_access`.
-- The database table has RLS enabled, no direct client grants, and a service-role-only RPC.
-- A requester can read their own job; a REVIEW or ADMIN role can read across requesters.
-- The handler returns `dispatch: NOT_CONNECTED` honestly; it does not pretend that a render has started.
+The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records.
 
-## What is not connected yet
+Each request is deliberately stored as `WAITING_FOR_SYSTEM_REGISTRATION` with routing state `PENDING_PCC_REGISTRATION`. It is a PCC intake record, not a script, render job, GPU allocation, or publishing job. The UI says this directly. Nothing starts RunPod and nothing publishes to a channel.
 
-This is not the full Animation Engine. The current PMF animation runtime is bound to the Angie’s World trial admission and production identity. It is not a general production endpoint for PCC channel jobs. PCC also has no verified job handoff to the PVE voice worker or PNG renderer. Therefore this change does not dispatch to PMF, PVE, PNG, or RunPod, and it does not invoke the Script Writer or Reviewer.
+## Verified integration state
 
-Those integrations must use the actual runtime contracts and service authentication. Do not point this control endpoint at the Angie’s World trial runtime or expose service credentials to the browser.
+The PMF Systems registry currently identifies PMF 0.3.0 as version-locked to `PMF-FOUNDER-PSC-ANIMATION-V0.3.0-QA-ACCEPTANCE-LOCK-2026-10-27-001` and acceptance revision `PMF-ANIMATION-FINAL-QA-AC-001`. Its stream status is `PENDING_PCC_REGISTRATION`, `pcc_system_id=null`, and version status `UNREGISTERED`. Therefore PCC cannot safely invoke the general PMF runtime yet.
 
-## Deploy order
+The existing PMF animation compute service is bound to a private processor, but its current execution admission is limited to the Angie’s World trial identity. This branch does not send production requests to that trial.
 
-1. Review and apply `supabase/pcc-migrations/20261028_pcc_animation_control_v1.sql` to the PCC Supabase project `ttkceizmjeckrorhkhfr` only. This file is deliberately outside `supabase/migrations/`, which is used by the Systems/PMF migration workflow.
-2. Deploy `pcc-animation-control-v1` with the manual PCC-only GitHub workflow. It checks the PCC project ref before deployment.
-3. Provision `pcc_animation_access` roles in Supabase Auth app metadata through the existing PCC administrator process. Supported values: `REQUEST`, `REVIEW`, `ADMIN`. No user receives access by default.
-4. Add a PCC UI entry point and verify the authenticated request/read flow against a non-production test account before enabling any operator workflow.
+The PMF channel registry currently exposes these nine keys: `goldmind`, `goldwords`, `phnx_kids`, `phnx_kitchen`, `phnx_sports`, `phnx_studio`, `rpe`, `shadow`, and `valarian`. The `goldwords` PMF row is X. It does not establish the user's Pinterest account or other social accounts. PHNX Faceless and the additional platforms are not present in the inspected PMF registry and are not offered by this first PCC screen.
 
-Do not apply this migration through the existing Systems/PMF migration workflow.
+PVE voice and PNG render workers exist in Systems, but PCC has no verified production handoff to them. The Script Writer, EFPB script breakdown, BOAS/KNOAS Reviewer, voice/PNG selection, RunPod admission, and SPIDER distribution are not implemented by this slice.
 
-## Request contract
+## Request API
 
-POST to `/functions/v1/pcc-animation-control-v1` with PCC Supabase `apikey` and a signed-in user's Bearer token.
+POST to `/functions/v1/pcc-animation-control-v1` with the PCC Supabase publishable key and the signed-in operator's Supabase Auth Bearer token.
 
 Create:
+
 ```json
 {
   "action": "CREATE",
   "payload": {
-    "idempotency_key": "caller-generated-unique-key",
-    "channel_code": "PHNX_KIDS",
+    "idempotency_key": "unique-key",
+    "channel_key": "phnx_kids",
     "output_type": "REEL",
-    "title": "Working title",
-    "idea": "The concept to develop.",
-    "boas_id": "approved-boas-record",
-    "knoas_id": "approved-knoas-record",
-    "request_payload": {}
+    "title": "REEL",
+    "idea": "Describe what should be produced.",
+    "request_payload": {
+      "intake": "PCC_ANIMATION_ENGINE_V1"
+    }
   }
 }
 ```
 
-Read:
+List the caller's latest requests (review/admin sees all):
+
+```json
+{ "action": "LIST", "payload": {} }
+```
+
+Read a request:
+
 ```json
 {
   "action": "READ",
@@ -57,4 +57,19 @@ Read:
 }
 ```
 
-The current create response reports a PCC queue record only. Queue states are stored on the job table; this slice currently creates `QUEUED` jobs and supports reads. It has no worker that advances those states yet.
+The API validates the caller's Supabase Auth session and reads server-managed `app_metadata.pcc_animation_access` roles: `REQUEST`, `REVIEW`, or `ADMIN`. The browser does not receive the service-role key. The PCC table has RLS enabled, direct client grants revoked, and a service-role-only RPC.
+
+## Remaining build gates
+
+1. Complete PMF 0.3.0's PCC system/version registration and admission under its BOAS/PSC acceptance contract. Do not change its trial identity to production by bypassing the registry.
+2. Implement a PCC-controlled channel/policy resolver that reads registered BOAS/KNOAS and channel profiles through a server-to-server interface.
+3. Build the Script Writer and self-healing Reviewer path: EFPB full script, channel-specific segment breakdown, BOAS/KNOAS evaluation, correction receipt, and notifications for unresolved issues.
+4. Add secure worker adapters for PMF animation, PVE voice/script, and PNG rendering; return job IDs, artifact hashes, and receipts to PCC.
+5. Connect RunPod as on-demand compute behind the approved PMF runtime and measure a real render before enabling automatic admission.
+6. Add the backlog threshold alert (three remaining ads/reels/episodes) and SPIDER distribution handoff, with explicit publishing approval and schedule controls.
+
+## Deployment and validation
+
+This is a draft implementation. No PCC migration, Edge Function, role assignment, worker, or production resource was deployed by this branch. Apply the SQL only to PCC project `ttkceizmjeckrorhkhfr`; `supabase/migrations/` is reserved for the Systems/PMF target in this repository setup. Deploy the function only after the PCC migration and operator-role provisioning are reviewed.
+
+Local Deno, browser, database-migration, and workflow validation were not run because this repository is not mounted in the workspace. The open draft PR is the review target.
