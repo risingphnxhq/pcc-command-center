@@ -43,6 +43,7 @@ declare
   v_brief text := nullif(trim(coalesce(p_payload->>'creative_brief','')),'');
   v_id uuid;
   v_row record;
+  v_requests jsonb;
 begin
   if p_auth_subject is null then
     return jsonb_build_object('status','DENIED','error','AUTHENTICATED_SUBJECT_REQUIRED');
@@ -85,7 +86,7 @@ begin
     );
   elsif v_action = 'LIST' then
     select coalesce(jsonb_agg(to_jsonb(q) order by q.created_at desc),'[]'::jsonb)
-      into v_row
+      into v_requests
     from (
       select request_id,request_type,channel_key,title,status,created_at,updated_at
       from pcc_institutional.pcc_animation_requests
@@ -93,7 +94,7 @@ begin
       order by created_at desc
       limit 50
     ) q;
-    return jsonb_build_object('status','OK','requests',v_row);
+    return jsonb_build_object('status','OK','requests',v_requests);
   elsif v_action = 'READ' or v_action = 'CANCEL' then
     begin
       v_id := nullif(trim(coalesce(p_payload->>'request_id','')),'')::uuid;
