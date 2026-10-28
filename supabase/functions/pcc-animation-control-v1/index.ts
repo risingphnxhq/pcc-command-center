@@ -104,17 +104,15 @@ Deno.serve(async (req: Request) => {
     if (!roles.has("REQUEST") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_REQUEST_ROLE_REQUIRED" });
 
     const idempotencyKey = text(payload.idempotency_key, 128);
-    const channelCode = text(payload.channel_code, 64);
+    const channelKey = text(payload.channel_key, 64);
     const outputType = text(payload.output_type, 32)?.toUpperCase();
     const title = text(payload.title, 200);
     const idea = text(payload.idea, 12_000);
-    const boasId = text(payload.boas_id, 160);
-    const knoasId = text(payload.knoas_id, 160);
     const requestPayload = payload.request_payload ?? {};
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
-      || !channelCode || !/^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$/.test(channelCode)
+      || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey)
       || !["EPISODE", "AD", "REEL", "MICRO_DRAMA", "BOOK_SCENE", "OTHER"].includes(outputType ?? "")
-      || !title || !idea || !boasId || !knoasId
+      || !idea
       || !requestPayload || Array.isArray(requestPayload) || typeof requestPayload !== "object") {
       return json(400, { error: "ANIMATION_REQUEST_INVALID" });
     }
@@ -125,17 +123,28 @@ Deno.serve(async (req: Request) => {
       p_subject: userData.user.id,
       p_payload: {
         idempotency_key: idempotencyKey,
-        channel_code: channelCode,
+        channel_key: channelKey,
         output_type: outputType,
-        title,
+        title: title ?? outputType,
         idea,
-        boas_id: boasId,
-        knoas_id: knoasId,
         request_payload: requestPayload,
       },
     });
     if (error) return json(400, { error: "ANIMATION_JOB_CREATE_FAILED", code: error.code ?? "UNKNOWN" });
     return json(202, { ok: true, job: data, dispatch: "NOT_CONNECTED" });
+  }
+
+  if (action === "LIST") {
+    if (!roles.has("REQUEST") && !roles.has("REVIEW") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_REQUEST_ROLE_REQUIRED" });
+    const canReview = roles.has("REVIEW") || roles.has("ADMIN");
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await service.rpc("pcc_animation_job_control_v1", {
+      p_action: "LIST",
+      p_subject: userData.user.id,
+      p_payload: { can_review: canReview },
+    });
+    if (error) return json(400, { error: "ANIMATION_JOB_LIST_FAILED", code: error.code ?? "UNKNOWN" });
+    return json(200, { ok: true, jobs: data });
   }
 
   if (action === "READ") {
