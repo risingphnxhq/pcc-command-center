@@ -61,7 +61,7 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
     if(!response.ok) throw new Error(result.error||"PCC animation queue is not available yet.");
     return result;
   }
-  function safe(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e;}
+  function safe(tag,text,cls){const e=document.createElement(tag);if(text!==undefined&&text!==null)e.textContent=text;if(cls)e.className=cls;return e;}
   function render(items){
     requests.replaceChildren();
     if(!items.length){requests.append(safe("div","No animation requests yet.","empty"));return;}
