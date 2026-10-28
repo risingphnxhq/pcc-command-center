@@ -100,6 +100,38 @@ begin
     end if;
 
     return to_jsonb(v_job);
+  elsif v_action = 'SAVE_SCRIPT' then
+    begin
+      v_id := (p_payload->>'job_id')::uuid;
+    exception when others then
+      raise exception 'PCC_ANIMATION_JOB_ID_INVALID';
+    end;
+
+    if jsonb_typeof(p_payload->'script_bundle') is distinct from 'object'
+       or jsonb_typeof(p_payload->'review_receipt') is distinct from 'object'
+       or length(trim(coalesce(p_payload->>'boas_id',''))) not between 1 and 160
+       or length(trim(coalesce(p_payload->>'knoas_id',''))) not between 1 and 160
+       or coalesce(p_payload->>'status','') not in ('SCRIPT_REVIEW_PASSED','REVIEW') then
+      raise exception 'PCC_ANIMATION_SCRIPT_RESULT_INVALID';
+    end if;
+
+    update public.pcc_animation_jobs
+       set boas_id=trim(p_payload->>'boas_id'),
+           knoas_id=trim(p_payload->>'knoas_id'),
+           script_bundle=p_payload->'script_bundle',
+           review_receipt=p_payload->'review_receipt',
+           status=p_payload->>'status',
+           updated_at=now()
+     where job_id=v_id
+       and (requester_subject=p_subject or v_can_review)
+       and script_bundle is null
+     returning * into v_job;
+
+    if not found then
+      raise exception 'PCC_ANIMATION_JOB_NOT_FOUND_OR_ALREADY_SCRIPTED';
+    end if;
+
+    return to_jsonb(v_job);
   elsif v_action = 'LIST' then
     return coalesce((
       select jsonb_agg(to_jsonb(j) order by j.created_at desc)
