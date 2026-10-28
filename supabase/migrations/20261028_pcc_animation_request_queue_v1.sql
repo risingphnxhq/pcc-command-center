@@ -11,7 +11,7 @@ create table if not exists pcc_hq.animation_intake_requests (
   request_id uuid primary key default gen_random_uuid(),
   request_type text not null check (request_type in ('BOOK_MANUSCRIPT','ANIMATION','AD','REEL','MICRO_DRAMA','SERIES_EPISODE','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN')),
   production_intent text check (
-    (request_type in ('AD','REEL') and production_intent in ('MARKETING','NARRATIVE')) or
+    (request_type in ('AD','REEL') and production_intent is not null and production_intent in ('MARKETING','NARRATIVE')) or
     (request_type not in ('AD','REEL') and production_intent is null)
   ),
   channel_key text not null check (channel_key ~ '^[a-z0-9][a-z0-9._-]{1,79}$'),
