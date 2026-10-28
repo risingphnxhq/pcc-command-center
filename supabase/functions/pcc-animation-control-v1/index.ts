@@ -201,6 +201,13 @@ Deno.serve(async (req: Request) => {
       return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
     }
 
+    const claimed = await service.rpc("pcc_animation_job_control_v1", {
+      p_action: "CLAIM_SCRIPT",
+      p_subject: userData.user.id,
+      p_payload: { job_id: job.job_id, can_review: mayReview },
+    });
+    if (claimed.error || !claimed.data) return json(409, { error: "ANIMATION_SCRIPT_ALREADY_CLAIMED_OR_UNAVAILABLE" });
+
     try {
       const result = await runAnimationScriptwriter({
         request_id: job.job_id,
@@ -235,11 +242,22 @@ Deno.serve(async (req: Request) => {
           can_review: mayReview,
         },
       });
-      if (saved.error) return json(409, { error: "ANIMATION_SCRIPT_SAVE_FAILED", code: saved.error.code ?? "UNKNOWN" });
+      if (saved.error) throw new Error("ANIMATION_SCRIPT_SAVE_FAILED");
       return json(200, { ok: true, job: saved.data, script_state: result.state, dispatch: "NOT_CONNECTED" });
     } catch (error) {
       const code = error instanceof Error ? error.message : "SCRIPT_GENERATION_FAILED";
-      return json(502, { error: "SCRIPT_GENERATION_FAILED", code });
+      const failureCode = code.slice(0, 120) || "SCRIPT_GENERATION_FAILED";
+      await service.rpc("pcc_animation_job_control_v1", {
+        p_action: "FAIL_SCRIPT",
+        p_subject: userData.user.id,
+        p_payload: {
+          job_id: job.job_id,
+          failure_code: failureCode,
+          review_receipt: { state: "SCRIPT_GENERATION_FAILED", failure_code: failureCode, retryable: true },
+          can_review: mayReview,
+        },
+      });
+      return json(502, { error: "SCRIPT_GENERATION_FAILED", code: failureCode });
     }
   }
 
