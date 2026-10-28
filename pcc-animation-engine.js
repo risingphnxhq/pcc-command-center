@@ -22,7 +22,16 @@
       body:JSON.stringify({action,payload}), cache:"no-store"
     });
     const result = await response.json().catch(()=>({}));
-    if (!response.ok) throw new Error(result.error || "PCC request failed ("+response.status+").");
+    if (!response.ok) {
+      const messages = {
+        SCRIPT_RUNTIME_CONFIGURATION_MISSING: "PCC script generation is not configured yet. The request is saved; no GPU was started.",
+        REGISTERED_CHANNEL_POLICY_REQUIRED: "This channel and format do not yet have a trusted BOAS/KNOAS policy registered. The request is saved and rendering stays held.",
+        SCRIPT_POLICY_REGISTRY_INVALID: "PCC's server-side channel policy registry needs repair. No script or render was started.",
+        ANIMATION_JOB_ALREADY_SCRIPTED: "This request already has a script package.",
+        SCRIPT_GENERATION_FAILED: "The Script Writer could not complete this request. PCC kept the request; check its server-side model connection.",
+      };
+      throw new Error(messages[result.error] || result.error || "PCC request failed ("+response.status+").");
+    }
     return result;
   }
   function render(items) {
@@ -41,7 +50,28 @@
       article.append(detail);
       const noteText=document.createElement("small");
       noteText.textContent="PCC request saved. Rendering remains held until the PMF/PCC registration gate is cleared.";
-      article.append(noteText); jobs.append(article);
+      article.append(noteText);
+      if (!job.script_bundle && !["CANCELLED","FAILED","SCRIPTING"].includes(job.status)) {
+        const scriptButton=document.createElement("button");
+        scriptButton.type="button";
+        scriptButton.textContent="Generate and review script";
+        scriptButton.addEventListener("click", async () => {
+          scriptButton.disabled=true;
+          message("Script Writer is drafting, checking, and repairing this request…");
+          try {
+            const result=await call("WRITE_SCRIPT", { job_id:job.job_id });
+            message(result.script_state === "SCRIPT_REVIEW_PASSED"
+              ? "Script passed the Reviewer and binary checks. It is saved in PCC; rendering remains held."
+              : "Script is held in PCC Review with QA issues recorded. Other requests can continue.", "ok");
+            await refresh();
+          } catch (error) {
+            message(error.message, "error");
+            scriptButton.disabled=false;
+          }
+        });
+        article.append(scriptButton);
+      }
+      jobs.append(article);
     }
   }
   async function refresh() {
