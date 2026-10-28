@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
   try { body = await req.json(); }
   catch { return json(400, { ok: false, error: "INVALID_JSON" }); }
   const action = typeof body.action === "string" ? body.action.trim().toUpperCase() : "";
-  const allowed = new Set(["CREATE", "LIST", "READ", "CANCEL"]);
+  const allowed = new Set(["CREATE", "LIST", "READ", "CANCEL", "READINESS"]);
   if (!allowed.has(action)) return json(403, { ok: false, error: "ANIMATION_ACTION_NOT_PERMITTED" });
   const payload = body.payload && typeof body.payload === "object" && !Array.isArray(body.payload)
     ? body.payload
