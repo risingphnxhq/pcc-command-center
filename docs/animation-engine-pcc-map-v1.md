@@ -130,3 +130,16 @@ The voice, voice-script, and PNG tables are in that same separate PMF project: P
 The PCC intake draft now stores only the founder-owned request in the PCC project’s private `pcc_hq.animation_intake_requests` table. Its Edge Function validates the signed-in user and checks the existing Founder authorization RPC. It does not read PMF tables, dispatch to the PMF runtime, start RunPod, create voice/PNG jobs, or publish. Every submitted request stays held. The prior draft incorrectly placed the queue table in the PMF project while pointing its client at the PCC project; that mismatch is corrected in this branch.
 
 **The remaining integration gate is the authenticated PCC-to-PMF project bridge**: it must preserve Founder authority, map request/channel/canon and BOAS/KNOAS revisions into the PMF Script Writer and Reviewer contracts, call only existing authorized PMF/PVE/PNG operations, and return immutable output/artifact receipts to PCC. The Angie’s World trial runtime remains gated until PMF expands and certifies a general production contract. RunPod can be added only after that contract accepts a reviewed job and provides an explicit spend/stop limit. Do not deploy the old cross-project assumption or report this engine as end-to-end operational.
+
+
+## PCC production-lane routing
+
+“Corporate” in this system means RPE corporate marketing. PCC routes a request using the requested deliverable plus its selected brand/channel and objective:
+
+| PCC request type | Production lane | Primary QA |
+|---|---|---|
+| Corporate jingle, TV commercial, social campaign | RPE corporate marketing | Approved-claims, offer/CTA, legal copy, brand/usage rights, duration, accessibility and surface requirements |
+| Book manuscript, story animation, micro-drama, series episode | Channel narrative | EFPB ending/payoff, cause-and-effect, character/canon continuity and audience/format fit |
+| Ad or reel | Explicit PCC intent, informed by selected brand/channel and objective | Marketing QA for promotional work; narrative QA for story work |
+
+PCC must keep a promotional reel/ad on the corporate marketing path and story-based animation/reels on the narrative path. If intent is ambiguous, it stays in PCC for clarification rather than running both profiles by default. The shared Script Writer can serve both lanes, but each request gets the matching BOAS/KNOAS profile and Reviewer rubric.
