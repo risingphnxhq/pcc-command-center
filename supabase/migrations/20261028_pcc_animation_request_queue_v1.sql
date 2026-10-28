@@ -68,7 +68,13 @@ begin
          'pmf_runtime','NOT_ADMITTED',
          'render_worker','NOT_CONNECTED',
          'qa','NOT_RUN',
-         'distribution','NOT_AUTHORIZED'
+         'distribution','NOT_AUTHORIZED',
+         'execution_lock',jsonb_build_object(
+           'lock_id','PMF-ANIMATION-EXECUTION-LOCK-001',
+           'psc_id','PMF-FOUNDER-PSC-ANIMATION-EXECUTION-LOCK-2026-10-23-001',
+           'revision',1,
+           'sha256','877d6469335ba45261c2c6cef24162e5093d84a0bdf9292813587bcf649a495c'
+         )
        ))
     returning request_id,status,created_at into v_row;
 
