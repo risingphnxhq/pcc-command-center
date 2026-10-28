@@ -8,14 +8,15 @@ create table if not exists public.pcc_animation_jobs (
   job_id uuid primary key default gen_random_uuid(),
   requester_subject uuid not null references auth.users(id) on delete restrict,
   idempotency_key text not null check (idempotency_key ~ '^[A-Za-z0-9._:-]{8,128}$'),
-  channel_code text not null check (channel_code ~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'),
+  channel_key text not null check (channel_key ~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'),
   output_type text not null check (output_type in ('EPISODE','AD','REEL','MICRO_DRAMA','BOOK_SCENE','OTHER')),
   title text not null check (length(trim(title)) between 1 and 200),
   idea text not null check (length(trim(idea)) between 1 and 12000),
-  boas_id text not null check (length(trim(boas_id)) between 1 and 160),
-  knoas_id text not null check (length(trim(knoas_id)) between 1 and 160),
+  boas_id text check (boas_id is null or length(trim(boas_id)) between 1 and 160),
+  knoas_id text check (knoas_id is null or length(trim(knoas_id)) between 1 and 160),
   request_payload jsonb not null default '{}'::jsonb check (jsonb_typeof(request_payload) = 'object'),
-  status text not null default 'QUEUED' check (status in ('QUEUED','SCRIPTING','REVIEW','READY_FOR_PRODUCTION','PRODUCING','QA','COMPLETE','FAILED','CANCELLED')),
+  status text not null default 'WAITING_FOR_SYSTEM_REGISTRATION' check (status in ('WAITING_FOR_SYSTEM_REGISTRATION','QUEUED','SCRIPTING','REVIEW','READY_FOR_PRODUCTION','PRODUCING','QA','COMPLETE','FAILED','CANCELLED')),
+  routing_state text not null default 'PENDING_PCC_REGISTRATION' check (routing_state in ('PENDING_PCC_REGISTRATION','READY','BLOCKED')),
   script_bundle jsonb,
   review_receipt jsonb,
   pmf_job_ref text,
@@ -56,29 +57,27 @@ begin
     if jsonb_typeof(p_payload) is distinct from 'object'
        or length(trim(coalesce(p_payload->>'idempotency_key',''))) not between 8 and 128
        or trim(coalesce(p_payload->>'idempotency_key','')) !~ '^[A-Za-z0-9._:-]+$'
-       or length(trim(coalesce(p_payload->>'channel_code',''))) not between 2 and 64
-       or trim(coalesce(p_payload->>'channel_code','')) !~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'
+       or length(trim(coalesce(p_payload->>'channel_key',''))) not between 2 and 64
+       or trim(coalesce(p_payload->>'channel_key','')) !~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'
        or length(trim(coalesce(p_payload->>'title',''))) not between 1 and 200
        or length(trim(coalesce(p_payload->>'idea',''))) not between 1 and 12000
-       or length(trim(coalesce(p_payload->>'boas_id',''))) not between 1 and 160
-       or length(trim(coalesce(p_payload->>'knoas_id',''))) not between 1 and 160
        or coalesce(p_payload->>'output_type','') not in ('EPISODE','AD','REEL','MICRO_DRAMA','BOOK_SCENE','OTHER')
        or jsonb_typeof(coalesce(p_payload->'request_payload','{}'::jsonb)) is distinct from 'object' then
       raise exception 'PCC_ANIMATION_REQUEST_INVALID';
     end if;
 
     insert into public.pcc_animation_jobs (
-      requester_subject,idempotency_key,channel_code,output_type,title,idea,
+      requester_subject,idempotency_key,channel_key,output_type,title,idea,
       boas_id,knoas_id,request_payload
     ) values (
       p_subject,
       trim(p_payload->>'idempotency_key'),
-      trim(p_payload->>'channel_code'),
+      trim(p_payload->>'channel_key'),
       p_payload->>'output_type',
       trim(p_payload->>'title'),
       trim(p_payload->>'idea'),
-      trim(p_payload->>'boas_id'),
-      trim(p_payload->>'knoas_id'),
+      nullif(trim(p_payload->>'boas_id'),''),
+      nullif(trim(p_payload->>'knoas_id'),''),
       coalesce(p_payload->'request_payload','{}'::jsonb)
     )
     on conflict (requester_subject,idempotency_key) do nothing;
@@ -92,17 +91,26 @@ begin
       raise exception 'PCC_ANIMATION_CREATE_FAILED';
     end if;
 
-    if v_job.channel_code is distinct from trim(p_payload->>'channel_code')
+    if v_job.channel_key is distinct from trim(p_payload->>'channel_key')
        or v_job.output_type is distinct from p_payload->>'output_type'
        or v_job.title is distinct from trim(p_payload->>'title')
        or v_job.idea is distinct from trim(p_payload->>'idea')
-       or v_job.boas_id is distinct from trim(p_payload->>'boas_id')
-       or v_job.knoas_id is distinct from trim(p_payload->>'knoas_id')
        or v_job.request_payload is distinct from coalesce(p_payload->'request_payload','{}'::jsonb) then
       raise exception 'PCC_ANIMATION_IDEMPOTENCY_CONFLICT';
     end if;
 
     return to_jsonb(v_job);
+  elsif v_action = 'LIST' then
+    return coalesce((
+      select jsonb_agg(to_jsonb(j) order by j.created_at desc)
+      from (
+        select *
+        from public.pcc_animation_jobs
+        where v_can_review or requester_subject=p_subject
+        order by created_at desc
+        limit 50
+      ) j
+    ), '[]'::jsonb);
   elsif v_action = 'READ' then
     begin
       v_id := (p_payload->>'job_id')::uuid;
