@@ -29,7 +29,7 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
 <header><div class="brand"><small>Phoenix Command Center</small>Animation Engine</div><nav><a href="command-floor.html">Command Floor</a> &nbsp;·&nbsp; <a href="console.html">PCC Console</a></nav></header>
 <main>
 <section class="intro"><h1>Animation Engine</h1><p>Start a Reel or Episode for a specific channel. PCC records the request and its creative brief here under PMF-ANIMATION-EXECUTION-LOCK-001 (revision 1). The request stays held until that channel’s BOAS/KNOAS profile, Scriptwriter route, PMF admission, QA, and approved render controls are connected.</p><div class="engine-map"><span>Channel voice → BOAS/KNOAS</span><span>Script → PMF</span><span>On-demand render → PCC review</span><span>Approved release → SPIDER</span></div></section>
-<div class="grid">
+<div class="hold" id="readiness" role="status" aria-live="polite">Checking live PMF registry and execution gates…</div><div class="grid">
 <section class="card"><h2>Start a request</h2>
 <form id="requestForm">
 <label for="requestType">Format</label><select id="requestType" required><option value="REEL">Reel</option><option value="EPISODE">Episode</option></select>
@@ -78,9 +78,15 @@ button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#4
       requests.append(row);
     }
   }
+  function showReadiness(r){
+    const el=$("readiness"),lock=r.execution_lock||{},pmf=r.pmf_registry||{};
+    const lockState=lock.readback==="HASH_MATCH"?"execution lock hash verified":"execution lock hash unverified";
+    const version=pmf.version?("PMF "+pmf.version+" · admission "+pmf.admission+" · certification "+pmf.certification):"PMF registry record not found";
+    el.textContent=version+" · "+lockState+" · channel profiles "+r.channel_profiles+" · Scriptwriter "+r.scriptwriter_runtime+" · RunPod "+r.runpod_worker+" · QA "+r.qa_enforcement+". Requests remain held.";
+  }
   async function load(){
     if(busy)return;busy=true;refresh.disabled=true;
-    try{const result=await call("LIST");render(Array.isArray(result.requests)?result.requests:[]);setNotice("Queue loaded from PCC.");}
+    try{const [result,ready]=await Promise.all([call("LIST"),call("READINESS")]);render(Array.isArray(result.requests)?result.requests:[]);showReadiness(ready);setNotice("Queue and live PMF registry status loaded from PCC.");}
     catch(e){requests.replaceChildren(safe("div",e.message,"empty"));setNotice(e.message,true);}
     finally{busy=false;refresh.disabled=false;}
   }
