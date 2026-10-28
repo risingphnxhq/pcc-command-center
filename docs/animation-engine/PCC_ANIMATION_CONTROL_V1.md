@@ -2,9 +2,9 @@
 
 ## Built in this branch
 
-PCC now has an Animation Engine entry point in the department navigation and a channel-first intake screen. An authorized operator supplies a concept, selects an output format and one of the channel keys currently present in PMF's channel registry, and submits a request to the PCC control API. PCC stores it with an idempotency key, validates the channel against the currently verified nine-key set, and lists the operator's recent requests. Reviewer/admin roles can list all requests.
+PCC now has an Animation Engine entry point in the department navigation and a channel-first intake screen. An authorized operator supplies a concept, selects an output format—episode, ad, reel, micro-drama, novel/book, or corporate marketing—and one of the channel keys currently present in PMF's channel registry, and submits a request to the PCC control API. PCC stores it with an idempotency key, validates the channel against the currently verified nine-key set, and lists the operator's recent requests. Reviewer/admin roles can list all requests.
 
-The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account.
+The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
 
 Each request is deliberately stored as `WAITING_FOR_SYSTEM_REGISTRATION` with routing state `PENDING_PCC_REGISTRATION`. It is a PCC intake record, not a script, render job, GPU allocation, or publishing job. The UI says this directly. Nothing starts RunPod and nothing publishes to a channel.
 
