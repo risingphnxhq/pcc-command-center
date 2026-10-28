@@ -100,6 +100,56 @@ begin
     end if;
 
     return to_jsonb(v_job);
+  elsif v_action = 'CLAIM_SCRIPT' then
+    begin
+      v_id := (p_payload->>'job_id')::uuid;
+    exception when others then
+      raise exception 'PCC_ANIMATION_JOB_ID_INVALID';
+    end;
+
+    update public.pcc_animation_jobs
+       set status='SCRIPTING',
+           failure_code=null,
+           updated_at=now()
+     where job_id=v_id
+       and (requester_subject=p_subject or v_can_review)
+       and script_bundle is null
+       and status in ('WAITING_FOR_SYSTEM_REGISTRATION','QUEUED','REVIEW')
+     returning * into v_job;
+
+    if not found then
+      raise exception 'PCC_ANIMATION_SCRIPT_ALREADY_CLAIMED_OR_UNAVAILABLE';
+    end if;
+
+    return to_jsonb(v_job);
+  elsif v_action = 'FAIL_SCRIPT' then
+    begin
+      v_id := (p_payload->>'job_id')::uuid;
+    exception when others then
+      raise exception 'PCC_ANIMATION_JOB_ID_INVALID';
+    end;
+
+    if jsonb_typeof(p_payload->'review_receipt') is distinct from 'object'
+       or length(trim(coalesce(p_payload->>'failure_code',''))) not between 1 and 120 then
+      raise exception 'PCC_ANIMATION_SCRIPT_FAILURE_INVALID';
+    end if;
+
+    update public.pcc_animation_jobs
+       set status='REVIEW',
+           failure_code=trim(p_payload->>'failure_code'),
+           review_receipt=p_payload->'review_receipt',
+           updated_at=now()
+     where job_id=v_id
+       and (requester_subject=p_subject or v_can_review)
+       and script_bundle is null
+       and status='SCRIPTING'
+     returning * into v_job;
+
+    if not found then
+      raise exception 'PCC_ANIMATION_SCRIPT_NOT_CLAIMED';
+    end if;
+
+    return to_jsonb(v_job);
   elsif v_action = 'SAVE_SCRIPT' then
     begin
       v_id := (p_payload->>'job_id')::uuid;
@@ -125,6 +175,7 @@ begin
      where job_id=v_id
        and (requester_subject=p_subject or v_can_review)
        and script_bundle is null
+       and status='SCRIPTING'
      returning * into v_job;
 
     if not found then
