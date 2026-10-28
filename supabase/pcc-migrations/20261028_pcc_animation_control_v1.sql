@@ -9,7 +9,7 @@ create table if not exists public.pcc_animation_jobs (
   requester_subject uuid not null references auth.users(id) on delete restrict,
   idempotency_key text not null check (idempotency_key ~ '^[A-Za-z0-9._:-]{8,128}$'),
   channel_key text not null check (channel_key ~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'),
-  output_type text not null check (output_type in ('EPISODE','AD','REEL','MICRO_DRAMA','BOOK_SCENE','OTHER')),
+  output_type text not null check (output_type in ('EPISODE','AD','CORPORATE_MARKETING','TV_SPOT','REEL','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE','OTHER')),
   title text not null check (length(trim(title)) between 1 and 200),
   idea text not null check (length(trim(idea)) between 1 and 12000),
   boas_id text check (boas_id is null or length(trim(boas_id)) between 1 and 160),
