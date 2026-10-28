@@ -48,9 +48,17 @@ Deno.serve(async (req: Request) => {
     ? body.payload
     : {};
 
-  const service = createClient(supabaseUrl, serviceRoleKey, {
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const { data: founder, error: founderError } = await admin.rpc("pcc_founder_private_subject", {
+    p_subject: userData.user.id,
+  });
+  if (founderError || founder !== true) {
+    return json(403, { ok: false, error: "PCC_FOUNDER_AUTHORIZATION_REQUIRED" });
+  }
+
+  const service = admin;
   const { data, error } = await service.rpc("pcc_animation_queue_v1", {
     p_auth_subject: userData.user.id,
     p_action: action,
