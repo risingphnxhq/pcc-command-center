@@ -36,12 +36,12 @@ The browser submits only a PCC job ID. The Edge Function reads the job and selec
 ## Script lifecycle
 
 1. An authorized PCC user records an idea, editorial channel/series, and output type.
-2. The user starts the request-level Generate and review script action.
+2. The user starts the request-level Generate and review script action. An atomic PCC claim prevents concurrent duplicate Writer runs for the same request.
 3. PCC uses EFPB to produce the complete work first, then channel segments.
 4. The independent Reviewer can return corrections. The Writer can repair up to two times.
 5. The binary validator checks required policy IDs, EFPB fields, continuity ledger, contiguous segment indexes, required segment fields, full-script coverage, and any registered segment limits.
 6. PCC stores the complete script package and review receipt on the request. Passed scripts are marked `SCRIPT_REVIEW_PASSED`; unresolved issues are held as `REVIEW` and displayed on the request.
-7. Render status remains disconnected. A passed script is not permission to render or publish.
+7. If model execution fails, PCC records a retryable REVIEW receipt and releases the claim. Render status remains disconnected. A passed script is not permission to render or publish.
 
 ## Current registry gate
 
