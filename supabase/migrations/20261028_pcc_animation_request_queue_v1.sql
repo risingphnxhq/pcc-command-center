@@ -1,4 +1,7 @@
 -- PCC narrative and animation intake queue v1
+-- Apply only to RPE Corporate HQ Canon (ttkceizmjeckrorhkhfr), the PCC project.
+-- PMF/PVE/PNG and the trial-scoped animation runtime live in a separate project.
+-- This table stores intake only; every request remains held pending a secure bridge.
 -- This is an intake/backlog boundary only. It does not dispatch to PMF or RunPod.
 -- Every new request remains HELD_CONFIGURATION_REQUIRED until channel, BOAS/KNOAS,
 -- PMF admission, QA, and compute controls are wired and verified.
@@ -67,7 +70,7 @@ begin
       'scriptwriter_runtime','NOT_CONNECTED',
       'runpod_worker','NOT_CONNECTED',
       'qa_enforcement','NOT_INTEGRATED',
-      'pcc_queue','CONNECTED_ONLY_IF_THIS_FUNCTION_IS_DEPLOYED',
+      'pcc_queue','PCC_QUEUE_API_DEPLOYED',
       'pmf_animation_runtime','EXISTS_TRIAL_SCOPED_IN_SEPARATE_PROJECT',
       'voice_and_png_tables','EXIST_IN_SEPARATE_PMF_PROJECT',
       'cross_project_bridge','NOT_CONNECTED',
