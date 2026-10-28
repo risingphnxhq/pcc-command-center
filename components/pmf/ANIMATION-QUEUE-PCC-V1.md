@@ -22,6 +22,20 @@ The Scriptwriter is one shared service dispatched by PCC, not one writer per cha
 
 A full episode or ad can therefore be drafted once as a master script and then transformed into the channel's required reel, scene, clip, or delivery segments without losing the source version.
 
+## Independent Reviewer and self-healing QA (required next integration)
+
+The shared Scriptwriter must hand each full script and its channel-specific segments to a Reviewer before PMF/render admission. The Reviewer is an independent QA role/service; it checks story coherence and application fit against the selected channel's approved BOAS/KNOAS, series/campaign canon, audience, and output format.
+
+For each review, it should return a versioned report tied to the request and exact script/segment revisions, including checks passed, issues found, severity, proposed or applied corrections, and notification status. It should check at minimum: EFPB ending is achieved by the story; cause-and-effect and character/story continuity make sense; the script satisfies the channel's intended output type and audience; and segments preserve the master script without breaking required format limits.
+
+Self-healing loop:
+1. For a fix that is clear from approved BOAS/KNOAS or the brief, Reviewer proposes/applies the correction, saves a new script revision, and re-runs the same checks.
+2. PCC records and notifies the owner/team about the issue and correction; notification is visible in PCC and does not itself stop other queued jobs.
+3. Bound automatic correction attempts (for example, two passes) to avoid infinite rewrite loops. If the issue remains, produce a review-needed report with the unresolved issue and suggested fix. Do not mark it passed or silently change canon. The job can remain in the review queue while unrelated jobs continue.
+4. Only a clean Reviewer result can satisfy script QA for render admission. A correction must not automatically authorize GPU spend, publishing, or distribution.
+
+This is the intended self-correct-and-notify behavior. The current intake PR has no Reviewer runtime, correction loop, notification delivery, or QA gate wired yet.
+
 ## Three-output runway notification (required next integration)
 
 PCC should maintain a per-channel, per-series/campaign count of outputs that are approved, ready, and not yet published. When the count crosses down to three or fewer, notify the owner/team to choose continuation episodes or new outputs. Count only eligible deliverables; drafts, failed renders, cancelled jobs, and already-published items do not count. Deduplicate the alert while the count remains at or below three; re-arm after it rises above three. The notification is planning only: it must not automatically write, render, spend, schedule, or publish.
@@ -30,14 +44,15 @@ PCC should maintain a per-channel, per-series/campaign count of outputs that are
 
 ## PCC to production path
 
-1. Founder creates a Reel/Episode request in PCC and chooses its channel.
+1. Founder submits an idea, selects output type and channel, and optionally supplies series/campaign and intended ending/action.
 2. PCC resolves that channel's approved BOAS/KNOAS profile and Scriptwriter route.
-3. Scriptwriter prepares a versioned script bundle and PMF evaluates it.
-4. PCC confirms PMF runtime admission, the required QA revision, approved render settings, and an explicit per-job spend ceiling.
-5. Only then may a governed worker claim the job and request an on-demand RunPod render.
-6. The resulting video and receipts return to PCC for founder review. SPIDER distribution remains a separate action after approval.
+3. Scriptwriter applies EFPB, creates the full master script, then segments it for the channel; the independent Reviewer checks coherence and channel fit, applies bounded safe repairs, and reports issues to PCC.
+4. PMF evaluates the script bundle and Reviewer report.
+5. PCC confirms PMF runtime admission, the required QA revision, approved render settings, and an explicit per-job spend ceiling.
+6. Only then may a governed worker claim the job and request an on-demand RunPod render.
+7. The resulting video and receipts return to PCC for founder review. SPIDER distribution remains a separate action after approval.
 
-The EFPB Scriptwriter dispatch, channel segmenter, three-output inventory counter/notification, and steps 2–6 are specified here but are not yet enabled by this intake slice. The existing PMF runtime is Angie-trial-scoped; PMF 0.3.0 is registered but `NOT_ADMITTED` and `NOT_CERTIFIED`; the live Cloudflare PMF worker has no RunPod service binding. The held state prevents a saved request from being mistaken for an executable job.
+The EFPB Scriptwriter dispatch, channel segmenter, independent Reviewer/self-healing correction loop, PCC error notifications, three-output inventory counter/notification, and steps 2–7 are specified here but are not yet enabled by this intake slice. The existing PMF runtime is Angie-trial-scoped; PMF 0.3.0 is registered but `NOT_ADMITTED` and `NOT_CERTIFIED`; the live Cloudflare PMF worker has no RunPod service binding. The held state prevents a saved request from being mistaken for an executable job.
 
 ## Deploy gate
 
