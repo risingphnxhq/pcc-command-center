@@ -46,8 +46,8 @@ export async function resolveTrustedAnimationPolicy({
     output_type:request.output_type,
     production_intent:request.production_intent,
   });
-  const policy=validateResolvedAnimationPolicy(raw,request);
-  const verification=await verifySource(policy);
+  const policy=deepFreeze(validateResolvedAnimationPolicy(raw,request));
+  const verification=deepFreeze(await verifySource(policy));
   if(!isObject(verification)||verification.status!=="VERIFIED"
     ||verification.channel_key!==policy.channel_key
     ||verification.output_type!==policy.output_type
