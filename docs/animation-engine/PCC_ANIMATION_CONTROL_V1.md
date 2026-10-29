@@ -6,7 +6,7 @@ PCC now has an Animation Engine entry point, channel-first intake, EFPB Script W
 
 The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
 
-Each request starts as `WAITING_FOR_SYSTEM_REGISTRATION`. A passed script can be staged by a HANDOFF or ADMIN role; the PCC database constructs and durably stores the packet as `HELD_PMF_ADMISSION_REQUIRED`, with PMF admission/certification recorded as blocking and rendering disabled. This is a PCC outbox stage only: it does not call the PMF trial endpoint, start RunPod, spend, render, or publish.
+Each request starts as `WAITING_FOR_SYSTEM_REGISTRATION`. A passed script can be staged by a HANDOFF or ADMIN role; PCC durably stores the packet as `HELD_PMF_ADMISSION_REQUIRED`. When the server bridge settings are configured, PCC sends the packet over a signed HTTPS request to Systems/PMF. PMF validates the approved policy lineage, full script, binary QA, Reviewer pass, and held admission snapshot; it records an idempotent intake receipt and returns it for PCC to save on the job. Both sides keep CEP enqueue, rendering, GPU spend, release, and publishing disabled. If bridge settings are absent, PCC reports `NOT_CONFIGURED` and retains its local held packet.
 
 ## Verified integration state
 
@@ -62,10 +62,14 @@ The API validates the caller's Supabase Auth session and reads server-managed `a
 
 1. Register the approved BOAS/KNOAS channel and format revisions, then replace the temporary server policy JSON with PCC's authenticated resolver.
 2. Complete PMF 0.3.0 PCC registration, admission, and certification under the existing BOAS/PSC acceptance contract. Do not change the Angie’s World trial identity into production.
-3. Add a production PMF intake contract that can accept the staged PCC packet only after admission; then wire PVE voice/script and PNG request/receipt paths to their registered tables.
+3. Once admitted, add the separately authorized CEP enqueue and PVE voice/script plus PNG request/receipt paths against their registered tables. The current bridge only receipts and holds approved PCC packets.
 4. Add durable PCC notifications for reviewer repairs/errors and the three-remaining-output runway alert.
 5. Connect RunPod as on-demand compute only behind admitted PMF jobs, with explicit spend limits and measured cost/quality.
 6. Add PCC approval and SPIDER distribution/scheduling handoff separately from render completion.
+
+## Bridge configuration
+
+PCC Edge Function secrets: `PCC_PMF_BRIDGE_URL` (the Systems function's HTTPS URL), `PCC_PMF_BRIDGE_HMAC_SECRET` (shared server-only secret, at least 32 characters), and `PCC_PMF_BRIDGE_KEY_ID=pcc-animation-v1`. Systems/PMF requires the same HMAC secret and key ID. Never expose the secret to the browser or commit it. Deploy the PCC receipt migration, the Systems intake migration, and the PMF Edge Function before configuring both sides.
 
 ## Deployment and validation
 
