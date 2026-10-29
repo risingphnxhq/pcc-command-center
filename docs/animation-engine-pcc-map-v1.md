@@ -1,6 +1,6 @@
 # PCC Animation Engine — system map v1
 
-**Purpose:** produce channel-specific books, animation, reels, shorts, episodes, jingles, television commercials, and social campaigns from PCC. PCC is the control surface. The founder starts a production request and reviews its result; the founder does not operate ComfyUI, configure model nodes, or manage GPU instances.
+**Purpose:** produce channel-specific books, animation, reels, shorts, episodes, jingles, television commercials, and social campaigns from PCC, then deliver approved original RPE animation to RPE’s own streaming service and separately selected external platforms. PCC is the control surface. The founder starts a production request and reviews its result; the founder does not operate ComfyUI, configure model nodes, or manage GPU instances.
 
 **Status:** architecture map for the first implementation pass. It describes the target behavior; it does not claim that remote rendering or live distribution is already wired.
 
@@ -17,7 +17,8 @@ flowchart TD
   PNG["PNG Rendering: image request, render output, asset receipt"]
   GPU["RunPod worker: optional admitted video/animation render; return artifact; stop"]
   Review["PCC: show preview, QA disposition, cost, and receipts for review"]
-  Spider["SPIDER: separately authorized distribution and platform schedule"]
+  Stream["RPE streaming service: owned catalog, title pages, playback, and viewer accounts"]
+  Spider["SPIDER: separately authorized external distribution and platform schedule"]
 
   Founder --> PCC
   PCC --> Writer
@@ -31,7 +32,8 @@ flowchart TD
   PMF --> GPU
   GPU --> PMF
   PMF --> Review
-  Review -->|"approval required"| Spider
+  Review -->|"approved RPE title"| Stream
+  Review -->|"approved external release"| Spider
 ```
 
 ## What each part owns
@@ -43,7 +45,8 @@ flowchart TD
 | BOAS / KNOAS | Supply the selected channel's binding creative, continuity, identity, and production constraints, pinned to approved revisions | Quietly fall back to another channel's rules or assets |
 | PMF | Check authorization and lineage, compile a durable render manifest, queue/dispatch, reconcile artifacts and costs, run the trusted QA gate | Treat a render as approved/releasable just because it completed |
 | RunPod worker | Provide temporary GPU capacity for the exact admitted manifest and return render artifacts/receipts | Hold channel credentials, choose creative policy, publish, or stay running while idle |
-| SPIDER | Handle a separately authorized channel/platform connection and, later, the approved publishing/scheduling action | Receive an unreviewed render as an automatic publish command |
+| RPE streaming service | Present RPE-owned titles through a branded catalog, series/episode pages, viewer accounts, entitlements, and playback; receive only PCC-approved, PMF-verified assets and metadata | Generate or rewrite content, approve its own production, or ingest unreleased assets automatically |
+| SPIDER | Handle a separately authorized channel/platform connection and approved external publishing/scheduling action | Receive an unreviewed render as an automatic publish command |
 
 ## Normal job path
 
@@ -54,7 +57,7 @@ flowchart TD
 5. At the configured evening/overnight window, the PMF dispatcher checks capacity and the per-job spending/runtime limits. It starts or provisions a compatible RunPod worker only when the job is admitted.
 6. The worker runs the pinned workflow, reports progress and provider metering, uploads the output to the configured artifact store, and stops on completion, cancellation, timeout, or a hard-limit breach.
 7. PMF verifies output lineage and QA evidence, then returns the preview, QA result, cost, and execution receipts to PCC.
-8. PCC holds the render for human review. Only an explicit release decision can advance it to a platform-specific SPIDER action. Platform authorization and scheduling are separate from GPU authorization.
+8. PCC holds the render for human review. After explicit approval, PCC can route an RPE-owned title to the RPE streaming catalog, an external release to SPIDER, or both as separately selected destinations. Each destination has its own metadata, access, and schedule controls; neither release is implied by GPU completion.
 
 ## Job record and lifecycle
 
@@ -88,9 +91,10 @@ The current SPIDER screenshots show two connected YouTube accounts (PHNX Kids an
 3. Bind the existing sound-first PMF compiler and QA path to a pinned, remotely usable ComfyUI workflow. Validate actual model/workflow compatibility before paid compute.
 4. Wire PCC's channel context to the exact approved BOAS/KNOAS revisions and asset identities; fail closed on mismatches.
 5. Prove one capped, owner-authorized render; return it to PCC for review and record the run receipt.
-6. Add SPIDER distribution only after review, with a separate platform-target authorization and schedule receipt.
+6. Add the RPE-owned streaming destination: approved-title ingest, catalog/series/episode metadata, playback, viewer access, captions, and resume progress. Keep monetization and native mobile/TV apps as later phases.
+7. Add SPIDER distribution only after review, with a separate platform-target authorization and schedule receipt.
 
-**Success condition:** the founder starts one job in PCC and receives a reviewable artifact and cost/QA receipt in PCC without opening RunPod or ComfyUI. Publishing remains an explicit later decision.
+**Success condition:** the founder starts one job in PCC and receives a reviewable artifact and cost/QA receipt in PCC without opening RunPod or ComfyUI. Once approved, the title can be ingested into RPE’s own streaming catalog; external publishing remains a separate explicit decision.
 
 
 ## Output intelligence and marketing scope
@@ -157,3 +161,25 @@ These are existing production components in the Systems Supabase project. PCC su
 ### Execution gate
 
 The CEP V2 queue is physically present; the live readback showed `risk_readiness` jobs, and its legacy one-argument claim is global across domains. An additive three-argument scoped claim (`locked_by`, `cep_id`, `domain`) and rollback-based isolation test are now in Systems PR #13. They are source changes only: not yet applied to the Systems database, and they do not by themselves create an Animation Engine consumer. The next implementation must bind the consumer to the approved job's exact `cep_id` and `domain`, use the existing completion/failure receipts, and authenticate the cross-project PCC-to-Systems call. The known-drift `api.execute_cep_v2_once` wrapper remains out of the path. Until this bridge and worker are verified, requests stay held; no voice provider, render worker, GPU spend, or publishing starts.
+
+## RPE-owned animation streaming service
+
+The screenshot identifies a separate product destination for the Animation Engine: an RPE-owned streaming service for the company’s original animation and series. This is distinct from both the production engine and SPIDER. PCC and PMF create, validate, and package titles; the streaming service manages the viewer experience and RPE’s owned catalog. SPIDER continues to distribute to external platforms.
+
+### First release
+
+- A branded web service with a browse/home page, featured collections, search, and title detail pages.
+- A catalog hierarchy for franchise, series, season, episode, shorts, films, and trailers, with descriptions, artwork, age guidance, release state, captions, audio-language options, and credits.
+- A secure video player with adaptive delivery, captions, playback resume, and watch progress.
+- Viewer accounts and an explicit access rule for each title. The initial access model remains to be selected; subscriptions, advertising, and payments are later product decisions.
+- A controlled catalog-ingest action that accepts only a PCC-approved release package and PMF-verified video/artwork/caption assets. Store each asset’s source job, hash, rights/provenance, and version.
+
+### Release path
+
+PCC approval → PMF release package → streaming catalog ingest → video delivery/encoding → viewer playback
+
+The platform may use managed storage, encoding, and CDN capacity behind the RPE-owned brand and application. “Our own version” means RPE owns the catalog, product experience, release rules, and viewer relationship; it does not require rebuilding codecs or a global CDN. Keep the delivery provider replaceable.
+
+### Product boundary
+
+The Animation Engine is the manufacturing pipeline. The RPE streaming service is the owned viewing destination. A finished animation is not visible to viewers until PCC approves the release, PMF verifies its package, and the catalog item is deliberately published. This service does not ingest third-party shows or copy Crunchyroll branding, artwork, or catalog content. Monetization, privacy/access policies, content rights, and child-directed features are separate acceptance gates before public launch.
