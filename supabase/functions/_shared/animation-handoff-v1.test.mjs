@@ -10,7 +10,16 @@ const job = {
   boas_psc_id: "PSC-BOAS-001", knoas_psc_id: "PSC-KNOAS-001",
   boas_id: "boas-kids", boas_revision: "rev-12", boas_approved: true,
   knoas_id: "knoas-kids", knoas_revision: "rev-9", knoas_approved: true,
-  script_bundle: { full_script: "Scene.", channel_segments: [{ index: 1 }], binary_validation: { ok: true } },
+  script_bundle: {
+    full_script: "Scene.", channel_segments: [{ index: 1 }], binary_validation: { ok: true },
+    policy_source_verification: {
+      status: "VERIFIED", channel_key: "phnx_kids", output_type: "EPISODE", production_intent: "NARRATIVE",
+      policy_id: "123e4567-e89b-42d3-a456-426614174001", policy_revision: "policy-rev-3",
+      approval_psc_id: "PSC-CHANNEL-001", boas_id: "boas-kids", boas_revision: "rev-12", boas_psc_id: "PSC-BOAS-001",
+      knoas_id: "knoas-kids", knoas_revision: "rev-9", knoas_psc_id: "PSC-KNOAS-001",
+      evidence_psc_ids: ["PSC-CHANNEL-001", "PSC-BOAS-001", "PSC-KNOAS-001"],
+    },
+  },
   review_receipt: { state: "SCRIPT_REVIEW_PASSED", receipts: [{ decision: "PASS" }] },
   pmf_job_ref: null, pve_job_ref: null, png_job_ref: null, render_job_ref: null,
 };
@@ -47,6 +56,7 @@ test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () =>
   assert.equal(packet.approved_policy.boas_revision, "rev-12");
   assert.equal(packet.approved_policy.knoas_revision, "rev-9");
   assert.equal(packet.writer_master_and_segments, job.script_bundle);
+  assert.equal(packet.policy_source_verification, job.script_bundle.policy_source_verification);
   assert.equal(packet.reviewer_receipt, job.review_receipt);
   assert.deepEqual(packet.production_context, { series_context: "", context_notes: "", desired_ending_or_action: "" });
   assert.equal(packet.state, "HELD_PMF_ADMISSION_REQUIRED");
@@ -60,4 +70,6 @@ test("blocks handoff when any source approval or QA receipt is missing", () => {
   assert.throws(() => validateHandoffSource({ ...job, channel_policy_approval_psc_id: null }), /APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { binary_validation: { ok: false } } }), /BINARY_QA_PASS_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, review_receipt: null }), /REVIEWER_RECEIPT_REQUIRED/);
+  assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: null } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
+  assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: { ...job.script_bundle.policy_source_verification, knoas_revision: "stale" } } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
 });
