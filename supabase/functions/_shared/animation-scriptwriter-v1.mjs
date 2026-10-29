@@ -59,7 +59,7 @@ function writerSystem(mode) {
   const voice = mode === "REVISE"
     ? "Revise the supplied script to resolve the review issues. Keep approved facts, canon, ending, and voice. Return the complete corrected JSON package only."
     : "You are the RPE Script Writer. Create original, coherent, production-ready work. Follow the supplied registered BOAS and KNOAS exactly; do not invent policy or platform rules. Return JSON only.";
-  return `${voice}\n\nUse EFPB (End From Beginning Protocol): decide the final payoff first, then derive the character choices, causal turns, setup, and opening that make it earned. Build the complete work before segmentation. Preserve continuity and character motivation. Corporate marketing is marketing and must meet its supplied campaign/audience/brand policy; treat it separately from fictional entertainment.\n\nReturn this exact object shape: {"ending_first":{"final_payoff":"...","setup_and_payoff":"..."},"logline":"...","synopsis":"...","full_script":"...","continuity_ledger":[{"fact":"...","source":"idea or policy"}],"channel_segments":[{"index":1,"purpose":"...","script":"...","estimated_duration_seconds":0,"handoff":"..."}],"production_notes":["..."]}. Segment the complete script to the supplied channel output specification. Never silently omit story beats to fit a format.`;
+  return `${voice}\n\nUse EFPB (End From Beginning Protocol): if a desired ending or action is supplied, treat it as the target; decide the final payoff first, then derive the character choices, causal turns, setup, and opening that make it earned. Build the complete work before segmentation. Preserve continuity and character motivation. Corporate marketing is marketing and must meet its supplied campaign/audience/brand policy; treat it separately from fictional entertainment.\n\nReturn this exact object shape: {"ending_first":{"final_payoff":"...","setup_and_payoff":"..."},"logline":"...","synopsis":"...","full_script":"...","continuity_ledger":[{"fact":"...","source":"idea or policy"}],"channel_segments":[{"index":1,"purpose":"...","script":"...","estimated_duration_seconds":0,"handoff":"..."}],"production_notes":["..."]}. Segment the complete script to the supplied channel output specification. Never silently omit story beats to fit a format.`;
 }
 
 function reviewerSystem() {
@@ -79,7 +79,9 @@ export async function runAnimationScriptwriter(input, { model, notify = async ()
     output_type: input.output_type,
     production_intent: input.production_intent ?? null,
     idea: input.idea,
-    series_context: input.series_context ?? {},
+    series_context: input.series_context ?? "",
+    context_notes: input.context_notes ?? "",
+    desired_ending_or_action: input.desired_ending_or_action ?? "",
     channel_policy: input.channel_policy,
   };
   const receipts = [];
