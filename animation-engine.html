@@ -36,6 +36,9 @@ main{max-width:1240px;margin:32px auto;padding:0 18px 48px}.eyebrow{font:600 11p
   <button id="searchRunPodAvailability" type="button">Search RunPod availability</button>
   <p id="runPodAvailability" role="status" aria-live="polite" class="fine">Searches for a currently listed GPU at or below $0.80/hour with at least 50 GB of compatible persistent storage. The midnight-to-early-morning search is intended to improve the odds of finding an open GPU; availability is never guaranteed. Each result is a changing snapshot, not a reservation. Search window: 00:00–06:00 in the configured local timezone. Automatic scans require a recurring trigger.</p>
   <div id="runPodCandidates" class="jobs" aria-live="polite"></div>
+  <button id="latestRunPodAvailability" type="button">Show latest overnight search</button>
+  <p id="latestRunPodAvailabilityNote" role="status" aria-live="polite" class="fine">The latest scheduled search result will appear here. No GPU is reserved or started.</p>
+  <div id="latestRunPodCandidates" class="jobs" aria-live="polite"></div>
 </div>
 <div class="flow" aria-label="Animation production stages"><span>Idea → channel</span><span>Script Writer · EFPB</span><span>Reviewer · BOAS/KNOAS</span><span>PMF · PVE · PNG</span><span>RunPod render</span><span>PCC review → SPIDER</span></div>
 <form id="requestForm">
