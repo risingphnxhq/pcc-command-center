@@ -184,7 +184,8 @@ Deno.serve(async (req: Request) => {
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
     const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
-    const candidate = { ...registeredPolicy, policy_id: "f0000000-0000-4000-8000-000000000001", approved: true, revoked: false };
+    registeredPolicy.policy_id = crypto.randomUUID();
+    const candidate = { ...registeredPolicy, approved: true, revoked: false };
     try {
       await resolveTrustedAnimationPolicy({
         request: { channel_key: registeredPolicy.channel_key, output_type: registeredPolicy.output_type, production_intent: registeredPolicy.production_intent },
