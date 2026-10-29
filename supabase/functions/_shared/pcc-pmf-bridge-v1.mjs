@@ -244,3 +244,69 @@ export async function requestPmfAnimationReviewUrl({
     expires_at: new Date(expiresAt).toISOString(),
   });
 }
+
+
+/** Signed read-only check of the configured RunPod control plane and worker API. */
+export async function readRunPodAnimationConnection({
+  url, secret, keyId = KEY_ID, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32) {
+    throw new Error("PMF_BRIDGE_CONFIGURATION_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({ protocol: "pcc-pmf-animation-bridge/v1", action: "RUNPOD_CONNECTION_STATUS" });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID"); }
+  const connection = result?.connection;
+  const states = [
+    "NOT_CONFIGURED", "CONTROL_PLANE_UNREACHABLE", "POD_METADATA_INVALID",
+    "POD_PROFILE_MISMATCH", "COST_LIMIT_EXCEEDED", "POD_STOPPED",
+    "WORKER_API_UNREACHABLE", "WORKER_API_UNHEALTHY",
+    "WORKER_CAPABILITY_CONTRACT_MISMATCH", "WORKER_READY",
+  ];
+  const controls = ["NOT_CONFIGURED", "UNREACHABLE", "CONNECTED"];
+  const workers = ["NOT_CHECKED", "NOT_REACHABLE", "UNREACHABLE", "UNHEALTHY", "REACHABLE"];
+  if (!response.ok || result?.ok !== true
+      || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "RUNPOD_CONNECTION_STATUS"
+      || !connection || !states.includes(connection.state)
+      || !controls.includes(connection.control_plane)
+      || !workers.includes(connection.worker_api)
+      || typeof connection.render_ready !== "boolean"
+      || (connection.render_ready !== (connection.state === "WORKER_READY"))) {
+    throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
+  }
+  if (connection.state === "NOT_CONFIGURED"
+      && (!Array.isArray(connection.missing)
+        || connection.missing.some(key => typeof key !== "string" || !/^PMF_RUNPOD_[A-Z_]+$|^RUNPOD_API_KEY$/.test(key)))) {
+    throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
+  }
+  return Object.freeze({
+    state: connection.state,
+    control_plane: connection.control_plane,
+    worker_api: connection.worker_api,
+    render_ready: connection.render_ready,
+    ...(Array.isArray(connection.missing) ? { missing: Object.freeze([...connection.missing]) } : {}),
+    ...(typeof connection.pod_status === "string" ? { pod_status: connection.pod_status } : {}),
+    ...(Number.isFinite(connection.cost_per_hour_usd) ? { cost_per_hour_usd: connection.cost_per_hour_usd } : {}),
+    ...(typeof connection.engine_version === "string" ? { engine_version: connection.engine_version } : {}),
+    ...(Number.isFinite(connection.max_fps) ? { max_fps: connection.max_fps } : {}),
+    ...(Number.isFinite(connection.max_seconds) ? { max_seconds: connection.max_seconds } : {}),
+    ...(typeof connection.quality_approved === "boolean" ? { quality_approved: connection.quality_approved } : {}),
+  });
+}
