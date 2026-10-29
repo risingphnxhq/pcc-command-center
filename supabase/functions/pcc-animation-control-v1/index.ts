@@ -4,13 +4,11 @@ import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.m
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
 import { postHeldAnimationHandoff, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
-import { validateAnimationPolicyRegistration, validateResolvedAnimationPolicy } from "../_shared/animation-channel-policy-v1.mjs";
+import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
+import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
-// This server allowlist is the currently verified PMF channel registry snapshot.
-// Keep user-supplied arbitrary keys from entering the PCC queue until live registry lookup is wired.
-const KNOWN_CHANNEL_KEYS = new Set(["goldmind", "goldwords", "phnx_kids", "phnx_kitchen", "phnx_sports", "phnx_studio", "phnx_faceless", "rpe", "shadow", "valarian"]);
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
@@ -61,6 +59,46 @@ function createScriptModel(apiKey: string, modelName: string) {
       return content;
     },
   };
+}
+
+
+async function resolveLiveAnimationPolicy(
+  service: ReturnType<typeof createClient>,
+  subject: string,
+  request: { channel_key: string; output_type: string; production_intent: string },
+  expectedSnapshot?: Record<string, unknown>,
+) {
+  const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+  const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+  const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+  if (!bridgeUrl || !bridgeSecret) throw new Error("ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED");
+  return await resolveTrustedAnimationPolicy({
+    request,
+    expectedSnapshot,
+    resolveRegisteredPolicy: async (match) => {
+      const { data, error } = await service.rpc("pcc_animation_channel_policy_control_v1", {
+        p_action: "RESOLVE", p_subject: subject, p_payload: match,
+      });
+      if (error) throw new Error("REGISTERED_CHANNEL_POLICY_REQUIRED");
+      return data;
+    },
+    verifySource: (policy) => resolveVerifiedAnimationPolicySource({
+      url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy,
+    }),
+  });
+}
+
+function policyErrorResponse(error: unknown) {
+  const code = error instanceof Error ? error.message : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE";
+  if (code === "ANIMATION_POLICY_SOURCE_NOT_VERIFIED" || code === "REGISTERED_CHANNEL_POLICY_REQUIRED"
+      || code === "REGISTERED_CHANNEL_POLICY_MISMATCH" || code === "ANIMATION_POLICY_SNAPSHOT_STALE") {
+    return { status: 409, error: code };
+  }
+  if (code === "ANIMATION_POLICY_RESOLVER_BINDINGS_REQUIRED") return { status: 400, error: code };
+  if (code === "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" || code === "PMF_BRIDGE_CONFIGURATION_INVALID") {
+    return { status: 503, error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" };
+  }
+  return { status: 503, error: "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE" };
 }
 
 async function readBoundedBody(req: Request, maxBytes: number): Promise<string | null> {
@@ -142,12 +180,27 @@ Deno.serve(async (req: Request) => {
     let registeredPolicy: Record<string, unknown>;
     try { registeredPolicy = validateAnimationPolicyRegistration(payload.policy); }
     catch (error) { return json(400, { error: error instanceof Error ? error.message : "ANIMATION_POLICY_INVALID" }); }
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
+    const candidate = { ...registeredPolicy, policy_id: "f0000000-0000-4000-8000-000000000001", approved: true, revoked: false };
+    try {
+      await resolveTrustedAnimationPolicy({
+        request: { channel_key: registeredPolicy.channel_key, output_type: registeredPolicy.output_type, production_intent: registeredPolicy.production_intent },
+        resolveRegisteredPolicy: async () => candidate,
+        verifySource: (policy) => resolveVerifiedAnimationPolicySource({ url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy }),
+      });
+    } catch (error) {
+      const failure = policyErrorResponse(error);
+      return json(failure.status, { error: failure.error });
+    }
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await service.rpc("pcc_animation_channel_policy_control_v1", {
       p_action: "REGISTER", p_subject: userData.user.id, p_payload: registeredPolicy,
     });
     if (error || !data) return json(409, { error: "ANIMATION_POLICY_REGISTER_FAILED", code: error?.code ?? "UNKNOWN" });
-    return json(201, { ok: true, policy: data });
+    return json(201, { ok: true, policy: data, source_validation: "VERIFIED" });
   }
 
   if (action === "REVOKE_POLICY") {
@@ -187,7 +240,7 @@ Deno.serve(async (req: Request) => {
     const desiredEnding = optionalText(sourceContext.desired_ending_or_action, 4_000);
     const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
-      || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey) || !KNOWN_CHANNEL_KEYS.has(channelKey)
+      || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey)
       || !["EPISODE", "SERIES_EPISODE", "ANIMATION", "AD", "REEL", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE", "CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN", "OTHER"].includes(outputType ?? "")
       || !title
       || !idea
@@ -197,6 +250,20 @@ Deno.serve(async (req: Request) => {
     }
 
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    let resolvedPolicy: Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
+    try {
+      resolvedPolicy = await resolveLiveAnimationPolicy(service, userData.user.id, {
+        channel_key: channelKey, output_type: outputType!, production_intent: productionIntent!,
+      });
+    } catch (error) {
+      const failure = policyErrorResponse(error);
+      return json(failure.status, { error: failure.error, channel_key: channelKey, output_type: outputType });
+    }
+    const boundRequestPayload = {
+      ...requestPayload,
+      approved_channel_policy_snapshot: resolvedPolicy.snapshot,
+      policy_source_verification: resolvedPolicy.verification,
+    };
     const { data, error } = await service.rpc("pcc_animation_job_control_v1", {
       p_action: "CREATE",
       p_subject: userData.user.id,
@@ -207,7 +274,7 @@ Deno.serve(async (req: Request) => {
         production_intent: productionIntent,
         title,
         idea,
-        request_payload: requestPayload,
+        request_payload: boundRequestPayload,
       },
     });
     if (error) return json(400, { error: "ANIMATION_JOB_CREATE_FAILED", code: error.code ?? "UNKNOWN" });
@@ -237,44 +304,19 @@ Deno.serve(async (req: Request) => {
     if (job.script_bundle) return json(409, { error: "ANIMATION_JOB_ALREADY_SCRIPTED" });
     if (job.status === "CANCELLED" || job.status === "FAILED") return json(409, { error: "ANIMATION_JOB_NOT_WRITABLE" });
 
-    const { data: policyData, error: policyError } = await service.rpc("pcc_animation_channel_policy_control_v1", {
-      p_action: "RESOLVE", p_subject: userData.user.id,
-      p_payload: {
-        channel_key: job.channel_key,
-        output_type: job.output_type,
-        production_intent: job.production_intent,
-      },
-    });
-    if (policyError || !policyData || policyData.approved !== true) {
-      return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
-    }
-    let policy: Record<string, unknown>;
+    let trustedPolicy: Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
     try {
-      policy = validateResolvedAnimationPolicy(policyData, {
-        channel_key: job.channel_key,
-        output_type: job.output_type,
-        production_intent: job.production_intent,
-      }) as Record<string, unknown>;
-    } catch {
-      return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
-    }
-
-    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
-    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
-    if (!bridgeUrl || !bridgeSecret) {
-      return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
-    }
-    let policySourceVerification: Record<string, unknown>;
-    try {
-      policySourceVerification = await resolveVerifiedAnimationPolicySource({
-        url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy,
-      }) as Record<string, unknown>;
+      const snapshot = job.request_payload?.approved_channel_policy_snapshot;
+      if (!snapshot) return json(409, { error: "ANIMATION_POLICY_SNAPSHOT_REQUIRED" });
+      trustedPolicy = await resolveLiveAnimationPolicy(service, userData.user.id, {
+        channel_key: job.channel_key, output_type: job.output_type, production_intent: job.production_intent,
+      }, snapshot);
     } catch (error) {
-      const code = error instanceof Error ? error.message : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE";
-      const status = code === "ANIMATION_POLICY_SOURCE_NOT_VERIFIED" ? 409 : 503;
-      return json(status, { error: status === 409 ? code : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE" });
+      const failure = policyErrorResponse(error);
+      return json(failure.status, { error: failure.error, channel_key: job.channel_key, output_type: job.output_type });
     }
+    const policy = trustedPolicy.policy as Record<string, unknown>;
+    const policySourceVerification = trustedPolicy.verification as Record<string, unknown>;
 
     const claimed = await service.rpc("pcc_animation_job_control_v1", {
       p_action: "CLAIM_SCRIPT",
@@ -363,6 +405,26 @@ Deno.serve(async (req: Request) => {
       p_payload: { job_id: jobId, can_review: true },
     });
     if (readError || !job) return json(404, { error: "ANIMATION_JOB_NOT_FOUND" });
+    let trustedPolicy: Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
+    try {
+      const snapshot = job.request_payload?.approved_channel_policy_snapshot;
+      if (!snapshot) return json(409, { error: "ANIMATION_POLICY_SNAPSHOT_REQUIRED" });
+      trustedPolicy = await resolveLiveAnimationPolicy(service, userData.user.id, {
+        channel_key: job.channel_key, output_type: job.output_type, production_intent: job.production_intent,
+      }, snapshot);
+    } catch (error) {
+      const failure = policyErrorResponse(error);
+      return json(failure.status, { error: failure.error });
+    }
+    const policy = trustedPolicy.policy as Record<string, unknown>;
+    if (job.channel_policy_id !== policy.policy_id
+        || job.channel_policy_revision !== policy.policy_revision
+        || job.channel_policy_approval_psc_id !== policy.approval_psc_id
+        || job.boas_id !== policy.boas_id || job.boas_revision !== policy.boas_revision
+        || job.boas_psc_id !== policy.boas_psc_id || job.knoas_id !== policy.knoas_id
+        || job.knoas_revision !== policy.knoas_revision || job.knoas_psc_id !== policy.knoas_psc_id) {
+      return json(409, { error: "ANIMATION_SCRIPT_POLICY_LINEAGE_MISMATCH" });
+    }
     let packet: Record<string, unknown>;
     try { packet = validateHandoffSource(job); }
     catch (error) { return json(409, { error: error instanceof Error ? error.message : "ANIMATION_HANDOFF_SOURCE_INVALID" }); }
