@@ -95,9 +95,9 @@ begin
      or v_job.handoff_receipt->'pmf_intake_receipt'->>'state' is distinct from 'HELD_PMF_ADMISSION_REQUIRED'
      or v_job.script_bundle->'binary_validation'->>'ok' is distinct from 'true'
      or v_job.review_receipt->>'state' is distinct from 'SCRIPT_REVIEW_PASSED'
-     or case when jsonb_typeof(v_job.review_receipt->'receipts') = 'array'
-              then jsonb_array_length(v_job.review_receipt->'receipts') < 1
-              else true end
+     or (case when jsonb_typeof(v_job.review_receipt->'receipts') = 'array'
+               then jsonb_array_length(v_job.review_receipt->'receipts') < 1
+               else true end)
      or v_job.boas_approved is distinct from true
      or v_job.knoas_approved is distinct from true
      or v_job.channel_policy_id is null
