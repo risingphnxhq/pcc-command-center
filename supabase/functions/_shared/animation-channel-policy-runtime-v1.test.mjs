@@ -54,4 +54,5 @@ test("snapshot excludes mutable approval flags but binds full policy content",()
  const snapshot=animationPolicySnapshot(policy);
  assert.equal("approved" in snapshot,false);
  assert.equal(snapshot.output_spec.maximum_segments,12);
+ assert.throws(()=>{snapshot.channel_profile.audience="adult";},TypeError);
 });
