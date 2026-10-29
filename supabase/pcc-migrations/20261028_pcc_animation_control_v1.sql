@@ -15,10 +15,15 @@ create table if not exists public.pcc_animation_jobs (
   idea text not null check (length(trim(idea)) between 1 and 12000),
   boas_id text check (boas_id is null or length(trim(boas_id)) between 1 and 160),
   boas_revision text check (boas_revision is null or length(trim(boas_revision)) between 1 and 160),
+  boas_psc_id text check (boas_psc_id is null or length(trim(boas_psc_id)) between 3 and 160),
   boas_approved boolean not null default false,
   knoas_id text check (knoas_id is null or length(trim(knoas_id)) between 1 and 160),
   knoas_revision text check (knoas_revision is null or length(trim(knoas_revision)) between 1 and 160),
+  knoas_psc_id text check (knoas_psc_id is null or length(trim(knoas_psc_id)) between 3 and 160),
   knoas_approved boolean not null default false,
+  channel_policy_id uuid,
+  channel_policy_revision text check (channel_policy_revision is null or length(trim(channel_policy_revision)) between 1 and 160),
+  channel_policy_approval_psc_id text check (channel_policy_approval_psc_id is null or length(trim(channel_policy_approval_psc_id)) between 3 and 160),
   request_payload jsonb not null default '{}'::jsonb check (jsonb_typeof(request_payload) = 'object'),
   status text not null default 'WAITING_FOR_SYSTEM_REGISTRATION' check (status in ('WAITING_FOR_SYSTEM_REGISTRATION','QUEUED','SCRIPTING','REVIEW','SCRIPT_REVIEW_PASSED','READY_FOR_PRODUCTION','PRODUCING','QA','COMPLETE','FAILED','CANCELLED')),
   routing_state text not null default 'PENDING_PCC_REGISTRATION' check (routing_state in ('PENDING_PCC_REGISTRATION','READY','BLOCKED')),
@@ -44,7 +49,12 @@ alter table public.pcc_animation_jobs
   add column if not exists boas_revision text,
   add column if not exists boas_approved boolean not null default false,
   add column if not exists knoas_revision text,
+  add column if not exists knoas_psc_id text,
   add column if not exists knoas_approved boolean not null default false,
+  add column if not exists boas_psc_id text,
+  add column if not exists channel_policy_id uuid,
+  add column if not exists channel_policy_revision text,
+  add column if not exists channel_policy_approval_psc_id text,
   add column if not exists handoff_state text not null default 'NOT_STAGED',
   add column if not exists handoff_packet jsonb,
   add column if not exists handoff_receipt jsonb;
@@ -212,6 +222,163 @@ begin
        or length(trim(coalesce(p_payload->>'boas_id',''))) not between 1 and 160
        or length(trim(coalesce(p_payload->>'boas_revision',''))) not between 1 and 160
        or p_payload->>'boas_approved' is distinct from 'true'
+       or length(trim(coalesce(p_payload->>'boas_psc_id',''))) not between 3 and 160
+       or p_payload->>'channel_policy_id' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
+       or length(trim(coalesce(p_payload->>'knoas_revision',''))) not between 1 and 160
+       or p_payload->>'knoas_approved' is distinct from 'true'
+       or length(trim(coalesce(p_payload->>'knoas_psc_id',''))) not between 3 and 160
+       or coalesce(p_payload->>'status','') not in ('SCRIPT_REVIEW_PASSED','REVIEW') then
+      raise exception 'PCC_ANIMATION_SCRIPT_RESULT_INVALID';
+    end if;
+
+    update public.pcc_animation_jobs
+       set boas_id=trim(p_payload->>'boas_id'),
+           boas_revision=trim(p_payload->>'boas_revision'),
+           boas_psc_id=trim(p_payload->>'boas_psc_id'),
+           channel_policy_id=(p_payload->>'channel_policy_id')::uuid,
+           channel_policy_revision=trim(p_payload->>'channel_policy_revision'),
+           channel_policy_approval_psc_id=trim(p_payload->>'channel_policy_approval_psc_id'),
+           boas_approved=(p_payload->>'boas_approved')::boolean,
+           knoas_id=trim(p_payload->>'knoas_id'),
+           knoas_revision=trim(p_payload->>'knoas_revision'),
+           knoas_psc_id=trim(p_payload->>'knoas_psc_id'),
+           knoas_approved=(p_payload->>'knoas_approved')::boolean,
+           script_bundle=p_payload->'script_bundle',
+           review_receipt=p_payload->'review_receipt',
+           status=p_payload->>'status',
+           updated_at=now()
+     where job_id=v_id
+       and (requester_subject=p_subject or v_can_review)
+       and script_bundle is null
+       and status='SCRIPTING'
+     returning * into v_job;
+
+    if not found then
+      raise exception 'PCC_ANIMATION_JOB_NOT_FOUND_OR_ALREADY_SCRIPTED';
+    end if;
+
+    return to_jsonb(v_job);
+  elsif v_action = 'STAGE_HANDOFF' then
+    begin
+      v_id := (p_payload->>'job_id')::uuid;
+    exception when others then
+      raise exception 'PCC_ANIMATION_JOB_ID_INVALID';
+    end;
+    if not v_can_stage then
+      raise exception 'PCC_ANIMATION_HANDOFF_ROLE_REQUIRED';
+    end if;
+
+    select * into v_job from public.pcc_animation_jobs where job_id=v_id;
+    if not found or (v_job.requester_subject <> p_subject and not v_can_review) then
+      raise exception 'PCC_ANIMATION_JOB_NOT_FOUND';
+    end if;
+    if v_job.handoff_packet is not null then
+      return to_jsonb(v_job);
+    end if;
+    if v_job.status <> 'SCRIPT_REVIEW_PASSED'
+       or v_job.script_bundle is null
+       or v_job.script_bundle->'binary_validation'->>'ok' is distinct from 'true'
+       or v_job.review_receipt->>'state' is distinct from 'SCRIPT_REVIEW_PASSED'
+       or jsonb_typeof(v_job.review_receipt->'receipts') is distinct from 'array'
+       or v_job.boas_approved is distinct from true
+       or v_job.knoas_approved is distinct from true
+       or v_job.boas_revision is null
+       or v_job.boas_psc_id is null
+       or v_job.knoas_revision is null
+       or v_job.knoas_psc_id is null
+       or v_job.channel_policy_id is null
+       or v_job.channel_policy_revision is null
+       or v_job.channel_policy_approval_psc_id is null then
+      raise exception 'PCC_ANIMATION_HANDOFF_SOURCE_NOT_APPROVED';
+    end if;
+    if v_job.output_type in ('AD','REEL') and v_job.production_intent is null then
+      raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_REQUIRED';
+    end if;
+
+    v_packet := jsonb_build_object(
+      'contract_version','PCC_PMF_ANIMATION_HANDOFF_V1',
+      'request',jsonb_build_object(
+        'request_id',v_job.job_id,'channel_key',v_job.channel_key,'output_type',v_job.output_type,
+        'production_intent',v_job.production_intent,'title',v_job.title,'idea',v_job.idea
+      ),
+      'production_context',jsonb_build_object(
+        'series_context',coalesce(v_job.request_payload->>'series_context',''),
+        'context_notes',coalesce(v_job.request_payload->>'context_notes',''),
+        'desired_ending_or_action',coalesce(v_job.request_payload->>'desired_ending_or_action','')
+      ),
+      'approved_policy',jsonb_build_object(
+        'policy_id',v_job.channel_policy_id,'policy_revision',v_job.channel_policy_revision,
+        'approval_psc_id',v_job.channel_policy_approval_psc_id,
+        'boas_id',v_job.boas_id,'boas_revision',v_job.boas_revision,'boas_psc_id',v_job.boas_psc_id,
+        'knoas_id',v_job.knoas_id,'knoas_revision',v_job.knoas_revision,'knoas_psc_id',v_job.knoas_psc_id
+      ),
+      'writer_master_and_segments',v_job.script_bundle,
+      'reviewer_receipt',v_job.review_receipt,
+      'existing_system_refs',jsonb_build_object(
+        'pmf_job_ref',v_job.pmf_job_ref,'pve_job_ref',v_job.pve_job_ref,
+        'png_job_ref',v_job.png_job_ref,'render_job_ref',v_job.render_job_ref
+      ),
+      'admission_snapshot',jsonb_build_object(
+        'pmf_admission','NOT_ADMITTED','pmf_certification','NOT_CERTIFIED','render_dispatch','DISABLED'
+      ),
+      'state','HELD_PMF_ADMISSION_REQUIRED'
+    );
+
+    update public.pcc_animation_jobs
+       set handoff_state='HELD_PMF_ADMISSION_REQUIRED',
+           routing_state='BLOCKED',
+           handoff_packet=v_packet,
+           handoff_receipt=jsonb_build_object(
+             'state','HELD_PMF_ADMISSION_REQUIRED',
+             'reason','PMF production admission and certification are not passed',
+             'render_dispatch','DISABLED',
+             'source','PSC PMF 0.3.0 acceptance lock 2026-10-27'
+           ),
+           updated_at=now()
+     where job_id=v_id
+     returning * into v_job;
+
+    return to_jsonb(v_job);
+  elsif v_action = 'LIST' then
+    return coalesce((
+      select jsonb_agg(to_jsonb(j) order by j.created_at desc)
+      from (
+        select *
+        from public.pcc_animation_jobs
+        where v_can_review or requester_subject=p_subject
+        order by created_at desc
+        limit 50
+      ) j
+    ), '[]'::jsonb);
+  elsif v_action = 'READ' then
+    begin
+      v_id := (p_payload->>'job_id')::uuid;
+    exception when others then
+      raise exception 'PCC_ANIMATION_JOB_ID_INVALID';
+    end;
+
+    select * into v_job
+    from public.pcc_animation_jobs
+    where job_id=v_id;
+
+    if not found or (v_job.requester_subject <> p_subject and not v_can_review) then
+      raise exception 'PCC_ANIMATION_JOB_NOT_FOUND';
+    end if;
+
+    return to_jsonb(v_job);
+  else
+    raise exception 'PCC_ANIMATION_ACTION_NOT_ALLOWED';
+  end if;
+end;
+$function$;
+
+revoke all on function public.pcc_animation_job_control_v1(text,uuid,jsonb) from public, anon, authenticated;
+grant execute on function public.pcc_animation_job_control_v1(text,uuid,jsonb) to service_role;
+
+commit;
+
+       or length(trim(coalesce(p_payload->>'channel_policy_revision',''))) not between 1 and 160
+       or length(trim(coalesce(p_payload->>'channel_policy_approval_psc_id',''))) not between 3 and 160
        or length(trim(coalesce(p_payload->>'knoas_id',''))) not between 1 and 160
        or length(trim(coalesce(p_payload->>'knoas_revision',''))) not between 1 and 160
        or p_payload->>'knoas_approved' is distinct from 'true'
