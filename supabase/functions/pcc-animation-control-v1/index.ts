@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration, validateResolvedAnimationPolicy } from "../_shared/animation-channel-policy-v1.mjs";
 
@@ -259,6 +259,23 @@ Deno.serve(async (req: Request) => {
       return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
     }
 
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) {
+      return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
+    }
+    let policySourceVerification: Record<string, unknown>;
+    try {
+      policySourceVerification = await resolveVerifiedAnimationPolicySource({
+        url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy,
+      }) as Record<string, unknown>;
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE";
+      const status = code === "ANIMATION_POLICY_SOURCE_NOT_VERIFIED" ? 409 : 503;
+      return json(status, { error: status === 409 ? code : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE" });
+    }
+
     const claimed = await service.rpc("pcc_animation_job_control_v1", {
       p_action: "CLAIM_SCRIPT",
       p_subject: userData.user.id,
@@ -303,6 +320,7 @@ Deno.serve(async (req: Request) => {
             ...result.script_package,
             binary_validation: result.binary_validation,
             repair_count: result.repair_count,
+            policy_source_verification: policySourceVerification,
           },
           review_receipt: {
             state: result.state,
