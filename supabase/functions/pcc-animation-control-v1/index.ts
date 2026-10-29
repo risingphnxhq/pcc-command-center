@@ -288,6 +288,9 @@ Deno.serve(async (req: Request) => {
         p_subject: userData.user.id,
         p_payload: {
           job_id: job.job_id,
+          channel_policy_id: policy.policy_id,
+          channel_policy_revision: policy.policy_revision,
+          channel_policy_approval_psc_id: policy.approval_psc_id,
           boas_id: policy.boas_id,
           boas_revision: policy.boas_revision,
           boas_approved: true,
