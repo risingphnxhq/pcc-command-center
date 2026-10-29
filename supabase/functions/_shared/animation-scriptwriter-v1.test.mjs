@@ -15,7 +15,7 @@ const good = (payoff = "The child teaches the phoenix to ask for help.") => ({
 const raw = (value) => JSON.stringify(value);
 
 test("accepts the same production types as PCC intake", () => {
-  for (const output_type of ["EPISODE","AD","CORPORATE_MARKETING","TV_SPOT","REEL","MICRO_DRAMA","NOVEL","BOOK_CHAPTER","BOOK_SCENE","OTHER"]) {
+  for (const output_type of ["EPISODE","SERIES_EPISODE","ANIMATION","AD","REEL","MICRO_DRAMA","NOVEL","BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","CORPORATE_MARKETING","CORPORATE_JINGLE","TV_SPOT","TV_COMMERCIAL","SOCIAL_MEDIA_CAMPAIGN","OTHER"]) {
     assert.equal(validateWriterInput({ ...input, output_type }).output_type, output_type);
   }
   assert.throws(() => validateWriterInput({ ...input, output_type: "UNSUPPORTED" }), /WRITER_OUTPUT_TYPE_UNSUPPORTED/);
