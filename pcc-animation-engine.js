@@ -134,6 +134,49 @@
     });
   }
 
+  const runPodSearchButton = $("searchRunPodAvailability");
+  const runPodAvailabilityNote = $("runPodAvailability");
+  const runPodCandidates = $("runPodCandidates");
+  if (runPodSearchButton && runPodAvailabilityNote && runPodCandidates) {
+    runPodSearchButton.addEventListener("click", async () => {
+      runPodSearchButton.disabled = true;
+      runPodAvailabilityNote.textContent = "Checking current RunPod GPU and storage availability…";
+      runPodCandidates.replaceChildren();
+      try {
+        const result = await call("RUNPOD_AVAILABILITY_SEARCH");
+        const search = result.availability || {};
+        if (search.state === "OUTSIDE_SEARCH_WINDOW") {
+          runPodAvailabilityNote.textContent = "The scheduled search window is closed. No provider query or rental was started.";
+        } else {
+          const inventory = search.inventory || {};
+          runPodAvailabilityNote.textContent = inventory.candidate_count
+            ? inventory.candidate_count + " candidate(s) matched the $0.80/hour ceiling and 50 GB network-storage requirement. This is a point-in-time availability check—not a reservation. No Pod was started."
+            : "No currently listed GPU matches both limits. PCC can check again during the scheduled overnight window. No Pod was started.";
+          for (const offer of inventory.candidates || []) {
+            const card = document.createElement("article"); card.className = "job";
+            const heading = document.createElement("strong");
+            heading.textContent = offer.gpu_name + " · " + offer.cloud_tier + " · $" + Number(offer.hourly_rate_usd).toFixed(2) + "/hour";
+            const details = document.createElement("small");
+            details.textContent = offer.vram_gb + " GB VRAM · " + offer.availability + " stock snapshot · "
+              + offer.data_center_id + " · existing network volume " + offer.storage_gb + " GB. Availability can change before a job starts.";
+            card.append(heading, details); runPodCandidates.append(card);
+          }
+          for (const warning of inventory.warnings || []) {
+            const line = document.createElement("small");
+            line.textContent = warning === "NO_READY_NETWORK_VOLUME_FOUND"
+              ? "No ready network volume was found; GPU offers are withheld until a compatible 50 GB volume exists."
+              : warning;
+            runPodCandidates.append(line);
+          }
+        }
+      } catch (error) {
+        runPodAvailabilityNote.textContent = (error?.message || "Availability search failed") + ". No Pod was started.";
+      } finally {
+        runPodSearchButton.disabled = false;
+      }
+    });
+  }
+
   function renderAlerts(items, available=true) {
     if (!alerts) return;
     alerts.replaceChildren();
