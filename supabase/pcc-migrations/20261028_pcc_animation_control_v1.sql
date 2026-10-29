@@ -93,11 +93,13 @@ begin
       raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_REQUIRED';
     end if;
     if p_payload->>'output_type' in ('CORPORATE_MARKETING','TV_SPOT')
-       and p_payload->>'production_intent' not in ('MARKETING', null) then
+       and p_payload->>'production_intent' is not null
+       and p_payload->>'production_intent' <> 'MARKETING' then
       raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_CONFLICT';
     end if;
     if p_payload->>'output_type' in ('EPISODE','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE')
-       and p_payload->>'production_intent' not in ('NARRATIVE', null) then
+       and p_payload->>'production_intent' is not null
+       and p_payload->>'production_intent' <> 'NARRATIVE' then
       raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_CONFLICT';
     end if;
     v_intent := case
