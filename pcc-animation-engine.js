@@ -6,7 +6,7 @@
     auth: { persistSession: true, autoRefreshToken: true }
   });
   const $ = (id) => document.getElementById(id);
-  const form = $("requestForm"), button = $("submit"), note = $("status"), jobs = $("jobs");
+  const form = $("requestForm"), button = $("submit"), note = $("status"), jobs = $("jobs"), alerts = $("inventoryAlerts");
   const formatSelect = $("format"), intentField = $("intentField"), intentSelect = $("productionIntent");
   function syncIntent() {
     const required = ["AD", "REEL"].includes(formatSelect.value);
@@ -95,6 +95,34 @@
     });
   }
 
+  function renderAlerts(items, available=true) {
+    if (!alerts) return;
+    alerts.replaceChildren();
+    if (!available) {
+      const p=document.createElement("p"); p.className="empty";
+      p.textContent="Replenishment monitor is not available yet. Apply the PCC replenishment migration to activate it.";
+      alerts.append(p); return;
+    }
+    if (!Array.isArray(items) || !items.length) {
+      const p=document.createElement("p"); p.className="empty";
+      p.textContent="No active low-stock alerts. PCC counts only human-approved, unpublished outputs.";
+      alerts.append(p); return;
+    }
+    for (const item of items) {
+      const card=document.createElement("article"); card.className="job";
+      const heading=document.createElement("div"); heading.className="jobhead";
+      const title=document.createElement("strong");
+      title.textContent=(labels[item.channel_key]||safeText(item.channel_key)||"Channel")+" · "+safeText(item.output_type);
+      const badge=document.createElement("span"); badge.className="badge";
+      badge.textContent=safeText(String(item.ready_unpublished_count))+" ready";
+      heading.append(title,badge); card.append(heading);
+      const detail=document.createElement("small");
+      const series=item.series_key==="__UNSCOPED__" ? "General inventory" : safeText(item.series_key);
+      detail.textContent=series+" · threshold: "+safeText(String(item.threshold))+" · start continuation or produce new inventory.";
+      card.append(detail);
+      alerts.append(card);
+    }
+  }
   function render(items) {
     jobs.replaceChildren();
     if (!Array.isArray(items) || !items.length) {
@@ -229,11 +257,6 @@
         decisions.append(approve,revise);
         article.append(previewButton, preview, expiry, reviewNotes, decisions);
       }
-        const renderNote=document.createElement("small");
-        renderNote.className="job-notice";
-        renderNote.textContent="PMF render received as a private artifact. PCC review is required; quality is not approved and nothing was published. Receipt: "+safeText(renderReceipt.result_receipt_id);
-        article.append(renderNote);
-      }
       if (job.render_review_receipt) {
         const reviewed=document.createElement("small");
         reviewed.className="job-notice";
@@ -267,6 +290,7 @@
   async function refresh() {
     try {
       const result=await call("LIST");
+      renderAlerts(result.alerts || [], result.alerts_available !== false);
       render(result.jobs || []);
     } catch (error) {
       jobs.replaceChildren(); const p=document.createElement("p"); p.className="empty"; p.textContent=error.message; jobs.append(p);
