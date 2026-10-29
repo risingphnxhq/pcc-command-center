@@ -1,5 +1,5 @@
-const MARKETING_OUTPUTS = new Set(["CORPORATE_MARKETING", "TV_SPOT"]);
-const NARRATIVE_OUTPUTS = new Set(["EPISODE", "MICRO_DRAMA", "NOVEL", "BOOK_CHAPTER", "BOOK_SCENE"]);
+const MARKETING_OUTPUTS = new Set(["CORPORATE_MARKETING", "TV_SPOT", "CORPORATE_JINGLE", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN"]);
+const NARRATIVE_OUTPUTS = new Set(["EPISODE", "SERIES_EPISODE", "ANIMATION", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE"]);
 
 export function resolveProductionIntent(outputType, suppliedIntent) {
   if (["AD", "REEL"].includes(outputType)) {
