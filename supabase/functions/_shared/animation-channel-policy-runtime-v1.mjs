@@ -12,10 +12,17 @@ function stable(value){
   return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));
 }
 function equal(left,right){return JSON.stringify(stable(left))===JSON.stringify(stable(right));}
+function deepFreeze(value){
+  if(isObject(value)||Array.isArray(value)){
+    for(const child of Object.values(value))deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
 
 export function animationPolicySnapshot(policy){
   if(!isObject(policy))throw new Error("ANIMATION_POLICY_SNAPSHOT_SOURCE_REQUIRED");
-  return Object.freeze(Object.fromEntries(POLICY_FIELDS.map(key=>[key,policy[key]])));
+  return deepFreeze(structuredClone(Object.fromEntries(POLICY_FIELDS.map(key=>[key,policy[key]]))));
 }
 
 /**
