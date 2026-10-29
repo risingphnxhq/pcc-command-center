@@ -361,7 +361,7 @@ export async function searchRunPodGpuAvailability({
         || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
         || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0 || item.hourly_rate_usd > 0.8
         || !Number.isFinite(item.storage_gb) || item.storage_gb < 50
-        || item.storage_match !== "EXISTING_NETWORK_VOLUME" || item.availability_guaranteed !== false)) {
+        || item.storage_match !== "EXISTING_NETWORK_VOLUME" || item.availability_scope !== "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED" || item.availability_guaranteed !== false)) {
     throw new Error("RUNPOD_AVAILABILITY_RESPONSE_INVALID");
   }
   return Object.freeze({
