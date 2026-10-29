@@ -89,16 +89,16 @@
         details.append(summary,preview);
         article.append(details);
       }
-      if (job.script_bundle && job.status === "SCRIPT_REVIEW_PASSED" && !job.handoff_packet) {
+      if (job.script_bundle && job.status === "SCRIPT_REVIEW_PASSED" && !job.handoff_receipt?.pmf_intake_receipt) {
         const handoffButton=document.createElement("button");
         handoffButton.type="button";
-        handoffButton.textContent="Stage PCC → PMF handoff (held)";
+        handoffButton.textContent=job.handoff_packet ? "Retry PMF handoff receipt (held)" : "Stage PCC → PMF handoff (held)";
         handoffButton.addEventListener("click", async () => {
           handoffButton.disabled=true;
           message("Validating approved BOAS/KNOAS revisions and staging the held PMF handoff…");
           try {
             const result=await call("STAGE_PMF_HANDOFF", { job_id:job.job_id });
-            message("Handoff saved in PCC as "+safeText(result.handoff_state||"HELD_PMF_ADMISSION_REQUIRED")+". PMF is not admitted; no render was dispatched.", "ok");
+            message(result.pmf_intake_state === "HELD_PMF_ADMISSION_REQUIRED" ? "PMF received the packet and returned a held receipt. No CEP job or render was started." : result.pmf_intake_state === "NOT_CONFIGURED" ? "Packet is safely held in PCC. The PCC → PMF connection is not configured yet; no render was started." : "Packet is safely held in PCC. No render was started.", "ok");
             await refresh();
           } catch (error) {
             message(error.message, "error");
@@ -109,7 +109,10 @@
       }
       if (job.handoff_state) {
         const handoffNote=document.createElement("small");
-        handoffNote.textContent="PMF handoff: "+safeText(job.handoff_state)+" · rendering disabled.";
+        const pmfReceipt=job.handoff_receipt?.pmf_intake_receipt;
+        handoffNote.textContent=pmfReceipt
+          ? "PMF intake: held receipt saved · CEP enqueue and rendering disabled."
+          : "PCC packet: "+safeText(job.handoff_state)+" · PMF receipt pending · rendering disabled.";
         article.append(handoffNote);
       }
       if (!job.script_bundle && !["CANCELLED","FAILED","SCRIPTING"].includes(job.status)) {
