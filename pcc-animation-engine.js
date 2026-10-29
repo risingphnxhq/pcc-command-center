@@ -195,12 +195,41 @@
             previewButton.disabled=false;
           }
         });
-        article.append(previewButton, preview, expiry);
+        const reviewNotes=document.createElement("textarea");
+        reviewNotes.rows=3; reviewNotes.maxLength=2000;
+        reviewNotes.placeholder="Reviewer notes: what passed, or what must be corrected.";
+        reviewNotes.setAttribute("aria-label","Render review notes");
+        const decisions=document.createElement("div");
+        const approve=document.createElement("button"); approve.type="button"; approve.textContent="Approve quality";
+        const revise=document.createElement("button"); revise.type="button"; revise.textContent="Request revision";
+        const submitDecision=async decision=>{
+          if(preview.hidden){message("Preview this exact private render in PCC before reviewing it.","error");return;}
+          if(!reviewNotes.value.trim()){message("Add reviewer notes before recording the decision.","error");reviewNotes.focus();return;}
+          approve.disabled=true; revise.disabled=true;
+          try {
+            const saved=await call("RENDER_REVIEW_DECISION",{job_id:job.job_id,decision,notes:reviewNotes.value.trim()});
+            const receipt=saved.review_receipt;
+            if(!receipt || receipt.distribution_performed!==false || receipt.quality_approved!==(decision==="APPROVE")) throw new Error("PCC review receipt did not match the selected decision.");
+            message(decision==="APPROVE" ? "Human render QA approved. The video remains private and unpublished." : "Revision requested. The current render remains private and no new render was dispatched.","ok");
+            await refresh();
+          } catch(error){message(error.message,"error");approve.disabled=false;revise.disabled=false;}
+        };
+        approve.addEventListener("click",()=>submitDecision("APPROVE"));
+        revise.addEventListener("click",()=>submitDecision("REQUEST_REVISION"));
+        decisions.append(approve,revise);
+        article.append(previewButton, preview, expiry, reviewNotes, decisions);
       }
         const renderNote=document.createElement("small");
         renderNote.className="job-notice";
         renderNote.textContent="PMF render received as a private artifact. PCC review is required; quality is not approved and nothing was published. Receipt: "+safeText(renderReceipt.result_receipt_id);
         article.append(renderNote);
+      }
+      if (job.render_review_receipt) {
+        const reviewed=document.createElement("small");
+        reviewed.className="job-notice";
+        reviewed.textContent=(job.render_review_receipt.decision==="APPROVE" ? "Render QA approved by reviewer." : "Reviewer requested a render revision.")
+          +" Quality approved: "+String(job.render_review_receipt.quality_approved===true)+". Distribution performed: false.";
+        article.append(reviewed);
       }
       if (!job.script_bundle && !["CANCELLED","FAILED","SCRIPTING"].includes(job.status)) {
         const scriptButton=document.createElement("button");
