@@ -7,6 +7,15 @@
   });
   const $ = (id) => document.getElementById(id);
   const form = $("requestForm"), button = $("submit"), note = $("status"), jobs = $("jobs");
+  const formatSelect = $("format"), intentField = $("intentField"), intentSelect = $("productionIntent");
+  function syncIntent() {
+    const required = ["AD", "REEL"].includes(formatSelect.value);
+    intentField.hidden = !required;
+    intentSelect.required = required;
+    if (!required) intentSelect.value = "";
+  }
+  formatSelect.addEventListener("change", syncIntent);
+  syncIntent();
   const labels = {
     goldmind:"Phoenix GoldMind",goldwords:"GoldWords",phnx_kids:"PHNX Kids",phnx_kitchen:"PHNX Kitchen",
     phnx_sports:"PHNX Sports",phnx_studio:"PHNX Studios",rpe:"RPE",shadow:"ShadowFrame",valarian:"Valarian Shadow"
@@ -28,6 +37,13 @@
         REGISTERED_CHANNEL_POLICY_REQUIRED: "This channel and format do not yet have a trusted BOAS/KNOAS policy registered. The request is saved and rendering stays held.",
         SCRIPT_POLICY_REGISTRY_INVALID: "PCC's server-side channel policy registry needs repair. No script or render was started.",
         ANIMATION_JOB_ALREADY_SCRIPTED: "This request already has a script package.",
+        PRODUCTION_INTENT_REQUIRED: "Choose Marketing or Narrative for this ad or reel.",
+        REGISTERED_CHANNEL_POLICY_REQUIRED: "This channel/format has no complete approved BOAS/KNOAS profile yet. No script or render was started.",
+        APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED: "Approved BOAS and KNOAS revision receipts are required before staging.",
+        SCRIPT_REVIEW_PASS_REQUIRED: "The Reviewer must pass the script before handoff staging.",
+        BINARY_QA_PASS_REQUIRED: "The script must pass binary QA before handoff staging.",
+        REVIEWER_RECEIPT_REQUIRED: "A passing Reviewer receipt is required before handoff staging.",
+        ANIMATION_HANDOFF_ROLE_REQUIRED: "Your PCC role does not include PMF handoff staging.",
         SCRIPT_GENERATION_FAILED: "The Script Writer could not complete this request. PCC kept the request; check its server-side model connection.",
       };
       throw new Error(messages[result.error] || result.error || "PCC request failed ("+response.status+").");
@@ -73,6 +89,29 @@
         details.append(summary,preview);
         article.append(details);
       }
+      if (job.script_bundle && job.status === "SCRIPT_REVIEW_PASSED" && !job.handoff_packet) {
+        const handoffButton=document.createElement("button");
+        handoffButton.type="button";
+        handoffButton.textContent="Stage PCC → PMF handoff (held)";
+        handoffButton.addEventListener("click", async () => {
+          handoffButton.disabled=true;
+          message("Validating approved BOAS/KNOAS revisions and staging the held PMF handoff…");
+          try {
+            const result=await call("STAGE_PMF_HANDOFF", { job_id:job.job_id });
+            message("Handoff saved in PCC as "+safeText(result.handoff_state||"HELD_PMF_ADMISSION_REQUIRED")+". PMF is not admitted; no render was dispatched.", "ok");
+            await refresh();
+          } catch (error) {
+            message(error.message, "error");
+            handoffButton.disabled=false;
+          }
+        });
+        article.append(handoffButton);
+      }
+      if (job.handoff_state) {
+        const handoffNote=document.createElement("small");
+        handoffNote.textContent="PMF handoff: "+safeText(job.handoff_state)+" · rendering disabled.";
+        article.append(handoffNote);
+      }
       if (!job.script_bundle && !["CANCELLED","FAILED","SCRIPTING"].includes(job.status)) {
         const scriptButton=document.createElement("button");
         scriptButton.type="button";
@@ -112,6 +151,7 @@
     try {
       const result=await call("CREATE", {
         idempotency_key:key, channel_key:channel, output_type:output,
+        production_intent:["AD","REEL"].includes(output) ? intentSelect.value : null,
         title:output.replaceAll("_"," ").toLowerCase(), idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1"}
       });
       $("idea").value="";
