@@ -46,8 +46,7 @@ test("requires trusted PMF PSC and BOAS source verification",async()=>{
  await assert.rejects(()=>run({source:{status:"UNVERIFIED"}}),/ANIMATION_POLICY_SOURCE_NOT_VERIFIED/);
 });
 test("does not silently switch a queued job to a newer policy revision",async()=>{
- const snapshot=animationPolicySnapshot(makePolicy());
- snapshot.policy_revision="r0";
+ const snapshot={...animationPolicySnapshot(makePolicy()),policy_revision:"r0"};
  await assert.rejects(()=>run({expectedSnapshot:snapshot}),/ANIMATION_POLICY_SNAPSHOT_STALE/);
 });
 test("snapshot excludes mutable approval flags but binds full policy content",()=>{
