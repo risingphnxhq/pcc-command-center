@@ -35,8 +35,10 @@ test("keeps corporate marketing separate from narrative policy", () => {
 });
 
 test("resolved policies must match the exact requested channel, format, and lane", () => {
-  const policy = { ...valid(), approved: true };
-  assert.equal(validateResolvedAnimationPolicy(policy, { channel_key: "phnx_kids", output_type: "SERIES_EPISODE", production_intent: "NARRATIVE" }).boas_revision, "v1");
+  const policy = { ...valid(), policy_id: "123e4567-e89b-42d3-a456-426614174001", approved: true };
+  const resolved = validateResolvedAnimationPolicy(policy, { channel_key: "phnx_kids", output_type: "SERIES_EPISODE", production_intent: "NARRATIVE" });
+  assert.equal(resolved.boas_revision, "v1");
+  assert.equal(resolved.policy_id, policy.policy_id);
   assert.throws(() => validateResolvedAnimationPolicy(policy, { channel_key: "phnx_faceless", output_type: "SERIES_EPISODE", production_intent: "NARRATIVE" }), /REGISTERED_CHANNEL_POLICY_MISMATCH/);
   assert.throws(() => validateResolvedAnimationPolicy({ ...policy, approved: false }, { channel_key: "phnx_kids", output_type: "SERIES_EPISODE", production_intent: "NARRATIVE" }), /REGISTERED_CHANNEL_POLICY_REQUIRED/);
 });
