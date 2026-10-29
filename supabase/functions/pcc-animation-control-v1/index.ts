@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
+import { postHeldAnimationHandoff } from "../_shared/pcc-pmf-bridge-v1.mjs";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
@@ -320,7 +321,38 @@ Deno.serve(async (req: Request) => {
       p_payload: { job_id: jobId, can_stage: true, packet },
     });
     if (error || !data) return json(409, { error: "ANIMATION_HANDOFF_STAGE_FAILED", code: error?.code ?? "UNKNOWN" });
-    return json(200, { ok: true, job: data, handoff_state: data.handoff_state, render_dispatch: "DISABLED" });
+
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) {
+      return json(200, { ok: true, job: data, handoff_state: data.handoff_state,
+        pmf_intake_state: "NOT_CONFIGURED", render_dispatch: "DISABLED" });
+    }
+
+    let pmfReceipt: Record<string, unknown>;
+    try {
+      pmfReceipt = await postHeldAnimationHandoff({
+        url: bridgeUrl,
+        secret: bridgeSecret,
+        keyId: bridgeKeyId,
+        packet: data.handoff_packet ?? packet,
+      });
+    } catch {
+      return json(502, { ok: false, error: "PMF_HELD_INTAKE_FAILED", pcc_staged: true,
+        job_id: jobId, handoff_state: data.handoff_state, render_dispatch: "DISABLED" });
+    }
+
+    const recorded = await service.rpc("pcc_animation_record_pmf_receipt_v1", {
+      p_subject: userData.user.id,
+      p_payload: { job_id: jobId, pmf_receipt: pmfReceipt, can_stage: true, can_review: true },
+    });
+    if (recorded.error || !recorded.data) {
+      return json(502, { ok: false, error: "PMF_RECEIPT_LOCAL_RECORD_FAILED", pmf_intake_succeeded: true,
+        job_id: jobId, pmf_receipt: pmfReceipt, render_dispatch: "DISABLED" });
+    }
+    return json(202, { ok: true, job: recorded.data, handoff_state: recorded.data.handoff_state,
+      pmf_intake_state: "HELD_PMF_ADMISSION_REQUIRED", render_dispatch: "DISABLED" });
   }
 
   if (action === "LIST") {
