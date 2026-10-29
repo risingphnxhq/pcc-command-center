@@ -4,7 +4,7 @@ import { runAnimationScriptwriter, validateAnimationScript, validateWriterInput 
 
 const input = {
   request_id: "req-123", channel_key: "phnx_kids", output_type: "EPISODE", idea: "A phoenix helps a child solve a problem.",
-  channel_policy: { boas_id: "boas-kids-v1", knoas_id: "knoas-kids-v1", channel_profile: { audience: "children" }, output_spec: { segments: "episode scenes" } },
+  channel_policy: { boas_id: "boas-kids-v1", boas_revision: "boas-rev-1", boas_approved: true, knoas_id: "knoas-kids-v1", knoas_revision: "knoas-rev-1", knoas_approved: true, channel_profile: { audience: "children" }, output_spec: { segments: "episode scenes" } },
 };
 const good = (payoff = "The child teaches the phoenix to ask for help.") => ({
   ending_first: { final_payoff: payoff, setup_and_payoff: "The early mistake teaches the ending lesson." },
