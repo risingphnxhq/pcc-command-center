@@ -132,3 +132,44 @@ export async function postHeldAnimationHandoff({
   }
   return result.receipt;
 }
+
+
+/** Signed read-only query of PMF's server-verified production admission state. */
+export async function readPmfAnimationProductionReadiness({
+  url, secret, keyId = KEY_ID, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32) {
+    throw new Error("PMF_BRIDGE_CONFIGURATION_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({ protocol: "pcc-pmf-animation-bridge/v1", action: "PRODUCTION_READINESS" });
+  const timestamp = String(now);
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": timestamp,
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_ADMISSION_RESPONSE_INVALID"); }
+  const readiness = result?.readiness;
+  if (!response.ok || result?.ok !== true
+      || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "PRODUCTION_READINESS"
+      || !readiness || !["PRODUCTION_BLOCKED", "PRODUCTION_ADMITTED"].includes(readiness.state)
+      || typeof readiness.production_enabled !== "boolean"
+      || !["DISABLED", "REQUIRES_SCOPED_AUTHORIZATION"].includes(readiness.render_dispatch)
+      || (readiness.state === "PRODUCTION_BLOCKED" && readiness.production_enabled !== false)
+      || (readiness.state === "PRODUCTION_ADMITTED" && readiness.production_enabled !== true)) {
+    throw new Error("PMF_ADMISSION_RESPONSE_INVALID");
+  }
+  return Object.freeze({ readiness, contract: result.contract ?? null });
+}
