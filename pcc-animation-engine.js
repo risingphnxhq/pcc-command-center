@@ -67,6 +67,13 @@
       const noteText=document.createElement("small");
       noteText.textContent=job.failure_code ? "Previous Script Writer attempt needs retry: "+safeText(job.failure_code)+". Rendering remains held." : "PCC request saved. Rendering remains held until PMF admission/certification and the PCC production connection are complete.";
       article.append(noteText);
+      const notificationReceipt=job.review_receipt?.notification_receipt;
+      if (notificationReceipt?.event === "SCRIPT_REVIEW_NEEDS_ATTENTION") {
+        const notice=document.createElement("small");
+        notice.className="job-notice";
+        notice.textContent="Reviewer notice recorded in PCC: "+safeText(String(notificationReceipt.unresolved_issue_count ?? 0))+" unresolved issue(s). This request is held for attention; other requests can continue.";
+        article.append(notice);
+      }
       if (job.script_bundle && typeof job.script_bundle === "object") {
         const details=document.createElement("details");
         const summary=document.createElement("summary");
