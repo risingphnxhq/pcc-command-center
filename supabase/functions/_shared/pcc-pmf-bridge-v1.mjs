@@ -310,3 +310,64 @@ export async function readRunPodAnimationConnection({
     ...(typeof connection.quality_approved === "boolean" ? { quality_approved: connection.quality_approved } : {}),
   });
 }
+
+
+/** Signed RunPod market scan; only returns point-in-time offers within fixed approved limits. */
+export async function searchRunPodGpuAvailability({
+  url, secret, keyId = KEY_ID, scheduled = false, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32 || typeof scheduled !== "boolean") {
+    throw new Error("RUNPOD_AVAILABILITY_BRIDGE_CONFIGURATION_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action: "SEARCH_RUNPOD_AVAILABILITY",
+    payload: { scheduled },
+  });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    redirect: "error",
+    signal: AbortSignal.timeout(20_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("RUNPOD_AVAILABILITY_RESPONSE_INVALID"); }
+  if (result?.state === "OUTSIDE_SEARCH_WINDOW") {
+    if (!response.ok || result?.ok !== true || result?.action !== "SEARCH_RUNPOD_AVAILABILITY"
+        || result?.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START") {
+      throw new Error("RUNPOD_AVAILABILITY_RESPONSE_INVALID");
+    }
+    return Object.freeze({ state: "OUTSIDE_SEARCH_WINDOW", inventory: null, schedule: result.search_window });
+  }
+  const inventory = result?.inventory;
+  if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "SEARCH_RUNPOD_AVAILABILITY"
+      || result?.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
+      || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
+      || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
+      || inventory.required_storage_gb !== 50 || !Array.isArray(inventory.candidates)
+      || inventory.candidate_count !== inventory.candidates.length
+      || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
+        || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
+        || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0 || item.hourly_rate_usd > 0.8
+        || !Number.isFinite(item.storage_gb) || item.storage_gb < 50
+        || item.storage_match !== "EXISTING_NETWORK_VOLUME" || item.availability_guaranteed !== false)) {
+    throw new Error("RUNPOD_AVAILABILITY_RESPONSE_INVALID");
+  }
+  return Object.freeze({
+    state: inventory.state,
+    inventory: Object.freeze(inventory),
+    schedule: result.schedule ?? null,
+    dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
+  });
+}
