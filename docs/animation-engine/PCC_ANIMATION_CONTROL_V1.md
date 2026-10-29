@@ -10,7 +10,7 @@ Each request starts as `WAITING_FOR_SYSTEM_REGISTRATION`. A passed script can be
 
 ## Verified integration state
 
-The PMF Systems registry currently identifies PMF 0.3.0 as version-locked to `PMF-FOUNDER-PSC-ANIMATION-V0.3.0-QA-ACCEPTANCE-LOCK-2026-10-27-001` and acceptance revision `PMF-ANIMATION-FINAL-QA-AC-001`. Its stream status is `PENDING_PCC_REGISTRATION`, `pcc_system_id=null`, and version status `UNREGISTERED`. Therefore PCC cannot safely invoke the general PMF runtime yet.
+The live Systems registry contains PMF 0.3.0, version-locked to `PMF-FOUNDER-PSC-ANIMATION-V0.3.0-QA-ACCEPTANCE-LOCK-2026-10-27-001` and acceptance revision `PMF-ANIMATION-FINAL-QA-AC-001`. Its registry state is `ACTIVE`, but its audit state is `NOT_ADMITTED` and certification state is `NOT_CERTIFIED`. The registry row is not a production-use authorization: PCC must keep the general PMF runtime, CEP enqueue, rendering, spend, and release disabled until the admission and certification gates pass.
 
 The existing PMF private `/stage` command accepts only an exact trial manifest PSC ID and staged asset payload, and the runtime is restricted to the Angie’s World trial identity. PCC's generic animation package is not that trial manifest and is never sent there.
 
