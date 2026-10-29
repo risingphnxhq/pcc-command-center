@@ -31,6 +31,17 @@ test("requires approved immutable BOAS and KNOAS revisions before writing", asyn
   }, { model: { complete: async () => "{}" } }), /REGISTERED_BOAS_KNOAS_POLICY_REQUIRED/);
 });
 
+test("carries series, canon or campaign context, and desired ending into the Writer and Reviewer", async () => {
+  const contextualInput = { ...input, series_context: "Obsidian Core Saga, Book 1", context_notes: "Use the approved saga canon.", desired_ending_or_action: "End with the betrayal revealed." };
+  const replies = [raw(good()), raw({ decision: "PASS", issues: [], summary: "Coherent and policy-aligned." })];
+  const sent = [];
+  await runAnimationScriptwriter(contextualInput, { model: { complete: async ({ user }) => { sent.push(JSON.parse(user)); return replies.shift(); } } });
+  assert.equal(sent[0].series_context, contextualInput.series_context);
+  assert.equal(sent[0].context_notes, contextualInput.context_notes);
+  assert.equal(sent[0].desired_ending_or_action, contextualInput.desired_ending_or_action);
+  assert.equal(sent[1].desired_ending_or_action, contextualInput.desired_ending_or_action);
+});
+
 test("returns a passed script package with a review receipt", async () => {
   const replies = [raw(good()), raw({ decision: "PASS", issues: [], summary: "Coherent and policy-aligned." })];
   const result = await runAnimationScriptwriter(input, { model: { complete: async () => replies.shift() } });
