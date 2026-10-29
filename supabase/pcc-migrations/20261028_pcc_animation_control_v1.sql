@@ -223,7 +223,6 @@ begin
        or length(trim(coalesce(p_payload->>'boas_revision',''))) not between 1 and 160
        or p_payload->>'boas_approved' is distinct from 'true'
        or length(trim(coalesce(p_payload->>'boas_psc_id',''))) not between 3 and 160
-       or p_payload->>'channel_policy_id' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
        or length(trim(coalesce(p_payload->>'knoas_revision',''))) not between 1 and 160
        or p_payload->>'knoas_approved' is distinct from 'true'
        or length(trim(coalesce(p_payload->>'knoas_psc_id',''))) not between 3 and 160
@@ -235,9 +234,6 @@ begin
        set boas_id=trim(p_payload->>'boas_id'),
            boas_revision=trim(p_payload->>'boas_revision'),
            boas_psc_id=trim(p_payload->>'boas_psc_id'),
-           channel_policy_id=(p_payload->>'channel_policy_id')::uuid,
-           channel_policy_revision=trim(p_payload->>'channel_policy_revision'),
-           channel_policy_approval_psc_id=trim(p_payload->>'channel_policy_approval_psc_id'),
            boas_approved=(p_payload->>'boas_approved')::boolean,
            knoas_id=trim(p_payload->>'knoas_id'),
            knoas_revision=trim(p_payload->>'knoas_revision'),
@@ -286,9 +282,6 @@ begin
        or v_job.boas_psc_id is null
        or v_job.knoas_revision is null
        or v_job.knoas_psc_id is null
-       or v_job.channel_policy_id is null
-       or v_job.channel_policy_revision is null
-       or v_job.channel_policy_approval_psc_id is null then
       raise exception 'PCC_ANIMATION_HANDOFF_SOURCE_NOT_APPROVED';
     end if;
     if v_job.output_type in ('AD','REEL') and v_job.production_intent is null then
@@ -307,8 +300,6 @@ begin
         'desired_ending_or_action',coalesce(v_job.request_payload->>'desired_ending_or_action','')
       ),
       'approved_policy',jsonb_build_object(
-        'policy_id',v_job.channel_policy_id,'policy_revision',v_job.channel_policy_revision,
-        'approval_psc_id',v_job.channel_policy_approval_psc_id,
         'boas_id',v_job.boas_id,'boas_revision',v_job.boas_revision,'boas_psc_id',v_job.boas_psc_id,
         'knoas_id',v_job.knoas_id,'knoas_revision',v_job.knoas_revision,'knoas_psc_id',v_job.knoas_psc_id
       ),
@@ -377,8 +368,6 @@ grant execute on function public.pcc_animation_job_control_v1(text,uuid,jsonb) t
 
 commit;
 
-       or length(trim(coalesce(p_payload->>'channel_policy_revision',''))) not between 1 and 160
-       or length(trim(coalesce(p_payload->>'channel_policy_approval_psc_id',''))) not between 3 and 160
        or length(trim(coalesce(p_payload->>'knoas_id',''))) not between 1 and 160
        or length(trim(coalesce(p_payload->>'knoas_revision',''))) not between 1 and 160
        or p_payload->>'knoas_approved' is distinct from 'true'
