@@ -1,8 +1,8 @@
-# PCC Animation Engine — Control Slice V1
+# PCC Animation Engine — PCC Control V1
 
 ## Built in this branch
 
-PCC now has an Animation Engine entry point, channel-first intake, EFPB Script Writer/Reviewer flow, binary QA, and a role-checked PCC handoff staging action. AD/REEL intake requires explicit MARKETING or NARRATIVE intent; corporate marketing/TV spots resolve to MARKETING and story forms to NARRATIVE. PCC stores an idempotent request, creates the complete script before channel segments, records Reviewer receipts, and persists a visible PCC job-card notice when bounded repairs leave blocking issues; that item is held while other requests remain available. It can stage a canonical handoff packet containing approved BOAS/KNOAS revisions, the script package, and QA receipts.
+PCC now has an Animation Engine entry point, channel-first intake, EFPB Script Writer/Reviewer flow, binary QA, and a role-checked PCC handoff staging action. AD/REEL intake requires explicit MARKETING or NARRATIVE intent; corporate marketing/TV spots resolve to MARKETING and story forms to NARRATIVE. PCC stores an idempotent request, creates the complete script before channel segments, records Reviewer receipts, and persists a visible PCC job-card notice when bounded repairs leave blocking issues; that item is held while other requests remain available. It can stage a canonical handoff packet containing approved BOAS/KNOAS revisions, the script package, and QA receipts. PCC also maintains a channel/output/series inventory notice: a database trigger counts human-quality-approved, still-private, unpublished results and opens a replenishment alert at three or fewer. The notice is visible beside production requests and never publishes or schedules work.
 
 The operator does not supply BOAS or KNOAS identifiers. PCC resolves an immutable, append-only channel policy by exact channel, output format, and production lane. Each policy records approved BOAS/KNOAS revisions and their PSC references. A policy must be registered by an ADMIN-authorized PCC operator; no channel policy is populated by this migration, so scripting fails closed until approved policy is registered. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
 
@@ -63,7 +63,7 @@ The API validates the caller's Supabase Auth session and reads server-managed `a
 1. Register each approved channel/output policy with its BOAS/KNOAS revisions and PSC lineage. The PCC resolver is implemented; populate it from approved source records before enabling script generation.
 2. Complete PMF 0.3.0 PCC registration, admission, and certification under the existing BOAS/PSC acceptance contract. Do not change the Angie’s World trial identity into production.
 3. Once admitted, add the separately authorized CEP enqueue and PVE voice/script plus PNG request/receipt paths against their registered tables. The current bridge only receipts and holds approved PCC packets.
-4. Add durable PCC notifications for reviewer repairs/errors and the three-remaining-output runway alert.
+4. Connect the writer/reviewer's registered channel policies and model configuration, then build the CEP/PVE/PNG production receipt paths against the exact PSC table contract.
 5. Connect RunPod as on-demand compute only behind admitted PMF jobs, with explicit spend limits and measured cost/quality.
 6. Add PCC approval and SPIDER distribution/scheduling handoff separately from render completion.
 
