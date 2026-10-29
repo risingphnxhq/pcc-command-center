@@ -91,7 +91,8 @@ async function resolveLiveAnimationPolicy(
 function policyErrorResponse(error: unknown) {
   const code = error instanceof Error ? error.message : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE";
   if (code === "ANIMATION_POLICY_SOURCE_NOT_VERIFIED" || code === "REGISTERED_CHANNEL_POLICY_REQUIRED"
-      || code === "REGISTERED_CHANNEL_POLICY_MISMATCH" || code === "ANIMATION_POLICY_SNAPSHOT_STALE") {
+      || code === "REGISTERED_CHANNEL_POLICY_MISMATCH" || code === "ANIMATION_POLICY_SNAPSHOT_STALE"
+      || code === "POLICY_SOURCE_SCOPE_MISMATCH") {
     return { status: 409, error: code };
   }
   if (code === "ANIMATION_POLICY_RESOLVER_BINDINGS_REQUIRED") return { status: 400, error: code };
@@ -496,6 +497,7 @@ Deno.serve(async (req: Request) => {
         production_intent: job.production_intent,
         idea: job.idea,
         series_context: job.request_payload?.series_context ?? "",
+        source_scope: job.request_payload?.source_scope ?? {},
         context_notes: job.request_payload?.context_notes ?? "",
         desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "",
         channel_policy: policy,
