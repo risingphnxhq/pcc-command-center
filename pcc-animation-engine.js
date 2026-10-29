@@ -165,6 +165,42 @@
         renderNote.className="job-notice";
         renderNote.textContent="PMF render received as a private artifact. PCC review is required; quality is not approved and nothing was published. Receipt: "+safeText(renderReceipt.result_receipt_id);
         article.append(renderNote);
+        const previewButton=document.createElement("button");
+        previewButton.type="button";
+        previewButton.textContent="Preview private render";
+        const preview=document.createElement("video");
+        preview.controls=true; preview.preload="metadata"; preview.playsInline=true; preview.hidden=true;
+        preview.style.width="100%"; preview.style.maxHeight="480px"; preview.style.marginTop="0.75rem";
+        const expiry=document.createElement("small");
+        previewButton.addEventListener("click", async () => {
+          previewButton.disabled=true;
+          previewButton.textContent="Requesting private preview…";
+          try {
+            const result=await call("RENDER_REVIEW_URL", { job_id:job.job_id });
+            const signed=result.preview;
+            if (!signed || signed.state!=="REVIEW_REQUIRED" || signed.mime_type!=="video/mp4"
+                || signed.pcc_request_id!==job.job_id || signed.execution_id!==job.render_execution_id
+                || signed.artifact_sha256!==job.artifact_manifest?.artifact?.sha256) {
+              throw new Error("PCC returned a mismatched review preview.");
+            }
+            preview.src=signed.signed_url;
+            preview.hidden=false;
+            preview.load();
+            expiry.textContent="Private preview link expires "+new Date(signed.expires_at).toLocaleTimeString()+". Request a new preview after expiry.";
+            previewButton.textContent="Refresh private preview";
+          } catch (error) {
+            message(error.message, "error");
+            previewButton.textContent="Retry private preview";
+          } finally {
+            previewButton.disabled=false;
+          }
+        });
+        article.append(previewButton, preview, expiry);
+      }
+        const renderNote=document.createElement("small");
+        renderNote.className="job-notice";
+        renderNote.textContent="PMF render received as a private artifact. PCC review is required; quality is not approved and nothing was published. Receipt: "+safeText(renderReceipt.result_receipt_id);
+        article.append(renderNote);
       }
       if (!job.script_bundle && !["CANCELLED","FAILED","SCRIPTING"].includes(job.status)) {
         const scriptButton=document.createElement("button");
