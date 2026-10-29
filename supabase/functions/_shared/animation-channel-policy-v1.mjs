@@ -13,6 +13,12 @@ const requiredId = (v, field) => {
   if (typeof v !== "string" || !ID.test(v.trim())) throw new Error(`POLICY_${field.toUpperCase()}_INVALID`);
   return v.trim();
 };
+const requiredRevision = (v, field) => {
+  if (typeof v !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(v.trim())) {
+    throw new Error(`POLICY_${field.toUpperCase()}_INVALID`);
+  }
+  return v.trim();
+};
 
 export function validateAnimationPolicyRegistration(input) {
   if (!isObject(input)) throw new Error("POLICY_INPUT_REQUIRED");
@@ -29,13 +35,13 @@ export function validateAnimationPolicyRegistration(input) {
     channel_key,
     output_type,
     production_intent,
-    policy_revision: requiredId(input.policy_revision, "revision"),
+    policy_revision: requiredRevision(input.policy_revision, "revision"),
     approval_psc_id: requiredId(input.approval_psc_id, "approval_psc_id"),
     boas_id: requiredId(input.boas_id, "boas_id"),
-    boas_revision: requiredId(input.boas_revision, "boas_revision"),
+    boas_revision: requiredRevision(input.boas_revision, "boas_revision"),
     boas_psc_id: requiredId(input.boas_psc_id, "boas_psc_id"),
     knoas_id: requiredId(input.knoas_id, "knoas_id"),
-    knoas_revision: requiredId(input.knoas_revision, "knoas_revision"),
+    knoas_revision: requiredRevision(input.knoas_revision, "knoas_revision"),
     knoas_psc_id: requiredId(input.knoas_psc_id, "knoas_psc_id"),
     channel_profile: input.channel_profile,
     output_spec: input.output_spec,
