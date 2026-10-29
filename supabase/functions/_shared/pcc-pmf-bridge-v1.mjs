@@ -1,4 +1,5 @@
 const KEY_ID = "pcc-animation-v1";
+const HEX = /^[a-f0-9]{64}$/i;
 const utf8 = new TextEncoder();
 
 function toHex(bytes) {
