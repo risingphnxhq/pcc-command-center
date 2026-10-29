@@ -4,6 +4,7 @@ import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.m
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
 import { postHeldAnimationHandoff } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
+import { validateAnimationPolicyRegistration, validateResolvedAnimationPolicy } from "../_shared/animation-channel-policy-v1.mjs";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
@@ -136,6 +137,35 @@ Deno.serve(async (req: Request) => {
     ? body.payload as Record<string, unknown>
     : {};
 
+  if (action === "REGISTER_POLICY") {
+    if (!roles.has("ADMIN")) return json(403, { error: "ANIMATION_POLICY_ADMIN_REQUIRED" });
+    let registeredPolicy: Record<string, unknown>;
+    try { registeredPolicy = validateAnimationPolicyRegistration(payload.policy); }
+    catch (error) { return json(400, { error: error instanceof Error ? error.message : "ANIMATION_POLICY_INVALID" }); }
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await service.rpc("pcc_animation_channel_policy_control_v1", {
+      p_action: "REGISTER", p_subject: userData.user.id, p_payload: registeredPolicy,
+    });
+    if (error || !data) return json(409, { error: "ANIMATION_POLICY_REGISTER_FAILED", code: error?.code ?? "UNKNOWN" });
+    return json(201, { ok: true, policy: data });
+  }
+
+  if (action === "REVOKE_POLICY") {
+    if (!roles.has("ADMIN")) return json(403, { error: "ANIMATION_POLICY_ADMIN_REQUIRED" });
+    const policyId = text(payload.policy_id, 36);
+    const reason = text(payload.reason, 1000);
+    const authorityPscId = text(payload.authority_psc_id, 160);
+    if (!policyId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(policyId)
+      || !reason || !authorityPscId) return json(400, { error: "ANIMATION_POLICY_REVOCATION_INVALID" });
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await service.rpc("pcc_animation_channel_policy_control_v1", {
+      p_action: "REVOKE", p_subject: userData.user.id,
+      p_payload: { policy_id: policyId, reason, authority_psc_id: authorityPscId },
+    });
+    if (error || !data) return json(409, { error: "ANIMATION_POLICY_REVOKE_FAILED", code: error?.code ?? "UNKNOWN" });
+    return json(200, { ok: true, revocation: data });
+  }
+
   if (action === "CREATE") {
     if (!roles.has("REQUEST") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_REQUEST_ROLE_REQUIRED" });
 
@@ -192,19 +222,9 @@ Deno.serve(async (req: Request) => {
     if (!jobId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(jobId)) {
       return json(400, { error: "ANIMATION_JOB_ID_INVALID" });
     }
-    const policyJson = Deno.env.get("PCC_ANIMATION_CHANNEL_POLICY_REGISTRY");
     const modelKey = Deno.env.get("PCC_SCRIPT_MODEL_API_KEY");
     const modelName = Deno.env.get("PCC_SCRIPT_MODEL_NAME");
-    if (!policyJson || !modelKey || !modelName) return json(503, { error: "SCRIPT_RUNTIME_CONFIGURATION_MISSING" });
-
-    let registry: Record<string, unknown>;
-    try {
-      const parsed = JSON.parse(policyJson);
-      if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error();
-      registry = parsed as Record<string, unknown>;
-    } catch {
-      return json(503, { error: "SCRIPT_POLICY_REGISTRY_INVALID" });
-    }
+    if (!modelKey || !modelName) return json(503, { error: "SCRIPT_RUNTIME_CONFIGURATION_MISSING" });
 
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const mayReview = roles.has("SCRIPT") || roles.has("REVIEW") || roles.has("ADMIN");
@@ -217,21 +237,25 @@ Deno.serve(async (req: Request) => {
     if (job.script_bundle) return json(409, { error: "ANIMATION_JOB_ALREADY_SCRIPTED" });
     if (job.status === "CANCELLED" || job.status === "FAILED") return json(409, { error: "ANIMATION_JOB_NOT_WRITABLE" });
 
-    const channelPolicies = registry[job.channel_key];
-    const policy = channelPolicies && !Array.isArray(channelPolicies) && typeof channelPolicies === "object"
-      ? (channelPolicies as Record<string, unknown>)[job.output_type] ?? channelPolicies
-      : null;
-    if (!policy || typeof policy !== "object" || Array.isArray(policy)) {
+    const { data: policyData, error: policyError } = await service.rpc("pcc_animation_channel_policy_control_v1", {
+      p_action: "RESOLVE", p_subject: userData.user.id,
+      p_payload: {
+        channel_key: job.channel_key,
+        output_type: job.output_type,
+        production_intent: job.production_intent,
+      },
+    });
+    if (policyError || !policyData || policyData.approved !== true) {
       return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
     }
-
-    const resolvedPolicy = policy as Record<string, unknown>;
-    if (typeof resolvedPolicy.boas_id !== "string" || !resolvedPolicy.boas_id.trim()
-      || typeof resolvedPolicy.knoas_id !== "string" || !resolvedPolicy.knoas_id.trim()
-      || typeof resolvedPolicy.boas_revision !== "string" || !resolvedPolicy.boas_revision.trim()
-      || typeof resolvedPolicy.knoas_revision !== "string" || !resolvedPolicy.knoas_revision.trim()
-      || resolvedPolicy.boas_approved !== true || resolvedPolicy.knoas_approved !== true
-      || !resolvedPolicy.channel_profile || !resolvedPolicy.output_spec) {
+    let policy: Record<string, unknown>;
+    try {
+      policy = validateResolvedAnimationPolicy(policyData, {
+        channel_key: job.channel_key,
+        output_type: job.output_type,
+        production_intent: job.production_intent,
+      }) as Record<string, unknown>;
+    } catch {
       return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
     }
 
@@ -266,10 +290,12 @@ Deno.serve(async (req: Request) => {
           job_id: job.job_id,
           boas_id: policy.boas_id,
           boas_revision: policy.boas_revision,
-          boas_approved: policy.boas_approved,
+          boas_approved: true,
+          boas_psc_id: policy.boas_psc_id,
           knoas_id: policy.knoas_id,
           knoas_revision: policy.knoas_revision,
-          knoas_approved: policy.knoas_approved,
+          knoas_approved: true,
+          knoas_psc_id: policy.knoas_psc_id,
           script_bundle: {
             ...result.script_package,
             binary_validation: result.binary_validation,
