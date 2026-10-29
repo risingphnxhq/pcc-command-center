@@ -371,3 +371,97 @@ export async function searchRunPodGpuAvailability({
     dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
   });
 }
+
+/** Read the latest signed, durable overnight availability snapshot from PMF. */
+export async function readLatestRunPodAvailabilitySnapshot({
+  url, secret, keyId = KEY_ID, fetchImpl = fetch, now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32) {
+    throw new Error("RUNPOD_SNAPSHOT_BRIDGE_CONFIGURATION_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({ protocol: "pcc-pmf-animation-bridge/v1", action: "READ_RUNPOD_AVAILABILITY_SNAPSHOT" });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("RUNPOD_SNAPSHOT_RESPONSE_INVALID"); }
+  if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "READ_RUNPOD_AVAILABILITY_SNAPSHOT"
+      || result?.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START") {
+    throw new Error("RUNPOD_SNAPSHOT_RESPONSE_INVALID");
+  }
+  if (result.state === "NO_RECENT_SNAPSHOT") {
+    return Object.freeze({ state: "NO_RECENT_SNAPSHOT", dispatch: "READ_ONLY_NO_RESERVATION_NO_START" });
+  }
+  const snapshotAt = Date.parse(result.snapshot_at);
+  const inventory = result.inventory;
+  const window = result.search_window;
+  if (result.state !== "SNAPSHOT_FOUND"
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(result.snapshot_id ?? "")
+      || !Number.isFinite(snapshotAt) || snapshotAt > now + 60_000 || snapshotAt < now - 48 * 60 * 60 * 1000
+      || result.limits?.max_hourly_usd !== 0.8 || result.limits?.required_storage_gb !== 50
+      || result.availability_guaranteed !== false
+      || window?.start_local !== "00:00" || window?.end_local !== "06:00"
+      || typeof window?.time_zone !== "string" || !window.time_zone
+      || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
+      || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
+      || inventory.required_storage_gb !== 50 || !Array.isArray(inventory.candidates)
+      || inventory.candidate_count !== inventory.candidates.length
+      || inventory.availability_guaranteed !== false
+      || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
+        || typeof item.gpu_name !== "string" || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
+        || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0 || item.hourly_rate_usd > 0.8
+        || !Number.isFinite(item.storage_gb) || item.storage_gb < 50
+        || item.storage_match !== "EXISTING_NETWORK_VOLUME"
+        || item.availability_guaranteed !== false
+        || item.availability_scope !== "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED")
+      || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
+      || (inventory.state === "CANDIDATES_FOUND" && inventory.candidates.length === 0)
+      || !Array.isArray(inventory.warnings) || inventory.warnings.some(item => typeof item !== "string")) {
+    throw new Error("RUNPOD_SNAPSHOT_RESPONSE_INVALID");
+  }
+  const candidates = inventory.candidates.map(item => Object.freeze({
+    gpu_id: item.gpu_id,
+    gpu_name: item.gpu_name,
+    vram_gb: item.vram_gb,
+    cloud_tier: item.cloud_tier,
+    hourly_rate_usd: item.hourly_rate_usd,
+    availability: item.availability,
+    data_center_id: item.data_center_id,
+    storage_gb: item.storage_gb,
+    storage_match: item.storage_match,
+    availability_guaranteed: false,
+  }));
+  return Object.freeze({
+    state: "SNAPSHOT_FOUND",
+    snapshot_id: result.snapshot_id,
+    snapshot_at: new Date(snapshotAt).toISOString(),
+    search_window: Object.freeze({ start_local: "00:00", end_local: "06:00", time_zone: window.time_zone }),
+    limits: Object.freeze({ max_hourly_usd: 0.8, required_storage_gb: 50 }),
+    availability_guaranteed: false,
+    inventory: Object.freeze({
+      state: inventory.state,
+      candidate_count: inventory.candidate_count,
+      hard_max_hourly_usd: 0.8,
+      applied_max_hourly_usd: inventory.applied_max_hourly_usd,
+      required_storage_gb: 50,
+      candidates: Object.freeze(candidates),
+      warnings: Object.freeze([...inventory.warnings]),
+      snapshot_at: new Date(snapshotAt).toISOString(),
+      availability_guaranteed: false,
+    }),
+    dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
+  });
+}
