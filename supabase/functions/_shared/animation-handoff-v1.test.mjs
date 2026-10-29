@@ -25,6 +25,16 @@ test("corporate marketing and story formats resolve to their locked lanes", () =
   assert.throws(() => resolveProductionIntent("EPISODE", "MARKETING"), /PRODUCTION_INTENT_CONFLICT/);
 });
 
+test("routes every PSC-approved format to its correct production lane", () => {
+  for (const output of ["CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN"]) {
+    assert.equal(resolveProductionIntent(output, null), "MARKETING", output);
+  }
+  for (const output of ["EPISODE", "SERIES_EPISODE", "ANIMATION", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE"]) {
+    assert.equal(resolveProductionIntent(output, null), "NARRATIVE", output);
+  }
+  assert.equal(resolveProductionIntent("OTHER", null), null);
+});
+
 test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () => {
   const packet = validateHandoffSource(job);
   assert.equal(packet.contract_version, "PCC_PMF_ANIMATION_HANDOFF_V1");
