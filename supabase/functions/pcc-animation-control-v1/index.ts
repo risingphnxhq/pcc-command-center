@@ -242,6 +242,7 @@ Deno.serve(async (req: Request) => {
     if (claimed.error || !claimed.data) return json(409, { error: "ANIMATION_SCRIPT_ALREADY_CLAIMED_OR_UNAVAILABLE" });
 
     try {
+      const reviewerNotices: Record<string, unknown>[] = [];
       const result = await runAnimationScriptwriter({
         request_id: job.job_id,
         channel_key: job.channel_key,
@@ -254,7 +255,7 @@ Deno.serve(async (req: Request) => {
         channel_policy: policy,
       }, {
         model: createScriptModel(modelKey, modelName),
-        notify: async () => {},
+        notify: async (notice: Record<string, unknown>) => { reviewerNotices.push(notice); },
       });
       const status = result.state === "SCRIPT_REVIEW_PASSED" ? "SCRIPT_REVIEW_PASSED" : "REVIEW";
       const saved = await service.rpc("pcc_animation_job_control_v1", {
@@ -277,6 +278,13 @@ Deno.serve(async (req: Request) => {
             state: result.state,
             receipts: result.review_receipts,
             unresolved_issues: result.review_receipts.at(-1)?.issues ?? [],
+            notification_receipt: reviewerNotices.length ? {
+              event: "SCRIPT_REVIEW_NEEDS_ATTENTION",
+              delivery: "PCC_JOB_CARD",
+              delivery_state: "RECORDED",
+              issued_at: new Date().toISOString(),
+              unresolved_issue_count: Array.isArray(reviewerNotices[0].unresolved_issues) ? reviewerNotices[0].unresolved_issues.length : 0,
+            } : null,
           },
           status,
           can_review: mayReview,
