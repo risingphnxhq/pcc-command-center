@@ -76,6 +76,7 @@ export async function runAnimationScriptwriter(input, { model, notify = async ()
     request_id: input.request_id,
     channel_key: input.channel_key,
     output_type: input.output_type,
+    production_intent: input.production_intent ?? null,
     idea: input.idea,
     series_context: input.series_context ?? {},
     channel_policy: input.channel_policy,
