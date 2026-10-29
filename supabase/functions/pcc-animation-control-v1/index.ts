@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
+import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
@@ -132,6 +133,10 @@ Deno.serve(async (req: Request) => {
     const idempotencyKey = text(payload.idempotency_key, 128);
     const channelKey = text(payload.channel_key, 64);
     const outputType = text(payload.output_type, 32)?.toUpperCase();
+    const suppliedIntent = text(payload.production_intent, 16)?.toUpperCase() ?? null;
+    let productionIntent: string | null;
+    try { productionIntent = resolveProductionIntent(outputType ?? "", suppliedIntent); }
+    catch (error) { return json(400, { error: error instanceof Error ? error.message : "PRODUCTION_INTENT_INVALID" }); }
     const title = text(payload.title, 200);
     const idea = text(payload.idea, 12_000);
     const requestPayload = payload.request_payload ?? {};
@@ -151,6 +156,7 @@ Deno.serve(async (req: Request) => {
         idempotency_key: idempotencyKey,
         channel_key: channelKey,
         output_type: outputType,
+        production_intent: productionIntent,
         title: title ?? outputType,
         idea,
         request_payload: requestPayload,
@@ -204,6 +210,9 @@ Deno.serve(async (req: Request) => {
     const resolvedPolicy = policy as Record<string, unknown>;
     if (typeof resolvedPolicy.boas_id !== "string" || !resolvedPolicy.boas_id.trim()
       || typeof resolvedPolicy.knoas_id !== "string" || !resolvedPolicy.knoas_id.trim()
+      || typeof resolvedPolicy.boas_revision !== "string" || !resolvedPolicy.boas_revision.trim()
+      || typeof resolvedPolicy.knoas_revision !== "string" || !resolvedPolicy.knoas_revision.trim()
+      || resolvedPolicy.boas_approved !== true || resolvedPolicy.knoas_approved !== true
       || !resolvedPolicy.channel_profile || !resolvedPolicy.output_spec) {
       return json(409, { error: "REGISTERED_CHANNEL_POLICY_REQUIRED", channel_key: job.channel_key, output_type: job.output_type });
     }
@@ -220,6 +229,7 @@ Deno.serve(async (req: Request) => {
         request_id: job.job_id,
         channel_key: job.channel_key,
         output_type: job.output_type,
+        production_intent: job.production_intent,
         idea: job.idea,
         series_context: job.request_payload?.series_context ?? {},
         channel_policy: policy,
@@ -234,7 +244,11 @@ Deno.serve(async (req: Request) => {
         p_payload: {
           job_id: job.job_id,
           boas_id: policy.boas_id,
+          boas_revision: policy.boas_revision,
+          boas_approved: policy.boas_approved,
           knoas_id: policy.knoas_id,
+          knoas_revision: policy.knoas_revision,
+          knoas_approved: policy.knoas_approved,
           script_bundle: {
             ...result.script_package,
             binary_validation: result.binary_validation,
@@ -266,6 +280,29 @@ Deno.serve(async (req: Request) => {
       });
       return json(502, { error: "SCRIPT_GENERATION_FAILED", code: failureCode });
     }
+  }
+
+  if (action === "STAGE_PMF_HANDOFF") {
+    if (!roles.has("HANDOFF") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_HANDOFF_ROLE_REQUIRED" });
+    const jobId = text(payload.job_id, 36);
+    if (!jobId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(jobId)) {
+      return json(400, { error: "ANIMATION_JOB_ID_INVALID" });
+    }
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: job, error: readError } = await service.rpc("pcc_animation_job_control_v1", {
+      p_action: "READ", p_subject: userData.user.id,
+      p_payload: { job_id: jobId, can_review: true },
+    });
+    if (readError || !job) return json(404, { error: "ANIMATION_JOB_NOT_FOUND" });
+    let packet: Record<string, unknown>;
+    try { packet = validateHandoffSource(job); }
+    catch (error) { return json(409, { error: error instanceof Error ? error.message : "ANIMATION_HANDOFF_SOURCE_INVALID" }); }
+    const { data, error } = await service.rpc("pcc_animation_job_control_v1", {
+      p_action: "STAGE_HANDOFF", p_subject: userData.user.id,
+      p_payload: { job_id: jobId, can_stage: true, packet },
+    });
+    if (error || !data) return json(409, { error: "ANIMATION_HANDOFF_STAGE_FAILED", code: error?.code ?? "UNKNOWN" });
+    return json(200, { ok: true, job: data, handoff_state: data.handoff_state, render_dispatch: "DISABLED" });
   }
 
   if (action === "LIST") {
