@@ -65,7 +65,7 @@ function createScriptModel(apiKey: string, modelName: string) {
 async function resolveLiveAnimationPolicy(
   service: ReturnType<typeof createClient>,
   subject: string,
-  request: { channel_key: string; output_type: string; production_intent: string },
+  request: { channel_key: string; output_type: string; production_intent: string; source_scope?: Record<string, string> },
   expectedSnapshot?: Record<string, unknown>,
 ) {
   const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
@@ -389,15 +389,23 @@ Deno.serve(async (req: Request) => {
       ? rawRequestPayload as Record<string, unknown>
       : {};
     const seriesContext = optionalText(sourceContext.series_context, 160);
+    const sourceSeriesId = optionalText(sourceContext.source_series_id, 160);
+    const sourceEpisodeId = optionalText(sourceContext.source_episode_id, 160);
     const contextNotes = optionalText(sourceContext.context_notes, 6_000);
     const desiredEnding = optionalText(sourceContext.desired_ending_or_action, 4_000);
-    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
+    const sourceScope = {
+      ...(sourceSeriesId ? { series_id: sourceSeriesId } : {}),
+      ...(sourceEpisodeId ? { episode_id: sourceEpisodeId } : {}),
+    };
+    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, source_scope: sourceScope, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
       || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey)
       || !["EPISODE", "SERIES_EPISODE", "ANIMATION", "AD", "REEL", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE", "CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN", "OTHER"].includes(outputType ?? "")
       || !title
       || !idea
-      || seriesContext === null || contextNotes === null || desiredEnding === null
+      || seriesContext === null || sourceSeriesId === null || sourceEpisodeId === null
+      || (!!sourceSeriesId !== !!sourceEpisodeId)
+      || contextNotes === null || desiredEnding === null
       || !rawRequestPayload || Array.isArray(rawRequestPayload) || typeof rawRequestPayload !== "object") {
       return json(400, { error: "ANIMATION_REQUEST_INVALID" });
     }
@@ -406,7 +414,7 @@ Deno.serve(async (req: Request) => {
     let resolvedPolicy: Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
     try {
       resolvedPolicy = await resolveLiveAnimationPolicy(service, userData.user.id, {
-        channel_key: channelKey, output_type: outputType!, production_intent: productionIntent!,
+        channel_key: channelKey, output_type: outputType!, production_intent: productionIntent!, source_scope: sourceScope,
       });
     } catch (error) {
       const failure = policyErrorResponse(error);
@@ -463,6 +471,7 @@ Deno.serve(async (req: Request) => {
       if (!snapshot) return json(409, { error: "ANIMATION_POLICY_SNAPSHOT_REQUIRED" });
       trustedPolicy = await resolveLiveAnimationPolicy(service, userData.user.id, {
         channel_key: job.channel_key, output_type: job.output_type, production_intent: job.production_intent,
+        source_scope: job.request_payload?.source_scope ?? {},
       }, snapshot);
     } catch (error) {
       const failure = policyErrorResponse(error);
