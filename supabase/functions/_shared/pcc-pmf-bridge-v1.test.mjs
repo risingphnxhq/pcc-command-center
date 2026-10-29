@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -192,4 +192,46 @@ test("rejects wrong target, wrong origin, or long-lived review URLs", async () =
   };
   await assert.rejects(requestPmfAnimationReviewUrl({...base,fetchImpl:async()=>new Response(JSON.stringify(result),{status:200})}),/PMF_REVIEW_URL_RESPONSE_INVALID/);
   await assert.rejects(requestPmfAnimationReviewUrl({...base,fetchImpl:async()=>new Response(JSON.stringify({...result,signed_url:result.signed_url.replace("attacker.example","systems.example"),expires_at:new Date(base.now+300_000).toISOString()}),{status:200})}),/PMF_REVIEW_URL_RESPONSE_INVALID/);
+});
+
+
+test("RunPod status sends a signed read-only request and preserves stopped-versus-ready distinction", async () => {
+  let sent;
+  const connection = {
+    state: "POD_STOPPED", control_plane: "CONNECTED", worker_api: "NOT_REACHABLE",
+    render_ready: false, pod_status: "STOPPED", cost_per_hour_usd: 0.72,
+  };
+  const result = await readRunPodAnimationConnection({
+    url: "https://systems.example/functions/v1/bridge", secret,
+    now: 1_800_000_000_000, nonce: "123e4567-e89b-42d3-a456-426614174097",
+    fetchImpl: async (url, init) => {
+      sent = {url, init};
+      return new Response(JSON.stringify({
+        ok: true, protocol: "pcc-pmf-animation-bridge/v1",
+        action: "RUNPOD_CONNECTION_STATUS", connection,
+      }), {status: 200});
+    },
+  });
+  assert.equal(sent.init.method, "POST");
+  assert.equal(JSON.parse(sent.init.body).action, "RUNPOD_CONNECTION_STATUS");
+  assert.equal(sent.init.headers["x-pcc-bridge-signature"].length, 64);
+  assert.deepEqual(result, connection);
+  assert.equal(result.render_ready, false);
+});
+
+test("RunPod status rejects contradictory or unsafe bridge responses", async () => {
+  const base = {
+    url: "https://systems.example/bridge", secret,
+    now: 1_800_000_000_000, nonce: "123e4567-e89b-42d3-a456-426614174096",
+  };
+  await assert.rejects(readRunPodAnimationConnection({
+    ...base,
+    fetchImpl: async () => new Response(JSON.stringify({
+      ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "RUNPOD_CONNECTION_STATUS",
+      connection: {state:"WORKER_READY",control_plane:"CONNECTED",worker_api:"REACHABLE",render_ready:false},
+    }), {status:200}),
+  }), /RUNPOD_CONNECTION_RESPONSE_INVALID/);
+  await assert.rejects(readRunPodAnimationConnection({
+    ...base, url: "http://systems.example/bridge",
+  }), /PMF_BRIDGE_HTTPS_REQUIRED/);
 });
