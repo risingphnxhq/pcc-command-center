@@ -2,7 +2,7 @@
 
 ## Built in this branch
 
-PCC now has an Animation Engine entry point, channel-first intake, EFPB Script Writer/Reviewer flow, binary QA, and a role-checked PCC handoff staging action. AD/REEL intake requires explicit MARKETING or NARRATIVE intent; corporate marketing/TV spots resolve to MARKETING and story forms to NARRATIVE. PCC stores an idempotent request, creates the complete script before channel segments, records Reviewer receipts, and can stage a canonical handoff packet containing approved BOAS/KNOAS revisions, the script package, and QA receipts.
+PCC now has an Animation Engine entry point, channel-first intake, EFPB Script Writer/Reviewer flow, binary QA, and a role-checked PCC handoff staging action. AD/REEL intake requires explicit MARKETING or NARRATIVE intent; corporate marketing/TV spots resolve to MARKETING and story forms to NARRATIVE. PCC stores an idempotent request, creates the complete script before channel segments, records Reviewer receipts, and persists a visible PCC job-card notice when bounded repairs leave blocking issues; that item is held while other requests remain available. It can stage a canonical handoff packet containing approved BOAS/KNOAS revisions, the script package, and QA receipts.
 
 The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
 
