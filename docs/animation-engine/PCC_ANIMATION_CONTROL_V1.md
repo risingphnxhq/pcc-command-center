@@ -2,21 +2,19 @@
 
 ## Built in this branch
 
-PCC now has an Animation Engine entry point in the department navigation and a channel-first intake screen. An authorized operator supplies a concept, selects an output format—episode, ad, reel, micro-drama, novel/book, or corporate marketing—and one of the channel keys currently present in PMF's channel registry, and submits a request to the PCC control API. PCC stores it with an idempotency key, validates the channel against the currently verified nine-key set, and lists the operator's recent requests. Reviewer/admin roles can list all requests.
+PCC now has an Animation Engine entry point, channel-first intake, EFPB Script Writer/Reviewer flow, binary QA, and a role-checked PCC handoff staging action. AD/REEL intake requires explicit MARKETING or NARRATIVE intent; corporate marketing/TV spots resolve to MARKETING and story forms to NARRATIVE. PCC stores an idempotent request, creates the complete script before channel segments, records Reviewer receipts, and can stage a canonical handoff packet containing approved BOAS/KNOAS revisions, the script package, and QA receipts.
 
 The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
 
-Each request is deliberately stored as `WAITING_FOR_SYSTEM_REGISTRATION` with routing state `PENDING_PCC_REGISTRATION`. It is a PCC intake record, not a script, render job, GPU allocation, or publishing job. The UI says this directly. Nothing starts RunPod and nothing publishes to a channel.
+Each request starts as `WAITING_FOR_SYSTEM_REGISTRATION`. A passed script can be staged by a HANDOFF or ADMIN role; the PCC database constructs and durably stores the packet as `HELD_PMF_ADMISSION_REQUIRED`, with PMF admission/certification recorded as blocking and rendering disabled. This is a PCC outbox stage only: it does not call the PMF trial endpoint, start RunPod, spend, render, or publish.
 
 ## Verified integration state
 
 The PMF Systems registry currently identifies PMF 0.3.0 as version-locked to `PMF-FOUNDER-PSC-ANIMATION-V0.3.0-QA-ACCEPTANCE-LOCK-2026-10-27-001` and acceptance revision `PMF-ANIMATION-FINAL-QA-AC-001`. Its stream status is `PENDING_PCC_REGISTRATION`, `pcc_system_id=null`, and version status `UNREGISTERED`. Therefore PCC cannot safely invoke the general PMF runtime yet.
 
-The existing PMF animation compute service is bound to a private processor, but its current execution admission is limited to the Angie’s World trial identity. This branch does not send production requests to that trial.
+The existing PMF private `/stage` command accepts only an exact trial manifest PSC ID and staged asset payload, and the runtime is restricted to the Angie’s World trial identity. PCC's generic animation package is not that trial manifest and is never sent there.
 
-The PMF channel registry currently exposes these nine editorial keys: `goldmind`, `goldwords`, `phnx_kids`, `phnx_kitchen`, `phnx_sports`, `phnx_studio`, `rpe`, `shadow`, and `valarian`. The current row maps `goldwords` to X; the owner has also identified GoldWords on Pinterest and YouTube. Those are distinct publishing destinations and must be represented in SPIDER/platform connections, not inferred from the editorial key. The nine-key server allowlist currently rejects unknown keys until PCC can read the live registry. PHNX Faceless and social destinations beyond these registry records are not represented in this intake.
-
-PVE voice and PNG render workers exist in Systems, but PCC has no verified production handoff to them. The Script Writer, EFPB script breakdown, BOAS/KNOAS Reviewer, voice/PNG selection, RunPod admission, and SPIDER distribution are not implemented by this slice.
+The PCC request type is the editorial channel/series, separate from a social publishing destination. Current PCC channel-policy configuration is a temporary server-side bridge until a live BOAS/KNOAS resolver is available. Although PMF/PVE/PNG components exist, this branch does not yet transfer staged packets into their production queues or receive job/artifact receipts.
 
 ## Request API
 
@@ -31,6 +29,7 @@ Create:
     "idempotency_key": "unique-key",
     "channel_key": "phnx_kids",
     "output_type": "REEL",
+    "production_intent": "NARRATIVE",
     "title": "REEL",
     "idea": "Describe what should be produced.",
     "request_payload": {
@@ -57,16 +56,16 @@ Read a request:
 }
 ```
 
-The API validates the caller's Supabase Auth session and reads server-managed `app_metadata.pcc_animation_access` roles: `REQUEST`, `REVIEW`, or `ADMIN`. The browser does not receive the service-role key. The PCC table has RLS enabled, direct client grants revoked, and a service-role-only RPC.
+The API validates the caller's Supabase Auth session and reads server-managed `app_metadata.pcc_animation_access` roles: `REQUEST`, `SCRIPT`, `REVIEW`, `HANDOFF`, or `ADMIN`. Staging is limited to HANDOFF/ADMIN. The browser does not receive the service-role key. The PCC table has RLS enabled, direct client grants revoked, and a service-role-only RPC.
 
 ## Remaining build gates
 
-1. Complete PMF 0.3.0's PCC system/version registration and admission under its BOAS/PSC acceptance contract. Do not change its trial identity to production by bypassing the registry.
-2. Implement a PCC-controlled channel/policy resolver that reads registered BOAS/KNOAS and channel profiles through a server-to-server interface.
-3. Build the Script Writer and self-healing Reviewer path: EFPB full script, channel-specific segment breakdown, BOAS/KNOAS evaluation, correction receipt, and notifications for unresolved issues.
-4. Add secure worker adapters for PMF animation, PVE voice/script, and PNG rendering; return job IDs, artifact hashes, and receipts to PCC.
-5. Connect RunPod as on-demand compute behind the approved PMF runtime and measure a real render before enabling automatic admission.
-6. Add the backlog threshold alert (three remaining ads/reels/episodes) and SPIDER distribution handoff, with explicit publishing approval and schedule controls.
+1. Register the approved BOAS/KNOAS channel and format revisions, then replace the temporary server policy JSON with PCC's authenticated resolver.
+2. Complete PMF 0.3.0 PCC registration, admission, and certification under the existing BOAS/PSC acceptance contract. Do not change the Angie’s World trial identity into production.
+3. Add a production PMF intake contract that can accept the staged PCC packet only after admission; then wire PVE voice/script and PNG request/receipt paths to their registered tables.
+4. Add durable PCC notifications for reviewer repairs/errors and the three-remaining-output runway alert.
+5. Connect RunPod as on-demand compute only behind admitted PMF jobs, with explicit spend limits and measured cost/quality.
+6. Add PCC approval and SPIDER distribution/scheduling handoff separately from render completion.
 
 ## Deployment and validation
 
