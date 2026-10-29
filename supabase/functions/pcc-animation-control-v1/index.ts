@@ -276,10 +276,43 @@ Deno.serve(async (req: Request) => {
         resultReceiptId: receipt.result_receipt_id,
         artifactSha256: artifact.sha256,
       });
-      return json(200, { ok: true, preview });
+      const { data: previewReceipt, error: previewError } = await service.rpc("pcc_animation_record_render_preview_v1", {
+        p_subject: userData.user.id,
+        p_payload: {
+          job_id: job.job_id, execution_id: job.render_execution_id,
+          result_receipt_id: receipt.result_receipt_id,
+          artifact_sha256: artifact.sha256, expires_at: preview.expires_at,
+        },
+      });
+      if (previewError || !previewReceipt
+          || previewReceipt.reviewer_subject !== userData.user.id
+          || previewReceipt.execution_id !== job.render_execution_id
+          || previewReceipt.artifact_sha256 !== artifact.sha256) {
+        return json(409, { error: "PCC_RENDER_PREVIEW_RECEIPT_FAILED" });
+      }
+      return json(200, { ok: true, preview, preview_receipt: previewReceipt });
     } catch {
       return json(503, { error: "PMF_REVIEW_PREVIEW_UNAVAILABLE" });
     }
+  }
+
+  if (action === "RENDER_REVIEW_DECISION") {
+    if (!roles.has("REVIEW") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_RENDER_REVIEW_ROLE_REQUIRED" });
+    const jobId = text(payload.job_id, 36);
+    const decision = text(payload.decision, 32)?.toUpperCase();
+    const notes = text(payload.notes, 2000);
+    if (!jobId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(jobId)
+        || !["APPROVE", "REQUEST_REVISION"].includes(decision ?? "") || !notes) {
+      return json(400, { error: "PCC_RENDER_REVIEW_ARGUMENT_INVALID" });
+    }
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await service.rpc("pcc_animation_record_render_decision_v1", {
+      p_subject: userData.user.id,
+      p_payload: { job_id: jobId, decision, notes },
+    });
+    if (error || !data) return json(409, { error: error?.message?.includes("PREVIEW_REQUIRED")
+      ? "PCC_RENDER_REVIEW_PREVIEW_REQUIRED" : "PCC_RENDER_REVIEW_SAVE_FAILED" });
+    return json(200, { ok: true, review_receipt: data, distribution_performed: false });
   }
 
   if (action === "CREATE") {
