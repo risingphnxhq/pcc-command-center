@@ -573,7 +573,15 @@ Deno.serve(async (req: Request) => {
       p_payload: { can_review: canReview },
     });
     if (error) return json(400, { error: "ANIMATION_JOB_LIST_FAILED", code: error.code ?? "UNKNOWN" });
-    return json(200, { ok: true, jobs: data });
+    const { data: alerts, error: alertError } = await service.rpc("pcc_animation_replenishment_read_v1", {
+      p_subject: userData.user.id,
+    });
+    return json(200, {
+      ok: true,
+      jobs: data,
+      alerts: alertError || !Array.isArray(alerts) ? [] : alerts,
+      alerts_available: !alertError && Array.isArray(alerts),
+    });
   }
 
   if (action === "READ") {
