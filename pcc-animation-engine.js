@@ -177,6 +177,52 @@
     });
   }
 
+  const latestRunPodButton = $("latestRunPodAvailability");
+  const latestRunPodNote = $("latestRunPodAvailabilityNote");
+  const latestRunPodCandidates = $("latestRunPodCandidates");
+  if (latestRunPodButton && latestRunPodNote && latestRunPodCandidates) {
+    latestRunPodButton.addEventListener("click", async () => {
+      latestRunPodButton.disabled = true;
+      latestRunPodNote.textContent = "Loading the latest overnight RunPod availability snapshot…";
+      latestRunPodCandidates.replaceChildren();
+      try {
+        const result = await call("RUNPOD_AVAILABILITY_LATEST");
+        const snapshot = result.availability || {};
+        if (snapshot.state === "NO_RECENT_SNAPSHOT") {
+          latestRunPodNote.textContent = "No overnight snapshot is stored yet. The scheduled search will check during 00:00–06:00 in the configured timezone. No Pod was started.";
+        } else {
+          const inventory = snapshot.inventory || {};
+          latestRunPodNote.textContent = "Snapshot from " + new Date(snapshot.snapshot_at).toLocaleString()
+            + " (" + snapshot.search_window.time_zone + "). "
+            + (inventory.candidate_count
+              ? inventory.candidate_count + " candidate(s) met the $0.80/hour and 50 GB requirements at that time."
+              : "No candidate met both limits at that time.")
+            + " Availability can change and is not guaranteed. No Pod was reserved or started.";
+          for (const offer of inventory.candidates || []) {
+            const card = document.createElement("article"); card.className = "job";
+            const heading = document.createElement("strong");
+            heading.textContent = offer.gpu_name + " · " + offer.cloud_tier + " · $" + Number(offer.hourly_rate_usd).toFixed(2) + "/hour";
+            const details = document.createElement("small");
+            details.textContent = offer.vram_gb + " GB VRAM · " + offer.availability + " aggregate stock snapshot · "
+              + offer.data_center_id + " · compatible storage " + offer.storage_gb + " GB. Availability is not guaranteed.";
+            card.append(heading, details); latestRunPodCandidates.append(card);
+          }
+          for (const warning of inventory.warnings || []) {
+            const line = document.createElement("small");
+            line.textContent = warning === "NO_READY_NETWORK_VOLUME_FOUND"
+              ? "No ready network volume was found; GPU offers are withheld until a compatible 50 GB volume exists."
+              : warning;
+            latestRunPodCandidates.append(line);
+          }
+        }
+      } catch (error) {
+        latestRunPodNote.textContent = (error?.message || "Latest availability snapshot unavailable") + ". No Pod was started.";
+      } finally {
+        latestRunPodButton.disabled = false;
+      }
+    });
+  }
+
   function renderAlerts(items, available=true) {
     if (!alerts) return;
     alerts.replaceChildren();
