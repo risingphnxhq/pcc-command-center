@@ -176,3 +176,70 @@ export async function readPmfAnimationProductionReadiness({
   }
   return Object.freeze({ readiness, contract: result.contract ?? null });
 }
+
+
+/** Ask Systems for an ephemeral private artifact URL after PCC has authorized a reviewer. */
+export async function requestPmfAnimationReviewUrl({
+  url, secret, keyId = KEY_ID, pccRequestId, executionId, resultReceiptId, artifactSha256,
+  fetchImpl = fetch, now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32) {
+    throw new Error("PMF_REVIEW_BRIDGE_CONFIGURATION_INVALID");
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pccRequestId ?? "")
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(executionId ?? "")
+      || resultReceiptId !== executionId || !HEX.test(artifactSha256 ?? "")) {
+    throw new Error("PMF_REVIEW_REQUEST_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  if (endpoint.search || endpoint.hash) throw new Error("PMF_BRIDGE_URL_INVALID");
+  const request = {
+    pcc_request_id: pccRequestId,
+    execution_id: executionId,
+    result_receipt_id: resultReceiptId,
+    artifact_sha256: artifactSha256.toLowerCase(),
+  };
+  const body = JSON.stringify({ protocol: "pcc-pmf-animation-bridge/v1", action: "CREATE_RENDER_REVIEW_URL", payload: request });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_REVIEW_URL_RESPONSE_INVALID"); }
+  let signed;
+  try { signed = new URL(result?.signed_url); } catch { throw new Error("PMF_REVIEW_URL_RESPONSE_INVALID"); }
+  let decodedPath;
+  try { decodedPath = decodeURIComponent(signed.pathname); } catch { throw new Error("PMF_REVIEW_URL_RESPONSE_INVALID"); }
+  const expectedPath = "/storage/v1/object/sign/pmf-animation-private/" + executionId + "/scene.mp4";
+  const expiresAt = Date.parse(result?.expires_at);
+  if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "CREATE_RENDER_REVIEW_URL" || result?.state !== "REVIEW_REQUIRED"
+      || result?.pcc_request_id !== pccRequestId || result?.execution_id !== executionId
+      || result?.result_receipt_id !== resultReceiptId || result?.sha256 !== artifactSha256.toLowerCase()
+      || result?.mime_type !== "video/mp4" || signed.protocol !== "https:" || signed.origin !== endpoint.origin
+      || signed.username || signed.password || signed.hash || decodedPath !== expectedPath
+      || !signed.searchParams.has("token") || !Number.isFinite(expiresAt)
+      || expiresAt <= now || expiresAt > now + 120_000) {
+    throw new Error("PMF_REVIEW_URL_RESPONSE_INVALID");
+  }
+  return Object.freeze({
+    state: "REVIEW_REQUIRED",
+    pcc_request_id: pccRequestId,
+    execution_id: executionId,
+    result_receipt_id: resultReceiptId,
+    artifact_sha256: artifactSha256.toLowerCase(),
+    mime_type: "video/mp4",
+    signed_url: signed.toString(),
+    expires_at: new Date(expiresAt).toISOString(),
+  });
+}
