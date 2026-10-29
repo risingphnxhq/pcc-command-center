@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -234,4 +234,59 @@ test("RunPod status rejects contradictory or unsafe bridge responses", async () 
   await assert.rejects(readRunPodAnimationConnection({
     ...base, url: "http://systems.example/bridge",
   }), /PMF_BRIDGE_HTTPS_REQUIRED/);
+});
+
+
+test("RunPod availability search accepts only signed in-budget offers with 50GB colocated storage", async () => {
+  let sent;
+  const now=1_800_000_000_000;
+  const candidate={
+    gpu_id:"NVIDIA RTX A6000",gpu_name:"RTX A6000",vram_gb:48,cloud_tier:"COMMUNITY",
+    hourly_rate_usd:0.72,availability:"MEDIUM",data_center_id:"US-KS-2",
+    storage_gb:50,storage_volume_id:"vol-1",storage_match:"EXISTING_NETWORK_VOLUME",
+    availability_snapshot_at:new Date(now).toISOString(),availability_guaranteed:false,
+  };
+  const out=await searchRunPodGpuAvailability({
+    url:"https://systems.example/functions/v1/bridge",secret,scheduled:true,now,
+    nonce:"123e4567-e89b-42d3-a456-426614174098",
+    fetchImpl:async(url,init)=>{
+      sent={url,init};
+      return new Response(JSON.stringify({
+        ok:true,protocol:"pcc-pmf-animation-bridge/v1",action:"SEARCH_RUNPOD_AVAILABILITY",
+        dispatch:"READ_ONLY_NO_RESERVATION_NO_START",
+        schedule:{state:"SCHEDULED_WINDOW_CHECK",search_window:{start_local:"00:00",end_local:"06:00",time_zone:"America/Chicago"}},
+        inventory:{state:"CANDIDATES_FOUND",hard_max_hourly_usd:0.8,applied_max_hourly_usd:0.8,
+          required_storage_gb:50,candidate_count:1,candidates:[candidate],warnings:[],
+          snapshot_at:new Date(now).toISOString(),availability_guaranteed:false,
+          dispatch:"READ_ONLY_NO_RESERVATION_NO_START"},
+      }),{status:200});
+    },
+  });
+  assert.equal(JSON.parse(sent.init.body).action,"SEARCH_RUNPOD_AVAILABILITY");
+  assert.equal(JSON.parse(sent.init.body).payload.scheduled,true);
+  assert.equal(out.inventory.candidates[0].hourly_rate_usd,0.72);
+  assert.equal(out.dispatch,"READ_ONLY_NO_RESERVATION_NO_START");
+});
+
+test("RunPod availability bridge rejects an over-budget or undersized-storage candidate", async () => {
+ const base={url:"https://systems.example/bridge",secret,fetchImpl:async()=>new Response(JSON.stringify({
+  ok:true,protocol:"pcc-pmf-animation-bridge/v1",action:"SEARCH_RUNPOD_AVAILABILITY",
+  dispatch:"READ_ONLY_NO_RESERVATION_NO_START",inventory:{
+   state:"CANDIDATES_FOUND",hard_max_hourly_usd:0.8,applied_max_hourly_usd:0.8,required_storage_gb:50,
+   candidate_count:1,candidates:[{gpu_id:"gpu",cloud_tier:"SECURE",hourly_rate_usd:0.81,storage_gb:50,
+   storage_match:"EXISTING_NETWORK_VOLUME",availability_guaranteed:false}],
+  },
+ }),{status:200})};
+ await assert.rejects(searchRunPodGpuAvailability(base),/RESPONSE_INVALID/);
+});
+
+test("RunPod scheduled search returns outside-window without inventing candidates",async()=>{
+ const out=await searchRunPodGpuAvailability({
+  url:"https://systems.example/bridge",secret,scheduled:true,
+  fetchImpl:async()=>new Response(JSON.stringify({ok:true,action:"SEARCH_RUNPOD_AVAILABILITY",
+   dispatch:"READ_ONLY_NO_RESERVATION_NO_START",state:"OUTSIDE_SEARCH_WINDOW",
+   search_window:{start_local:"00:00",end_local:"06:00",time_zone:"America/Chicago"}}),{status:200}),
+ });
+ assert.equal(out.state,"OUTSIDE_SEARCH_WINDOW");
+ assert.equal(out.inventory,null);
 });
