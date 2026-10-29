@@ -9,7 +9,7 @@ create table if not exists public.pcc_animation_jobs (
   requester_subject uuid not null references auth.users(id) on delete restrict,
   idempotency_key text not null check (idempotency_key ~ '^[A-Za-z0-9._:-]{8,128}$'),
   channel_key text not null check (channel_key ~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'),
-  output_type text not null check (output_type in ('EPISODE','AD','CORPORATE_MARKETING','TV_SPOT','REEL','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE','OTHER')),
+  output_type text not null check (output_type in ('EPISODE','SERIES_EPISODE','ANIMATION','AD','REEL','MICRO_DRAMA','NOVEL','BOOK_MANUSCRIPT','BOOK_CHAPTER','BOOK_SCENE','CORPORATE_MARKETING','CORPORATE_JINGLE','TV_SPOT','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN','OTHER')),
   production_intent text check (production_intent is null or production_intent in ('MARKETING','NARRATIVE')),
   title text not null check (length(trim(title)) between 1 and 200),
   idea text not null check (length(trim(idea)) between 1 and 12000),
@@ -92,20 +92,20 @@ begin
        and coalesce(p_payload->>'production_intent','') not in ('MARKETING','NARRATIVE') then
       raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_REQUIRED';
     end if;
-    if p_payload->>'output_type' in ('CORPORATE_MARKETING','TV_SPOT')
+    if p_payload->>'output_type' in ('CORPORATE_MARKETING','TV_SPOT','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN')
        and p_payload->>'production_intent' is not null
        and p_payload->>'production_intent' <> 'MARKETING' then
       raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_CONFLICT';
     end if;
-    if p_payload->>'output_type' in ('EPISODE','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE')
+    if p_payload->>'output_type' in ('EPISODE','SERIES_EPISODE','ANIMATION','MICRO_DRAMA','NOVEL','BOOK_MANUSCRIPT','BOOK_CHAPTER','BOOK_SCENE')
        and p_payload->>'production_intent' is not null
        and p_payload->>'production_intent' <> 'NARRATIVE' then
       raise exception 'PCC_ANIMATION_PRODUCTION_INTENT_CONFLICT';
     end if;
     v_intent := case
       when p_payload->>'output_type' in ('AD','REEL') then p_payload->>'production_intent'
-      when p_payload->>'output_type' in ('CORPORATE_MARKETING','TV_SPOT') then 'MARKETING'
-      when p_payload->>'output_type' in ('EPISODE','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE') then 'NARRATIVE'
+      when p_payload->>'output_type' in ('CORPORATE_MARKETING','TV_SPOT','CORPORATE_JINGLE','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN') then 'MARKETING'
+      when p_payload->>'output_type' in ('EPISODE','SERIES_EPISODE','ANIMATION','MICRO_DRAMA','NOVEL','BOOK_MANUSCRIPT','BOOK_CHAPTER','BOOK_SCENE') then 'NARRATIVE'
       else null
     end;
 
