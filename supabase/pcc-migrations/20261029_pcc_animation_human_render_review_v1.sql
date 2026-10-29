@@ -106,7 +106,7 @@ begin
   exception when others then raise exception 'PCC_RENDER_REVIEW_ARGUMENT_INVALID'; end;
   v_decision := p_payload->>'decision';
   v_notes := trim(coalesce(p_payload->>'notes',''));
-  if v_decision not in ('APPROVE','REQUEST_REVISION') or length(v_notes) not between 1 and 2000 then
+  if v_decision is null or v_decision not in ('APPROVE','REQUEST_REVISION') or length(v_notes) not between 1 and 2000 then
     raise exception 'PCC_RENDER_REVIEW_ARGUMENT_INVALID';
   end if;
   v_quality := v_decision='APPROVE';
