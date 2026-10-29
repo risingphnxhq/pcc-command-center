@@ -34,7 +34,6 @@ set search_path = 'pg_catalog','public','pg_temp'
 as $function$
 declare
   v_count integer;
-  v_previous text;
 begin
   if p_channel_key is null or p_output_type is null or p_series_key is null then
     raise exception 'PCC_ANIMATION_INVENTORY_KEY_REQUIRED';
@@ -51,10 +50,6 @@ begin
      and j.artifact_manifest->>'private' = 'true'
      and j.artifact_manifest->>'distribution_performed' = 'false';
 
-  select alert_state into v_previous
-    from public.pcc_animation_replenishment_alerts_v1
-   where channel_key=p_channel_key and output_type=p_output_type and series_key=p_series_key
-   for update;
 
   insert into public.pcc_animation_replenishment_alerts_v1(
     channel_key,output_type,series_key,ready_unpublished_count,alert_state,
@@ -72,12 +67,12 @@ begin
     ready_unpublished_count=excluded.ready_unpublished_count,
     alert_state=excluded.alert_state,
     notification_generation=public.pcc_animation_replenishment_alerts_v1.notification_generation
-      + case when v_previous='RESOLVED' and excluded.alert_state='OPEN' then 1 else 0 end,
-    opened_at=case when v_previous='RESOLVED' and excluded.alert_state='OPEN'
+      + case when public.pcc_animation_replenishment_alerts_v1.alert_state='RESOLVED' and excluded.alert_state='OPEN' then 1 else 0 end,
+    opened_at=case when public.pcc_animation_replenishment_alerts_v1.alert_state='RESOLVED' and excluded.alert_state='OPEN'
       then now() else public.pcc_animation_replenishment_alerts_v1.opened_at end,
-    last_notified_at=case when v_previous='RESOLVED' and excluded.alert_state='OPEN'
+    last_notified_at=case when public.pcc_animation_replenishment_alerts_v1.alert_state='RESOLVED' and excluded.alert_state='OPEN'
       then now() else public.pcc_animation_replenishment_alerts_v1.last_notified_at end,
-    resolved_at=case when excluded.alert_state='RESOLVED' and v_previous='OPEN'
+    resolved_at=case when excluded.alert_state='RESOLVED' and public.pcc_animation_replenishment_alerts_v1.alert_state='OPEN'
       then now() when excluded.alert_state='OPEN' then null
       else public.pcc_animation_replenishment_alerts_v1.resolved_at end,
     updated_at=now();
