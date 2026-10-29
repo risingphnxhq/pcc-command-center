@@ -189,7 +189,12 @@ Deno.serve(async (req: Request) => {
     const candidate = { ...registeredPolicy, approved: true, revoked: false };
     try {
       await resolveTrustedAnimationPolicy({
-        request: { channel_key: registeredPolicy.channel_key, output_type: registeredPolicy.output_type, production_intent: registeredPolicy.production_intent },
+        request: {
+          channel_key: registeredPolicy.channel_key,
+          output_type: registeredPolicy.output_type,
+          production_intent: registeredPolicy.production_intent,
+          source_scope: registeredPolicy.output_spec?.scope ?? {},
+        },
         resolveRegisteredPolicy: async () => candidate,
         verifySource: (policy) => resolveVerifiedAnimationPolicySource({ url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy }),
       });
