@@ -1,6 +1,6 @@
 # PCC Animation Engine script runtime v1
 
-This runtime is a draft PCC-only bridge. It does not call PMF, PVE, PNG, RunPod, or a publishing connection.
+This runtime currently writes a complete, canonical PCC-to-PMF packet into the PCC job as `HELD_PMF_ADMISSION_REQUIRED`. It does not transfer the packet to PMF, call PVE/PNG/RunPod, or publish. The PMF private trial `/stage` endpoint requires an unrelated immutable trial manifest and is deliberately not used.
 
 ## Required server configuration
 
@@ -17,7 +17,11 @@ Example shape (placeholder identifiers and rules; do not deploy these as real po
   "phnx_kids": {
     "EPISODE": {
       "boas_id": "REPLACE_WITH_REGISTERED_BOAS_ID",
+      "boas_revision": "REPLACE_WITH_APPROVED_BOAS_REVISION",
+      "boas_approved": true,
       "knoas_id": "REPLACE_WITH_REGISTERED_KNOAS_ID",
+      "knoas_revision": "REPLACE_WITH_APPROVED_KNOAS_REVISION",
+      "knoas_approved": true,
       "channel_profile": {
         "audience": "REPLACE_WITH_APPROVED_AUDIENCE_AND_TONE"
       },
@@ -40,12 +44,13 @@ The browser submits only a PCC job ID. The Edge Function reads the job and selec
 3. PCC uses EFPB to produce the complete work first, then channel segments.
 4. The independent Reviewer can return corrections. The Writer can repair up to two times.
 5. The binary validator checks required policy IDs, EFPB fields, continuity ledger, contiguous segment indexes, required segment fields, full-script coverage, and any registered segment limits.
-6. PCC stores the complete script package and review receipt on the request. Passed scripts are marked `SCRIPT_REVIEW_PASSED`; unresolved issues are held as `REVIEW` and displayed on the request.
-7. If model execution fails, PCC records a retryable REVIEW receipt and releases the claim. Render status remains disconnected. A passed script is not permission to render or publish.
+6. PCC stores the complete script package and Reviewer receipt on the request. Passed scripts are marked `SCRIPT_REVIEW_PASSED`; unresolved issues are held as `REVIEW` and displayed on the request.
+7. A HANDOFF/ADMIN operator can stage a passing request. The server validates approved BOAS/KNOAS revision flags, binary QA, and Reviewer receipts, then constructs a canonical packet from the persisted request and stores it as `HELD_PMF_ADMISSION_REQUIRED`.
+8. If model execution fails, PCC records a retryable REVIEW receipt and releases the claim. Staging is not delivery: PMF registration/admission/certification and an admitted production intake remain prerequisites; no render or publication occurs.
 
 ## Current registry gate
 
-The live Systems database has PMF 0.3.0 at registry state `ACTIVE`, but audit state `NOT_ADMITTED` and certification state `NOT_CERTIFIED`. The connected database read did not reveal a KNOAS policy registry table. Do not fill the example with guessed policy IDs or channel rules. The environment registry is a temporary trusted-input boundary, not a replacement for the real PCC BOAS/KNOAS resolver.
+The live Systems database has PMF 0.3.0 at registry state `ACTIVE`, but audit state `NOT_ADMITTED` and certification state `NOT_CERTIFIED`. The connected database read did not reveal a KNOAS policy registry table. Do not fill the example with guessed policy IDs or channel rules. The environment registry is a temporary trusted-input boundary, not a replacement for the real PCC BOAS/KNOAS resolver. A policy must provide `boas_id`, `boas_revision`, `boas_approved: true`, `knoas_id`, `knoas_revision`, `knoas_approved: true`, channel profile, and output spec. Missing/unapproved revisions block writing and handoff staging.
 
 ## Installation boundary
 
