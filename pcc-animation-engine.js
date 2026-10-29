@@ -39,6 +39,7 @@
         ANIMATION_JOB_ALREADY_SCRIPTED: "This request already has a script package.",
         PRODUCTION_INTENT_REQUIRED: "Choose Marketing or Narrative for this ad or reel.",
         REGISTERED_CHANNEL_POLICY_REQUIRED: "This channel/format has no complete approved BOAS/KNOAS profile yet. No script or render was started.",
+        POLICY_SOURCE_SCOPE_MISMATCH: "This approved policy is limited to a different series or episode. Enter the exact source IDs required by the selected policy.",
         APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED: "Approved BOAS and KNOAS revision receipts are required before staging.",
         SCRIPT_REVIEW_PASS_REQUIRED: "The Reviewer must pass the script before handoff staging.",
         BINARY_QA_PASS_REQUIRED: "The script must pass binary QA before handoff staging.",
@@ -431,14 +432,15 @@
     button.disabled=true; message("Recording request in PCC…");
     const channel=$("channel").value, output=$("format").value, title=$("title").value.trim(), idea=$("idea").value.trim();
     const seriesContext=$("seriesContext").value.trim(), contextNotes=$("contextNotes").value.trim(), desiredEnding=$("desiredEnding").value.trim();
+    const sourceSeriesId=$("sourceSeriesId").value.trim(), sourceEpisodeId=$("sourceEpisodeId").value.trim();
     const key=crypto.randomUUID();
     try {
       const result=await call("CREATE", {
         idempotency_key:key, channel_key:channel, output_type:output,
         production_intent:["AD","REEL"].includes(output) ? intentSelect.value : null,
-        title, idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1",series_context:seriesContext,context_notes:contextNotes,desired_ending_or_action:desiredEnding}
+        title, idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1",series_context:seriesContext,source_series_id:sourceSeriesId,source_episode_id:sourceEpisodeId,context_notes:contextNotes,desired_ending_or_action:desiredEnding}
       });
-      $("title").value=""; $("seriesContext").value=""; $("contextNotes").value=""; $("desiredEnding").value=""; $("idea").value="";
+      $("title").value=""; $("seriesContext").value=""; $("sourceSeriesId").value=""; $("sourceEpisodeId").value=""; $("contextNotes").value=""; $("desiredEnding").value=""; $("idea").value="";
       message("Saved in PCC as "+result.job.status+". No render was started.", "ok");
       await refresh();
     } catch (error) { message(error.message, "error"); }
