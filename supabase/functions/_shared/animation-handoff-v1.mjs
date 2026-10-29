@@ -20,7 +20,9 @@ export function resolveProductionIntent(outputType, suppliedIntent) {
 
 export function validateHandoffSource(job) {
   if (!job || job.status !== "SCRIPT_REVIEW_PASSED") throw new Error("SCRIPT_REVIEW_PASS_REQUIRED");
-  if (!job.boas_id || !job.knoas_id || !job.boas_revision || !job.knoas_revision
+  if (!job.channel_policy_id || !job.channel_policy_revision || !job.channel_policy_approval_psc_id
+    || !job.boas_psc_id || !job.knoas_psc_id
+    || !job.boas_id || !job.knoas_id || !job.boas_revision || !job.knoas_revision
     || job.boas_approved !== true || job.knoas_approved !== true) {
     throw new Error("APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED");
   }
@@ -35,8 +37,11 @@ export function validateHandoffSource(job) {
     request: { request_id: job.job_id, channel_key: job.channel_key, output_type: job.output_type, production_intent: intent, title: job.title, idea: job.idea },
     production_context: { series_context: job.request_payload?.series_context ?? "", context_notes: job.request_payload?.context_notes ?? "", desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "" },
     approved_policy: {
-      boas_id: job.boas_id, boas_revision: job.boas_revision,
-      knoas_id: job.knoas_id, knoas_revision: job.knoas_revision,
+      channel_policy_id: job.channel_policy_id,
+      channel_policy_revision: job.channel_policy_revision,
+      channel_policy_approval_psc_id: job.channel_policy_approval_psc_id,
+      boas_id: job.boas_id, boas_revision: job.boas_revision, boas_psc_id: job.boas_psc_id,
+      knoas_id: job.knoas_id, knoas_revision: job.knoas_revision, knoas_psc_id: job.knoas_psc_id,
     },
     writer_master_and_segments: job.script_bundle,
     reviewer_receipt: job.review_receipt,
