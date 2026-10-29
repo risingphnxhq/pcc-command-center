@@ -279,6 +279,11 @@ begin
         'request_id',v_job.job_id,'channel_key',v_job.channel_key,'output_type',v_job.output_type,
         'production_intent',v_job.production_intent,'title',v_job.title,'idea',v_job.idea
       ),
+      'production_context',jsonb_build_object(
+        'series_context',coalesce(v_job.request_payload->>'series_context',''),
+        'context_notes',coalesce(v_job.request_payload->>'context_notes',''),
+        'desired_ending_or_action',coalesce(v_job.request_payload->>'desired_ending_or_action','')
+      ),
       'approved_policy',jsonb_build_object(
         'boas_id',v_job.boas_id,'boas_revision',v_job.boas_revision,
         'knoas_id',v_job.knoas_id,'knoas_revision',v_job.knoas_revision
