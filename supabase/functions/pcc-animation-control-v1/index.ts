@@ -7,7 +7,7 @@ const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
 // This server allowlist is the currently verified PMF channel registry snapshot.
 // Keep user-supplied arbitrary keys from entering the PCC queue until live registry lookup is wired.
-const KNOWN_CHANNEL_KEYS = new Set(["goldmind", "goldwords", "phnx_kids", "phnx_kitchen", "phnx_sports", "phnx_studio", "rpe", "shadow", "valarian"]);
+const KNOWN_CHANNEL_KEYS = new Set(["goldmind", "goldwords", "phnx_kids", "phnx_kitchen", "phnx_sports", "phnx_studio", "phnx_faceless", "rpe", "shadow", "valarian"]);
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
@@ -24,6 +24,13 @@ function text(value: unknown, max: number): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
   return normalized.length > 0 && normalized.length <= max ? normalized : null;
+}
+
+function optionalText(value: unknown, max: number): string | null {
+  if (value === undefined || value === null) return "";
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized.length <= max ? normalized : null;
 }
 
 function rolesFor(user: { app_metadata?: Record<string, unknown> }): Set<string> {
@@ -139,12 +146,21 @@ Deno.serve(async (req: Request) => {
     catch (error) { return json(400, { error: error instanceof Error ? error.message : "PRODUCTION_INTENT_INVALID" }); }
     const title = text(payload.title, 200);
     const idea = text(payload.idea, 12_000);
-    const requestPayload = payload.request_payload ?? {};
+    const rawRequestPayload = payload.request_payload ?? {};
+    const sourceContext = rawRequestPayload && !Array.isArray(rawRequestPayload) && typeof rawRequestPayload === "object"
+      ? rawRequestPayload as Record<string, unknown>
+      : {};
+    const seriesContext = optionalText(sourceContext.series_context, 160);
+    const contextNotes = optionalText(sourceContext.context_notes, 6_000);
+    const desiredEnding = optionalText(sourceContext.desired_ending_or_action, 4_000);
+    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
       || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey) || !KNOWN_CHANNEL_KEYS.has(channelKey)
       || !["EPISODE", "SERIES_EPISODE", "ANIMATION", "AD", "REEL", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE", "CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN", "OTHER"].includes(outputType ?? "")
+      || !title
       || !idea
-      || !requestPayload || Array.isArray(requestPayload) || typeof requestPayload !== "object") {
+      || seriesContext === null || contextNotes === null || desiredEnding === null
+      || !rawRequestPayload || Array.isArray(rawRequestPayload) || typeof rawRequestPayload !== "object") {
       return json(400, { error: "ANIMATION_REQUEST_INVALID" });
     }
 
@@ -157,7 +173,7 @@ Deno.serve(async (req: Request) => {
         channel_key: channelKey,
         output_type: outputType,
         production_intent: productionIntent,
-        title: title ?? outputType,
+        title,
         idea,
         request_payload: requestPayload,
       },
@@ -231,7 +247,9 @@ Deno.serve(async (req: Request) => {
         output_type: job.output_type,
         production_intent: job.production_intent,
         idea: job.idea,
-        series_context: job.request_payload?.series_context ?? {},
+        series_context: job.request_payload?.series_context ?? "",
+        context_notes: job.request_payload?.context_notes ?? "",
+        desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "",
         channel_policy: policy,
       }, {
         model: createScriptModel(modelKey, modelName),
