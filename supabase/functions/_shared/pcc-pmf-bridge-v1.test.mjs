@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -146,4 +146,50 @@ test("production readiness rejects malformed, admitted-but-disabled and failed b
   await assert.rejects(() => readPmfAnimationProductionReadiness({
     ...base, url: "http://systems.example/bridge",
   }), /PMF_BRIDGE_HTTPS_REQUIRED/);
+});
+
+
+const reviewIds = {
+  pccRequestId: "123e4567-e89b-42d3-a456-426614174000",
+  executionId: "123e4567-e89b-42d3-a456-426614174001",
+  resultReceiptId: "123e4567-e89b-42d3-a456-426614174001",
+  artifactSha256: "a".repeat(64),
+};
+test("requests only an exact private review video using a signed PCC bridge call", async () => {
+  let sent;
+  const now = 1_800_000_000_000;
+  const output = await requestPmfAnimationReviewUrl({
+    url: "https://systems.example/functions/v1/pcc-animation-bridge-v1",
+    secret, ...reviewIds, now, nonce: "123e4567-e89b-42d3-a456-426614174099",
+    fetchImpl: async (url, init) => {
+      sent = { url, init };
+      return new Response(JSON.stringify({
+        ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "CREATE_RENDER_REVIEW_URL",
+        state: "REVIEW_REQUIRED", pcc_request_id: reviewIds.pccRequestId,
+        execution_id: reviewIds.executionId, result_receipt_id: reviewIds.resultReceiptId,
+        sha256: reviewIds.artifactSha256, mime_type: "video/mp4",
+        signed_url: "https://systems.example/storage/v1/object/sign/pmf-animation-private/"
+          +reviewIds.executionId+"/scene.mp4?token=short",
+        expires_at: new Date(now + 90_000).toISOString(),
+      }), { status: 200 });
+    },
+  });
+  assert.equal(JSON.parse(sent.init.body).action, "CREATE_RENDER_REVIEW_URL");
+  assert.equal(sent.init.headers["x-pcc-bridge-signature"].length, 64);
+  assert.equal(output.state, "REVIEW_REQUIRED");
+  assert.equal(output.signed_url.includes("token=short"), true);
+});
+test("rejects wrong target, wrong origin, or long-lived review URLs", async () => {
+  const base={url:"https://systems.example/bridge",secret,...reviewIds,now:1_800_000_000_000};
+  await assert.rejects(requestPmfAnimationReviewUrl({...base,resultReceiptId:"other",
+    fetchImpl:async()=>{throw new Error("must not call");}}),/PMF_REVIEW_REQUEST_INVALID/);
+  const result={
+    ok:true,protocol:"pcc-pmf-animation-bridge/v1",action:"CREATE_RENDER_REVIEW_URL",
+    state:"REVIEW_REQUIRED",pcc_request_id:reviewIds.pccRequestId,execution_id:reviewIds.executionId,
+    result_receipt_id:reviewIds.resultReceiptId,sha256:reviewIds.artifactSha256,mime_type:"video/mp4",
+    signed_url:"https://attacker.example/storage/v1/object/sign/pmf-animation-private/"+reviewIds.executionId+"/scene.mp4?token=x",
+    expires_at:new Date(base.now+90_000).toISOString()
+  };
+  await assert.rejects(requestPmfAnimationReviewUrl({...base,fetchImpl:async()=>new Response(JSON.stringify(result),{status:200})}),/PMF_REVIEW_URL_RESPONSE_INVALID/);
+  await assert.rejects(requestPmfAnimationReviewUrl({...base,fetchImpl:async()=>new Response(JSON.stringify({...result,signed_url:result.signed_url.replace("attacker.example","systems.example"),expires_at:new Date(base.now+300_000).toISOString()}),{status:200})}),/PMF_REVIEW_URL_RESPONSE_INVALID/);
 });
