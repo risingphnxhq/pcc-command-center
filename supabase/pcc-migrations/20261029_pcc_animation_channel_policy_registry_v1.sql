@@ -115,6 +115,13 @@ begin
       raise exception 'PCC_ANIMATION_POLICY_INTENT_CONFLICT';
     end if;
 
+    if nullif(p_payload->>'policy_id','') is null then
+      v_id := gen_random_uuid();
+    else
+      begin v_id := (p_payload->>'policy_id')::uuid;
+      exception when others then raise exception 'PCC_ANIMATION_POLICY_ID_INVALID'; end;
+    end if;
+
     perform pg_advisory_xact_lock(hashtextextended(v_channel || ':' || v_output, 0));
     select policy_id into v_latest
       from public.pcc_animation_channel_policies p
@@ -133,11 +140,11 @@ begin
     end if;
 
     insert into public.pcc_animation_channel_policies (
-      channel_key,output_type,production_intent,policy_revision,approval_psc_id,
+      policy_id,channel_key,output_type,production_intent,policy_revision,approval_psc_id,
       boas_id,boas_revision,boas_psc_id,knoas_id,knoas_revision,knoas_psc_id,
       channel_profile,output_spec,supersedes_policy_id,created_by
     ) values (
-      v_channel,v_output,v_intent,trim(p_payload->>'policy_revision'),trim(p_payload->>'approval_psc_id'),
+      v_id,v_channel,v_output,v_intent,trim(p_payload->>'policy_revision'),trim(p_payload->>'approval_psc_id'),
       trim(p_payload->>'boas_id'),trim(p_payload->>'boas_revision'),trim(p_payload->>'boas_psc_id'),
       trim(p_payload->>'knoas_id'),trim(p_payload->>'knoas_revision'),trim(p_payload->>'knoas_psc_id'),
       p_payload->'channel_profile',p_payload->'output_spec',nullif(p_payload->>'supersedes_policy_id','')::uuid,p_subject
