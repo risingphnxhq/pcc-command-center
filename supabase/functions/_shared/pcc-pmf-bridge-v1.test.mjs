@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, resolveVerifiedAnimationPolicySource } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -89,4 +89,61 @@ test("rejects attempts to bypass the PMF hold or accepts a non-held receipt", as
     url: "https://systems.example/bridge", secret, packet,
     fetchImpl: async () => new Response(JSON.stringify({ ok: true, receipt: { state: "READY", render_dispatch: "ENABLED" } }), { status: 200 }),
   }), /HELD_INTAKE_FAILED/);
+});
+
+
+const blockedReadiness = {
+  state: "PRODUCTION_BLOCKED",
+  production_enabled: false,
+  render_dispatch: "DISABLED",
+  failures: ["PMF_AUDIT_NOT_ADMITTED", "PMF_VERSION_NOT_CERTIFIED"],
+  evidence: null,
+};
+
+test("production readiness uses signed read-only action and returns PMF block", async () => {
+  let request;
+  const result = await readPmfAnimationProductionReadiness({
+    url: "https://systems.example/functions/v1/bridge",
+    secret,
+    now: 1_700_000_000_000,
+    nonce: "123e4567-e89b-42d3-a456-426614174099",
+    fetchImpl: async (url, init) => {
+      request = { url, init };
+      return new Response(JSON.stringify({
+        ok: true,
+        protocol: "pcc-pmf-animation-bridge/v1",
+        action: "PRODUCTION_READINESS",
+        readiness: blockedReadiness,
+        contract: { version: "0.3.0" },
+      }), { status: 200 });
+    },
+  });
+  assert.equal(request.init.method, "POST");
+  assert.equal(request.init.headers["x-pcc-bridge-signature"].length, 64);
+  assert.deepEqual(JSON.parse(request.init.body), {
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action: "PRODUCTION_READINESS",
+  });
+  assert.equal(result.readiness.state, "PRODUCTION_BLOCKED");
+  assert.equal(result.readiness.render_dispatch, "DISABLED");
+});
+
+test("production readiness rejects malformed, admitted-but-disabled and failed bridge results", async () => {
+  const base = {
+    url: "https://systems.example/bridge", secret,
+    now: 1_700_000_000_000,
+    nonce: "123e4567-e89b-42d3-a456-426614174098",
+  };
+  await assert.rejects(() => readPmfAnimationProductionReadiness({
+    ...base, fetchImpl: async () => new Response("{}", { status: 503 }),
+  }), /PMF_ADMISSION_RESPONSE_INVALID/);
+  await assert.rejects(() => readPmfAnimationProductionReadiness({
+    ...base, fetchImpl: async () => new Response(JSON.stringify({
+      ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "PRODUCTION_READINESS",
+      readiness: { state: "PRODUCTION_ADMITTED", production_enabled: true, render_dispatch: "DISABLED" },
+    }), { status: 200 }),
+  }), /PMF_ADMISSION_RESPONSE_INVALID/);
+  await assert.rejects(() => readPmfAnimationProductionReadiness({
+    ...base, url: "http://systems.example/bridge",
+  }), /PMF_BRIDGE_HTTPS_REQUIRED/);
 });
