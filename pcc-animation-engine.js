@@ -18,7 +18,7 @@
   syncIntent();
   const labels = {
     goldmind:"Phoenix GoldMind",goldwords:"GoldWords",phnx_kids:"PHNX Kids",phnx_kitchen:"PHNX Kitchen",
-    phnx_sports:"PHNX Sports",phnx_studio:"PHNX Studios",rpe:"RPE",shadow:"ShadowFrame",valarian:"Valarian Shadow"
+    phnx_sports:"PHNX Sports",phnx_studio:"PHNX Studios",phnx_faceless:"PHNX Faceless Reels",rpe:"RPE",shadow:"ShadowFrame",valarian:"Valarian Shadow"
   };
   function message(text, kind="") { note.textContent=text; note.className="note "+kind; }
   function safeText(value) { return typeof value === "string" ? value : ""; }
@@ -50,6 +50,43 @@
     }
     return result;
   }
+  const readinessButton = $("checkPmfReadiness");
+  const readinessNote = $("pmfReadiness");
+  if (readinessButton && readinessNote) {
+    readinessButton.addEventListener("click", async () => {
+      readinessButton.disabled = true;
+      readinessNote.textContent = "Checking PMF’s signed production-admission record…";
+      try {
+        const result = await call("PMF_PRODUCTION_READINESS");
+        const readiness = result.readiness;
+        if (readiness.state === "PRODUCTION_ADMITTED") {
+          readinessNote.textContent = "PMF admission passed. A separate scoped authorization is still required before any render can start.";
+          readinessNote.className = "fine";
+        } else {
+          const reasons = Array.isArray(readiness.failures) ? readiness.failures : [];
+          const explanations = {
+            PMF_VERSION_NOT_ACTIVE: "PMF version is not active",
+            PMF_AUDIT_NOT_ADMITTED: "PMF has not passed admission",
+            PMF_VERSION_NOT_CERTIFIED: "PMF is not certified",
+            PMF_BUILD_CONTROL_NOT_ALIGNED: "PMF build-control record is not aligned",
+            PMF_CURRENT_UNCONDITIONAL_CERTIFICATE_REQUIRED: "Current unconditional production certificate is missing",
+          };
+          const gateFailures = reasons.filter((code) => code.startsWith("PMF_BUILD_GATE_"));
+          const summary = reasons.filter((code) => !code.startsWith("PMF_BUILD_GATE_"))
+            .map((code) => explanations[code] || code);
+          if (gateFailures.length) summary.push("One or more evidence-backed acceptance gates have not passed: " + gateFailures.join(", "));
+          readinessNote.textContent = "Production blocked: " + (summary.join("; ") || "PMF admission requirements are incomplete") + ". No render was started.";
+          readinessNote.className = "fine";
+        }
+      } catch (error) {
+        readinessNote.textContent = (error?.message || "PMF readiness check failed") + ". No render was started.";
+        readinessNote.className = "fine";
+      } finally {
+        readinessButton.disabled = false;
+      }
+    });
+  }
+
   function render(items) {
     jobs.replaceChildren();
     if (!Array.isArray(items) || !items.length) {
