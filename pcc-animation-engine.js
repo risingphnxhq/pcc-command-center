@@ -59,6 +59,83 @@
     }
     return result;
   }
+  const approvedPilotPolicy = {
+    channel_key: "phnx_kids",
+    output_type: "SERIES_EPISODE",
+    production_intent: "NARRATIVE",
+    policy_revision: "PHNX-KIDS-AW-EP001-R1.4",
+    approval_psc_id: "PCC-FOUNDER-PSC-PHXN-KIDS-AW-EP001-ANIMATION-POLICY-2026-10-29-005",
+    boas_id: "BOAS-ROOT-PMF-316a4429-ea8e-4310-a52b-8eb0b52110db",
+    boas_revision: "0.3.0",
+    boas_psc_id: "PMF-FOUNDER-PSC-ANIMATION-V0.3.0-QA-ACCEPTANCE-LOCK-2026-10-27-001",
+    knoas_id: "KNOAS-PHXN-KIDS-AW-EP001",
+    knoas_revision: "1.2.0",
+    knoas_psc_id: "PMF-FOUNDER-PSC-PHXN-KIDS-AW-EP001-KNOAS-2026-10-29-003",
+    channel_profile: {
+      audience: "Ages 8–10",
+      series_id: "ANGIES-WORLD",
+      series_name: "Angie's World",
+      channel_name: "Phoenix Kids",
+      narrative_rules: [
+        "EFPB: define the ending/payoff before drafting.",
+        "Maintain evidence-based clue order and audience participation windows.",
+        "No silent changes to approved canon, character knowledge, or reveal timing.",
+        "Narrative QA applies; this is not the corporate marketing lane."
+      ],
+      production_mode: "PRIVATE_REVIEW_REQUIRED",
+      age_and_identity_lock: "Use the approved six-character group reference and individual character masters; preserve ages 8–10, identity, proportions, hair, and clothing.",
+      character_reference_psc_id: "PMF-CATE-PSC-DISCOVERY-PARK-APPROVED-GROUP-REFERENCE-2026-10-26-001"
+    },
+    output_spec: {
+      scope: { series_id: "ANGIES-WORLD", episode_id: "AW-EP-001" },
+      status: "Policy governs script intake and production preparation. Final script, locked audio master, per-frame BOAS map, admission, and certification remain required before rendering.",
+      acceptance: "PASS/FAIL by matched IDs: exact spoken words and audio timing, visible mouth/viseme agreement, scene-appropriate mic location, queued body action, continuity, and KNOAS reveal order.",
+      spend_rule: "The 3,000-credit figure is a planning ceiling only; it does not authorize spend. No paid generation until the connected account and exact charge are separately approved.",
+      boas_detail: [
+        "Each scene/frame group specifies what is visible, camera, character identity and starting/ending pose.",
+        "Each vocal cue maps to a frame interval and phoneme/viseme intent; animation may not be generated from uniform text timing.",
+        "For every active speaker, show mic at mouth or use the approved hands-free mic setup; keep lips visible.",
+        "Define queued whole-body motion and transitions for every character; still holds must be intentional and labeled.",
+        "Set KNOAS knowledge/reveal state per scene and prohibit premature reveals.",
+        "Require per-frame continuity, rights, source hashes, audio sync, and reviewer evidence before render."
+      ],
+      sound_first: {
+        rule: "Lock approved music, vocals, dialogue, effects, and silence timeline before frame animation; bind Sound, Vocal, Scene, Frame, and Animation IDs to the same performance moment.",
+        animation: "Character mouth, mic placement, expression, gesture, and full-body movement follow the locked audio and scene action; speaking while the mic is away from the mouth fails review.",
+        per_frame: "Record time/sample range, speaker, exact words or sound event, phoneme/viseme cue, mic position when relevant, face shape, body action, continuity, and acceptance evidence."
+      },
+      preproduction_targets: {
+        scenes: 19,
+        frame_groups: 72,
+        source_psc_id: "PMF-CATE-PSC-DISCOVERY-PARK-SOUND-FIRST-V3-VISUAL-LOCK-2026-10-26-001",
+        dialogue_lines: 46
+      },
+      credit_limit_reference: 3000,
+      target_runtime_seconds: 180,
+      paid_generation_authorized: false
+    },
+    supersedes_policy_id: null
+  };
+  const registerPilotButton = $("registerPilotPolicy");
+  const registerPilotStatus = $("pilotPolicyStatus");
+  if (registerPilotButton && registerPilotStatus) {
+    registerPilotButton.addEventListener("click", async () => {
+      registerPilotButton.disabled = true;
+      registerPilotStatus.textContent = "Verifying the approved PSC against the source resolver…";
+      registerPilotStatus.className = "note";
+      try {
+        const result = await call("REGISTER_POLICY", { policy: approvedPilotPolicy });
+        const policyId = safeText(result.policy?.policy_id) || "registered";
+        registerPilotStatus.textContent = "Policy " + policyId + " registered; PSC source verification: " + safeText(result.source_validation) + ". No render was started.";
+        registerPilotStatus.className = "note ok";
+      } catch (error) {
+        registerPilotStatus.textContent = error.message;
+        registerPilotStatus.className = "note error";
+      } finally {
+        registerPilotButton.disabled = false;
+      }
+    });
+  }
   const readinessButton = $("checkPmfReadiness");
   const readinessNote = $("pmfReadiness");
   if (readinessButton && readinessNote) {
