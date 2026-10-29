@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -289,4 +289,54 @@ test("RunPod scheduled search returns outside-window without inventing candidate
  });
  assert.equal(out.state,"OUTSIDE_SEARCH_WINDOW");
  assert.equal(out.inventory,null);
+});
+
+test("latest RunPod snapshot is read with a signed request and validated against time, budget, and storage", async () => {
+  const now = 1793308800000;
+  let sent;
+  const snapshot = {
+    ok:true, protocol:"pcc-pmf-animation-bridge/v1", action:"READ_RUNPOD_AVAILABILITY_SNAPSHOT",
+    state:"SNAPSHOT_FOUND", snapshot_id:"123e4567-e89b-42d3-a456-426614174099",
+    snapshot_at:new Date(now-60_000).toISOString(),
+    search_window:{start_local:"00:00",end_local:"06:00",time_zone:"America/Chicago"},
+    limits:{max_hourly_usd:0.8,required_storage_gb:50}, availability_guaranteed:false,
+    dispatch:"READ_ONLY_NO_RESERVATION_NO_START",
+    inventory:{state:"CANDIDATES_FOUND",hard_max_hourly_usd:0.8,applied_max_hourly_usd:0.8,
+      required_storage_gb:50,candidate_count:1,warnings:[],availability_guaranteed:false,
+      candidates:[{gpu_id:"gpu-1",gpu_name:"A6000",vram_gb:48,cloud_tier:"SECURE",
+        hourly_rate_usd:0.72,availability:"HIGH",data_center_id:"US-KS-2",storage_gb:50,
+        storage_match:"EXISTING_NETWORK_VOLUME",
+        availability_scope:"GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED",
+        availability_guaranteed:false,storage_volume_id:"private-volume-id"}]},
+  };
+  const out = await readLatestRunPodAvailabilitySnapshot({
+    url:"https://systems.example/functions/v1/pcc-animation-bridge-v1", secret, now,
+    nonce:"123e4567-e89b-42d3-a456-426614174098",
+    fetchImpl:async(url,init)=>{sent={url,init};return new Response(JSON.stringify(snapshot),{status:200});},
+  });
+  assert.equal(JSON.parse(sent.init.body).action,"READ_RUNPOD_AVAILABILITY_SNAPSHOT");
+  assert.equal(out.inventory.candidates[0].hourly_rate_usd,0.72);
+  assert.equal(out.inventory.candidates[0].storage_volume_id,undefined);
+  assert.equal(out.dispatch,"READ_ONLY_NO_RESERVATION_NO_START");
+});
+
+test("latest RunPod snapshot fails closed for stale data or candidates outside approved limits", async () => {
+  const now=1793308800000;
+  const base={ok:true,protocol:"pcc-pmf-animation-bridge/v1",action:"READ_RUNPOD_AVAILABILITY_SNAPSHOT",
+    state:"SNAPSHOT_FOUND",snapshot_id:"123e4567-e89b-42d3-a456-426614174099",
+    snapshot_at:new Date(now-49*60*60*1000).toISOString(),
+    search_window:{start_local:"00:00",end_local:"06:00",time_zone:"America/Chicago"},
+    limits:{max_hourly_usd:0.8,required_storage_gb:50},availability_guaranteed:false,
+    dispatch:"READ_ONLY_NO_RESERVATION_NO_START",
+    inventory:{state:"CANDIDATES_FOUND",hard_max_hourly_usd:0.8,applied_max_hourly_usd:0.8,
+      required_storage_gb:50,candidate_count:1,warnings:[],availability_guaranteed:false,
+      candidates:[{gpu_id:"gpu-1",gpu_name:"A6000",vram_gb:48,cloud_tier:"SECURE",hourly_rate_usd:0.72,
+        availability:"HIGH",data_center_id:"US-KS-2",storage_gb:50,storage_match:"EXISTING_NETWORK_VOLUME",
+        availability_scope:"GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED",availability_guaranteed:false}]}};
+  const call=async value=>readLatestRunPodAvailabilitySnapshot({url:"https://systems.example/bridge",secret,now,
+    fetchImpl:async()=>new Response(JSON.stringify(value),{status:200})});
+  await assert.rejects(call(base),/RUNPOD_SNAPSHOT_RESPONSE_INVALID/);
+  const fresh={...base,snapshot_at:new Date(now-1000).toISOString(),
+    inventory:{...base.inventory,candidates:[{...base.inventory.candidates[0],hourly_rate_usd:0.81}]}};
+  await assert.rejects(call(fresh),/RUNPOD_SNAPSHOT_RESPONSE_INVALID/);
 });
