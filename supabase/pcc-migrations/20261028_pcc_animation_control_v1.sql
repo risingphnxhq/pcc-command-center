@@ -286,7 +286,24 @@ begin
        or v_job.boas_revision is null
        or v_job.boas_psc_id is null
        or v_job.knoas_revision is null
-       or v_job.knoas_psc_id is null then
+       or v_job.knoas_psc_id is null
+       or v_job.script_bundle->'policy_source_verification'->>'status' is distinct from 'VERIFIED'
+       or v_job.script_bundle->'policy_source_verification'->>'channel_key' is distinct from v_job.channel_key
+       or v_job.script_bundle->'policy_source_verification'->>'output_type' is distinct from v_job.output_type
+       or v_job.script_bundle->'policy_source_verification'->>'production_intent' is distinct from v_job.production_intent
+       or v_job.script_bundle->'policy_source_verification'->>'policy_id' is distinct from v_job.channel_policy_id::text
+       or v_job.script_bundle->'policy_source_verification'->>'policy_revision' is distinct from v_job.channel_policy_revision
+       or v_job.script_bundle->'policy_source_verification'->>'approval_psc_id' is distinct from v_job.channel_policy_approval_psc_id
+       or v_job.script_bundle->'policy_source_verification'->>'boas_id' is distinct from v_job.boas_id
+       or v_job.script_bundle->'policy_source_verification'->>'boas_revision' is distinct from v_job.boas_revision
+       or v_job.script_bundle->'policy_source_verification'->>'boas_psc_id' is distinct from v_job.boas_psc_id
+       or v_job.script_bundle->'policy_source_verification'->>'knoas_id' is distinct from v_job.knoas_id
+       or v_job.script_bundle->'policy_source_verification'->>'knoas_revision' is distinct from v_job.knoas_revision
+       or v_job.script_bundle->'policy_source_verification'->>'knoas_psc_id' is distinct from v_job.knoas_psc_id
+       or jsonb_typeof(v_job.script_bundle->'policy_source_verification'->'evidence_psc_ids') is distinct from 'array'
+       or not (v_job.script_bundle->'policy_source_verification'->'evidence_psc_ids' ? v_job.channel_policy_approval_psc_id)
+       or not (v_job.script_bundle->'policy_source_verification'->'evidence_psc_ids' ? v_job.boas_psc_id)
+       or not (v_job.script_bundle->'policy_source_verification'->'evidence_psc_ids' ? v_job.knoas_psc_id) then
       raise exception 'PCC_ANIMATION_HANDOFF_SOURCE_NOT_APPROVED';
     end if;
     if v_job.output_type in ('AD','REEL') and v_job.production_intent is null then
@@ -304,6 +321,7 @@ begin
         'context_notes',coalesce(v_job.request_payload->>'context_notes',''),
         'desired_ending_or_action',coalesce(v_job.request_payload->>'desired_ending_or_action','')
       ),
+      'policy_source_verification',v_job.script_bundle->'policy_source_verification',
       'approved_policy',jsonb_build_object(
         'channel_policy_id',v_job.channel_policy_id,'channel_policy_revision',v_job.channel_policy_revision,
         'channel_policy_approval_psc_id',v_job.channel_policy_approval_psc_id,
