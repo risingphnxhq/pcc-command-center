@@ -24,6 +24,10 @@ main{max-width:1240px;margin:32px auto;padding:0 18px 48px}.eyebrow{font:600 11p
 <section class="panel">
 <h2>Start a production request</h2>
 <div class="gate"><strong>System connection gate:</strong> PMF 0.3.0 is active in the BOAS registry, but its audit is NOT_ADMITTED and certification is NOT_CERTIFIED. PCC can prepare and review a script when the trusted channel policy and server model are configured; rendering remains held until PMF is admitted and certified.</div>
+<div class="gate" style="border-left-color:var(--cyan)">
+  <button id="checkPmfReadiness" type="button">Check live PMF production gate</button>
+  <p id="pmfReadiness" role="status" aria-live="polite" class="fine">Live status has not been checked. This check is read-only and never starts a render.</p>
+</div>
 <div class="flow" aria-label="Animation production stages"><span>Idea → channel</span><span>Script Writer · EFPB</span><span>Reviewer · BOAS/KNOAS</span><span>PMF · PVE · PNG</span><span>RunPod render</span><span>PCC review → SPIDER</span></div>
 <form id="requestForm">
 <div class="field"><label for="channel">RPE channel / series</label><select id="channel" required>
