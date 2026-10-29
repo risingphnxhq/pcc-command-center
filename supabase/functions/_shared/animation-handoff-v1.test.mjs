@@ -5,6 +5,9 @@ import { resolveProductionIntent, validateHandoffSource } from "./animation-hand
 const job = {
   job_id: "request-1", status: "SCRIPT_REVIEW_PASSED", channel_key: "phnx_kids",
   output_type: "EPISODE", production_intent: "NARRATIVE", title: "Pilot", idea: "A story",
+  channel_policy_id: "123e4567-e89b-42d3-a456-426614174001",
+  channel_policy_revision: "policy-rev-3", channel_policy_approval_psc_id: "PSC-CHANNEL-001",
+  boas_psc_id: "PSC-BOAS-001", knoas_psc_id: "PSC-KNOAS-001",
   boas_id: "boas-kids", boas_revision: "rev-12", boas_approved: true,
   knoas_id: "knoas-kids", knoas_revision: "rev-9", knoas_approved: true,
   script_bundle: { full_script: "Scene.", channel_segments: [{ index: 1 }], binary_validation: { ok: true } },
@@ -38,6 +41,9 @@ test("routes every PSC-approved format to its correct production lane", () => {
 test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () => {
   const packet = validateHandoffSource(job);
   assert.equal(packet.contract_version, "PCC_PMF_ANIMATION_HANDOFF_V1");
+  assert.equal(packet.approved_policy.channel_policy_id, job.channel_policy_id);
+  assert.equal(packet.approved_policy.channel_policy_revision, "policy-rev-3");
+  assert.equal(packet.approved_policy.channel_policy_approval_psc_id, "PSC-CHANNEL-001");
   assert.equal(packet.approved_policy.boas_revision, "rev-12");
   assert.equal(packet.approved_policy.knoas_revision, "rev-9");
   assert.equal(packet.writer_master_and_segments, job.script_bundle);
@@ -51,6 +57,7 @@ test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () =>
 test("blocks handoff when any source approval or QA receipt is missing", () => {
   assert.throws(() => validateHandoffSource({ ...job, status: "REVIEW" }), /SCRIPT_REVIEW_PASS_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, knoas_approved: false }), /APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED/);
+  assert.throws(() => validateHandoffSource({ ...job, channel_policy_approval_psc_id: null }), /APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { binary_validation: { ok: false } } }), /BINARY_QA_PASS_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, review_receipt: null }), /REVIEWER_RECEIPT_REQUIRED/);
 });
