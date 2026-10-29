@@ -221,7 +221,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (action === "PMF_PRODUCTION_READINESS") {
-    if (!roles.has("HANDOFF") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_HANDOFF_ROLE_REQUIRED" });
+    if (!roles.has("REQUEST") && !roles.has("REVIEW") && !roles.has("HANDOFF") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_REQUEST_ROLE_REQUIRED" });
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
     const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
