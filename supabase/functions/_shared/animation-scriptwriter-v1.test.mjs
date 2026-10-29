@@ -25,6 +25,12 @@ test("requires registered BOAS/KNOAS policy before writing", async () => {
   await assert.rejects(() => runAnimationScriptwriter({ ...input, channel_policy: null }, { model: { complete: async () => "{}" } }), /REGISTERED_BOAS_KNOAS_POLICY_REQUIRED/);
 });
 
+test("requires approved immutable BOAS and KNOAS revisions before writing", async () => {
+  await assert.rejects(() => runAnimationScriptwriter({
+    ...input, channel_policy: { ...input.channel_policy, knoas_approved: false },
+  }, { model: { complete: async () => "{}" } }), /REGISTERED_BOAS_KNOAS_POLICY_REQUIRED/);
+});
+
 test("returns a passed script package with a review receipt", async () => {
   const replies = [raw(good()), raw({ decision: "PASS", issues: [], summary: "Coherent and policy-aligned." })];
   const result = await runAnimationScriptwriter(input, { model: { complete: async () => replies.shift() } });
