@@ -167,8 +167,11 @@ export async function readPmfAnimationProductionReadiness({
       || !readiness || !["PRODUCTION_BLOCKED", "PRODUCTION_ADMITTED"].includes(readiness.state)
       || typeof readiness.production_enabled !== "boolean"
       || !["DISABLED", "REQUIRES_SCOPED_AUTHORIZATION"].includes(readiness.render_dispatch)
-      || (readiness.state === "PRODUCTION_BLOCKED" && readiness.production_enabled !== false)
-      || (readiness.state === "PRODUCTION_ADMITTED" && readiness.production_enabled !== true)) {
+      || (readiness.state === "PRODUCTION_BLOCKED"
+        && (readiness.production_enabled !== false || readiness.render_dispatch !== "DISABLED"))
+      || (readiness.state === "PRODUCTION_ADMITTED"
+        && (readiness.production_enabled !== true
+          || readiness.render_dispatch !== "REQUIRES_SCOPED_AUTHORIZATION"))) {
     throw new Error("PMF_ADMISSION_RESPONSE_INVALID");
   }
   return Object.freeze({ readiness, contract: result.contract ?? null });
