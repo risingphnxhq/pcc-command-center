@@ -157,8 +157,8 @@
             const heading = document.createElement("strong");
             heading.textContent = offer.gpu_name + " · " + offer.cloud_tier + " · $" + Number(offer.hourly_rate_usd).toFixed(2) + "/hour";
             const details = document.createElement("small");
-            details.textContent = offer.vram_gb + " GB VRAM · " + offer.availability + " stock snapshot · "
-              + offer.data_center_id + " · existing network volume " + offer.storage_gb + " GB. Availability can change before a job starts.";
+            details.textContent = offer.vram_gb + " GB VRAM · " + offer.availability + " aggregate stock snapshot · "
+              + offer.data_center_id + " · existing network volume " + offer.storage_gb + " GB. Stock is not tier-specific and can change before a job starts.";
             card.append(heading, details); runPodCandidates.append(card);
           }
           for (const warning of inventory.warnings || []) {
