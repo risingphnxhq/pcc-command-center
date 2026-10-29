@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -218,6 +218,25 @@ Deno.serve(async (req: Request) => {
     });
     if (error || !data) return json(409, { error: "ANIMATION_POLICY_REVOKE_FAILED", code: error?.code ?? "UNKNOWN" });
     return json(200, { ok: true, revocation: data });
+  }
+
+  if (action === "RUNPOD_AVAILABILITY_SEARCH") {
+    if (!roles.has("REQUEST") && !roles.has("REVIEW") && !roles.has("HANDOFF") && !roles.has("ADMIN")) {
+      return json(403, { error: "ANIMATION_REQUEST_ROLE_REQUIRED" });
+    }
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) return json(503, { error: "RUNPOD_AVAILABILITY_NOT_CONFIGURED" });
+    const scheduled = payload.scheduled === true;
+    try {
+      const result = await searchRunPodGpuAvailability({
+        url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, scheduled,
+      });
+      return json(200, { ok: true, availability: result, dispatch: "READ_ONLY_NO_RESERVATION_NO_START" });
+    } catch {
+      return json(503, { error: "RUNPOD_AVAILABILITY_SEARCH_UNAVAILABLE", dispatch: "READ_ONLY_NO_RESERVATION_NO_START" });
+    }
   }
 
   if (action === "RUNPOD_CONNECTION_STATUS") {
