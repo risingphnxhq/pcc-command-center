@@ -63,9 +63,8 @@ The API validates the caller's Supabase Auth session and reads server-managed `a
 1. Register each approved channel/output policy with its BOAS/KNOAS revisions and PSC lineage. The PCC resolver is implemented; populate it from approved source records before enabling script generation.
 2. Complete PMF 0.3.0 PCC registration, admission, and certification under the existing BOAS/PSC acceptance contract. Do not change the Angie’s World trial identity into production.
 3. Once admitted, add the separately authorized CEP enqueue and PVE voice/script plus PNG request/receipt paths against their registered tables. The current bridge only receipts and holds approved PCC packets.
-4. Connect the writer/reviewer's registered channel policies and model configuration, then build the CEP/PVE/PNG production receipt paths against the exact PSC table contract.
-5. Connect RunPod as on-demand compute only behind admitted PMF jobs, with explicit spend limits and measured cost/quality.
-6. Add PCC approval and SPIDER distribution/scheduling handoff separately from render completion.
+4. Connect RunPod as on-demand compute only behind admitted PMF jobs, with explicit spend limits and measured cost/quality.
+5. Add PCC approval and SPIDER distribution/scheduling handoff separately from render completion.
 
 ## Bridge configuration
 
