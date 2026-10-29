@@ -27,6 +27,21 @@ export function validateHandoffSource(job) {
     throw new Error("APPROVED_BOAS_KNOAS_REVISIONS_REQUIRED");
   }
   if (!job.script_bundle || job.script_bundle.binary_validation?.ok !== true) throw new Error("BINARY_QA_PASS_REQUIRED");
+  const source = job.script_bundle.policy_source_verification;
+  const sourceMatches = source?.status === "VERIFIED"
+    && source.channel_key === job.channel_key
+    && source.output_type === job.output_type
+    && source.production_intent === (job.production_intent ?? null)
+    && source.policy_id === job.channel_policy_id
+    && source.policy_revision === job.channel_policy_revision
+    && source.approval_psc_id === job.channel_policy_approval_psc_id
+    && source.boas_id === job.boas_id && source.boas_revision === job.boas_revision
+    && source.boas_psc_id === job.boas_psc_id
+    && source.knoas_id === job.knoas_id && source.knoas_revision === job.knoas_revision
+    && source.knoas_psc_id === job.knoas_psc_id
+    && Array.isArray(source.evidence_psc_ids)
+    && [job.channel_policy_approval_psc_id, job.boas_psc_id, job.knoas_psc_id].every(id => source.evidence_psc_ids.includes(id));
+  if (!sourceMatches) throw new Error("VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED");
   if (!job.review_receipt || job.review_receipt.state !== "SCRIPT_REVIEW_PASSED"
     || !Array.isArray(job.review_receipt.receipts) || !job.review_receipt.receipts.length) {
     throw new Error("REVIEWER_RECEIPT_REQUIRED");
@@ -36,6 +51,7 @@ export function validateHandoffSource(job) {
     contract_version: "PCC_PMF_ANIMATION_HANDOFF_V1",
     request: { request_id: job.job_id, channel_key: job.channel_key, output_type: job.output_type, production_intent: intent, title: job.title, idea: job.idea },
     production_context: { series_context: job.request_payload?.series_context ?? "", context_notes: job.request_payload?.context_notes ?? "", desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "" },
+    policy_source_verification: source,
     approved_policy: {
       channel_policy_id: job.channel_policy_id,
       channel_policy_revision: job.channel_policy_revision,
