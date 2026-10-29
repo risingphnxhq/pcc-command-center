@@ -42,6 +42,7 @@ test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () =>
   assert.equal(packet.approved_policy.knoas_revision, "rev-9");
   assert.equal(packet.writer_master_and_segments, job.script_bundle);
   assert.equal(packet.reviewer_receipt, job.review_receipt);
+  assert.deepEqual(packet.production_context, { series_context: "", context_notes: "", desired_ending_or_action: "" });
   assert.equal(packet.state, "HELD_PMF_ADMISSION_REQUIRED");
   assert.equal(packet.admission_snapshot.render_dispatch, "DISABLED");
   assert.equal("dispatch" in packet, false);
