@@ -54,5 +54,14 @@ export function validateResolvedAnimationPolicy(policy, expected) {
   const normalized = validateAnimationPolicyRegistration(policy);
   if (normalized.channel_key !== expected.channel_key || normalized.output_type !== expected.output_type
       || normalized.production_intent !== expected.production_intent) throw new Error("REGISTERED_CHANNEL_POLICY_MISMATCH");
-  return normalized;
+  const id = typeof policy.policy_id === "string" ? policy.policy_id : "";
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    throw new Error("REGISTERED_CHANNEL_POLICY_ID_INVALID");
+  }
+  return {
+    ...normalized,
+    policy_id: id,
+    approved: true,
+    revoked: false,
+  };
 }
