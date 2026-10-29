@@ -91,7 +91,7 @@ The current SPIDER screenshots show two connected YouTube accounts (PHNX Kids an
 3. Bind the existing sound-first PMF compiler and QA path to a pinned, remotely usable ComfyUI workflow. Validate actual model/workflow compatibility before paid compute.
 4. Wire PCC's channel context to the exact approved BOAS/KNOAS revisions and asset identities; fail closed on mismatches.
 5. Prove one capped, owner-authorized render; return it to PCC for review and record the run receipt.
-6. Add the RPE-owned streaming destination: approved-title ingest, catalog/series/episode metadata, playback, viewer access, captions, and resume progress. Keep monetization and native mobile/TV apps as later phases.
+6. Complete the existing PSN destination: verify its viewer app/auth/playback path, reuse the five existing PSN series/episode/viewer/watch/subscription tables, add secure media delivery and the PCC-approved PMF release ingest, then prove playback and resume progress with one approved test title. Keep monetization and native mobile/TV apps as later phases.
 7. Add SPIDER distribution only after review, with a separate platform-target authorization and schedule receipt.
 
 **Success condition:** the founder starts one job in PCC and receives a reviewable artifact and cost/QA receipt in PCC without opening RunPod or ComfyUI. Once approved, the title can be ingested into RPE’s own streaming catalog; external publishing remains a separate explicit decision.
@@ -165,6 +165,20 @@ The CEP V2 queue is physically present; the live readback showed `risk_readiness
 ## RPE-owned animation streaming service
 
 The screenshot identifies a separate product destination for the Animation Engine: an RPE-owned streaming service for the company’s original animation and series. This is distinct from both the production engine and SPIDER. PCC and PMF create, validate, and package titles; the streaming service manages the viewer experience and RPE’s owned catalog. SPIDER continues to distribute to external platforms.
+
+### Existing Phoenix Story Network foundation
+
+The Systems Supabase project already has PSN catalog and viewer-event tables. Reuse these records rather than creating a parallel catalog:
+
+| Existing table | Current role supported by its schema |
+|---|---|
+| `psn_series` | Series title, slug, synopsis, poster URL, genre, access model, and status |
+| `psn_episodes` | Episode-to-series link, number, title, synopsis, preview/full asset URL, access tier, and status |
+| `psn_viewer_accounts` | Viewer identity fields, subscription status, and access tier |
+| `psn_watch_events` | Viewer/episode watch-event history and metadata |
+| `psn_subscription_events` | Viewer subscription-event history and metadata |
+
+These schemas establish a usable data foundation; they do not prove that the public-facing viewer app, authentication/entitlement checks, protected playback, adaptive streaming, or PCC-to-PSN release ingest are already wired. Inspect and extend the existing PSN application path before creating new tables. In particular, the current episode schema has preview/full asset URL fields, so the implementation must ensure those resolve through authorized playback rather than exposing private master-file URLs.
 
 ### First release
 
