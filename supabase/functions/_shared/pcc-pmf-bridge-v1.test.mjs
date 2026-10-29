@@ -243,7 +243,7 @@ test("RunPod availability search accepts only signed in-budget offers with 50GB 
   const candidate={
     gpu_id:"NVIDIA RTX A6000",gpu_name:"RTX A6000",vram_gb:48,cloud_tier:"COMMUNITY",
     hourly_rate_usd:0.72,availability:"MEDIUM",data_center_id:"US-KS-2",
-    storage_gb:50,storage_volume_id:"vol-1",storage_match:"EXISTING_NETWORK_VOLUME",
+    storage_gb:50,storage_volume_id:"vol-1",storage_match:"EXISTING_NETWORK_VOLUME",availability_scope:"GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED",
     availability_snapshot_at:new Date(now).toISOString(),availability_guaranteed:false,
   };
   const out=await searchRunPodGpuAvailability({
