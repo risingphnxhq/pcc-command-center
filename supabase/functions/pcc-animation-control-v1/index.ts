@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -218,6 +218,29 @@ Deno.serve(async (req: Request) => {
     });
     if (error || !data) return json(409, { error: "ANIMATION_POLICY_REVOKE_FAILED", code: error?.code ?? "UNKNOWN" });
     return json(200, { ok: true, revocation: data });
+  }
+
+  if (action === "PMF_PRODUCTION_READINESS") {
+    if (!roles.has("HANDOFF") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_HANDOFF_ROLE_REQUIRED" });
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) {
+      return json(503, { error: "PMF_PRODUCTION_READINESS_NOT_CONFIGURED", render_dispatch: "DISABLED" });
+    }
+    try {
+      const result = await readPmfAnimationProductionReadiness({
+        url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId,
+      });
+      return json(200, {
+        ok: true,
+        readiness: result.readiness,
+        contract: result.contract,
+        dispatch: "READ_ONLY",
+      });
+    } catch {
+      return json(503, { error: "PMF_PRODUCTION_READINESS_UNAVAILABLE", render_dispatch: "DISABLED" });
+    }
   }
 
   if (action === "CREATE") {
