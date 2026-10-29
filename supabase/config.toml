@@ -1,1 +1,28 @@
-Configure signed PMF result receiver
+[functions.pcc-corporate-command-read]
+verify_jwt = true
+
+[functions.pcc-entry-gateway]
+verify_jwt = false
+
+[functions.pcc-voice-realtime-session]
+verify_jwt = false
+
+[functions.pcc-office-elevenlabs-speech]
+verify_jwt = false
+
+[functions.pcc-finance-mercury-account-probe]
+verify_jwt = true
+
+[functions.pcc-agent-invoker-v1]
+verify_jwt = true
+
+[functions.pcc-systems-read-v1]
+verify_jwt = true
+
+[functions.pcc-animation-control-v1]
+verify_jwt = true
+
+# PMF authenticates this result callback with timestamped HMAC in-handler.
+# PCC records the artifact as private and review-required only.
+[functions.pmf-animation-result-v1]
+verify_jwt = false
