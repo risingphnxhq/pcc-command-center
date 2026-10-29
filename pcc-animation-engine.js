@@ -146,15 +146,16 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     button.disabled=true; message("Recording request in PCC…");
-    const channel=$("channel").value, output=$("format").value, idea=$("idea").value.trim();
+    const channel=$("channel").value, output=$("format").value, title=$("title").value.trim(), idea=$("idea").value.trim();
+    const seriesContext=$("seriesContext").value.trim(), contextNotes=$("contextNotes").value.trim(), desiredEnding=$("desiredEnding").value.trim();
     const key=crypto.randomUUID();
     try {
       const result=await call("CREATE", {
         idempotency_key:key, channel_key:channel, output_type:output,
         production_intent:["AD","REEL"].includes(output) ? intentSelect.value : null,
-        title:output.replaceAll("_"," ").toLowerCase(), idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1"}
+        title, idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1",series_context:seriesContext,context_notes:contextNotes,desired_ending_or_action:desiredEnding}
       });
-      $("idea").value="";
+      $("title").value=""; $("seriesContext").value=""; $("contextNotes").value=""; $("desiredEnding").value=""; $("idea").value="";
       message("Saved in PCC as "+result.job.status+". No render was started.", "ok");
       await refresh();
     } catch (error) { message(error.message, "error"); }
