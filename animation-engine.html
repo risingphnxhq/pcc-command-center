@@ -23,7 +23,7 @@ main{max-width:1240px;margin:32px auto;padding:0 18px 48px}.eyebrow{font:600 11p
 <div class="grid">
 <section class="panel">
 <h2>Start a production request</h2>
-<div class="gate"><strong>Production gate:</strong> PCC prepares and reviews scripts. PMF production intake and rendering stay disabled until a live PMF admission check passes and the job has scoped authorization. Use the read-only check below to see the current PMF gate state.</div>
+<div class="gate"><strong>Production gate:</strong> PCC can prepare and review scripts and stage a held PMF packet. Production CEP intake and rendering are not enabled in this build yet. The read-only PMF check below reports admission status only; it never starts a job or render.</div>
 <div class="gate" style="border-left-color:var(--cyan)">
   <button id="checkPmfReadiness" type="button">Check live PMF production gate</button>
   <p id="pmfReadiness" role="status" aria-live="polite" class="fine">Live status has not been checked. This check is read-only and never starts a render.</p>
