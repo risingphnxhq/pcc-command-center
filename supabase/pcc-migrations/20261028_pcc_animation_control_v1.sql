@@ -49,6 +49,11 @@ alter table public.pcc_animation_jobs
   add column if not exists handoff_packet jsonb,
   add column if not exists handoff_receipt jsonb;
 
+-- Reassert the complete PSC-approved output format set on existing and new PCC tables.
+alter table public.pcc_animation_jobs drop constraint if exists pcc_animation_jobs_output_type_check;
+alter table public.pcc_animation_jobs add constraint pcc_animation_jobs_output_type_check
+  check (output_type in ('EPISODE','SERIES_EPISODE','ANIMATION','AD','REEL','MICRO_DRAMA','NOVEL','BOOK_MANUSCRIPT','BOOK_CHAPTER','BOOK_SCENE','CORPORATE_MARKETING','CORPORATE_JINGLE','TV_SPOT','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN','OTHER'));
+
 alter table public.pcc_animation_jobs enable row level security;
 revoke all on table public.pcc_animation_jobs from public, anon, authenticated;
 grant all on table public.pcc_animation_jobs to service_role;
@@ -83,7 +88,7 @@ begin
        or trim(coalesce(p_payload->>'channel_key','')) !~ '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$'
        or length(trim(coalesce(p_payload->>'title',''))) not between 1 and 200
        or length(trim(coalesce(p_payload->>'idea',''))) not between 1 and 12000
-       or coalesce(p_payload->>'output_type','') not in ('EPISODE','AD','CORPORATE_MARKETING','TV_SPOT','REEL','MICRO_DRAMA','NOVEL','BOOK_CHAPTER','BOOK_SCENE','OTHER')
+       or coalesce(p_payload->>'output_type','') not in ('EPISODE','SERIES_EPISODE','ANIMATION','AD','REEL','MICRO_DRAMA','NOVEL','BOOK_MANUSCRIPT','BOOK_CHAPTER','BOOK_SCENE','CORPORATE_MARKETING','CORPORATE_JINGLE','TV_SPOT','TV_COMMERCIAL','SOCIAL_MEDIA_CAMPAIGN','OTHER')
        or jsonb_typeof(coalesce(p_payload->'request_payload','{}'::jsonb)) is distinct from 'object' then
       raise exception 'PCC_ANIMATION_REQUEST_INVALID';
     end if;
