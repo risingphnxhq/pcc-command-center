@@ -95,6 +95,45 @@
     });
   }
 
+  const runPodButton = $("checkRunPodConnection");
+  const runPodNote = $("runPodConnection");
+  if (runPodButton && runPodNote) {
+    runPodButton.addEventListener("click", async () => {
+      runPodButton.disabled = true;
+      runPodNote.textContent = "Checking the configured RunPod connection through the authenticated server bridge…";
+      try {
+        const result = await call("RUNPOD_CONNECTION_STATUS");
+        const connection = result.connection || {};
+        const cost = Number.isFinite(connection.cost_per_hour_usd)
+          ? " Observed Pod rate: $" + connection.cost_per_hour_usd.toFixed(2) + "/hour."
+          : "";
+        const messages = {
+          NOT_CONFIGURED: "RunPod connection is not configured in server secrets; no credentials are sent to the browser.",
+          CONTROL_PLANE_UNREACHABLE: "The server could not reach RunPod’s control plane.",
+          POD_METADATA_INVALID: "RunPod returned incomplete Pod details; the check failed closed.",
+          POD_PROFILE_MISMATCH: "The configured Pod does not match the approved image/GPU profile.",
+          COST_LIMIT_EXCEEDED: "The Pod’s hourly rate exceeds the server-side approved ceiling.",
+          POD_STOPPED: "RunPod’s API is reachable, but the Pod is stopped. There is no connected GPU worker and no render-ready connection.",
+          WORKER_API_UNREACHABLE: "The Pod is running, but its authenticated animation worker is unreachable.",
+          WORKER_API_UNHEALTHY: "The animation worker answered unsuccessfully.",
+          WORKER_CAPABILITY_CONTRACT_MISMATCH: "The worker answered, but its capability contract does not match the approved engine contract.",
+          WORKER_READY: "The configured Pod and authenticated animation worker are reachable. This check did not start a render; PMF admission and review gates still apply.",
+        };
+        let detail = messages[connection.state] || "RunPod connection status is unavailable.";
+        if (connection.state === "NOT_CONFIGURED" && Array.isArray(connection.missing) && connection.missing.length) {
+          detail += " Missing server settings: " + connection.missing.join(", ") + ".";
+        }
+        runPodNote.textContent = detail + cost;
+        runPodNote.className = "fine";
+      } catch (error) {
+        runPodNote.textContent = (error?.message || "RunPod connection check failed") + ". No Pod was started or stopped.";
+        runPodNote.className = "fine";
+      } finally {
+        runPodButton.disabled = false;
+      }
+    });
+  }
+
   function renderAlerts(items, available=true) {
     if (!alerts) return;
     alerts.replaceChildren();
