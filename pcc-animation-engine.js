@@ -223,6 +223,8 @@
     });
   }
 
+  if (latestRunPodButton) latestRunPodButton.click();
+
   function renderAlerts(items, available=true) {
     if (!alerts) return;
     alerts.replaceChildren();
