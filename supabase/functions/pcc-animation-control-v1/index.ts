@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
 import { postHeldAnimationHandoff } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
@@ -278,13 +279,7 @@ Deno.serve(async (req: Request) => {
             state: result.state,
             receipts: result.review_receipts,
             unresolved_issues: result.review_receipts.at(-1)?.issues ?? [],
-            notification_receipt: reviewerNotices.length ? {
-              event: "SCRIPT_REVIEW_NEEDS_ATTENTION",
-              delivery: "PCC_JOB_CARD",
-              delivery_state: "RECORDED",
-              issued_at: new Date().toISOString(),
-              unresolved_issue_count: Array.isArray(reviewerNotices[0].unresolved_issues) ? reviewerNotices[0].unresolved_issues.length : 0,
-            } : null,
+            notification_receipt: buildReviewerNotificationReceipt(reviewerNotices),
           },
           status,
           can_review: mayReview,
