@@ -12,7 +12,7 @@ export function validateWriterInput(input) {
   }
   if (!OUTPUT_TYPES.has(input.output_type)) throw new Error("WRITER_OUTPUT_TYPE_UNSUPPORTED");
   const p = input.channel_policy;
-  if (!p || typeof p !== "object" || !p.boas_id || !p.knoas_id || !p.channel_profile || !p.output_spec) {
+  if (!p || typeof p !== "object" || !p.boas_id || !p.knoas_id || !p.boas_revision || !p.knoas_revision || p.boas_approved !== true || p.knoas_approved !== true || !p.channel_profile || !p.output_spec) {
     throw new Error("REGISTERED_BOAS_KNOAS_POLICY_REQUIRED");
   }
   return input;
@@ -33,6 +33,7 @@ export function validateAnimationScript(input, draft) {
   const add = (id, ok, detail) => gates.push({ id, result: ok ? "PASS" : "FAIL", detail });
   const p = input?.channel_policy;
   add("REGISTERED_POLICY_IDS", Boolean(p?.boas_id && p?.knoas_id), "BOAS and KNOAS identifiers are required.");
+  add("APPROVED_POLICY_REVISIONS", Boolean(p?.boas_revision && p?.knoas_revision && p?.boas_approved === true && p?.knoas_approved === true), "Approved BOAS and KNOAS revisions are required.");
   add("FULL_SCRIPT_PRESENT", typeof draft?.full_script === "string" && Boolean(draft.full_script.trim()), "The complete script must be present.");
   add("ENDING_FIRST_PRESENT", Boolean(draft?.ending_first?.final_payoff?.trim?.()) && Boolean(draft?.ending_first?.setup_and_payoff?.trim?.()), "EFPB payoff and setup/payoff explanation are required.");
   add("CONTINUITY_LEDGER_PRESENT", Array.isArray(draft?.continuity_ledger), "A continuity ledger array is required.");
