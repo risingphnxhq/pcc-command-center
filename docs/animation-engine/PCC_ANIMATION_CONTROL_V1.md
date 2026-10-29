@@ -4,7 +4,7 @@
 
 PCC now has an Animation Engine entry point, channel-first intake, EFPB Script Writer/Reviewer flow, binary QA, and a role-checked PCC handoff staging action. AD/REEL intake requires explicit MARKETING or NARRATIVE intent; corporate marketing/TV spots resolve to MARKETING and story forms to NARRATIVE. PCC stores an idempotent request, creates the complete script before channel segments, records Reviewer receipts, and persists a visible PCC job-card notice when bounded repairs leave blocking issues; that item is held while other requests remain available. It can stage a canonical handoff packet containing approved BOAS/KNOAS revisions, the script package, and QA receipts.
 
-The operator does not supply BOAS or KNOAS identifiers. Those belong to system policy and must be resolved by PCC from registered channel/system records. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
+The operator does not supply BOAS or KNOAS identifiers. PCC resolves an immutable, append-only channel policy by exact channel, output format, and production lane. Each policy records approved BOAS/KNOAS revisions and their PSC references. A policy must be registered by an ADMIN-authorized PCC operator; no channel policy is populated by this migration, so scripting fails closed until approved policy is registered. The selected channel is the RPE editorial channel/series; it is not a social publishing account. Social destination and scheduling belong to SPIDER and remain unconnected here.
 
 Each request starts as `WAITING_FOR_SYSTEM_REGISTRATION`. A passed script can be staged by a HANDOFF or ADMIN role; PCC durably stores the packet as `HELD_PMF_ADMISSION_REQUIRED`. When the server bridge settings are configured, PCC sends the packet over a signed HTTPS request to Systems/PMF. PMF validates the approved policy lineage, full script, binary QA, Reviewer pass, and held admission snapshot; it records an idempotent intake receipt and returns it for PCC to save on the job. Both sides keep CEP enqueue, rendering, GPU spend, release, and publishing disabled. If bridge settings are absent, PCC reports `NOT_CONFIGURED` and retains its local held packet.
 
@@ -14,7 +14,7 @@ The live Systems registry contains PMF 0.3.0, version-locked to `PMF-FOUNDER-PSC
 
 The existing PMF private `/stage` command accepts only an exact trial manifest PSC ID and staged asset payload, and the runtime is restricted to the Angie’s World trial identity. PCC's generic animation package is not that trial manifest and is never sent there.
 
-The PCC request type is the editorial channel/series, separate from a social publishing destination. Current PCC channel-policy configuration is a temporary server-side bridge until a live BOAS/KNOAS resolver is available. Although PMF/PVE/PNG components exist, this branch does not yet transfer staged packets into their production queues or receive job/artifact receipts.
+The PCC request type is the editorial channel/series, separate from a social publishing destination. PCC now has a service-role-only policy registry and exact-match resolver for approved BOAS/KNOAS channel policies. Registration is available only to ADMIN-authorized users and requires PSC lineage. The registry starts empty; approved BOAS/KNOAS references must be registered before script generation can run. Although PMF/PVE/PNG components exist, this branch does not yet transfer staged packets into their production queues or receive job/artifact receipts.
 
 ## Request API
 
@@ -60,7 +60,7 @@ The API validates the caller's Supabase Auth session and reads server-managed `a
 
 ## Remaining build gates
 
-1. Register the approved BOAS/KNOAS channel and format revisions, then replace the temporary server policy JSON with PCC's authenticated resolver.
+1. Register each approved channel/output policy with its BOAS/KNOAS revisions and PSC lineage. The PCC resolver is implemented; populate it from approved source records before enabling script generation.
 2. Complete PMF 0.3.0 PCC registration, admission, and certification under the existing BOAS/PSC acceptance contract. Do not change the Angie’s World trial identity into production.
 3. Once admitted, add the separately authorized CEP enqueue and PVE voice/script plus PNG request/receipt paths against their registered tables. The current bridge only receipts and holds approved PCC packets.
 4. Add durable PCC notifications for reviewer repairs/errors and the three-remaining-output runway alert.
