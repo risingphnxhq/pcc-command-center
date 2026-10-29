@@ -48,6 +48,7 @@ begin
      and j.status in ('QA','COMPLETE')
      and j.render_review_state = 'APPROVED'
      and j.artifact_manifest->>'quality_approved' = 'true'
+     and j.artifact_manifest->>'private' = 'true'
      and j.artifact_manifest->>'distribution_performed' = 'false';
 
   select alert_state into v_previous
