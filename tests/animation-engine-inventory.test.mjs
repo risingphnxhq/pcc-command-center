@@ -38,3 +38,8 @@ test('inventory alerts do not publish or schedule work', () => {
   assert.doesNotMatch(migration, /insert into public\.cep_v2_jobs/i);
   assert.doesNotMatch(migration, /distribution_performed' = 'true'/);
 });
+
+test('alert transition generation is evaluated atomically inside the upsert', () => {
+  assert.match(migration, /notification_generation=public\.pcc_animation_replenishment_alerts_v1\.notification_generation\s*\+ case when public\.pcc_animation_replenishment_alerts_v1\.alert_state='RESOLVED' and excluded\.alert_state='OPEN'/);
+  assert.doesNotMatch(migration, /v_previous/);
+});
