@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PCC — Animation Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#060a10;--panel:#101b27;--panel2:#0b131c;--line:#273847;--gold:#c6a15b;--cyan:#63d9ff;--text:#f4efe5;--muted:#a9b4bf;--amber:#f0b35a;--green:#49d391;--red:#ea7474}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#102339,var(--bg) 60%);color:var(--text);font:15px Inter,system-ui,sans-serif;min-height:100vh}
+a{color:var(--cyan)}header{padding:22px clamp(18px,5vw,64px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{font:700 18px Cinzel,serif;letter-spacing:.06em}.brand small{display:block;color:var(--gold);font:600 10px Inter,sans-serif;letter-spacing:.22em;text-transform:uppercase;margin-bottom:5px}
+main{max-width:1180px;margin:32px auto;padding:0 20px}.intro{margin-bottom:24px}.intro h1{font:700 clamp(28px,4vw,42px) Cinzel,serif;margin:0 0 8px}.intro p{color:var(--muted);line-height:1.6;margin:0;max-width:800px}
+.grid{display:grid;grid-template-columns:minmax(300px,430px) 1fr;gap:18px;align-items:start}.card{background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 18px 45px #0005}
+h2{font-size:17px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 7px}
+input,select,textarea{width:100%;border:1px solid #344858;background:#071019;color:var(--text);border-radius:9px;padding:12px;font:inherit}textarea{min-height:140px;resize:vertical;line-height:1.5}
+button{border:1px solid #54788a;background:#17364a;color:var(--text);border-radius:9px;padding:11px 16px;font:700 13px Inter,sans-serif;cursor:pointer}
+button.primary{background:linear-gradient(90deg,#0c8cac,#176384);border-color:#49bfdc}button:disabled{opacity:.55;cursor:wait}
+.actions{display:flex;gap:9px;align-items:center;margin-top:16px;flex-wrap:wrap}.notice{min-height:22px;color:var(--muted);font-size:13px;margin:12px 0 0;line-height:1.5}.notice.error{color:var(--red)}
+.hold{border:1px solid #745d36;background:#2a2418;color:#f2d8a7;padding:13px;border-radius:10px;font-size:12px;line-height:1.55;margin-top:16px}
+.requests{display:grid;gap:10px}.empty{padding:24px;text-align:center;border:1px dashed #344858;border-radius:12px;color:var(--muted)}
+.request{display:grid;grid-template-columns:1fr auto;gap:12px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#09121b}
+.request h3{margin:0 0 5px;font-size:15px}.request p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.badge{display:inline-block;border:1px solid #846d42;color:#f1ca80;border-radius:100px;padding:5px 8px;font-size:10px;font-weight:800;letter-spacing:.05em;margin-top:10px}
+.req-foot{font-size:11px;color:#8fa1af;margin-top:9px}.cancel{align-self:start;padding:7px 10px;background:transparent;border-color:#59484a;color:#e6b6b6}
+.engine-map{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.engine-map span{font-size:11px;border:1px solid #344858;border-radius:100px;padding:7px 10px;color:#d0dbe3}
+@media(max-width:760px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.card{padding:17px}}
+</style></head>
+<body>
+<header><div class="brand"><small>Phoenix Command Center</small>Animation Engine</div><nav><a href="command-floor.html">Command Floor</a> &nbsp;·&nbsp; <a href="console.html">PCC Console</a></nav></header>
+<main>
+<section class="intro"><h1>Animation Engine</h1><p>Submit an idea for a book, animation, corporate jingle, television commercial, social media campaign, ad, reel, micro-drama, or series episode. PCC records it against its channel, brand, or intellectual property and series/campaign context. The intended story flow is EFPB → complete master script → independent Reviewer QA and bounded repairs → book or channel-specific adaptation → PMF review → optional on-demand animation render → PCC approval → SPIDER distribution.</p><div class="engine-map"><span>Channel voice → BOAS/KNOAS</span><span>Script → PMF</span><span>On-demand render → PCC review</span><span>Approved release → SPIDER</span></div></section>
+<div class="hold"><strong>How the engine is meant to work:</strong> one shared Scriptwriter receives the PCC request and approved BOAS/KNOAS canon, applies EFPB to define the ending or audience action first, and writes the complete master script. That master can become a book manuscript or be adapted into segments using each channel’s format rules. Missing approved source context must put the request on hold for clarification, not trigger invented canon.</div><div class="hold"><strong>Independent Reviewer:</strong> a separate QA role checks whether the story makes sense and fits the channel’s BOAS/KNOAS, series canon, audience, and format. It should repair clear issues from approved context, recheck the changed script, and notify PCC of corrections or unresolved issues. The notification should not stop unrelated jobs. It must never silently rewrite canon or pass unresolved critical issues.</div><div class="hold"><strong>Three-output runway alert:</strong> PCC should count approved, ready, unpublished outputs per channel and series/campaign, then notify the team when three remain so continuation or new work can be prepared. This alert must not start rendering or publish anything.</div><div class="hold" id="readiness" role="status" aria-live="polite">Checking live PMF registry and execution gates…</div><div class="grid">
+<section class="card"><h2>Start a request</h2>
+<form id="requestForm">
+<label for="requestType">What are we making?</label><select id="requestType" required><option value="BOOK_MANUSCRIPT">Book / volume manuscript</option><option value="ANIMATION">Animation</option><option value="AD">Ad</option><option value="REEL">Reel</option><option value="MICRO_DRAMA">Micro-drama</option><option value="SERIES_EPISODE">Series episode</option><option value="CORPORATE_JINGLE">Corporate jingle</option><option value="TV_COMMERCIAL">Television commercial</option><option value="SOCIAL_MEDIA_CAMPAIGN">Social media campaign</option></select>
+<div id="intentWrap" hidden><label for="productionIntent">Ad/reel purpose</label><select id="productionIntent"><option value="">Choose the production lane</option><option value="MARKETING">RPE corporate marketing</option><option value="NARRATIVE">Channel story / narrative</option></select><p class="notice">Promotional ads/reels use RPE corporate marketing QA. Story reels use the selected channel’s BOAS/KNOAS and narrative QA.</p></div>
+<label for="channel">Channel / brand / story world</label><select id="channel" required>
+<option value="obsidian-core-saga">Obsidian Core Saga</option><option value="phoenix-goldmind">Phoenix GoldMind</option><option value="valarian-shadow">Valarian Shadow</option><option value="shadowframe">ShadowFrame</option><option value="phnx-studios">PHNX Studios</option><option value="phnx-sports">PHNX Sports</option><option value="phnx-kids">PHNX Kids</option><option value="phnx-kitchen">PHNX Kitchen</option><option value="rpe">RPE / Rising Phoenix</option><option value="phnx-faceless">PHNX Faceless Reels</option><option value="phoenix-gold-words">Phoenix Gold Words</option></select>
+<label for="title">Working title</label><input id="title" maxlength="160" required placeholder="Give the output a name">
+<label for="series">Saga / series / volume / campaign</label><input id="series" maxlength="160" placeholder="For example: Obsidian Core Saga — Book I">
+<label for="objective">Ending / audience action / campaign goal (optional)</label><input id="objective" maxlength="1000" placeholder="What should the story resolve, or what should the audience remember or do?"><label for="brief">Starting idea</label><textarea id="brief" maxlength="12000" required placeholder="Give the idea in your own words. The planned Scriptwriter flow starts from the ending (EFPB), writes the full script, then segments it for this channel."></textarea>
+<div class="actions"><button class="primary" id="submit" type="submit">Save request in PCC</button><button id="refresh" type="button">Refresh queue</button></div><p class="notice" id="notice" role="status" aria-live="polite"></p>
+</form><div class="hold"><strong>Render gate:</strong> saving a request does not generate a script, start a GPU, spend credits, publish content, or authorize distribution. The present PMF runtime is trial-scoped, so every new request will show as held for configuration.</div></section>
+<section class="card"><h2>Requests waiting in PCC</h2><div class="requests" id="requests"><div class="empty">Loading your requests…</div></div></section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script src="pcc-session-runtime.js"></script>
+<script>
+(() => {
+  const project = "https://ttkceizmjeckrorhkhfr.supabase.co";
+  const key = "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO";
+  const api = project + "/functions/v1/pcc-animation-queue-v1";
+  const identity = window.supabase.createClient(project,key,{auth:{persistSession:true,autoRefreshToken:true}});
+  const $ = id => document.getElementById(id);
+  const form=$("requestForm"), notice=$("notice"), requests=$("requests"), submit=$("submit"), refresh=$("refresh");
+  let busy=false;
+  function setNotice(text,error=false){notice.textContent=text;notice.classList.toggle("error",error);}
+  async function call(action,payload={}) {
+    const {data:{session}}=await identity.auth.getSession();
+    if(!session?.access_token) throw new Error("PCC individual sign-in is needed. Return to PCC Command Floor and sign in there.");
+    const response=await fetch(api,{method:"POST",headers:{Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify({action,payload}),cache:"no-store"});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.error||"PCC animation queue is not available yet.");
+    return result;
+  }
+  function safe(tag,text,cls){const e=document.createElement(tag);if(text!==undefined&&text!==null)e.textContent=text;if(cls)e.className=cls;return e;}
+  const intentWrap=$("intentWrap"), requestType=$("requestType"), productionIntent=$("productionIntent");
+  function syncIntent(){const needed=["AD","REEL"].includes(requestType.value);intentWrap.hidden=!needed;productionIntent.required=needed;if(!needed)productionIntent.value="";}
+  requestType.addEventListener("change",syncIntent);syncIntent();
+  function render(items){
+    requests.replaceChildren();
+    if(!items.length){requests.append(safe("div","No animation requests yet.","empty"));return;}
+    for(const item of items){
+      const row=safe("article",undefined,"request"),body=document.createElement("div");
+      body.append(safe("h3",item.title));
+      body.append(safe("p",({BOOK_MANUSCRIPT:"Book / volume manuscript",ANIMATION:"Animation",AD:"Ad",REEL:"Reel",MICRO_DRAMA:"Micro-drama",SERIES_EPISODE:"Series episode",CORPORATE_JINGLE:"Corporate jingle",TV_COMMERCIAL:"Television commercial",SOCIAL_MEDIA_CAMPAIGN:"Social media campaign"}[item.request_type]||item.request_type)+" · "+item.channel_key+(item.production_intent?" · "+(item.production_intent==="MARKETING"?"RPE corporate marketing":"channel narrative"):"")+(item.series_or_campaign?" · "+item.series_or_campaign:"")));
+      body.append(safe("span",item.status==="CANCELLED"?"Cancelled":"Held — channel setup required","badge"));
+      body.append(safe("div",new Date(item.created_at).toLocaleString(),"req-foot"));
+      row.append(body);
+      if(item.status!=="CANCELLED"){
+        const cancel=safe("button","Cancel","cancel");cancel.type="button";cancel.onclick=()=>cancelRequest(item.request_id);row.append(cancel);
+      }
+      requests.append(row);
+    }
+  }
+  function showReadiness(r){
+    const el=$("readiness"),lock=r.execution_lock||{},pmf=r.pmf_registry||{};
+    const lockState=lock.readback==="HASH_MATCH"?"execution lock hash verified":"execution lock hash unverified";
+    const version=pmf.version?("PMF "+pmf.version+" · admission "+pmf.admission+" · certification "+pmf.certification):"PMF registry record not found";
+    const runtime=r.pmf_animation_runtime||"unknown",bridge=r.cross_project_bridge||"unknown";
+    el.textContent=version+" · "+lockState+" · channel profiles "+r.channel_profiles+" · Scriptwriter "+r.scriptwriter_runtime+" · QA "+r.qa_enforcement+" · PMF animation runtime "+runtime+" · PCC→PMF bridge "+bridge+" · RunPod "+r.runpod_worker+". Requests remain held.";
+  }
+  async function load(){
+    if(busy)return;busy=true;refresh.disabled=true;
+    try{const [result,ready]=await Promise.all([call("LIST"),call("READINESS")]);render(Array.isArray(result.requests)?result.requests:[]);showReadiness(ready);setNotice("Queue and live PMF registry status loaded from PCC.");}
+    catch(e){requests.replaceChildren(safe("div",e.message,"empty"));setNotice(e.message,true);}
+    finally{busy=false;refresh.disabled=false;}
+  }
+  async function cancelRequest(id){
+    if(busy)return;busy=true;refresh.disabled=true;
+    try{await call("CANCEL",{request_id:id});setNotice("Request cancelled in PCC.");}
+    catch(e){setNotice(e.message,true);}
+    finally{busy=false;refresh.disabled=false;load();}
+  }
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();if(busy)return;busy=true;submit.disabled=true;refresh.disabled=true;
+    try{
+      const type=requestType.value;
+      const result=await call("CREATE",{request_type:type,production_intent:["AD","REEL"].includes(type)?productionIntent.value:null,channel_key:$("channel").value,title:$("title").value,series_or_campaign:$("series").value,objective:$("objective").value,creative_brief:$("brief").value});
+      $("title").value="";$("series").value="";$("objective").value="";$("brief").value="";
+      setNotice("Saved in PCC as "+(result.request?.state||"held")+"; no GPU was started.");
+    }catch(e){setNotice(e.message,true);}
+    finally{busy=false;submit.disabled=false;refresh.disabled=false;load();}
+  });
+  refresh.addEventListener("click",load);
+  if(!sessionStorage.getItem("pccEntrySession")) location.replace("index.html?return="+encodeURIComponent("animation-engine.html"));
+  else load();
+})();
+</script></body></html>
