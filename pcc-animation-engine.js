@@ -45,6 +45,14 @@
         REVIEWER_RECEIPT_REQUIRED: "A passing Reviewer receipt is required before handoff staging.",
         ANIMATION_HANDOFF_ROLE_REQUIRED: "Your PCC role does not include PMF handoff staging.",
         SCRIPT_GENERATION_FAILED: "The Script Writer could not complete this request. PCC kept the request; check its server-side model connection.",
+        ANIMATION_RENDER_REVIEW_ROLE_REQUIRED: "Your PCC role does not include render review.",
+        ANIMATION_RENDER_NOT_READY_FOR_REVIEW: "This request does not have a verified private PMF render awaiting review.",
+        PMF_REVIEW_PREVIEW_NOT_CONFIGURED: "The private PMF review connection is not configured.",
+        PMF_REVIEW_PREVIEW_UNAVAILABLE: "PCC could not verify a private preview URL. The artifact remains private.",
+        PCC_RENDER_PREVIEW_RECEIPT_FAILED: "PCC could not save the review access receipt. The video remains private.",
+        PCC_RENDER_REVIEW_PREVIEW_REQUIRED: "Preview this exact render in PCC before recording your review.",
+        PCC_RENDER_REVIEW_ARGUMENT_INVALID: "Add a review decision and notes, then submit again.",
+        PCC_RENDER_REVIEW_SAVE_FAILED: "PCC could not save this render review decision.",
       };
       throw new Error(messages[result.error] || result.error || "PCC request failed ("+response.status+").");
     }
@@ -185,6 +193,7 @@
             }
             preview.src=signed.signed_url;
             preview.hidden=false;
+            reviewNotes.hidden=false; decisions.hidden=false;
             preview.load();
             expiry.textContent="Private preview link expires "+new Date(signed.expires_at).toLocaleTimeString()+". Request a new preview after expiry.";
             previewButton.textContent="Refresh private preview";
@@ -196,10 +205,11 @@
           }
         });
         const reviewNotes=document.createElement("textarea");
+        reviewNotes.hidden=true;
         reviewNotes.rows=3; reviewNotes.maxLength=2000;
         reviewNotes.placeholder="Reviewer notes: what passed, or what must be corrected.";
         reviewNotes.setAttribute("aria-label","Render review notes");
-        const decisions=document.createElement("div");
+        const decisions=document.createElement("div"); decisions.hidden=true;
         const approve=document.createElement("button"); approve.type="button"; approve.textContent="Approve quality";
         const revise=document.createElement("button"); revise.type="button"; revise.textContent="Request revision";
         const submitDecision=async decision=>{
