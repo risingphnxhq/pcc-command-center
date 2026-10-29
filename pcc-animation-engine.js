@@ -60,7 +60,7 @@
         const result = await call("PMF_PRODUCTION_READINESS");
         const readiness = result.readiness;
         if (readiness.state === "PRODUCTION_ADMITTED") {
-          readinessNote.textContent = "PMF admission passed. A separate scoped authorization is still required before any render can start.";
+          readinessNote.textContent = "PMF admission requirements currently pass. Production CEP intake and render dispatch are still disabled in PCC; this status check does not start work.";
           readinessNote.className = "fine";
         } else {
           const reasons = Array.isArray(readiness.failures) ? readiness.failures : [];
