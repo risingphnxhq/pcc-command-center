@@ -10,7 +10,9 @@ const good = (payoff = "The child teaches the phoenix to ask for help.") => ({
   ending_first: { final_payoff: payoff, setup_and_payoff: "The early mistake teaches the ending lesson." },
   logline: "A child and phoenix solve a problem together.", synopsis: "The child learns to ask for help.", full_script: "Scene 1... Scene 2...",
   continuity_ledger: [{ fact: "The phoenix is curious", source: "idea" }],
-  channel_segments: [{ index: 1, purpose: "Opening", script: "Scene 1... Scene 2...", estimated_duration_seconds: 30, handoff: "Scene 2" }], production_notes: [],
+  channel_segments: [{ index: 1, purpose: "Opening", script: "Scene 1... Scene 2...", estimated_duration_seconds: 30, handoff: "Scene 2" }],
+  production_breakdown: [{ segment_index: 1, scene_number: 1, heading: "EXT. FOREST - DAY", duration_seconds: 30, scene_script: "Scene 1... Scene 2...", visual_action: "The child and phoenix solve the problem together.", camera: "Wide to medium, steady push-in.", dialogue: [], sound_cues: [], keyframes: [{ description: "They see the problem.", frame_fraction: 0 }, { description: "They solve it together.", frame_fraction: 1 }] }],
+  production_notes: [],
 });
 const raw = (value) => JSON.stringify(value);
 
