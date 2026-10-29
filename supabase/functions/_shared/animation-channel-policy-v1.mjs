@@ -60,6 +60,16 @@ export function validateResolvedAnimationPolicy(policy, expected) {
   const normalized = validateAnimationPolicyRegistration(policy);
   if (normalized.channel_key !== expected.channel_key || normalized.output_type !== expected.output_type
       || normalized.production_intent !== expected.production_intent) throw new Error("REGISTERED_CHANNEL_POLICY_MISMATCH");
+  const requiredScope = normalized.output_spec.scope;
+  if (requiredScope !== undefined) {
+    const stable = (value) => Array.isArray(value) ? value.map(stable)
+      : isObject(value) ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])]))
+      : value;
+    if (!isObject(requiredScope) || !isObject(expected.source_scope)
+        || JSON.stringify(stable(requiredScope)) !== JSON.stringify(stable(expected.source_scope))) {
+      throw new Error("POLICY_SOURCE_SCOPE_MISMATCH");
+    }
+  }
   const id = typeof policy.policy_id === "string" ? policy.policy_id : "";
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
     throw new Error("REGISTERED_CHANNEL_POLICY_ID_INVALID");
