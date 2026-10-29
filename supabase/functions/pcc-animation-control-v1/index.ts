@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -240,6 +240,45 @@ Deno.serve(async (req: Request) => {
       });
     } catch {
       return json(503, { error: "PMF_PRODUCTION_READINESS_UNAVAILABLE", render_dispatch: "DISABLED" });
+    }
+  }
+
+  if (action === "RENDER_REVIEW_URL") {
+    if (!roles.has("REVIEW") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_RENDER_REVIEW_ROLE_REQUIRED" });
+    const jobId = text(payload.job_id, 36);
+    if (!jobId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(jobId)) {
+      return json(400, { error: "ANIMATION_JOB_ID_INVALID" });
+    }
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: job, error } = await service.rpc("pcc_animation_job_control_v1", {
+      p_action: "READ", p_subject: userData.user.id, p_payload: { job_id: jobId, can_review: true },
+    });
+    if (error || !job) return json(404, { error: "ANIMATION_JOB_NOT_FOUND" });
+    const receipt = job.artifact_manifest?.pmf_render_receipt;
+    const artifact = job.artifact_manifest?.artifact;
+    if (job.status !== "QA" || job.artifact_manifest?.review_state !== "REVIEW_REQUIRED"
+        || job.artifact_manifest?.private !== true || !receipt
+        || receipt.pcc_request_id !== job.job_id || receipt.execution_id !== job.render_execution_id
+        || receipt.state !== "ANIMATION_RECORDED_REVIEW_REQUIRED"
+        || receipt.quality_approved !== false || receipt.distribution_performed !== false
+        || artifact?.mime_type !== "video/mp4" || !/^[a-f0-9]{64}$/i.test(artifact?.sha256 ?? "")) {
+      return json(409, { error: "ANIMATION_RENDER_NOT_READY_FOR_REVIEW" });
+    }
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) return json(503, { error: "PMF_REVIEW_PREVIEW_NOT_CONFIGURED" });
+    try {
+      const preview = await requestPmfAnimationReviewUrl({
+        url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId,
+        pccRequestId: job.job_id,
+        executionId: job.render_execution_id,
+        resultReceiptId: receipt.result_receipt_id,
+        artifactSha256: artifact.sha256,
+      });
+      return json(200, { ok: true, preview });
+    } catch {
+      return json(503, { error: "PMF_REVIEW_PREVIEW_UNAVAILABLE" });
     }
   }
 
