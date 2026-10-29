@@ -35,6 +35,29 @@ create table if not exists public.pcc_animation_channel_policies (
   )
 );
 
+alter table public.pcc_animation_jobs
+  add column if not exists channel_policy_id uuid,
+  add column if not exists channel_policy_revision text,
+  add column if not exists channel_policy_approval_psc_id text,
+  add column if not exists boas_psc_id text,
+  add column if not exists knoas_psc_id text;
+
+do $policy_fk$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname='pcc_animation_jobs_channel_policy_id_fkey'
+      and conrelid='public.pcc_animation_jobs'::regclass
+  ) then
+    alter table public.pcc_animation_jobs
+      add constraint pcc_animation_jobs_channel_policy_id_fkey
+      foreign key (channel_policy_id)
+      references public.pcc_animation_channel_policies(policy_id)
+      on delete restrict;
+  end if;
+end;
+$policy_fk$;
+
 create table if not exists public.pcc_animation_channel_policy_revocations (
   policy_id uuid primary key references public.pcc_animation_channel_policies(policy_id) on delete restrict,
   revoked_by uuid not null references auth.users(id) on delete restrict,
