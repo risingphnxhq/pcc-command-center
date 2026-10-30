@@ -66,6 +66,21 @@ The API validates the caller's Supabase Auth session and reads server-managed `a
 4. Connect RunPod as on-demand compute only behind admitted PMF jobs, with explicit spend limits and measured cost/quality.
 5. Add PCC approval and SPIDER distribution/scheduling handoff separately from render completion.
 
+## One-job RunPod authorization request
+
+The new `ISSUE_RENDER_AUTHORIZATION` action is ADMIN-only. It accepts only a CEP job UUID and sends a signed request to the Systems authorization Edge Function by resolving the endpoint from `PCC_PMF_BRIDGE_URL`. Systems independently re-reads the queued job, current PMF admission/certification, exact Founder one-job PSC, immutable script/manifest lineage, digest-pinned image, and approved runtime/spend policy before issuing a short-lived receipt. The caller cannot supply the policy or receipt. Receipt issuance does not enqueue or launch a Pod; GPU creation remains a separate worker action behind the production gates.
+
+Request shape:
+
+```json
+{
+  "action": "ISSUE_RENDER_AUTHORIZATION",
+  "payload": { "cep_job_id": "<queued-CEP-job-uuid>" }
+}
+```
+
+This action is available only after the Systems migration and Edge Function have been deployed and a valid Founder authorization PSC exists. The current PMF production registry is not yet admitted/certified, so issuance should fail closed until those gates pass.
+
 ## Bridge configuration
 
 PCC Edge Function secrets: `PCC_PMF_BRIDGE_URL` (the Systems function's HTTPS URL), `PCC_PMF_BRIDGE_HMAC_SECRET` (shared server-only secret, at least 32 characters), and `PCC_PMF_BRIDGE_KEY_ID=pcc-animation-v1`. Systems/PMF requires the same HMAC secret and key ID. Never expose the secret to the browser or commit it. Deploy the PCC receipt migration, the Systems intake migration, and the PMF Edge Function before configuring both sides.
@@ -74,4 +89,4 @@ PCC Edge Function secrets: `PCC_PMF_BRIDGE_URL` (the Systems function's HTTPS UR
 
 This is a draft implementation. No PCC migration, Edge Function, role assignment, worker, or production resource was deployed by this branch. Apply the SQL only to PCC project `ttkceizmjeckrorhkhfr`; `supabase/migrations/` is reserved for the Systems/PMF target in this repository setup. Deploy the function only after the PCC migration and operator-role provisioning are reviewed.
 
-Local Deno, browser, database-migration, and workflow validation were not run because this repository is not mounted in the workspace. The open draft PR is the review target.
+Local Deno, browser, database-migration, and workflow validation were not run because this repository is not mounted in the workspace. This source branch contains no PR and has not been deployed.
