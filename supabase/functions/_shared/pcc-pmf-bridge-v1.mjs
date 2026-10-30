@@ -465,3 +465,52 @@ export async function readLatestRunPodAvailabilitySnapshot({
     dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
   });
 }
+
+/** Request a per-job Founder-bound receipt. This request never starts a GPU Pod. */
+export async function requestPmfAnimationRenderAuthorization({
+  url, secret, keyId = KEY_ID, cepJobId, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cepJobId ?? "")) {
+    throw new Error("PMF_RENDER_AUTHORIZATION_REQUEST_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  if (endpoint.search || endpoint.hash || !/\\/pcc-animation-bridge-v1\\/?$/.test(endpoint.pathname)) {
+    throw new Error("PMF_AUTHORIZATION_ISSUER_URL_INVALID");
+  }
+  endpoint.pathname = endpoint.pathname.replace(/\\/pcc-animation-bridge-v1\\/?$/, "/pmf-animation-render-authorization-v2");
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action: "ISSUE_ADAPTIVE_RENDER_AUTHORIZATION",
+    payload: { cep_job_id: cepJobId },
+  });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_RENDER_AUTHORIZATION_RESPONSE_INVALID"); }
+  const authorization = result?.authorization;
+  const receipt = authorization?.receipt;
+  if (!response.ok || result?.ok !== true
+      || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "ISSUE_ADAPTIVE_RENDER_AUTHORIZATION"
+      || authorization?.state !== "ISSUED" || authorization?.job_id !== cepJobId
+      || !receipt || receipt.state !== "ISSUED" || receipt.cep_job_id !== cepJobId
+      || receipt.schema_version !== "PMF_RENDER_AUTHORIZATION_V2"
+      || typeof receipt.receipt_id !== "string" || !receipt.receipt_id.startsWith("PMF-RA2-")) {
+    throw new Error("PMF_RENDER_AUTHORIZATION_ISSUE_FAILED");
+  }
+  return Object.freeze({ state: "ISSUED", job_id: cepJobId, receipt });
+}
