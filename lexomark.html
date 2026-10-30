@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lexomark — Hall of Knowing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080c;--panel:#0d151f;--gold:#c6a15b;--cyan:#63d9ff;--text:#f4efe5;--muted:#aab4c0;--line:rgba(198,161,91,.25);--ok:#49d391;--bad:#ea7474}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,rgba(198,161,91,.11),transparent 45%),var(--bg);color:var(--text);font-family:Inter,sans-serif}.shell{max-width:1250px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;border-top:3px solid var(--gold);border-bottom:1px solid var(--line);background:linear-gradient(145deg,#111b27,#070c12);padding:18px}.eyebrow,.label{font:600 11px "IBM Plex Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}h1,h2{font-family:Cinzel,serif;letter-spacing:.05em;margin:.35rem 0}h1{font-size:clamp(25px,4vw,42px)}h2{font-size:20px}.help{font-size:12px;line-height:1.55;color:var(--muted)}.status{font:600 11px "IBM Plex Mono";padding:9px 12px;border:1px solid var(--line);color:var(--muted)}.status.ok{color:var(--ok);border-color:rgba(73,211,145,.35)}.status.bad{color:var(--bad);border-color:rgba(234,116,116,.35)}.grid{display:grid;grid-template-columns:340px 1fr;gap:14px;margin-top:14px}.card{background:linear-gradient(155deg,rgba(16,27,39,.98),rgba(7,12,18,.98));border:1px solid var(--line);padding:18px}.stack{display:grid;gap:12px}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}label{display:grid;gap:7px;color:var(--muted);font-size:12px}input,button{font:inherit}input{width:100%;background:#050a10;color:var(--text);border:1px solid rgba(255,255,255,.12);padding:12px;outline:none}input:focus{border-color:var(--gold)}button{border:1px solid rgba(198,161,91,.4);background:linear-gradient(180deg,rgba(198,161,91,.16),rgba(198,161,91,.05));color:var(--text);padding:12px 14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}button.secondary{border-color:rgba(99,217,255,.3);background:rgba(99,217,255,.08)}button:disabled{opacity:.45;cursor:not-allowed}pre{margin:0;background:#03070b;border-left:2px solid var(--gold);padding:14px;min-height:100px;max-height:650px;overflow:auto;color:#d7eef8;font:12px/1.6 "IBM Plex Mono";white-space:pre-wrap;word-break:break-word}.results{display:grid;gap:10px}.result{border-left:2px solid var(--cyan);background:rgba(255,255,255,.025);padding:13px}.result-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.result strong{display:block;margin:6px 0}.result code{color:var(--gold);font:11px "IBM Plex Mono";overflow-wrap:anywhere}.badge{font:10px "IBM Plex Mono";color:var(--muted);border:1px solid var(--line);padding:5px 7px;white-space:nowrap}.detail{margin-top:10px}.hidden{display:none!important}.wide{grid-column:1/-1}a{color:var(--gold)}@media(max-width:800px){.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.shell{padding:8px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top">
+  <div><div class="eyebrow">Rising Phoenix Enterprises · Systems</div><h1>Lexomark</h1><div class="help">Hall of Knowing · PSC retrieval, provenance, dependencies, and chronology</div></div>
+  <div id="status" class="status">CHECKING SYSTEMS SESSION</div>
+</header>
+<div class="grid">
+<section class="card"><h2>Systems Sign-In</h2><div class="stack">
+  <div id="sessionState" class="help">Checking for your existing Systems session…</div>
+  <label>Systems email<input id="email" type="email" autocomplete="username" placeholder="Your existing Systems sign-in"></label>
+  <label>Systems password<input id="password" type="password" autocomplete="current-password" placeholder="Password"></label>
+  <div class="row"><button id="signIn">Sign In</button><button id="signOut" class="secondary">Sign Out</button></div>
+  <button id="readiness" class="secondary">Check Lexomark Readiness</button>
+  <p class="help">Uses the existing PCC Systems Supabase session. No new API key is entered or stored by this page.</p>
+  <p class="help">Current runtime authority is validated by PCC. Lexomark's separate persona binding remains pending, so the service does not claim to act as Lexington Martin.</p>
+</div></section>
+<section class="card"><h2>Find Controlling Knowledge</h2><form id="searchForm" class="stack">
+  <label>Search PSC ID, title, system, subject, or Canon text<input id="query" minlength="2" maxlength="240" required placeholder="Example: Phoenix OS System Building Protocol"></label>
+  <div class="row"><button type="submit">Search Canon</button><button id="reconcile" type="button" class="secondary">Preview Index Reconciliation</button></div>
+  <div id="receipt" class="help">Searches and exact reads produce durable read receipts.</div>
+</form></section>
+<section class="card wide"><h2>Search Results</h2><div id="results" class="results"><div class="help">Sign in, then search Canon. Original PSC records remain authoritative.</div></div></section>
+<section class="card wide"><h2>Exact PSC / Reconciliation Readback</h2><pre id="output">No PSC retrieved yet.</pre></section>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script>
+(()=>{"use strict";
+const URL="https://oyjmpbuxvfxusmbouldi.supabase.co";
+const KEY="sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
+const ENDPOINT=URL+"/functions/v1/lexomark-psc-v1";
+const client=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id);
+const status=$("status"), sessionState=$("sessionState"), output=$("output"), results=$("results"), receipt=$("receipt");
+let session=null;
+function setStatus(text,kind=""){status.textContent=text;status.className="status"+(kind?" "+kind:"")}
+function showJson(value){output.textContent=JSON.stringify(value,null,2)}
+async function currentSession(){const {data,error}=await client.auth.getSession();if(error)throw error;session=data.session;sessionState.textContent=session?"Existing authenticated Systems session found.":"Sign in with your existing Systems account.";return session}
+async function callService(payload){
+  await currentSession();
+  if(!session?.access_token)throw new Error("SYSTEMS_SIGN_IN_REQUIRED");
+  const response=await fetch(ENDPOINT,{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"});
+  const body=await response.json().catch(()=>({error:"INVALID_SERVICE_RESPONSE"}));
+  if(!response.ok||!body.ok)throw new Error(body.error||("HTTP_"+response.status));
+  setStatus("PCC AUTHORITY VERIFIED · "+body.authority_actor_id,"ok");
+  if(body.read_receipt?.receipt_id)receipt.textContent="Read receipt: "+body.read_receipt.receipt_id;
+  return body
+}
+function showResults(rows){
+  results.replaceChildren();
+  if(!rows?.length){const empty=document.createElement("div");empty.className="help";empty.textContent="No source PSC matched all search terms.";results.append(empty);return}
+  for(const row of rows){
+    const card=document.createElement("article");card.className="result";
+    const head=document.createElement("div");head.className="result-head";
+    const left=document.createElement("div");const id=document.createElement("code");id.textContent=row.psc_id||"PSC ID unavailable";
+    const title=document.createElement("strong");title.textContent=row.canon_name||"Untitled Canon record";
+    const meta=document.createElement("div");meta.className="help";meta.textContent=[row.system_code,row.authority_code,row.canon_type,row.canon_state].filter(Boolean).join(" · ");
+    left.append(id,title,meta);
+    const badge=document.createElement("span");badge.className="badge";badge.textContent=row.archive_index_state||"SOURCE";
+    head.append(left,badge);card.append(head);
+    const summary=document.createElement("pre");summary.className="detail";summary.textContent=JSON.stringify(row.structured_summary||{},null,2);card.append(summary);
+    const open=document.createElement("button");open.type="button";open.textContent="Open Exact PSC";
+    open.addEventListener("click",()=>getRecord(row.psc_id));card.append(open);
+    results.append(card);
+  }
+}
+async function getRecord(pscId){try{setStatus("READING CANON");const body=await callService({action:"GET",psc_id:pscId});showJson(body.result); }catch(e){setStatus("PSC READ FAILED","bad");showJson({error:e.message})}}
+$("signIn").addEventListener("click",async()=>{
+  const email=$("email").value.trim(),password=$("password").value;
+  if(!email||!password){setStatus("ENTER SYSTEMS SIGN-IN","bad");return}
+  setStatus("AUTHENTICATING");
+  const {data,error}=await client.auth.signInWithPassword({email,password});
+  if(error){setStatus("SIGN-IN FAILED","bad");sessionState.textContent=error.message;return}
+  session=data.session;sessionState.textContent="Signed in. PCC will verify Systems runtime authority when a retrieval is requested.";setStatus("SESSION READY","ok");$("password").value="";
+});
+$("signOut").addEventListener("click",async()=>{await client.auth.signOut();session=null;sessionState.textContent="Signed out.";setStatus("SYSTEMS SESSION CLOSED")});
+$("searchForm").addEventListener("submit",async event=>{
+  event.preventDefault();const query=$("query").value.trim();if(query.length<2)return;
+  setStatus("SEARCHING CANON");results.replaceChildren();
+  try{const body=await callService({action:"SEARCH",query,limit:20});showResults(body.result.results);showJson(body.result)}
+  catch(e){setStatus("SEARCH BLOCKED","bad");showJson({error:e.message});results.textContent=e.message}
+});
+$("reconcile").addEventListener("click",async()=>{
+  setStatus("COMPARING CANON AND INDEX");
+  try{const body=await callService({action:"RECONCILE"});showJson(body.result)}
+  catch(e){setStatus("RECONCILIATION BLOCKED","bad");showJson({error:e.message})}
+});
+$("readiness").addEventListener("click",async()=>{
+  setStatus("CHECKING LEXOMARK");
+  try{const body=await callService({action:"READINESS"});setStatus("PCC AUTHORITY VERIFIED","ok");showJson(body)}
+  catch(e){setStatus("READINESS BLOCKED","bad");showJson({error:e.message})}
+});
+client.auth.onAuthStateChange((_event,newSession)=>{session=newSession;sessionState.textContent=session?"Existing authenticated Systems session found.":"Sign in with your existing Systems account."});
+currentSession().then(()=>setStatus(session?"SYSTEMS SESSION READY":"SYSTEMS SIGN-IN REQUIRED",session?"ok":""));
+})();
+</script>
+</body>
+</html>
