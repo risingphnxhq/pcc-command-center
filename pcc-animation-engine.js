@@ -186,6 +186,7 @@
           ? " Observed Pod rate: $" + connection.cost_per_hour_usd.toFixed(2) + "/hour."
           : "";
         const messages = {
+          API_CONNECTED: "RunPod API is authenticated. This read-only check does not require a fixed Pod or image.",
           NOT_CONFIGURED: "RunPod connection is not configured in server secrets; no credentials are sent to the browser.",
           CONTROL_PLANE_UNREACHABLE: "The server could not reach RunPod’s control plane.",
           POD_METADATA_INVALID: "RunPod returned incomplete Pod details; the check failed closed.",
@@ -198,6 +199,16 @@
           WORKER_READY: "The configured Pod and authenticated animation worker are reachable. This check did not start a render; PMF admission and review gates still apply.",
         };
         let detail = messages[connection.state] || "RunPod connection status is unavailable.";
+        if (connection.state === "API_CONNECTED") {
+          const inventory = connection.inventory || {};
+          const candidates = Array.isArray(inventory.candidates) ? inventory.candidates : [];
+          const selected = inventory.selected_candidate || candidates[0];
+          detail = "RunPod API is authenticated. " + candidates.length
+            + " current GPU offer(s) match the $0.80/hour full allocation ceiling and existing 50 GB volume. "
+            + (selected ? "Lowest-cost match: " + selected.gpu_name + " at an estimated total of $"
+              + Number(selected.estimated_allocated_total_hourly_usd).toFixed(2) + "/hour. " : "")
+            + "No Pod was reserved or started; no renderer worker is running.";
+        }
         if (connection.state === "NOT_CONFIGURED" && Array.isArray(connection.missing) && connection.missing.length) {
           detail += " Missing server settings: " + connection.missing.join(", ") + ".";
         }
@@ -233,7 +244,8 @@
           for (const offer of inventory.candidates || []) {
             const card = document.createElement("article"); card.className = "job";
             const heading = document.createElement("strong");
-            heading.textContent = offer.gpu_name + " · " + offer.cloud_tier + " · $" + Number(offer.hourly_rate_usd).toFixed(2) + "/hour";
+            heading.textContent = offer.gpu_name + " · " + offer.cloud_tier + " · estimated total $"
+              + Number(offer.estimated_allocated_total_hourly_usd ?? offer.hourly_rate_usd).toFixed(2) + "/hour";
             const details = document.createElement("small");
             details.textContent = offer.vram_gb + " GB VRAM · " + offer.availability + " aggregate stock snapshot · "
               + offer.data_center_id + " · existing network volume " + offer.storage_gb + " GB. Stock is not tier-specific and can change before a job starts.";
