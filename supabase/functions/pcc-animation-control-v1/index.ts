@@ -154,6 +154,18 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(401, { error: "AUTHENTICATED_SUBJECT_REQUIRED" });
 
   const roles = rolesFor(userData.user);
+  // Animation permissions reuse PCC's centrally managed Founder binding.
+  // Authorization stays server-side and revocable through the trusted identity registry.
+  if (!roles.has("ADMIN")) {
+    const roleAuthority = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: isFounder, error: founderError } = await roleAuthority.rpc(
+      "pcc_founder_private_subject",
+      { p_subject: userData.user.id },
+    );
+    if (!founderError && isFounder === true) roles.add("ADMIN");
+  }
   let bodyText: string | null;
   try {
     bodyText = await readBoundedBody(req, MAX_BODY_BYTES);
