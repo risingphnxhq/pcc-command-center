@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfAnimationRenderAuthorization, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -303,6 +303,26 @@ Deno.serve(async (req: Request) => {
       });
     } catch {
       return json(503, { error: "PMF_PRODUCTION_READINESS_UNAVAILABLE", render_dispatch: "DISABLED" });
+    }
+  }
+
+  if (action === "ISSUE_RENDER_AUTHORIZATION") {
+    if (!roles.has("ADMIN")) return json(403, { error: "ANIMATION_AUTHORIZATION_ADMIN_REQUIRED" });
+    const cepJobId = text(payload.cep_job_id, 36);
+    if (!cepJobId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cepJobId)) {
+      return json(400, { error: "PMF_CEP_JOB_ID_INVALID" });
+    }
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL");
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    if (!bridgeUrl || !bridgeSecret) return json(503, { error: "PMF_AUTHORIZATION_ISSUER_NOT_CONFIGURED" });
+    try {
+      const authorization = await requestPmfAnimationRenderAuthorization({
+        url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, cepJobId,
+      });
+      return json(201, { ok: true, authorization, dispatch: "AUTHORIZATION_ISSUANCE_ONLY_NO_POD_START" });
+    } catch {
+      return json(409, { error: "PMF_RENDER_AUTHORIZATION_ISSUE_FAILED", dispatch: "NO_POD_START" });
     }
   }
 
