@@ -55,7 +55,7 @@ async function callService(payload){
   const response=await fetch(ENDPOINT,{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"});
   const body=await response.json().catch(()=>({error:"INVALID_SERVICE_RESPONSE"}));
   if(!response.ok||!body.ok)throw new Error(body.error||("HTTP_"+response.status));
-  setStatus("PCC AUTHORITY VERIFIED · "+body.authority_actor_id,"ok");
+  setStatus("PCC AUTHORITY VERIFIED · "+(body.authority_actor_id||body.current_authority_actor||"SYSTEMS"),"ok");
   if(body.read_receipt?.receipt_id)receipt.textContent="Read receipt: "+body.read_receipt.receipt_id;
   return body
 }
