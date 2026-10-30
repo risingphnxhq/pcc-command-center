@@ -280,7 +280,7 @@ export async function readRunPodAnimationConnection({
     "NOT_CONFIGURED", "CONTROL_PLANE_UNREACHABLE", "POD_METADATA_INVALID",
     "POD_PROFILE_MISMATCH", "COST_LIMIT_EXCEEDED", "POD_STOPPED",
     "WORKER_API_UNREACHABLE", "WORKER_API_UNHEALTHY",
-    "WORKER_CAPABILITY_CONTRACT_MISMATCH", "WORKER_READY",
+    "WORKER_CAPABILITY_CONTRACT_MISMATCH", "WORKER_READY", "API_CONNECTED",
   ];
   const controls = ["NOT_CONFIGURED", "UNREACHABLE", "CONNECTED"];
   const workers = ["NOT_CHECKED", "NOT_REACHABLE", "UNREACHABLE", "UNHEALTHY", "REACHABLE"];
@@ -299,6 +299,36 @@ export async function readRunPodAnimationConnection({
         || connection.missing.some(key => typeof key !== "string" || !/^PMF_RUNPOD_[A-Z_]+$|^RUNPOD_API_KEY$/.test(key)))) {
     throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
   }
+  if (connection.state === "API_CONNECTED"
+      && (connection.control_plane !== "CONNECTED" || connection.worker_api !== "NOT_CHECKED"
+        || connection.render_ready !== false || connection.gpu_count !== 1 || connection.worker_port !== 8765
+        || connection.max_hourly_usd !== 0.8
+        || connection.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
+        || typeof connection.note !== "string"
+        || !connection.inventory || !["CANDIDATE_SELECTED", "NO_MATCHING_CANDIDATES"].includes(connection.inventory.state))) {
+    throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
+  }
+  const inventory = connection.state === "API_CONNECTED" ? connection.inventory : null;
+  if (inventory && (inventory.hard_max_hourly_usd !== 0.8
+      || !Number.isFinite(inventory.applied_max_hourly_usd) || inventory.applied_max_hourly_usd <= 0
+      || inventory.applied_max_hourly_usd > 0.8 || inventory.required_storage_gb !== 50
+      || !Array.isArray(inventory.candidates) || inventory.candidate_count !== inventory.candidates.length
+      || inventory.availability_guaranteed !== false
+      || inventory.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
+      || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
+      || (inventory.state === "CANDIDATE_SELECTED" && (inventory.candidates.length === 0
+        || inventory.selected_candidate?.gpu_id !== inventory.candidates[0]?.gpu_id))
+      || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
+        || typeof item.gpu_name !== "string" || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
+        || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0
+        || !Number.isFinite(item.estimated_allocated_total_hourly_usd)
+        || item.estimated_allocated_total_hourly_usd > 0.8
+        || !Number.isFinite(item.storage_gb) || item.storage_gb < 50
+        || item.storage_match !== "EXISTING_NETWORK_VOLUME"
+        || item.availability_scope !== "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED"
+        || item.availability_guaranteed !== false))) {
+    throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
+  }
   return Object.freeze({
     state: connection.state,
     control_plane: connection.control_plane,
@@ -307,10 +337,27 @@ export async function readRunPodAnimationConnection({
     ...(Array.isArray(connection.missing) ? { missing: Object.freeze([...connection.missing]) } : {}),
     ...(typeof connection.pod_status === "string" ? { pod_status: connection.pod_status } : {}),
     ...(Number.isFinite(connection.cost_per_hour_usd) ? { cost_per_hour_usd: connection.cost_per_hour_usd } : {}),
-    ...(typeof connection.engine_version === "string" ? { engine_version: connection.engine_version } : {}),
+    ...(Number.isFinite(connection.engine_version) ? { engine_version: connection.engine_version } : {}),
     ...(Number.isFinite(connection.max_fps) ? { max_fps: connection.max_fps } : {}),
     ...(Number.isFinite(connection.max_seconds) ? { max_seconds: connection.max_seconds } : {}),
     ...(typeof connection.quality_approved === "boolean" ? { quality_approved: connection.quality_approved } : {}),
+    ...(inventory ? { gpu_count: 1, worker_port: 8765, max_hourly_usd: 0.8,
+      dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
+      inventory: Object.freeze({
+        state: inventory.state,
+        candidate_count: inventory.candidate_count,
+        hard_max_hourly_usd: 0.8,
+        applied_max_hourly_usd: inventory.applied_max_hourly_usd,
+        required_storage_gb: 50,
+        candidates: Object.freeze(inventory.candidates.map(item => Object.freeze({
+          gpu_id: item.gpu_id, gpu_name: item.gpu_name, vram_gb: item.vram_gb,
+          cloud_tier: item.cloud_tier, hourly_rate_usd: item.hourly_rate_usd,
+          estimated_allocated_total_hourly_usd: item.estimated_allocated_total_hourly_usd,
+          availability: item.availability, data_center_id: item.data_center_id,
+          storage_gb: item.storage_gb, storage_match: item.storage_match,
+          availability_guaranteed: false,
+        }))),
+      }) } : {}),
   });
 }
 
@@ -356,10 +403,17 @@ export async function searchRunPodGpuAvailability({
   if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1"
       || result?.action !== "SEARCH_RUNPOD_AVAILABILITY"
       || result?.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
-      || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
-      || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
+      || !inventory || !["CANDIDATE_SELECTED", "CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
+      || inventory.hard_max_hourly_usd !== 0.8 || !Number.isFinite(inventory.applied_max_hourly_usd)
+      || inventory.applied_max_hourly_usd <= 0 || inventory.applied_max_hourly_usd > 0.8
       || inventory.required_storage_gb !== 50 || !Array.isArray(inventory.candidates)
       || inventory.candidate_count !== inventory.candidates.length
+      || inventory.availability_guaranteed !== false
+      || inventory.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
+      || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
+      || (inventory.state !== "NO_MATCHING_CANDIDATES" && inventory.candidates.length === 0)
+      || (inventory.state === "CANDIDATE_SELECTED" && (!inventory.selected_candidate
+        || inventory.selected_candidate.gpu_id !== inventory.candidates[0]?.gpu_id))
       || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
         || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
         || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0 || item.hourly_rate_usd > 0.8
@@ -418,7 +472,7 @@ export async function readLatestRunPodAvailabilitySnapshot({
       || result.availability_guaranteed !== false
       || window?.start_local !== "00:00" || window?.end_local !== "06:00"
       || typeof window?.time_zone !== "string" || !window.time_zone
-      || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
+      || !inventory || !["CANDIDATE_SELECTED", "CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
       || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
       || inventory.required_storage_gb !== 50 || !Array.isArray(inventory.candidates)
       || inventory.candidate_count !== inventory.candidates.length
@@ -431,6 +485,8 @@ export async function readLatestRunPodAvailabilitySnapshot({
         || item.availability_guaranteed !== false
         || item.availability_scope !== "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED")
       || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
+      || (inventory.state === "CANDIDATE_SELECTED" && (inventory.candidates.length === 0
+        || inventory.selected_candidate?.gpu_id !== inventory.candidates[0]?.gpu_id))
       || (inventory.state === "CANDIDATES_FOUND" && inventory.candidates.length === 0)
       || !Array.isArray(inventory.warnings) || inventory.warnings.some(item => typeof item !== "string")) {
     throw new Error("RUNPOD_SNAPSHOT_RESPONSE_INVALID");
