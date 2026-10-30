@@ -91,7 +91,10 @@ export async function resolveVerifiedAnimationPolicySource({
     registry_state: "ACTIVE",
   };
   if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1" || !same(verified, expected)) {
-    throw new Error("ANIMATION_POLICY_SOURCE_NOT_VERIFIED");
+    const knownReasons = new Set(["PSC_SOURCE_READ_FAILED","BOAS_REGISTRY_READ_FAILED","ANIMATION_POLICY_SOURCE_EVIDENCE_REQUIRED","ANIMATION_POLICY_APPROVAL_PSC_NOT_APPROVED_OR_CURRENT","ANIMATION_POLICY_BOAS_PSC_NOT_APPROVED_OR_CURRENT","ANIMATION_POLICY_KNOAS_PSC_NOT_APPROVED_OR_CURRENT","ANIMATION_POLICY_BOAS_REGISTRY_MISMATCH","ANIMATION_POLICY_APPROVAL_PSC_BINDING_MISMATCH","ANIMATION_POLICY_APPROVAL_PSC_DEPENDENCIES_MISSING","ANIMATION_POLICY_KNOAS_PSC_BINDING_MISMATCH"]);
+    const reason = typeof result?.reason === "string" && knownReasons.has(result.reason)
+      ? result.reason : "ANIMATION_POLICY_SOURCE_NOT_VERIFIED";
+    throw new Error(reason);
   }
   return verified;
 }
