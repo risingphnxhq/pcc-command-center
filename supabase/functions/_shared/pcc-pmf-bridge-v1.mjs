@@ -476,10 +476,11 @@ export async function requestPmfAnimationRenderAuthorization({
     throw new Error("PMF_RENDER_AUTHORIZATION_REQUEST_INVALID");
   }
   const endpoint = validateHttpsEndpoint(url);
-  if (endpoint.search || endpoint.hash || !/\\/pcc-animation-bridge-v1\\/?$/.test(endpoint.pathname)) {
-    throw new Error("PMF_AUTHORIZATION_ISSUER_URL_INVALID");
-  }
-  endpoint.pathname = endpoint.pathname.replace(/\\/pcc-animation-bridge-v1\\/?$/, "/pmf-animation-render-authorization-v2");
+  if (endpoint.search || endpoint.hash) throw new Error("PMF_AUTHORIZATION_ISSUER_URL_INVALID");
+  if (endpoint.pathname.endsWith("/")) endpoint.pathname = endpoint.pathname.slice(0, -1);
+  const bridgeSuffix = "/pcc-animation-bridge-v1";
+  if (!endpoint.pathname.endsWith(bridgeSuffix)) throw new Error("PMF_AUTHORIZATION_ISSUER_URL_INVALID");
+  endpoint.pathname = endpoint.pathname.slice(0, -bridgeSuffix.length) + "/pmf-animation-render-authorization-v2";
   const body = JSON.stringify({
     protocol: "pcc-pmf-animation-bridge/v1",
     action: "ISSUE_ADAPTIVE_RENDER_AUTHORIZATION",
