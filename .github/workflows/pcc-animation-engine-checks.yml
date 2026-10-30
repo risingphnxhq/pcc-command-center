@@ -1,0 +1,24 @@
+name: PCC Animation Engine inventory checks
+on:
+  pull_request:
+    paths:
+      - 'animation-engine.html'
+      - 'pcc-animation-engine.js'
+      - 'supabase/functions/pcc-animation-control-v1/**'
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.mjs'
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs'
+      - 'supabase/pcc-migrations/20261029_pcc_animation_z_replenishment_alert_v1.sql'
+      - 'tests/animation-engine-inventory.test.mjs'
+      - '.github/workflows/pcc-animation-engine-checks.yml'
+  workflow_dispatch:
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/animation-engine-inventory.test.mjs supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs
+      - name: Parse PCC Animation Engine browser runtime
+        run: node --check pcc-animation-engine.js

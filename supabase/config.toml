@@ -18,3 +18,11 @@ verify_jwt = true
 
 [functions.pcc-systems-read-v1]
 verify_jwt = true
+
+[functions.pcc-animation-control-v1]
+verify_jwt = true
+
+# PMF authenticates this result callback with timestamped HMAC in-handler.
+# PCC records the artifact as private and review-required only.
+[functions.pmf-animation-result-v1]
+verify_jwt = false

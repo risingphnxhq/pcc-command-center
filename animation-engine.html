@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>PCC — Animation Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#05080c;--panel:#0e1824;--gold:#c6a15b;--cyan:#63d9ff;--green:#49d391;--amber:#f0b35a;--red:#ea7474;--text:#f4efe5;--muted:#aeb8c2;--line:rgba(198,161,91,.24)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,rgba(198,161,91,.12),transparent 55%),linear-gradient(160deg,#05080c,#0b121b 54%,#05080c);color:var(--text);font:14px Inter,system-ui,sans-serif}
+header{padding:18px max(18px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;align-items:center}a{color:var(--gold)}header a{text-decoration:none}.brand{font:600 16px Cinzel,serif;letter-spacing:.08em}.brand small{display:block;font:10px "IBM Plex Mono",monospace;color:var(--muted);letter-spacing:.14em;margin-top:4px}
+main{max-width:1240px;margin:32px auto;padding:0 18px 48px}.eyebrow{font:600 11px "IBM Plex Mono",monospace;color:var(--gold);letter-spacing:.16em;text-transform:uppercase}h1,h2{font-family:Cinzel,Georgia,serif;letter-spacing:.06em}h1{font-size:clamp(28px,4vw,44px);margin:8px 0}h2{font-size:19px;margin:0 0 14px}.intro{max-width:850px;color:var(--muted);line-height:1.7;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:18px}.panel{border:1px solid var(--line);border-top:2px solid var(--gold);background:linear-gradient(160deg,rgba(16,25,36,.97),rgba(6,11,17,.97));padding:20px;min-width:0}.flow{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 18px}.flow span{border:1px solid rgba(255,255,255,.12);padding:8px 10px;color:var(--muted);font-size:11px}.gate{border-left:3px solid var(--amber);padding:12px 14px;background:rgba(240,179,90,.08);line-height:1.55;margin-bottom:16px}.field{display:grid;gap:7px;margin:14px 0}.field label{font:600 11px "IBM Plex Mono",monospace;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}input,select,textarea{font:inherit;color:var(--text);background:#080e15;border:1px solid rgba(255,255,255,.16);padding:12px;border-radius:3px;width:100%}textarea{min-height:140px;resize:vertical;line-height:1.55}button{font:600 13px Inter,system-ui;cursor:pointer;background:linear-gradient(90deg,#bb914c,#e2c27f);color:#10151a;border:0;border-radius:3px;padding:12px 16px}button:disabled{opacity:.55;cursor:wait}.note{min-height:22px;color:var(--muted);line-height:1.5}.note.error{color:var(--red)}.note.ok{color:var(--green)}.jobs{display:grid;gap:10px}.job{border:1px solid rgba(255,255,255,.1);padding:12px;background:rgba(255,255,255,.02)}.jobhead{display:flex;justify-content:space-between;gap:10px;align-items:start}.job strong{display:block}.job small{display:block;color:var(--muted);line-height:1.5;margin-top:6px}.badge{font:10px "IBM Plex Mono",monospace;color:var(--amber);border:1px solid currentColor;padding:5px 7px;white-space:nowrap}.job-notice{color:var(--amber)!important;border-left:2px solid var(--amber);padding:7px 9px;background:rgba(240,179,90,.08)}.empty{color:var(--muted);line-height:1.6}.fine{font-size:12px;color:var(--muted);line-height:1.6;margin-top:12px}
+@media(max-width:850px){.grid{grid-template-columns:1fr}header{align-items:flex-start}}
+</style>
+</head>
+<body>
+<header><a class="brand" href="command-floor.html">PHOENIX COMMAND CENTER<small>RISING PHOENIX ENTERPRISES</small></a><a href="command-floor.html">← Command Floor</a></header>
+<main>
+<span class="eyebrow">PCC / Production Command</span><h1>Animation Engine</h1>
+<p class="intro">Give PCC the idea and RPE channel/series. PCC records the production request; the editorial channel is separate from the social account that may publish it. After registration, PCC resolves that channel’s BOAS/KNOAS, script format, reviewer, voice, assets, and renderer.</p>
+<div class="grid">
+<section class="panel">
+<h2>Start a production request</h2>
+<div class="gate"><strong>Production gate:</strong> PCC can prepare and review scripts and stage a held PMF packet. Production CEP intake and rendering are not enabled in this build yet. The read-only PMF check below reports admission status only; it never starts a job or render.</div>
+<div class="gate" style="border-left-color:var(--cyan)">
+  <button id="checkPmfReadiness" type="button">Check live PMF production gate</button>
+  <p id="pmfReadiness" role="status" aria-live="polite" class="fine">Live status has not been checked. This check is read-only and never starts a render.</p>
+</div>
+<div class="gate" style="border-left-color:var(--cyan)">
+  <button id="checkRunPodConnection" type="button">Check RunPod connection</button>
+  <p id="runPodConnection" role="status" aria-live="polite" class="fine">RunPod has not been checked from PCC. This read-only check never starts or stops a Pod.</p>
+</div>
+<div class="gate" style="border-left-color:var(--cyan)">
+  <button id="searchRunPodAvailability" type="button">Search RunPod availability</button>
+  <p id="runPodAvailability" role="status" aria-live="polite" class="fine">Searches for a currently listed GPU at or below $0.80/hour with at least 50 GB of compatible persistent storage. The midnight-to-early-morning search is intended to improve the odds of finding an open GPU; availability is never guaranteed. Each result is a changing snapshot, not a reservation. Search window: 00:00–06:00 in the configured local timezone. Automatic scans require a recurring trigger.</p>
+  <div id="runPodCandidates" class="jobs" aria-live="polite"></div>
+  <button id="latestRunPodAvailability" type="button">Show latest overnight search</button>
+  <p id="latestRunPodAvailabilityNote" role="status" aria-live="polite" class="fine">The latest scheduled search result will appear here. No GPU is reserved or started.</p>
+  <div id="latestRunPodCandidates" class="jobs" aria-live="polite"></div>
+</div>
+<div class="flow" aria-label="Animation production stages"><span>Idea → channel</span><span>Script Writer · EFPB</span><span>Reviewer · BOAS/KNOAS</span><span>PMF · PVE · PNG</span><span>RunPod render</span><span>PCC review → SPIDER</span></div>
+<form id="requestForm">
+<div class="field"><label for="channel">RPE channel / series</label><select id="channel" required>
+<option value="">Choose a channel</option>
+<option value="goldmind">Phoenix GoldMind</option><option value="goldwords">Phoenix Gold Words</option><option value="phnx_kids">PHNX Kids</option><option value="phnx_kitchen">PHNX Kitchen</option><option value="phnx_sports">PHNX Sports</option><option value="phnx_studio">PHNX Studios</option><option value="phnx_faceless">PHNX Faceless Reels</option><option value="rpe">Rising Phoenix Enterprises</option><option value="shadow">ShadowFrame</option><option value="valarian">Valarian Shadow</option>
+</select></div>
+<div class="field"><label for="format">Output type</label><select id="format" required><option value="BOOK_MANUSCRIPT">Book / novel manuscript</option><option value="BOOK_CHAPTER">Book chapter</option><option value="BOOK_SCENE">Book scene</option><option value="ANIMATION">Animation</option><option value="SERIES_EPISODE">Series episode</option><option value="MICRO_DRAMA">Micro-drama</option><option value="AD">Ad</option><option value="REEL">Reel / short</option><option value="CORPORATE_JINGLE">Corporate jingle</option><option value="TV_COMMERCIAL">Television commercial</option><option value="SOCIAL_MEDIA_CAMPAIGN">Social media campaign</option></select></div>
+<div class="field" id="intentField" hidden><label for="productionIntent">Production lane</label><select id="productionIntent"><option value="">Choose one</option><option value="MARKETING">RPE corporate marketing</option><option value="NARRATIVE">Channel story / narrative</option></select><small>Ads and reels can be marketing or story content. PCC stores this choice with the request.</small></div>
+<div class="field"><label for="title">Working title</label><input id="title" maxlength="200" required placeholder="Title for this book, episode, reel, ad, or campaign"></div>
+<div class="field"><label for="seriesContext">Series, saga, or campaign</label><input id="seriesContext" maxlength="160" placeholder="For example: Obsidian Core Saga, Phoenix Kids Season 1, or Spring campaign"></div>
+<div class="field"><label for="sourceSeriesId">Source series ID</label><input id="sourceSeriesId" maxlength="160" placeholder="Example: ANGIES-WORLD"><small>Use the exact approved source identifier when the channel policy is series-scoped.</small></div>
+<div class="field"><label for="sourceEpisodeId">Source episode or item ID</label><input id="sourceEpisodeId" maxlength="160" placeholder="Example: AW-EP-001"><small>Scoped policies require an exact match. Phoenix Kids Discovery Park currently requires both IDs above.</small></div>
+<div class="field"><label for="contextNotes">Continuity or campaign context</label><textarea id="contextNotes" maxlength="6000" placeholder="Relevant canon, prior episodes, audience, product, brief, or campaign context"></textarea></div>
+<div class="field"><label for="desiredEnding">Desired ending or action</label><textarea id="desiredEnding" maxlength="4000" placeholder="For stories: the ending/payoff you want. For marketing: the action or result the piece should drive."></textarea></div>
+<div class="field"><label for="idea">Your idea</label><textarea id="idea" maxlength="12000" required placeholder="Describe the story, animation, corporate marketing, ad, reel, episode, novel, or scene you want."></textarea></div>
+<button id="submit" type="submit">Submit to PCC</button>
+<p id="status" class="note" role="status" aria-live="polite"></p>
+<p class="fine">This records an editorial request, not a social destination. PCC will handle platform selection and scheduling through SPIDER after those connections are integrated. No GPU starts and nothing is published here.</p>
+</form></section>
+<section class="panel" aria-labelledby="pilotPolicyHeading">
+<h2 id="pilotPolicyHeading">Approved pilot policy · PCC Admin</h2>
+<p class="fine">Source PSC: PCC-FOUNDER-PSC-PHXN-KIDS-AW-EP001-ANIMATION-POLICY-2026-10-29-005. Registers the exact Discovery Park scope after the server verifies its trusted PSC source. The signed-in account must have the PCC ADMIN role.</p>
+<p class="fine">KNOAS character continuity: Khaleo; Karmen and Kamren are twins. Story knowledge and reveal order remain controlled by the bound KNOAS.</p>
+<button id="registerPilotPolicy" type="button">Register approved Discovery Park policy</button>
+<p id="pilotPolicyStatus" role="status" aria-live="polite" class="note">No registration request has been sent.</p>
+</section>
+<section class="panel"><h2>Channel replenishment</h2><div id="inventoryAlerts" class="jobs"><p class="empty">Checking approved unpublished inventory…</p></div><p class="fine">PCC opens an alert at three or fewer human-approved, unpublished outputs for a channel and series/campaign. This is a planning notice; it does not publish or schedule content.</p><h2>My production requests</h2><div id="jobs" class="jobs"><p class="empty">Loading your PCC requests…</p></div><p class="fine>A passed script is not a render job. Rendering remains held until the PMF admission/certification gates and PCC-to-PMF/PVE/PNG connection are complete.</p></section>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script src="pcc-session-runtime.js"></script><script src="pcc-animation-engine.js"></script>
+</body></html>

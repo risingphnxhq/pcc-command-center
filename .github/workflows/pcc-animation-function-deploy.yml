@@ -1,0 +1,31 @@
+name: PCC Animation Function Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: pcc-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Verify PCC project target
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.PCC_SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          test "$SUPABASE_PROJECT_REF" = "ttkceizmjeckrorhkhfr"
+      - name: Deploy PCC animation control function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.PCC_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.PCC_SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          supabase functions deploy pcc-animation-control-v1 --project-ref "$SUPABASE_PROJECT_REF"

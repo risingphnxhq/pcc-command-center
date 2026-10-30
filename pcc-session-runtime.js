@@ -22,7 +22,7 @@
   }
   function entryUrl(){
     const here=location.pathname.split('/').pop()||'command-floor.html';
-    const allowed=new Set(['command-floor.html','console.html','war-room.html','council-staff.html','execution.html','financial-tracking.html','nhce-monitor.html','registry.html','voice-engine.html','office.html','founder-suite.html','systems-console.html','board-room.html','workforce-console.html','spider-connections.html','support-center.html']);
+    const allowed=new Set(['command-floor.html','console.html','war-room.html','council-staff.html','execution.html','financial-tracking.html','nhce-monitor.html','registry.html','voice-engine.html','office.html','founder-suite.html','systems-console.html','board-room.html','workforce-console.html','spider-connections.html','support-center.html','animation-engine.html']);
     return 'index.html'+(allowed.has(here)?'?return='+encodeURIComponent(here):'');
   }
   function lock(reason='PCC secure presence ended.'){
