@@ -2,9 +2,44 @@
   "use strict";
   const base = "https://ttkceizmjeckrorhkhfr.supabase.co";
   const endpoint = base + "/functions/v1/pcc-animation-control-v1";
-  const client = window.supabase.createClient(base, "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO", {
-    auth: { persistSession: true, autoRefreshToken: true }
-  });
+  const publishableKey = "sb_publishable_v3-qGYPg-tSY-G4cX47HRg_TgMnYEbO";
+  let client = null;
+  let clientLoadPromise = null;
+  function createClientIfReady() {
+    if (!client && window.supabase && typeof window.supabase.createClient === "function") {
+      client = window.supabase.createClient(base, publishableKey, {
+        auth: { persistSession: true, autoRefreshToken: true }
+      });
+    }
+    return client;
+  }
+  async function getClient() {
+    if (createClientIfReady()) return client;
+    if (!clientLoadPromise) {
+      clientLoadPromise = (async () => {
+        const sources = [
+          "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js",
+          "https://unpkg.com/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"
+        ];
+        for (const src of sources) {
+          await new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = src;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = resolve;
+            document.head.appendChild(script);
+          });
+          if (createClientIfReady()) return client;
+        }
+        throw new Error("PCC could not load its Supabase client from either configured CDN. The controls are active, but service requests cannot run until the client library is reachable.");
+      })().catch((error) => {
+        clientLoadPromise = null;
+        throw error;
+      });
+    }
+    return clientLoadPromise;
+  }
   const $ = (id) => document.getElementById(id);
   const form = $("requestForm"), button = $("submit"), note = $("status"), jobs = $("jobs"), alerts = $("inventoryAlerts");
   const formatSelect = $("format"), intentField = $("intentField"), intentSelect = $("productionIntent");
@@ -23,7 +58,8 @@
   function message(text, kind="") { note.textContent=text; note.className="note "+kind; }
   function safeText(value) { return typeof value === "string" ? value : ""; }
   async function call(action, payload={}) {
-    const { data: { session } } = await client.auth.getSession();
+    const authClient = await getClient();
+    const { data: { session } } = await authClient.auth.getSession();
     if (!session?.access_token) throw new Error("Sign in to your PCC Founder account on the Command Floor, then reopen Animation Engine.");
     const response = await fetch(endpoint, {
       method:"POST",
