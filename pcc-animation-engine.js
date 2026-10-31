@@ -214,15 +214,12 @@
   if (runPodButton && runPodNote) {
     runPodButton.addEventListener("click", async () => {
       runPodButton.disabled = true;
-      runPodNote.textContent = "Checking the configured RunPod connection through the authenticated server bridge…";
+      runPodNote.textContent = "Checking RunPod API access and current GPU inventory…";
       try {
         const result = await call("RUNPOD_CONNECTION_STATUS");
         const connection = result.connection || {};
-        const cost = Number.isFinite(connection.cost_per_hour_usd)
-          ? " Observed Pod rate: $" + connection.cost_per_hour_usd.toFixed(2) + "/hour."
-          : "";
         const messages = {
-          NOT_CONFIGURED: "RunPod connection is not configured in server secrets; no credentials are sent to the browser.",
+          NOT_CONFIGURED: "RunPod credentials are not configured in server secrets; no credentials are sent to the browser.",
           CONTROL_PLANE_UNREACHABLE: "The server could not reach RunPod’s control plane.",
           POD_METADATA_INVALID: "RunPod returned incomplete Pod details; the check failed closed.",
           POD_PROFILE_MISMATCH: "The configured Pod does not match the approved image/GPU profile.",
@@ -234,10 +231,19 @@
           WORKER_READY: "The configured Pod and authenticated animation worker are reachable. This check did not start a render; PMF admission and review gates still apply.",
         };
         let detail = messages[connection.state] || "RunPod connection status is unavailable.";
+        if (connection.state === "API_CONNECTED") {
+          const inventory = connection.inventory || {};
+          const candidate = inventory.selected_candidate;
+          detail = candidate
+            ? "RunPod API connected. Current inventory match: " + candidate.gpu_name
+              + " at $" + Number(candidate.estimated_allocated_total_hourly_usd ?? candidate.hourly_rate_usd).toFixed(2)
+              + "/hour with " + candidate.storage_gb + " GB storage. This is a live snapshot, not a reservation; no Pod was started and no render is ready."
+            : "RunPod API connected, but no currently listed GPU matches the $0.80/hour budget and 50 GB storage requirement. No Pod was started.";
+        }
         if (connection.state === "NOT_CONFIGURED" && Array.isArray(connection.missing) && connection.missing.length) {
           detail += " Missing server settings: " + connection.missing.join(", ") + ".";
         }
-        runPodNote.textContent = detail + cost;
+        runPodNote.textContent = detail;
         runPodNote.className = "fine";
       } catch (error) {
         runPodNote.textContent = (error?.message || "RunPod connection check failed") + ". No Pod was started or stopped.";
