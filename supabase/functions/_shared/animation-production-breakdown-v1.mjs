@@ -62,9 +62,17 @@ export function validateProductionBreakdown(outputType, draft, input = {}) {
   add("PRODUCTION_SCRIPT_COVERAGE", coverageOk,
     "Ordered scene script text must reproduce every channel segment exactly after whitespace normalization.");
   const totalDuration = scenes.reduce((sum, scene) => sum + (Number.isFinite(scene?.duration_seconds) ? scene.duration_seconds : 0), 0);
-  const maxDuration = input?.channel_policy?.output_spec?.max_total_duration_seconds;
-  add("PRODUCTION_DURATION_LIMIT", !Number.isFinite(maxDuration) || totalDuration <= maxDuration,
-    "The breakdown exceeds the registered total duration limit.");
+  const outputSpec = input?.channel_policy?.output_spec;
+  const minDuration = outputSpec?.min_total_duration_seconds;
+  const maxDuration = outputSpec?.max_total_duration_seconds;
+  const targetDuration = outputSpec?.target_total_duration_seconds;
+  add("PRODUCTION_DURATION_LIMIT", (!Number.isFinite(minDuration) || totalDuration >= minDuration)
+      && (!Number.isFinite(maxDuration) || totalDuration <= maxDuration),
+    "The breakdown falls outside the registered total duration range.");
+  if (Number.isFinite(targetDuration)) {
+    add("PRODUCTION_DURATION_TARGET", totalDuration === targetDuration,
+      "The breakdown must match the exact runtime allocated by the approved destination policy.");
+  }
   return {required:true, ok:gates.every(g => g.result === "PASS"), total_duration_seconds:totalDuration,
     scene_count:scenes.length, gates, failures:gates.filter(g => g.result === "FAIL")};
 }
