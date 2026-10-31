@@ -246,7 +246,7 @@ export async function requestPmfAnimationReviewUrl({
 }
 
 
-/** Signed read-only check of the configured RunPod control plane and worker API. */
+/** Signed read-only check of the adaptive RunPod control plane and worker API. */
 export async function readRunPodAnimationConnection({
   url, secret, keyId = KEY_ID, fetchImpl = fetch,
   now = Date.now(), nonce = crypto.randomUUID(),
@@ -277,7 +277,7 @@ export async function readRunPodAnimationConnection({
     "NOT_CONFIGURED", "CONTROL_PLANE_UNREACHABLE", "POD_METADATA_INVALID",
     "POD_PROFILE_MISMATCH", "COST_LIMIT_EXCEEDED", "POD_STOPPED",
     "WORKER_API_UNREACHABLE", "WORKER_API_UNHEALTHY",
-    "WORKER_CAPABILITY_CONTRACT_MISMATCH", "WORKER_READY",
+    "WORKER_CAPABILITY_CONTRACT_MISMATCH", "WORKER_READY", "API_CONNECTED",
   ];
   const controls = ["NOT_CONFIGURED", "UNREACHABLE", "CONNECTED"];
   const workers = ["NOT_CHECKED", "NOT_REACHABLE", "UNREACHABLE", "UNHEALTHY", "REACHABLE"];
@@ -296,6 +296,23 @@ export async function readRunPodAnimationConnection({
         || connection.missing.some(key => typeof key !== "string" || !/^PMF_RUNPOD_[A-Z_]+$|^RUNPOD_API_KEY$/.test(key)))) {
     throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
   }
+  let inventory = null;
+  if (connection.state === "API_CONNECTED") {
+    const value = connection.inventory;
+    if (connection.control_plane !== "CONNECTED" || connection.worker_api !== "NOT_CHECKED"
+        || connection.render_ready !== false || connection.gpu_count !== 1
+        || connection.worker_port !== 8765 || connection.max_hourly_usd !== 0.8
+        || connection.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
+        || !value || !["CANDIDATE_SELECTED", "NO_MATCHING_CANDIDATES"].includes(value.state)
+        || value.hard_max_hourly_usd !== 0.8 || value.applied_max_hourly_usd > 0.8
+        || value.required_storage_gb !== 50 || value.availability_guaranteed !== false
+        || !Array.isArray(value.candidates) || value.candidate_count !== value.candidates.length
+        || (value.state === "CANDIDATE_SELECTED" && !value.selected_candidate)
+        || (value.state === "NO_MATCHING_CANDIDATES" && (value.selected_candidate !== null || value.candidates.length !== 0))) {
+      throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
+    }
+    inventory = Object.freeze(value);
+  }
   return Object.freeze({
     state: connection.state,
     control_plane: connection.control_plane,
@@ -308,6 +325,14 @@ export async function readRunPodAnimationConnection({
     ...(Number.isFinite(connection.max_fps) ? { max_fps: connection.max_fps } : {}),
     ...(Number.isFinite(connection.max_seconds) ? { max_seconds: connection.max_seconds } : {}),
     ...(typeof connection.quality_approved === "boolean" ? { quality_approved: connection.quality_approved } : {}),
+    ...(inventory ? {
+      gpu_count: connection.gpu_count,
+      worker_port: connection.worker_port,
+      max_hourly_usd: connection.max_hourly_usd,
+      inventory,
+      dispatch: connection.dispatch,
+      note: typeof connection.note === "string" ? connection.note : "",
+    } : {}),
   });
 }
 
