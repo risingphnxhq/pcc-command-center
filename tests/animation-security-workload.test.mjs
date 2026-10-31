@@ -72,7 +72,7 @@ test("synthetic mixed channel workload verifies concurrent sources and blocks un
           const request = JSON.parse(init.body);
           assert.equal(request.action, "RESOLVE_POLICY");
           assert.equal(request.policy.policy_id, policy.policy_id);
-          await Promise.resolve();
+          await new Promise(resolve => setTimeout(resolve, 5));
           if (index === 7) {
             return response({
               ok: false,
@@ -125,6 +125,8 @@ test("synthetic handoff retries preserve the same request identity and held rece
     admission_snapshot: { render_dispatch: "DISABLED" },
   };
   const observedBodies = [];
+  const observedNonces = [];
+  let attempt = 0;
   const receipt = {
     request_id: requestId,
     state: "HELD_PMF_ADMISSION_REQUIRED",
@@ -134,10 +136,11 @@ test("synthetic handoff retries preserve the same request identity and held rece
   const fetchImpl = async (_endpoint, init) => {
     const request = JSON.parse(init.body);
     observedBodies.push(request);
+    observedNonces.push(init.headers["x-pcc-bridge-nonce"]);
     return response({ ok: true, receipt }, 202);
   };
   const send = () => postHeldAnimationHandoff({
-    url, secret, packet, fetchImpl, now: fixedTime, nonce: uuid(600),
+    url, secret, packet, fetchImpl, now: fixedTime, nonce: uuid(600 + attempt++),
   });
 
   const first = await send();
@@ -149,6 +152,7 @@ test("synthetic handoff retries preserve the same request identity and held rece
   assert.equal(observedBodies[0].action, "INTAKE_HELD");
   assert.equal(observedBodies[0].packet.request_id, requestId);
   assert.deepEqual(observedBodies[1], observedBodies[0]);
+  assert.notEqual(observedNonces[1], observedNonces[0], "retry should use a fresh anti-replay nonce");
   assert.equal(first.render_dispatch, "DISABLED");
   assert.equal(first.cep_enqueue, "DISABLED");
 });
