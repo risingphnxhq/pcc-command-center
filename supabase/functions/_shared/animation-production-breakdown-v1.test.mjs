@@ -40,3 +40,20 @@ test("fails output that exceeds the registered total duration",()=>{
  assert.equal(result.ok,false);
  assert.ok(result.failures.some(g=>g.id==="PRODUCTION_DURATION_LIMIT"));
 });
+
+test("requires an exact 25-minute scene plan for PHNX Phanimation PSN",()=>{
+ const segments=[{index:1,script:"A. B. C."}];
+ const makeScene=(scene_number,scene_script,duration_seconds)=>({...scene,scene_number,scene_script,duration_seconds});
+ const runtimePolicy={release_destination:"PHNX_PHANIMATION",
+  runtime_policy_psc_id:"PMF-FOUNDER-PSC-PHANIMATION-PSN-25-MINUTE-EPISODE-ALLOCATION-2026-10-31-001",
+  min_total_duration_seconds:1500,target_total_duration_seconds:1500,max_total_duration_seconds:1500};
+ const exact=[makeScene(1,"A.",500),makeScene(2,"B.",500),makeScene(3,"C.",500)];
+ const pass=validateProductionBreakdown("SERIES_EPISODE",{channel_segments:segments,production_breakdown:exact},{channel_policy:{output_spec:runtimePolicy}});
+ assert.equal(pass.ok,true);
+ for(const durations of [[500,500,499],[501,500,500]]){
+  const scenes=durations.map((duration,i)=>makeScene(i+1,["A.","B.","C."][i],duration));
+  const result=validateProductionBreakdown("SERIES_EPISODE",{channel_segments:segments,production_breakdown:scenes},{channel_policy:{output_spec:runtimePolicy}});
+  assert.equal(result.ok,false);
+  assert.ok(result.failures.some(g=>g.id==="PRODUCTION_DURATION_TARGET"));
+ }
+});
