@@ -21,6 +21,7 @@ const job = {
     },
   },
   review_receipt: { state: "SCRIPT_REVIEW_PASSED", receipts: [{ decision: "PASS" }] },
+  request_payload: { approved_channel_policy_snapshot: { output_spec: { minimum_segments:1, maximum_segments:12 } } },
   pmf_job_ref: null, pve_job_ref: null, png_job_ref: null, render_job_ref: null,
 };
 
@@ -57,6 +58,7 @@ test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () =>
   assert.equal(packet.approved_policy.knoas_revision, "rev-9");
   assert.equal(packet.writer_master_and_segments, job.script_bundle);
   assert.equal(packet.policy_source_verification, job.script_bundle.policy_source_verification);
+  assert.deepEqual(packet.approved_policy.output_spec, job.request_payload.approved_channel_policy_snapshot.output_spec);
   assert.equal(packet.reviewer_receipt, job.review_receipt);
   assert.deepEqual(packet.production_context, { series_context: "", context_notes: "", desired_ending_or_action: "" });
   assert.equal(packet.state, "HELD_PMF_ADMISSION_REQUIRED");
@@ -72,4 +74,10 @@ test("blocks handoff when any source approval or QA receipt is missing", () => {
   assert.throws(() => validateHandoffSource({ ...job, review_receipt: null }), /REVIEWER_RECEIPT_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: null } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: { ...job.script_bundle.policy_source_verification, knoas_revision: "stale" } } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
+  const noOutputSpec={...job,request_payload:{approved_channel_policy_snapshot:{output_spec:null}}};
+  assert.throws(()=>validateHandoffSource(noOutputSpec),/APPROVED_OUTPUT_SPEC_REQUIRED/);
+  const noEpisodeRuntime={...job,output_type:"SERIES_EPISODE",
+    script_bundle:{...job.script_bundle,policy_source_verification:{...job.script_bundle.policy_source_verification,output_type:"SERIES_EPISODE"}},
+    request_payload:{approved_channel_policy_snapshot:{output_spec:{}}}};
+  assert.throws(()=>validateHandoffSource(noEpisodeRuntime),/APPROVED_EPISODE_RUNTIME_POLICY_REQUIRED/);
 });
