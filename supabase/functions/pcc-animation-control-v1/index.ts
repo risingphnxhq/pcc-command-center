@@ -70,7 +70,7 @@ async function resolveLiveAnimationPolicy(
 ) {
   const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
   const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-  const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+  const bridgeKeyId = "pcc-animation-v1";
   if (!bridgeUrl || !bridgeSecret) throw new Error("ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED");
   return await resolveTrustedAnimationPolicy({
     request,
@@ -195,7 +195,7 @@ Deno.serve(async (req: Request) => {
     catch (error) { return json(400, { error: error instanceof Error ? error.message : "ANIMATION_POLICY_INVALID" }); }
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
     registeredPolicy.policy_id = crypto.randomUUID();
     const candidate = { ...registeredPolicy, approved: true, revoked: false };
@@ -244,7 +244,7 @@ Deno.serve(async (req: Request) => {
     }
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "RUNPOD_AVAILABILITY_NOT_CONFIGURED" });
     const scheduled = payload.scheduled === true;
     try {
@@ -263,7 +263,7 @@ Deno.serve(async (req: Request) => {
     }
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "RUNPOD_AVAILABILITY_NOT_CONFIGURED" });
     try {
       const availability = await readLatestRunPodAvailabilitySnapshot({
@@ -281,7 +281,7 @@ Deno.serve(async (req: Request) => {
     }
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) {
       return json(503, { error: "RUNPOD_CONNECTION_CHECK_NOT_CONFIGURED", render_ready: false });
     }
@@ -299,7 +299,7 @@ Deno.serve(async (req: Request) => {
     if (!roles.has("REQUEST") && !roles.has("REVIEW") && !roles.has("HANDOFF") && !roles.has("ADMIN")) return json(403, { error: "ANIMATION_REQUEST_ROLE_REQUIRED" });
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) {
       return json(503, { error: "PMF_PRODUCTION_READINESS_NOT_CONFIGURED", render_dispatch: "DISABLED" });
     }
@@ -341,7 +341,7 @@ Deno.serve(async (req: Request) => {
     }
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "PMF_REVIEW_PREVIEW_NOT_CONFIGURED" });
     try {
       const preview = await requestPmfAnimationReviewUrl({
@@ -617,7 +617,7 @@ Deno.serve(async (req: Request) => {
 
     const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
-    const bridgeKeyId = Deno.env.get("PCC_PMF_BRIDGE_KEY_ID") ?? "pcc-animation-v1";
+    const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) {
       return json(200, { ok: true, job: data, handoff_state: data.handoff_state,
         pmf_intake_state: "NOT_CONFIGURED", render_dispatch: "DISABLED" });
