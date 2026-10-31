@@ -76,6 +76,8 @@ test("blocks handoff when any source approval or QA receipt is missing", () => {
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: { ...job.script_bundle.policy_source_verification, knoas_revision: "stale" } } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
   const noOutputSpec={...job,request_payload:{approved_channel_policy_snapshot:{output_spec:null}}};
   assert.throws(()=>validateHandoffSource(noOutputSpec),/APPROVED_OUTPUT_SPEC_REQUIRED/);
-  const noEpisodeRuntime={...job,output_type:"SERIES_EPISODE",request_payload:{approved_channel_policy_snapshot:{output_spec:{}}}};
+  const noEpisodeRuntime={...job,output_type:"SERIES_EPISODE",
+    script_bundle:{...job.script_bundle,policy_source_verification:{...job.script_bundle.policy_source_verification,output_type:"SERIES_EPISODE"}},
+    request_payload:{approved_channel_policy_snapshot:{output_spec:{}}}};
   assert.throws(()=>validateHandoffSource(noEpisodeRuntime),/APPROVED_EPISODE_RUNTIME_POLICY_REQUIRED/);
 });
