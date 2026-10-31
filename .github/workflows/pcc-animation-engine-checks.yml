@@ -9,6 +9,7 @@ on:
       - 'supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs'
       - 'supabase/pcc-migrations/20261029_pcc_animation_z_replenishment_alert_v1.sql'
       - 'tests/animation-engine-inventory.test.mjs'
+      - 'tests/animation-security-workload.test.mjs'
       - '.github/workflows/pcc-animation-engine-checks.yml'
   workflow_dispatch:
 jobs:
@@ -19,6 +20,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/animation-engine-inventory.test.mjs supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs
+      - run: node --test tests/animation-engine-inventory.test.mjs tests/animation-security-workload.test.mjs supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs
       - name: Parse PCC Animation Engine browser runtime
         run: node --check pcc-animation-engine.js
