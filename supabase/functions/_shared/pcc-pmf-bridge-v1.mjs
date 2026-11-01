@@ -45,6 +45,47 @@ function validPolicy(policy) {
     && typeof policy.policy_id === "string";
 }
 
+/** Resolve the non-secret PCC policy UUID from its canonical approval PSC. */
+export async function resolveCanonicalAnimationPolicyId({
+  url, secret, keyId = KEY_ID, approvalPscId, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32
+      || typeof approvalPscId !== "string" || approvalPscId.length < 3 || approvalPscId.length > 160) {
+    throw new Error("ANIMATION_POLICY_ID_RESOLVER_INPUT_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action: "RESOLVE_POLICY_ID",
+    approval_psc_id: approvalPscId,
+  });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_POLICY_ID_RESOLVER_RESPONSE_INVALID"); }
+  if (!response.ok || result?.ok !== true
+      || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== "RESOLVE_POLICY_ID"
+      || result?.approval_psc_id !== approvalPscId
+      || typeof result?.policy_id !== "string"
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(result.policy_id)) {
+    throw new Error("ANIMATION_POLICY_APPROVAL_PSC_ID_NOT_RESOLVED");
+  }
+  return result.policy_id;
+}
+
 /** Read-only signed PMF call. A missing or mismatched source blocks script writing. */
 export async function resolveVerifiedAnimationPolicySource({
   url, secret, keyId = KEY_ID, policy, fetchImpl = fetch,
@@ -90,9 +131,14 @@ export async function resolveVerifiedAnimationPolicySource({
     evidence_psc_ids: [policy.approval_psc_id, policy.boas_psc_id, policy.knoas_psc_id],
     registry_state: "ACTIVE",
   };
-  if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1" || !same(verified, expected)) {
-    throw new Error("ANIMATION_POLICY_SOURCE_NOT_VERIFIED");
+  if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1") {
+    const reported = typeof result?.reason === "string" ? result.reason : result?.error;
+    const safeCode = typeof reported === "string"
+      && /^(?:ANIMATION_POLICY_[A-Z0-9_]{1,72}|PCC_PMF_BRIDGE_(?:AUTHENTICATION_FAILED|NOT_CONFIGURED)|PSC_SOURCE_READ_FAILED|BOAS_REGISTRY_READ_FAILED)$/.test(reported)
+      ? reported : "ANIMATION_POLICY_SOURCE_NOT_VERIFIED";
+    throw new Error(safeCode);
   }
+  if (!same(verified, expected)) throw new Error("ANIMATION_POLICY_SOURCE_RESPONSE_BINDING_MISMATCH");
   return verified;
 }
 
@@ -303,15 +349,21 @@ export async function readRunPodAnimationConnection({
         || connection.render_ready !== false || connection.gpu_count !== 1
         || connection.worker_port !== 8765 || connection.max_hourly_usd !== 0.8
         || connection.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
-        || !value || !["CANDIDATE_SELECTED", "NO_MATCHING_CANDIDATES"].includes(value.state)
+        || !value || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(value.state)
         || value.hard_max_hourly_usd !== 0.8 || value.applied_max_hourly_usd > 0.8
         || value.required_storage_gb !== 50 || value.availability_guaranteed !== false
         || !Array.isArray(value.candidates) || value.candidate_count !== value.candidates.length
-        || (value.state === "CANDIDATE_SELECTED" && !value.selected_candidate)
-        || (value.state === "NO_MATCHING_CANDIDATES" && (value.selected_candidate !== null || value.candidates.length !== 0))) {
+        || (value.state === "NO_MATCHING_CANDIDATES" && value.candidates.length !== 0)
+        || (value.state === "CANDIDATES_FOUND" && value.candidates.length === 0)) {
       throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
     }
-    inventory = Object.freeze(value);
+    const publicCandidates = value.candidates.map(({storage_volume_id: _storageVolumeId, ...candidate}) => Object.freeze(candidate));
+    inventory = Object.freeze({
+      ...value,
+      state: publicCandidates.length ? "CANDIDATE_SELECTED" : "NO_MATCHING_CANDIDATES",
+      candidates: Object.freeze(publicCandidates),
+      selected_candidate: publicCandidates[0] ?? null,
+    });
   }
   return Object.freeze({
     state: connection.state,
@@ -380,18 +432,25 @@ export async function searchRunPodGpuAvailability({
       || result?.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
       || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
       || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
-      || inventory.required_storage_gb !== 50 || !Array.isArray(inventory.candidates)
+      || inventory.required_storage_gb !== 50 || inventory.availability_guaranteed !== false
+      || !Array.isArray(inventory.candidates)
       || inventory.candidate_count !== inventory.candidates.length
+      || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
+      || (inventory.state === "CANDIDATES_FOUND" && inventory.candidates.length === 0)
       || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
         || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
-        || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0 || item.hourly_rate_usd > 0.8
+        || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0
+        || !Number.isFinite(item.estimated_pod_hourly_usd) || item.estimated_pod_hourly_usd > 0.8
         || !Number.isFinite(item.storage_gb) || item.storage_gb < 50
-        || item.storage_match !== "EXISTING_NETWORK_VOLUME" || item.availability_scope !== "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED" || item.availability_guaranteed !== false)) {
+        || item.storage_match !== "EXISTING_NETWORK_VOLUME" || item.availability_scope !== "GPU_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED"
+        || item.availability_guaranteed !== false)) {
     throw new Error("RUNPOD_AVAILABILITY_RESPONSE_INVALID");
   }
+  const publicCandidates = inventory.candidates.map(({storage_volume_id: _storageVolumeId, ...candidate}) => Object.freeze(candidate));
+  const publicInventory = Object.freeze({...inventory, candidates: Object.freeze(publicCandidates)});
   return Object.freeze({
-    state: inventory.state,
-    inventory: Object.freeze(inventory),
+    state: publicInventory.state,
+    inventory: publicInventory,
     schedule: result.schedule ?? null,
     dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
   });
@@ -451,7 +510,7 @@ export async function readLatestRunPodAvailabilitySnapshot({
         || !Number.isFinite(item.storage_gb) || item.storage_gb < 50
         || item.storage_match !== "EXISTING_NETWORK_VOLUME"
         || item.availability_guaranteed !== false
-        || item.availability_scope !== "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED")
+        || item.availability_scope !== "GPU_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED")
       || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
       || (inventory.state === "CANDIDATES_FOUND" && inventory.candidates.length === 0)
       || !Array.isArray(inventory.warnings) || inventory.warnings.some(item => typeof item !== "string")) {
