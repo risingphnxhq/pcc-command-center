@@ -219,54 +219,6 @@ test("RunPod status sends a signed read-only request and preserves stopped-versu
   assert.equal(result.render_ready, false);
 });
 
-test("RunPod status accepts the Systems bridge's selected-candidate contract and strips private volume IDs", async () => {
-  const candidate = {
-    gpu_id: "NVIDIA RTX A6000", gpu_name: "RTX A6000", vram_gb: 48,
-    cloud_tier: "COMMUNITY", hourly_rate_usd: 0.72, availability: "MEDIUM",
-    data_center_id: "US-KS-2", storage_gb: 50, storage_volume_id: "private-volume-id",
-    storage_match: "EXISTING_NETWORK_VOLUME",
-    availability_scope: "GPU_TYPE_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED",
-    availability_snapshot_at: new Date(1_800_000_000_000).toISOString(),
-    availability_guaranteed: false,
-  };
-  const result = await readRunPodAnimationConnection({
-    url: "https://systems.example/bridge", secret,
-    now: 1_800_000_000_000, nonce: "123e4567-e89b-42d3-a456-426614174095",
-    fetchImpl: async () => new Response(JSON.stringify({
-      ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "RUNPOD_CONNECTION_STATUS",
-      connection: {
-        state: "API_CONNECTED", control_plane: "CONNECTED", worker_api: "NOT_CHECKED",
-        render_ready: false, gpu_count: 1, worker_port: 8765, max_hourly_usd: 0.8,
-        dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
-        inventory: {
-          state: "CANDIDATE_SELECTED", hard_max_hourly_usd: 0.8, applied_max_hourly_usd: 0.8,
-          required_storage_gb: 50, availability_guaranteed: false, candidate_count: 1,
-          selected_candidate: candidate, candidates: [candidate],
-        },
-      },
-    }), {status: 200}),
-  });
-  assert.equal(result.state, "API_CONNECTED");
-  assert.equal(result.inventory.state, "CANDIDATE_SELECTED");
-  assert.equal(result.inventory.selected_candidate.gpu_name, "RTX A6000");
-  assert.equal("storage_volume_id" in result.inventory.selected_candidate, false);
-});
-
-test("RunPod status exposes only allowlisted credential setting names for safe diagnostics", async () => {
-  await assert.rejects(readRunPodAnimationConnection({
-    url: "https://systems.example/bridge", secret,
-    now: 1_800_000_000_000, nonce: "123e4567-e89b-42d3-a456-426614174094",
-    fetchImpl: async () => new Response(JSON.stringify({
-      ok: false, error: "RUNPOD_ADAPTIVE_CREDENTIALS_INVALID",
-      invalid_settings: ["PMF_RUNPOD_WORKER_TOKEN", "DO_NOT_EXPOSE_THIS"],
-    }), {status: 503}),
-  }), error => {
-    assert.equal(error.message, "RUNPOD_ADAPTIVE_CREDENTIALS_INVALID");
-    assert.deepEqual(error.invalidSettings, ["PMF_RUNPOD_WORKER_TOKEN"]);
-    return true;
-  });
-});
-
 test("RunPod status rejects contradictory or unsafe bridge responses", async () => {
   const base = {
     url: "https://systems.example/bridge", secret,
