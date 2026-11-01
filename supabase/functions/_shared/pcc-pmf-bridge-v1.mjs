@@ -490,3 +490,76 @@ export async function readLatestRunPodAvailabilitySnapshot({
     dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
   });
 }
+
+
+/** Signed Corporate-to-Systems runtime admission/read request. It never starts a Pod. */
+export async function invokePmfProductionRuntime({
+  url, secret, keyId = KEY_ID, runtimeAction, packet, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+} = {}) {
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32
+      || !["REGISTER","READ"].includes(runtimeAction)
+      || !packet || typeof packet !== "object" || Array.isArray(packet)
+      || typeof fetchImpl !== "function") throw new Error("PMF_PRODUCTION_RUNTIME_REQUEST_INVALID");
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action: "PRODUCTION_RUNTIME",
+    payload: { runtime_action: runtimeAction, packet },
+  });
+  if (new TextEncoder().encode(body).byteLength > 262144) throw new Error("PMF_PRODUCTION_RUNTIME_PACKET_INVALID");
+  const timestamp = String(now);
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": timestamp,
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_PRODUCTION_RUNTIME_RESPONSE_INVALID"); }
+  if (!response.ok || result?.ok !== true || result?.action !== "PRODUCTION_RUNTIME"
+      || !result?.result || typeof result.result !== "object") {
+    const code = typeof result?.error === "string" && /^PMF_[A-Z0-9_]{1,96}$/.test(result.error)
+      ? result.error : "PMF_PRODUCTION_RUNTIME_UNAVAILABLE";
+    throw new Error(code);
+  }
+  return result.result;
+}
+
+/** Authenticated Pod-to-Systems poll. Only worker lifecycle actions are accepted. */
+export async function callPmfWorkerRuntime({
+  url, workerToken, workerAction, packet = {}, fetchImpl = fetch,
+} = {}) {
+  if (typeof workerToken !== "string" || workerToken.length < 32 || workerToken.length > 512
+      || !["CLAIM_NEXT","READ","CLAIM","RECORD_CHECKPOINT","COMPLETE","PAUSE","FAIL"].includes(workerAction)
+      || !packet || typeof packet !== "object" || Array.isArray(packet)
+      || typeof fetchImpl !== "function") throw new Error("PMF_WORKER_RUNTIME_REQUEST_INVALID");
+  const endpoint = validateHttpsEndpoint(url);
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action: "WORKER_RUNTIME",
+    payload: { worker_action: workerAction, packet },
+  });
+  if (new TextEncoder().encode(body).byteLength > 262144) throw new Error("PMF_WORKER_RUNTIME_REQUEST_INVALID");
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: "Bearer " + workerToken },
+    body,
+    signal: AbortSignal.timeout(30_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_WORKER_RUNTIME_RESPONSE_INVALID"); }
+  if (!response.ok || result?.ok !== true || result?.action !== "WORKER_RUNTIME") {
+    const code = typeof result?.error === "string" && /^PMF_[A-Z0-9_]{1,96}$/.test(result.error)
+      ? result.error : "PMF_WORKER_RUNTIME_UNAVAILABLE";
+    throw new Error(code);
+  }
+  return result.result;
+}
