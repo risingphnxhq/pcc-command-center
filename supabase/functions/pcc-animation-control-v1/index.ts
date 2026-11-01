@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -292,6 +292,38 @@ Deno.serve(async (req: Request) => {
       return json(200, { ok: true, connection, dispatch: "READ_ONLY" });
     } catch {
       return json(503, { error: "RUNPOD_CONNECTION_STATUS_UNAVAILABLE", render_ready: false });
+    }
+  }
+
+
+  if (action === "PMF_PRODUCTION_RUNTIME") {
+    if (!roles.has("ADMIN")) return json(403, { error: "ANIMATION_PRODUCTION_ADMIN_REQUIRED" });
+    const runtimeAction = text(payload.runtime_action, 32)?.toUpperCase() ?? "";
+    if (!["REGISTER","READ"].includes(runtimeAction)) return json(400, { error: "PMF_PRODUCTION_RUNTIME_ACTION_INVALID" });
+    const packet = payload.packet && !Array.isArray(payload.packet) && typeof payload.packet === "object"
+      ? { ...(payload.packet as Record<string, unknown>) } : null;
+    if (!packet) return json(400, { error: "PMF_PRODUCTION_RUNTIME_PACKET_REQUIRED" });
+    if (runtimeAction === "REGISTER") packet.operator_subject = userData.user.id;
+    if (runtimeAction === "READ") {
+      const executionId = text(packet.execution_id, 36);
+      if (!executionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(executionId)) {
+        return json(400, { error: "PMF_PRODUCTION_EXECUTION_ID_REQUIRED" });
+      }
+      packet.execution_id = executionId;
+    }
+    const bridgeUrl = Deno.env.get("PCC_PMF_BRIDGE_URL") ?? "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
+    const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    if (!bridgeUrl || !bridgeSecret) return json(503, { error: "PCC_PMF_BRIDGE_NOT_CONFIGURED" });
+    try {
+      const result = await invokePmfProductionRuntime({
+        url: bridgeUrl, secret: bridgeSecret, keyId: "pcc-animation-v1",
+        runtimeAction, packet,
+      });
+      return json(runtimeAction === "REGISTER" ? 202 : 200, { ok: true, runtime: result, dispatch: "GATED_BY_SYSTEMS_ADMISSION" });
+    } catch (error) {
+      const code = error instanceof Error && /^PMF_[A-Z0-9_]{1,96}$/.test(error.message)
+        ? error.message : "PMF_PRODUCTION_RUNTIME_UNAVAILABLE";
+      return json(409, { error: code, dispatch: "GATED_BY_SYSTEMS_ADMISSION" });
     }
   }
 
