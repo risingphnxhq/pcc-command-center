@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveCanonicalAnimationPolicyId, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -90,10 +90,9 @@ async function resolveLiveAnimationPolicy(
 
 function policyErrorResponse(error: unknown) {
   const code = error instanceof Error ? error.message : "ANIMATION_POLICY_SOURCE_RESOLVER_UNAVAILABLE";
-  if (code === "ANIMATION_POLICY_SOURCE_NOT_VERIFIED" || code === "REGISTERED_CHANNEL_POLICY_REQUIRED"
-      || code === "REGISTERED_CHANNEL_POLICY_MISMATCH" || code === "ANIMATION_POLICY_SNAPSHOT_STALE"
-      || code === "POLICY_SOURCE_SCOPE_MISMATCH") {
-    return { status: 409, error: code };
+  if (/^(?:ANIMATION_POLICY_[A-Z0-9_]{1,72}|REGISTERED_CHANNEL_POLICY_REQUIRED|REGISTERED_CHANNEL_POLICY_MISMATCH|POLICY_SOURCE_SCOPE_MISMATCH|PSC_SOURCE_READ_FAILED|BOAS_REGISTRY_READ_FAILED|PCC_PMF_BRIDGE_AUTHENTICATION_FAILED|PCC_PMF_BRIDGE_NOT_CONFIGURED)$/.test(code)) {
+    const status = /(?:NOT_CONFIGURED|READ_FAILED)$/.test(code) ? 503 : 409;
+    return { status, error: code };
   }
   if (code === "ANIMATION_POLICY_RESOLVER_BINDINGS_REQUIRED") return { status: 400, error: code };
   if (code === "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" || code === "PMF_BRIDGE_CONFIGURATION_INVALID") {
@@ -197,7 +196,17 @@ Deno.serve(async (req: Request) => {
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
     const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
-    registeredPolicy.policy_id = crypto.randomUUID();
+    try {
+      registeredPolicy.policy_id = await resolveCanonicalAnimationPolicyId({
+        url: bridgeUrl,
+        secret: bridgeSecret,
+        keyId: bridgeKeyId,
+        approvalPscId: registeredPolicy.approval_psc_id,
+      });
+    } catch (error) {
+      const failure = policyErrorResponse(error);
+      return json(failure.status, { error: failure.error });
+    }
     const candidate = { ...registeredPolicy, approved: true, revoked: false };
     try {
       await resolveTrustedAnimationPolicy({
