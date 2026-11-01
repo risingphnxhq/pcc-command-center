@@ -85,13 +85,20 @@
         ANIMATION_RENDER_REVIEW_ROLE_REQUIRED: "Your PCC role does not include render review.",
         ANIMATION_RENDER_NOT_READY_FOR_REVIEW: "This request does not have a verified private PMF render awaiting review.",
         PMF_REVIEW_PREVIEW_NOT_CONFIGURED: "The private PMF review connection is not configured.",
+        RUNPOD_ADAPTIVE_CREDENTIALS_INVALID: "Systems has RunPod settings, but one or more values do not meet the approved format requirements.",
+        RUNPOD_AVAILABILITY_HTTP_401: "RunPod rejected the saved API credential while searching inventory (HTTP 401). The key is present but provider authentication failed.",
+        RUNPOD_STORAGE_HTTP_401: "RunPod rejected the saved API credential while reading network storage (HTTP 401). The key is present but provider authentication failed.",
         PMF_REVIEW_PREVIEW_UNAVAILABLE: "PCC could not verify a private preview URL. The artifact remains private.",
         PCC_RENDER_PREVIEW_RECEIPT_FAILED: "PCC could not save the review access receipt. The video remains private.",
         PCC_RENDER_REVIEW_PREVIEW_REQUIRED: "Preview this exact render in PCC before recording your review.",
         PCC_RENDER_REVIEW_ARGUMENT_INVALID: "Add a review decision and notes, then submit again.",
         PCC_RENDER_REVIEW_SAVE_FAILED: "PCC could not save this render review decision.",
       };
-      throw new Error(messages[result.error] || result.error || "PCC request failed ("+response.status+").");
+      const invalidSettings = Array.isArray(result.invalid_settings)
+        ? result.invalid_settings.filter((key) => key === "RUNPOD_API_KEY" || key === "PMF_RUNPOD_WORKER_TOKEN")
+        : [];
+      const suffix = invalidSettings.length ? " Invalid Systems setting names: " + invalidSettings.join(", ") + "." : "";
+      throw new Error((messages[result.error] || result.error || "PCC request failed ("+response.status+").") + suffix);
     }
     return result;
   }
