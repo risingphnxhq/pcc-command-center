@@ -34,6 +34,16 @@ test("resolves exact current policy and returns immutable snapshot plus source r
  assert.equal(result.snapshot.policy_id,makePolicy().policy_id);
  assert.equal(result.verification.status,"VERIFIED");
 });
+test("passes request source scope to the authoritative policy lookup",async()=>{
+ const scope={saga_id:"OCS",book_id:"OCS-BOOK-1",chapter_number:"1"};
+ let match;
+ await resolveTrustedAnimationPolicy({
+  request:{...request(),source_scope:scope},
+  resolveRegisteredPolicy:async value=>{match=value;return makePolicy();},
+  verifySource:async()=>verification(makePolicy()),
+ });
+ assert.deepEqual(match,{channel_key:"phnx_kids",output_type:"SERIES_EPISODE",production_intent:"NARRATIVE",source_scope:scope});
+});
 test("fails closed for absent or unapproved registry policy",async()=>{
  await assert.rejects(()=>run({raw:null}),/REGISTERED_CHANNEL_POLICY_REQUIRED/);
  await assert.rejects(()=>run({raw:{...makePolicy(),approved:false}}),/REGISTERED_CHANNEL_POLICY_REQUIRED/);
