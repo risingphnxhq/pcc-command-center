@@ -43,10 +43,10 @@ function producerFor(kind, operation) {
 }
 
 function placementProducer(placement, operation) {
-  if (placement?.destination_type === "PSN_CATALOG") {
+  if (placement?.destination_type === "PSN_CATALOG" && placement.platform === "PSN") {
     return operation === "DISTRIBUTE" ? ["PMF_RESULT_INTAKE", "PSN_RELEASE"] : operation === "AUTHOR" ? [] : ["PSN_CATALOG"];
   }
-  if (placement?.destination_type === "SPIDER_YOUTUBE") return ["SPIDER_DISTRIBUTION"];
+  if (placement?.destination_type === "SPIDER_YOUTUBE" && placement.platform === "YOUTUBE") return ["SPIDER_DISTRIBUTION"];
   return [];
 }
 export function resolveOutputRoute(input = {}) {
