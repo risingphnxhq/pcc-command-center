@@ -30,7 +30,7 @@ Idempotency is scoped to authenticated subject and runtime lane. A reused key wi
 
 ## Boundaries and dependencies
 
-OpenAI GPT Actions can call external APIs, and ChatGPT supports attached file/image inputs, but those are distinct data paths. The Action submits JSON and returns signed upload instructions; a client capable of accessing and transferring actual binary bytes must perform the upload. A PCC browser uploader and per-GPT authorization setup remain follow-on integration tasks. No service-role secret or machine identity may be placed in a GPT.
+OpenAI GPT Actions can call external APIs, and ChatGPT supports attached file/image inputs, but those are distinct data paths. The Action submits JSON and returns signed upload instructions. The PCC browser intake surface at `workspace-intake.html` accepts local binary files and transfers them to the private signed URL; it is linked from Systems Console. A GPT Action does not transfer generated binary bytes by itself, so generated files must be available to an upload-capable client. Per-GPT Action authorization setup remains an operator configuration step. No service-role secret or machine identity may be placed in a GPT.
 
 ## Verification / current state
 
@@ -38,4 +38,4 @@ Schema and function were deployed to Systems project `oyjmpbuxvfxusmbouldi` on 2
 
 ## Next authorized build step
 
-Build the PCC review/uploader surface that obtains a user session, presents the new intake queue and receipt, and transfers actual files to the signed private-storage URL. Then run synthetic authenticated submit, replay conflict, hash mismatch, and successful finalization checks. Keep all records held for PCC triage and do not enable production routing or publishing as part of those tests.
+Configure each GPT Action with a user-authorized token path. Then run synthetic authenticated submit, replay conflict, hash mismatch, and successful finalization checks. Build a PCC review queue that lists and adjudicates held submissions only through its own governed authority; keep production routing and publishing disabled. Keep all records held for PCC triage and do not enable production routing or publishing as part of those tests.
