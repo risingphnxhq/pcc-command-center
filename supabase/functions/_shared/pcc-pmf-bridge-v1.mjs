@@ -490,3 +490,40 @@ export async function readLatestRunPodAvailabilitySnapshot({
     dispatch: "READ_ONLY_NO_RESERVATION_NO_START",
   });
 }
+
+const PHANIMATION_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+async function callPhanimationPreparation({action,url,secret,keyId=KEY_ID,pccRequestId,pccJobId,fetchImpl=fetch,now=Date.now(),nonce=crypto.randomUUID()}){
+ if(keyId!==KEY_ID||typeof secret!=="string"||secret.length<32)throw new Error("PMF_BRIDGE_CONFIGURATION_INVALID");
+ if(!PHANIMATION_UUID.test(pccRequestId??"")||!PHANIMATION_UUID.test(pccJobId??"")||pccRequestId!==pccJobId)
+  throw new Error("PMF_PHANIMATION_PREPARE_REQUEST_INVALID");
+ const endpoint=validateHttpsEndpoint(url);
+ if(endpoint.search||endpoint.hash)throw new Error("PMF_BRIDGE_URL_INVALID");
+ const payload={request_id:pccRequestId,pcc_job_id:pccJobId};
+ const body=JSON.stringify({protocol:"pcc-pmf-animation-bridge/v1",action,payload});
+ const signature=await sign(secret,now,nonce,body);
+ const response=await fetchImpl(endpoint.toString(),{method:"POST",headers:{
+  "content-type":"application/json","x-pcc-bridge-key-id":keyId,
+  "x-pcc-bridge-timestamp":String(now),"x-pcc-bridge-nonce":nonce,"x-pcc-bridge-signature":signature,
+ },body,signal:AbortSignal.timeout(15_000)});
+ let result;
+ try{result=await response.json();}catch{throw new Error("PMF_PHANIMATION_PREPARE_RESPONSE_INVALID");}
+ if(!response.ok||result?.ok!==true||result?.protocol!=="pcc-pmf-animation-bridge/v1"||result?.render_dispatch!=="DISABLED"){
+  const code=typeof result?.error==="string"?result.error:"PMF_PHANIMATION_PREPARE_REQUEST_FAILED";
+  throw new Error(code);
+ }
+ const status=result.preparation;
+ const states=action==="REQUEST_PHANIMATION_BATCH_PREPARATION"
+  ?["QUEUED","CLAIMED","PREPARED","BLOCKED"]:["NOT_FOUND","QUEUED","CLAIMED","PREPARED","BLOCKED"];
+ if(!status||!states.includes(status.state)||status.render_dispatch!=="DISABLED"
+   ||(status.state!=="NOT_FOUND"&&(status.pcc_request_id!==pccRequestId||status.pcc_job_id!==pccJobId)))
+  throw new Error("PMF_PHANIMATION_PREPARE_RESPONSE_INVALID");
+ return Object.freeze(status);
+}
+/** Request (idempotently) a held Systems episode-preparation batch. */
+export function requestPmfPhanimationBatchPreparation(args={}){
+ return callPhanimationPreparation({...args,action:"REQUEST_PHANIMATION_BATCH_PREPARATION"});
+}
+/** Read the held episode-preparation queue without supplying source references. */
+export function readPmfPhanimationBatchPreparation(args={}){
+ return callPhanimationPreparation({...args,action:"READ_PHANIMATION_BATCH_PREPARATION"});
+}

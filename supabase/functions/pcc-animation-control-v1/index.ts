@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, requestPmfPhanimationBatchPreparation, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
@@ -646,6 +646,66 @@ Deno.serve(async (req: Request) => {
     }
     return json(202, { ok: true, job: recorded.data, handoff_state: recorded.data.handoff_state,
       pmf_intake_state: "HELD_PMF_ADMISSION_REQUIRED", render_dispatch: "DISABLED" });
+  }
+
+  if (action === "PREPARE_PHANIMATION_BATCH") {
+    if (!roles.has("HANDOFF") && !roles.has("ADMIN")) return json(403,{error:"ANIMATION_HANDOFF_ROLE_REQUIRED"});
+    const jobId=text(payload.job_id,36);
+    if (!jobId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(jobId))
+      return json(400,{error:"ANIMATION_JOB_ID_INVALID"});
+    const service=createClient(supabaseUrl,serviceRoleKey,{auth:{persistSession:false,autoRefreshToken:false}});
+    const {data:job,error:readError}=await service.rpc("pcc_animation_job_control_v1",{
+      p_action:"READ",p_subject:userData.user.id,p_payload:{job_id:jobId,can_review:true},
+    });
+    if(readError||!job)return json(404,{error:"ANIMATION_JOB_NOT_FOUND"});
+    if(job.channel_key!=="phnx_phanimation"||job.output_type!=="SERIES_EPISODE")
+      return json(409,{error:"PHANIMATION_SERIES_EPISODE_REQUIRED",render_dispatch:"DISABLED"});
+    if(job.status!=="SCRIPT_REVIEW_PASSED")
+      return json(409,{error:"SCRIPT_REVIEW_PASS_REQUIRED",render_dispatch:"DISABLED"});
+    const heldReceipt=job.handoff_receipt?.pmf_intake_receipt;
+    if(job.handoff_state!=="HELD_PMF_ADMISSION_REQUIRED"||!heldReceipt
+      ||heldReceipt.request_id!==job.job_id
+      ||heldReceipt.state!=="HELD_PMF_ADMISSION_REQUIRED"
+      ||heldReceipt.render_dispatch!=="DISABLED"||heldReceipt.cep_enqueue!=="DISABLED")
+      return json(409,{error:"PMF_HELD_INTAKE_RECEIPT_REQUIRED",render_dispatch:"DISABLED"});
+    let trustedPolicy: Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
+    try {
+      const snapshot=job.request_payload?.approved_channel_policy_snapshot;
+      if(!snapshot)return json(409,{error:"ANIMATION_POLICY_SNAPSHOT_REQUIRED",render_dispatch:"DISABLED"});
+      trustedPolicy=await resolveLiveAnimationPolicy(service,userData.user.id,{
+        channel_key:job.channel_key,output_type:job.output_type,production_intent:job.production_intent,
+      },snapshot);
+    } catch(error) {
+      const failure=policyErrorResponse(error);
+      return json(failure.status,{error:failure.error,render_dispatch:"DISABLED"});
+    }
+    const policy=trustedPolicy.policy as Record<string,unknown>;
+    if(job.channel_policy_id!==policy.policy_id||job.channel_policy_revision!==policy.policy_revision
+      ||job.channel_policy_approval_psc_id!==policy.approval_psc_id
+      ||job.boas_id!==policy.boas_id||job.boas_revision!==policy.boas_revision
+      ||job.boas_psc_id!==policy.boas_psc_id||job.knoas_id!==policy.knoas_id
+      ||job.knoas_revision!==policy.knoas_revision||job.knoas_psc_id!==policy.knoas_psc_id)
+      return json(409,{error:"ANIMATION_SCRIPT_POLICY_LINEAGE_MISMATCH",render_dispatch:"DISABLED"});
+
+    const bridgeUrl=Deno.env.get("PCC_PMF_BRIDGE_URL")??"https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
+    const bridgeSecret=Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET")??"";
+    try {
+      const preparation=await requestPmfPhanimationBatchPreparation({
+        url:bridgeUrl,secret:bridgeSecret,keyId:"pcc-animation-v1",
+        pccRequestId:job.job_id,pccJobId:job.job_id,
+      });
+      return json(202,{ok:true,job_id:job.job_id,preparation,
+        render_dispatch:"DISABLED",gpu_search_performed:false,gpu_launch_performed:false});
+    } catch(error) {
+      const code=error instanceof Error?error.message:"PMF_PHANIMATION_PREPARE_FAILED";
+      const sourceMissing=code==="PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND"
+        ||code==="PMF_PHANIMATION_PREPARE_SOURCE_BINDING_REQUIRED";
+      return json(sourceMissing?409:502,{ok:false,error:code,
+        message:sourceMissing
+          ?"Trusted production-order, PSN episode, approved Writer/Director, locked PVE timeline, and PNG source references are not registered. The batch remains blocked."
+          :"Systems could not verify or queue this held episode batch.",
+        render_dispatch:"DISABLED",gpu_search_performed:false,gpu_launch_performed:false});
+    }
   }
 
   if (action === "LIST") {

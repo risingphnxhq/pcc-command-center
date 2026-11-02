@@ -43,3 +43,12 @@ test('alert transition generation is evaluated atomically inside the upsert', ()
   assert.match(migration, /notification_generation=public\.pcc_animation_replenishment_alerts_v1\.notification_generation\s*\+ case when public\.pcc_animation_replenishment_alerts_v1\.alert_state='RESOLVED' and excluded\.alert_state='OPEN'/);
   assert.doesNotMatch(migration, /v_previous/);
 });
+
+test('Phanimation episode batch action is visible and fails closed through trusted Systems evidence', () => {
+  assert.match(page, /option value="phnx_phanimation">Phoenix Phanimation/);
+  assert.match(edge, /PREPARE_PHANIMATION_BATCH/);
+  assert.match(edge, /resolveLiveAnimationPolicy/);
+  assert.match(ui, /Queue\/check episode preparation \(held\)/);
+  assert.match(ui, /PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND/);
+  assert.doesNotMatch(edge, /source_refs\s*:\s*payload/);
+});

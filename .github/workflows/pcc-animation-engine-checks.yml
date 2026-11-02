@@ -3,8 +3,14 @@ on:
   push:
     branches: ['animation-engine-psn-runtime-bind-v1']
     paths:
+      - 'animation-engine.html'
+      - 'pcc-animation-engine.js'
+      - 'supabase/functions/pcc-animation-control-v1/**'
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.mjs'
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs'
       - 'supabase/functions/_shared/animation-handoff-v1.mjs'
       - 'supabase/functions/_shared/animation-handoff-v1.test.mjs'
+      - 'tests/animation-engine-inventory.test.mjs'
       - '.github/workflows/pcc-animation-engine-checks.yml'
   pull_request:
     paths:

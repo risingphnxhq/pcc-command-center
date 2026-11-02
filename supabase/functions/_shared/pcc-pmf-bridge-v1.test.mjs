@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, readPmfPhanimationBatchPreparation, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -339,4 +339,36 @@ test("latest RunPod snapshot fails closed for stale data or candidates outside a
   const fresh={...base,snapshot_at:new Date(now-1000).toISOString(),
     inventory:{...base.inventory,candidates:[{...base.inventory.candidates[0],hourly_rate_usd:0.81}]}};
   await assert.rejects(call(fresh),/RUNPOD_SNAPSHOT_RESPONSE_INVALID/);
+});
+
+test("Phanimation preparation sends only matching request/job IDs over the signed bridge", async () => {
+  let request;
+  const response = { ok:true, protocol:"pcc-pmf-animation-bridge/v1", render_dispatch:"DISABLED",
+    preparation:{state:"QUEUED",pcc_request_id:"00000000-0000-4000-8000-000000000101",
+      pcc_job_id:"00000000-0000-4000-8000-000000000101",render_dispatch:"DISABLED"} };
+  const result = await requestPmfPhanimationBatchPreparation({
+    url:"https://systems.example/functions/v1/pcc-animation-bridge-v1",secret,
+    pccRequestId:"00000000-0000-4000-8000-000000000101",
+    pccJobId:"00000000-0000-4000-8000-000000000101",
+    fetchImpl:async (url,init)=>{request={url,init};return {ok:true,json:async()=>response};},
+    now:1_800_000_000_000,nonce:"00000000-0000-4000-8000-000000000102",
+  });
+  assert.equal(result.state,"QUEUED");
+  const body=JSON.parse(request.init.body);
+  assert.equal(body.action,"REQUEST_PHANIMATION_BATCH_PREPARATION");
+  assert.deepEqual(body.payload,{request_id:"00000000-0000-4000-8000-000000000101",
+    pcc_job_id:"00000000-0000-4000-8000-000000000101"});
+  assert.equal(Object.hasOwn(body.payload,"source_refs"),false);
+});
+test("Phanimation preparation rejects mismatched IDs and non-held statuses", async () => {
+  await assert.rejects(requestPmfPhanimationBatchPreparation({
+    url:"https://systems.example",secret,pccRequestId:"00000000-0000-4000-8000-000000000101",
+    pccJobId:"00000000-0000-4000-8000-000000000103",
+  }),/PMF_PHANIMATION_PREPARE_REQUEST_INVALID/);
+  await assert.rejects(requestPmfPhanimationBatchPreparation({
+    url:"https://systems.example",secret,pccRequestId:"00000000-0000-4000-8000-000000000101",
+    pccJobId:"00000000-0000-4000-8000-000000000101",
+    fetchImpl:async()=>({ok:true,json:async()=>({ok:true,protocol:"pcc-pmf-animation-bridge/v1",
+      render_dispatch:"DISABLED",preparation:{state:"QUEUED",render_dispatch:"ENABLED"}})}),
+  }),/PMF_PHANIMATION_PREPARE_RESPONSE_INVALID/);
 });

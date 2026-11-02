@@ -52,7 +52,7 @@
   formatSelect.addEventListener("change", syncIntent);
   syncIntent();
   const labels = {
-    goldmind:"Phoenix GoldMind",goldwords:"GoldWords",phnx_kids:"PHNX Kids",phnx_kitchen:"PHNX Kitchen",
+    goldmind:"Phoenix GoldMind",goldwords:"GoldWords",phnx_kids:"PHNX Kids",phnx_phanimation:"Phoenix Phanimation",phnx_kitchen:"PHNX Kitchen",
     phnx_sports:"PHNX Sports",phnx_studio:"PHNX Studios",phnx_faceless:"PHNX Faceless Reels",rpe:"RPE",shadow:"ShadowFrame",valarian:"Valarian Shadow"
   };
   function message(text, kind="") { note.textContent=text; note.className="note "+kind; }
@@ -69,6 +69,13 @@
     const result = await response.json().catch(()=>({}));
     if (!response.ok) {
       const messages = {
+        
+        PHANIMATION_SERIES_EPISODE_REQUIRED: "This held batch action is only available for Phoenix Phanimation series episodes.",
+        PMF_HELD_INTAKE_RECEIPT_REQUIRED: "Stage and verify the held PCC-to-PMF receipt before preparing the episode batch.",
+        PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND: "Trusted production order, PSN episode, approved Writer/Director, locked PVE timeline, and PNG source links are not registered. No GPU was searched or started.",
+        PMF_PHANIMATION_PREPARE_SOURCE_BINDING_REQUIRED: "The trusted source references do not match the held Phanimation request. No GPU was searched or started.",
+        PMF_PHANIMATION_PREPARE_QUEUE_NOT_INSTALLED: "The held batch queue migration is source-only and not installed yet. No episode batch or render was started.",
+        PMF_PHANIMATION_PREPARE_REQUEST_FAILED: "Systems could not queue the held Phanimation batch.",
         SCRIPT_RUNTIME_CONFIGURATION_MISSING: "PCC script generation is not configured yet. The request is saved; no GPU was started.",
         REGISTERED_CHANNEL_POLICY_REQUIRED: "This channel and format do not yet have a trusted BOAS/KNOAS policy registered. The request is saved and rendering stays held.",
         SCRIPT_POLICY_REGISTRY_INVALID: "PCC's server-side channel policy registry needs repair. No script or render was started.",
@@ -444,6 +451,26 @@
           ? "PMF intake: held receipt saved · CEP enqueue and rendering disabled."
           : "PCC packet: "+safeText(job.handoff_state)+" · PMF receipt pending · rendering disabled.";
         article.append(handoffNote);
+      }
+      if (job.channel_key === "phnx_phanimation" && job.output_type === "SERIES_EPISODE"
+          && job.handoff_receipt?.pmf_intake_receipt?.state === "HELD_PMF_ADMISSION_REQUIRED") {
+        const prepButton=document.createElement("button");
+        prepButton.type="button";
+        prepButton.textContent="Queue/check episode preparation (held)";
+        prepButton.addEventListener("click",async()=>{
+          prepButton.disabled=true;
+          message("Rechecking the approved channel policy and asking Systems to verify trusted episode source links…");
+          try {
+            const result=await call("PREPARE_PHANIMATION_BATCH",{job_id:job.job_id});
+            const state=result.preparation?.state||"QUEUED";
+            message("Systems batch preparation: "+state+". PCC→PMF remains held; GPU search, rendering, and release are disabled.",state==="BLOCKED"?"error":"ok");
+            await refresh();
+          } catch(error) {
+            message(error.message,"error");
+            prepButton.disabled=false;
+          }
+        });
+        article.append(prepButton);
       }
       const renderReceipt=job.artifact_manifest?.pmf_render_receipt;
       if (job.artifact_manifest?.review_state === "REVIEW_REQUIRED" && renderReceipt) {
