@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.mjs'
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs'
       - '.github/workflows/pcc-animation-writer.yml'
       - 'supabase/functions/_shared/animation-handoff-v1.mjs'
       - 'supabase/functions/_shared/animation-handoff-v1.test.mjs'
@@ -20,6 +22,8 @@ on:
       - 'supabase/functions/pcc-animation-control-v1/index.ts'
   pull_request:
     paths:
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.mjs'
+      - 'supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs'
       - '.github/workflows/pcc-animation-writer.yml'
       - 'supabase/functions/_shared/animation-handoff-v1.mjs'
       - 'supabase/functions/_shared/animation-handoff-v1.test.mjs'
@@ -54,6 +58,7 @@ jobs:
           supabase/functions/_shared/animation-production-breakdown-v1.test.mjs
           supabase/functions/_shared/animation-scriptwriter-v1.test.mjs
           supabase/functions/_shared/animation-write-lifecycle-v1.test.mjs
+          supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs
 
   edge-typecheck:
     runs-on: ubuntu-latest
