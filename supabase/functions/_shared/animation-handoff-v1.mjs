@@ -1,5 +1,7 @@
 const MARKETING_OUTPUTS = new Set(["CORPORATE_MARKETING", "TV_SPOT", "CORPORATE_JINGLE", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN"]);
 const NARRATIVE_OUTPUTS = new Set(["EPISODE", "SERIES_EPISODE", "ANIMATION", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE"]);
+const BOOK_OUTPUTS = new Set(["NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE"]);
+const objectOrEmpty = value => value !== null && typeof value === "object" && !Array.isArray(value) ? value : {};
 
 export function resolveProductionIntent(outputType, suppliedIntent) {
   if (["AD", "REEL"].includes(outputType)) {
@@ -47,10 +49,32 @@ export function validateHandoffSource(job) {
     throw new Error("REVIEWER_RECEIPT_REQUIRED");
   }
   const intent = resolveProductionIntent(job.output_type, job.production_intent);
+  const requestPayload = objectOrEmpty(job.request_payload);
+  const writingContext = objectOrEmpty(requestPayload.writing_context);
+  const sourceScope = objectOrEmpty(requestPayload.source_scope);
+  if (BOOK_OUTPUTS.has(job.output_type)) {
+    const chapterScopeMatches = job.output_type !== "BOOK_CHAPTER" && job.output_type !== "BOOK_SCENE"
+      || Number.isSafeInteger(writingContext.chapter_number) && sourceScope.chapter_number === String(writingContext.chapter_number);
+    const sceneScopeMatches = job.output_type !== "BOOK_SCENE"
+      || Number.isSafeInteger(writingContext.scene_number) && sourceScope.scene_number === String(writingContext.scene_number);
+    if (typeof writingContext.book_id !== "string" || !writingContext.book_id.trim()
+      || sourceScope.book_id !== writingContext.book_id
+      || !chapterScopeMatches || !sceneScopeMatches) {
+      throw new Error("BOOK_HANDOFF_SOURCE_SCOPE_REQUIRED");
+    }
+  }
   return {
     contract_version: "PCC_PMF_ANIMATION_HANDOFF_V1",
     request: { request_id: job.job_id, channel_key: job.channel_key, output_type: job.output_type, production_intent: intent, title: job.title, idea: job.idea },
-    production_context: { series_context: job.request_payload?.series_context ?? "", context_notes: job.request_payload?.context_notes ?? "", desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "" },
+    production_context: {
+      series_context: requestPayload.series_context ?? "",
+      context_notes: requestPayload.context_notes ?? "",
+      desired_ending_or_action: requestPayload.desired_ending_or_action ?? "",
+      source_scope: sourceScope,
+      writing_context: BOOK_OUTPUTS.has(job.output_type)
+        ? { ...writingContext, approved_bible_psc_id: job.knoas_psc_id }
+        : writingContext,
+    },
     policy_source_verification: source,
     approved_policy: {
       channel_policy_id: job.channel_policy_id,
@@ -66,3 +90,4 @@ export function validateHandoffSource(job) {
     state: "HELD_PMF_ADMISSION_REQUIRED",
   };
 }
+
