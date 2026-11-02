@@ -6,6 +6,24 @@ import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunP
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
 
+// These JavaScript boundary modules validate their inputs at runtime. Keep the
+// edge function's adapter types explicit because Deno otherwise infers overly
+// narrow Supabase RPC generics from this project's generated database client.
+const resolveTrustedAnimationPolicyTyped = resolveTrustedAnimationPolicy as unknown as (input: {
+  request: { channel_key: string; output_type: string; production_intent: string; source_scope?: Record<string, string> };
+  expectedSnapshot?: Record<string, unknown>;
+  resolveRegisteredPolicy: (match: Record<string, unknown>) => Promise<unknown>;
+  verifySource: (policy: Record<string, unknown>) => Promise<Record<string, unknown>>;
+}) => Promise<{ policy: Record<string, unknown>; snapshot: Record<string, unknown>; verification: Record<string, unknown> }>;
+const resolveVerifiedAnimationPolicySourceTyped = resolveVerifiedAnimationPolicySource as unknown as (input: {
+  url: string; secret: string; keyId: string; policy: Record<string, unknown>;
+}) => Promise<Record<string, unknown>>;
+const executeAnimationWriteLifecycleTyped = executeAnimationWriteLifecycle as unknown as (input: {
+  job: Record<string, any>; trustedPolicy: Record<string, any>; canReview: boolean;
+  model: { complete(input: { system: string; user: string }): Promise<string> };
+  saveScript: (payload: Record<string, unknown>) => Promise<{ data?: unknown; error?: unknown }>;
+}) => Promise<{ saved: { data: unknown }; result: { state: string } }>;
+
 const ALLOWED_ORIGIN = "https://command.risingphoenixhq.com";
 const MAX_BODY_BYTES = 64_000;
 const cors = {
@@ -62,7 +80,7 @@ function createScriptModel(apiKey: string, modelName: string) {
 
 
 async function resolveLiveAnimationPolicy(
-  service: ReturnType<typeof createClient>,
+  service: any,
   subject: string,
   request: { channel_key: string; output_type: string; production_intent: string; source_scope?: Record<string, string> },
   expectedSnapshot?: Record<string, unknown>,
@@ -71,17 +89,17 @@ async function resolveLiveAnimationPolicy(
   const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
   const bridgeKeyId = "pcc-animation-v1";
   if (!bridgeUrl || !bridgeSecret) throw new Error("ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED");
-  return await resolveTrustedAnimationPolicy({
+  return await resolveTrustedAnimationPolicyTyped({
     request,
     expectedSnapshot,
-    resolveRegisteredPolicy: async (match) => {
+    resolveRegisteredPolicy: async (match: Record<string, unknown>) => {
       const { data, error } = await service.rpc("pcc_animation_channel_policy_control_v1", {
         p_action: "RESOLVE", p_subject: subject, p_payload: match,
       });
       if (error) throw new Error("REGISTERED_CHANNEL_POLICY_REQUIRED");
       return data;
     },
-    verifySource: (policy) => resolveVerifiedAnimationPolicySource({
+    verifySource: (policy: Record<string, unknown>) => resolveVerifiedAnimationPolicySourceTyped({
       url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy,
     }),
   });
@@ -213,10 +231,10 @@ Deno.serve(async (req: Request) => {
           channel_key: registeredPolicy.channel_key,
           output_type: registeredPolicy.output_type,
           production_intent: registeredPolicy.production_intent,
-          source_scope: registeredPolicy.output_spec?.scope ?? {},
+          source_scope: (registeredPolicy.output_spec as Record<string, unknown> | undefined)?.scope as Record<string, string> ?? {},
         },
         resolveRegisteredPolicy: async () => candidate,
-        verifySource: (policy) => resolveVerifiedAnimationPolicySource({ url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy }),
+        verifySource: (policy: Record<string, unknown>) => resolveVerifiedAnimationPolicySourceTyped({ url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, policy }),
       });
     } catch (error) {
       const failure = policyErrorResponse(error);
@@ -562,7 +580,7 @@ Deno.serve(async (req: Request) => {
     if (claimed.error || !claimed.data) return json(409, { error: "ANIMATION_SCRIPT_ALREADY_CLAIMED_OR_UNAVAILABLE" });
 
     try {
-      const lifecycle = await executeAnimationWriteLifecycle({
+      const lifecycle = await executeAnimationWriteLifecycleTyped({
         job,
         trustedPolicy,
         canReview: mayReview,
