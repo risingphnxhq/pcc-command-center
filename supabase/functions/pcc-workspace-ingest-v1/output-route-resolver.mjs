@@ -29,14 +29,14 @@ function producerFor(kind, operation) {
   if (operation === "DISTRIBUTE") return [];
   if (operation === "AUTHOR") {
     if (kind === "BOOK" || kind === "SERIES") return ["PCC_WRITING_ROOM"];
-    if (kind === "EPISODE" || MEDIA_OUTPUTS.has(kind)) return ["PCC_WRITER"];
+    if (kind === "EPISODE" || MEDIA_OUTPUTS.has(kind)) return ["PCC_PLAYWRIGHT", "BOAS_KNOAS_DIRECTOR"];
     return ["PCC_CLASSIFICATION"];
   }
   if (kind === "BOOK") return [];
   if (kind === "CONCEPT" || kind === "DOCUMENT" || kind === "OTHER") return ["PCC_CLASSIFICATION"];
   if (kind === "SERIES") return ["PCC_WRITING_ROOM"];
-  if (kind === "EPISODE") return ["PCC_WRITER", "PMF_ANIMATION"];
-  if (MEDIA_OUTPUTS.has(kind)) return ["PCC_CREATIVE_WORKFLOW", "PMF_MEDIA"];
+  if (kind === "EPISODE") return ["PCC_PLAYWRIGHT", "BOAS_KNOAS_DIRECTOR", "PMF_ANIMATION"];
+  if (MEDIA_OUTPUTS.has(kind)) return ["PCC_PLAYWRIGHT", "BOAS_KNOAS_DIRECTOR", "PMF_MEDIA"];
   if (kind === "IMAGE") return ["PCC_ASSET_INGEST", "PNG_ASSET_REGISTRY"];
   if (kind === "AUDIO") return ["PCC_ASSET_INGEST", "SVW_VOICE_ORCHESTRATOR"];
   return [];
