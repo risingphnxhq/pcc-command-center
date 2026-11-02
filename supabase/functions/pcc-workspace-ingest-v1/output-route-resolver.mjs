@@ -26,7 +26,17 @@ function clean(value, max = 160) {
 
 function producerFor(kind, operation, placement) {
   if (operation === "CAPTURE") return ["PCC_WORKSPACE_INTAKE"];
-  if (kind === "BOOK") return operation === "AUTHOR" ? ["PCC_WRITING_ROOM"] : [];
+  if (operation === "DISTRIBUTE") {
+    if (placement?.destination_type === "PSN_CATALOG" && PSN_KINDS.has(kind)) return ["PMF_RESULT_INTAKE", "PSN_RELEASE"];
+    if (placement?.destination_type === "SPIDER_YOUTUBE") return ["SPIDER_DISTRIBUTION"];
+    return [];
+  }
+  if (operation === "AUTHOR") {
+    if (kind === "BOOK" || kind === "SERIES") return ["PCC_WRITING_ROOM"];
+    if (kind === "EPISODE" || MEDIA_OUTPUTS.has(kind)) return ["PCC_WRITER"];
+    return ["PCC_CLASSIFICATION"];
+  }
+  if (kind === "BOOK") return [];
   if (kind === "CONCEPT" || kind === "DOCUMENT" || kind === "OTHER") return ["PCC_CLASSIFICATION"];
   if (kind === "SERIES" && placement?.destination_type === "PSN_CATALOG") {
     return ["PCC_WRITING_ROOM", "PSN_CATALOG"];
@@ -59,6 +69,7 @@ export function resolveOutputRoute(input = {}) {
   if (!kind) reasons.push("CONTENT_KIND_REQUIRED");
   if (placementsInput.length > 4) reasons.push("TOO_MANY_PLACEMENTS");
   if (operation !== "CAPTURE" && placementsInput.length === 0) reasons.push("VIEWING_PLACEMENT_REQUIRED");
+  if (operation === "DISTRIBUTE") requiredGates.add("COMPLETED_ASSET_RECEIPT");
 
   const placements = placementsInput.slice(0, 4).map((raw) => {
     const destinationType = clean(raw?.destination_type, 50).toUpperCase();
@@ -84,6 +95,8 @@ export function resolveOutputRoute(input = {}) {
         placement.viewer_surface = "PHNX_PHANIMATION_STREAMING_CATALOG";
         placement.viewer_url = "https://risingphnxhq.github.io/phnx-phanimation/";
         placement.release_gate = "APPROVED_PSN_RELEASE_PACKAGE_REQUIRED";
+        placement.expected_duration_seconds = kind === "EPISODE" ? 1500 : null;
+        placement.duration_policy = kind === "EPISODE" ? "PHANIMATION_25_MINUTE_EPISODE" : null;
         requiredGates.add("PSN_CERTIFICATE_AND_ENTITLEMENT");
       }
     } else if (destinationType === "SPIDER_YOUTUBE") {
@@ -99,6 +112,10 @@ export function resolveOutputRoute(input = {}) {
         placement.platform = "YOUTUBE";
         placement.viewer_surface = "SPIDER_AUTHORIZED_YOUTUBE_CHANNEL";
         placement.release_gate = "REVALIDATE_SPIDER_CONNECTION_AND_REQUIRE_PUBLICATION_APPROVAL";
+        if (kind === "EPISODE" && channelKey === "phnx_kids") {
+          placement.expected_duration_range_seconds = { min: 180, max: 300 };
+          placement.duration_policy = "PHOENIX_KIDS_EPISODES_3_TO_5_MINUTES";
+        }
         requiredGates.add("SPIDER_CHANNEL_CONNECTION_REVALIDATION");
       }
     } else {
@@ -121,7 +138,8 @@ export function resolveOutputRoute(input = {}) {
   if (kind === "SERIES" && primary?.destination_type !== "PSN_CATALOG") {
     reasons.push("SERIES_CATALOG_ROUTE_NOT_ESTABLISHED_FOR_SELECTED_DESTINATION");
   }
-  if (kind === "BOOK") reasons.push("MANUSCRIPT_VIEWER_OR_STORE_NOT_ESTABLISHED");
+  if (kind === "BOOK" && operation !== "CAPTURE" && operation !== "AUTHOR") reasons.push("MANUSCRIPT_VIEWER_OR_STORE_NOT_ESTABLISHED");
+  if (kind === "BOOK" && operation === "AUTHOR") reasons.push("MANUSCRIPT_VIEWER_OR_STORE_NOT_ESTABLISHED");
   if (kind === "CONCEPT" || kind === "DOCUMENT" || kind === "OTHER") {
     reasons.push("CLASSIFICATION_REQUIRED_BEFORE_PRODUCTION");
   }
