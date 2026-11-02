@@ -9,7 +9,7 @@ test("Phanimation episode maps to PSN with the 25-minute viewing contract and st
     placements: [{ destination_type: "PSN_CATALOG", destination_id: "phnx_phanimation" }],
   });
   assert.equal(route.resolution_status, "RESOLVED_HELD");
-  assert.deepEqual(route.producer_chain, ["PCC_WRITER", "PMF_ANIMATION", "PSN_CATALOG"]);
+  assert.deepEqual(route.producer_chain, ["PCC_PLAYWRIGHT", "BOAS_KNOAS_DIRECTOR", "PMF_ANIMATION", "PSN_CATALOG"]);
   assert.equal(route.placements[0].expected_duration_seconds, 1500);
   assert.equal(route.placements[0].viewer_surface, "PHNX_PHANIMATION_STREAMING_CATALOG");
   assert.equal(route.execution_eligible, false);
@@ -88,7 +88,7 @@ test("one production request preserves every selected viewing destination in the
   });
   assert.equal(route.resolution_status, "RESOLVED_HELD");
   assert.deepEqual(route.producer_chain, [
-    "PCC_WRITER", "PMF_ANIMATION", "PSN_CATALOG", "SPIDER_DISTRIBUTION",
+    "PCC_PLAYWRIGHT", "BOAS_KNOAS_DIRECTOR", "PMF_ANIMATION", "PSN_CATALOG", "SPIDER_DISTRIBUTION",
   ]);
   assert.equal(route.intended_viewing_surfaces.length, 2);
 });
