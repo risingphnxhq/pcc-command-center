@@ -10,7 +10,7 @@ Implementation record: `PCC-CSE-PSC-GPT-CREATIVE-WORKSPACE-INGEST-2026-11-02-001
 
 ## Authentication and attribution
 
-The caller sends a Supabase user access token. The function validates it through Supabase Auth and resolves the email against active `pcc_institutional.auth_actor_bindings`. The request body cannot set actor or runtime lane. Initial allowlist is `RPE-MASON-HQ` in the interactive `PRIME_MASON_ACCOUNT` or `NEW_MASON_ACCOUNT` lanes; machine identities are rejected.
+PCC sign-in validates a Supabase user token through Supabase Auth and resolves the email against active `pcc_institutional.auth_actor_bindings`. The request body cannot set actor or runtime lane. Initial allowlist is `RPE-MASON-HQ` in the interactive `PRIME_MASON_ACCOUNT` or `NEW_MASON_ACCOUNT` lanes; machine identities are rejected. Each GPT may use a dedicated `pccwi_` key issued by this authenticated PCC page. The function stores only the SHA-256 hash, expires keys after 90 days, rechecks the source actor binding on each call, and lets the operator list/revoke keys. An Action key cannot create or revoke keys and has intake-only scope.
 
 ## Text intake
 
@@ -32,4 +32,4 @@ Every submission is provenance only. It does not become canon, policy approval, 
 
 ## GPT Action configuration
 
-Import the OpenAPI file into a GPT Action. Configure authentication so the request presents a user Supabase access token recognized by Systems. This is a per-GPT configuration step. Never place a Supabase service-role key or machine credential in a GPT.
+Import the OpenAPI file into a GPT Action. Configure API Key authentication with Bearer and paste the `pccwi_` key issued for that specific GPT. A user must still make this per-GPT setting change. Never place a Supabase access token, service-role key, or machine credential in a GPT.
