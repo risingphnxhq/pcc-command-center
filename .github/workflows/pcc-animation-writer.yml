@@ -1,0 +1,60 @@
+name: PCC animation writer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pcc-animation-writer.yml'
+      - 'supabase/functions/_shared/animation-channel-policy-v1.mjs'
+      - 'supabase/functions/_shared/animation-channel-policy-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-channel-policy-runtime-v1.mjs'
+      - 'supabase/functions/_shared/animation-channel-policy-runtime-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-production-breakdown-v1.mjs'
+      - 'supabase/functions/_shared/animation-production-breakdown-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-scriptwriter-v1.mjs'
+      - 'supabase/functions/_shared/animation-scriptwriter-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-write-lifecycle-v1.mjs'
+      - 'supabase/functions/_shared/animation-write-lifecycle-v1.test.mjs'
+      - 'supabase/functions/pcc-animation-control-v1/index.ts'
+  pull_request:
+    paths:
+      - '.github/workflows/pcc-animation-writer.yml'
+      - 'supabase/functions/_shared/animation-channel-policy-v1.mjs'
+      - 'supabase/functions/_shared/animation-channel-policy-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-channel-policy-runtime-v1.mjs'
+      - 'supabase/functions/_shared/animation-channel-policy-runtime-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-production-breakdown-v1.mjs'
+      - 'supabase/functions/_shared/animation-production-breakdown-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-scriptwriter-v1.mjs'
+      - 'supabase/functions/_shared/animation-scriptwriter-v1.test.mjs'
+      - 'supabase/functions/_shared/animation-write-lifecycle-v1.mjs'
+      - 'supabase/functions/_shared/animation-write-lifecycle-v1.test.mjs'
+      - 'supabase/functions/pcc-animation-control-v1/index.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  writer-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: >-
+          node --test
+          supabase/functions/_shared/animation-channel-policy-v1.test.mjs
+          supabase/functions/_shared/animation-channel-policy-runtime-v1.test.mjs
+          supabase/functions/_shared/animation-production-breakdown-v1.test.mjs
+          supabase/functions/_shared/animation-scriptwriter-v1.test.mjs
+          supabase/functions/_shared/animation-write-lifecycle-v1.test.mjs
+
+  edge-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/pcc-animation-control-v1/index.ts
