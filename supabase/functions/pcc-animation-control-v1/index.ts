@@ -1,9 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
-import { runAnimationScriptwriter } from "../_shared/animation-scriptwriter-v1.mjs";
+import { executeAnimationWriteLifecycle } from "../_shared/animation-write-lifecycle-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
 import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveCanonicalAnimationPolicyId, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
-import { buildReviewerNotificationReceipt } from "../_shared/reviewer-notice-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
 
@@ -555,9 +554,6 @@ Deno.serve(async (req: Request) => {
       const failure = policyErrorResponse(error);
       return json(failure.status, { error: failure.error, channel_key: job.channel_key, output_type: job.output_type });
     }
-    const policy = trustedPolicy.policy as Record<string, unknown>;
-    const policySourceVerification = trustedPolicy.verification as Record<string, unknown>;
-
     const claimed = await service.rpc("pcc_animation_job_control_v1", {
       p_action: "CLAIM_SCRIPT",
       p_subject: userData.user.id,
@@ -566,58 +562,18 @@ Deno.serve(async (req: Request) => {
     if (claimed.error || !claimed.data) return json(409, { error: "ANIMATION_SCRIPT_ALREADY_CLAIMED_OR_UNAVAILABLE" });
 
     try {
-      const reviewerNotices: Record<string, unknown>[] = [];
-      const result = await runAnimationScriptwriter({
-        request_id: job.job_id,
-        channel_key: job.channel_key,
-        output_type: job.output_type,
-        production_intent: job.production_intent,
-        idea: job.idea,
-        series_context: job.request_payload?.series_context ?? "",
-        source_scope: job.request_payload?.source_scope ?? {},
-        writing_context: job.request_payload?.writing_context ?? {},
-        context_notes: job.request_payload?.context_notes ?? "",
-        desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "",
-        channel_policy: { ...policy, authorized_psc_ids: policySourceVerification.evidence_psc_ids },
-      }, {
+      const lifecycle = await executeAnimationWriteLifecycle({
+        job,
+        trustedPolicy,
+        canReview: mayReview,
         model: createScriptModel(modelKey, modelName),
-        notify: async (notice: Record<string, unknown>) => { reviewerNotices.push(notice); },
+        saveScript: (savePayload: Record<string, unknown>) => service.rpc("pcc_animation_job_control_v1", {
+          p_action: "SAVE_SCRIPT",
+          p_subject: userData.user.id,
+          p_payload: savePayload,
+        }),
       });
-      const status = result.state === "SCRIPT_REVIEW_PASSED" ? "SCRIPT_REVIEW_PASSED" : "REVIEW";
-      const saved = await service.rpc("pcc_animation_job_control_v1", {
-        p_action: "SAVE_SCRIPT",
-        p_subject: userData.user.id,
-        p_payload: {
-          job_id: job.job_id,
-          channel_policy_id: policy.policy_id,
-          channel_policy_revision: policy.policy_revision,
-          channel_policy_approval_psc_id: policy.approval_psc_id,
-          boas_id: policy.boas_id,
-          boas_revision: policy.boas_revision,
-          boas_approved: true,
-          boas_psc_id: policy.boas_psc_id,
-          knoas_id: policy.knoas_id,
-          knoas_revision: policy.knoas_revision,
-          knoas_approved: true,
-          knoas_psc_id: policy.knoas_psc_id,
-          script_bundle: {
-            ...result.script_package,
-            binary_validation: result.binary_validation,
-            repair_count: result.repair_count,
-            policy_source_verification: policySourceVerification,
-          },
-          review_receipt: {
-            state: result.state,
-            receipts: result.review_receipts,
-            unresolved_issues: result.review_receipts.at(-1)?.issues ?? [],
-            notification_receipt: buildReviewerNotificationReceipt(reviewerNotices),
-          },
-          status,
-          can_review: mayReview,
-        },
-      });
-      if (saved.error) throw new Error("ANIMATION_SCRIPT_SAVE_FAILED");
-      return json(200, { ok: true, job: saved.data, script_state: result.state, dispatch: "NOT_CONNECTED" });
+      return json(200, { ok: true, job: lifecycle.saved.data, script_state: lifecycle.result.state, dispatch: "NOT_CONNECTED" });
     } catch (error) {
       const code = error instanceof Error ? error.message : "SCRIPT_GENERATION_FAILED";
       const failureCode = code.slice(0, 120) || "SCRIPT_GENERATION_FAILED";
