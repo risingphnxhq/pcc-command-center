@@ -349,12 +349,17 @@ export async function readRunPodAnimationConnection({
         || connection.render_ready !== false || connection.gpu_count !== 1
         || connection.worker_port !== 8765 || connection.max_hourly_usd !== 0.8
         || connection.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
-        || !value || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(value.state)
+        || !value || !["CANDIDATE_SELECTED", "NO_MATCHING_CANDIDATES"].includes(value.state)
         || value.hard_max_hourly_usd !== 0.8 || value.applied_max_hourly_usd > 0.8
         || value.required_storage_gb !== 50 || value.availability_guaranteed !== false
         || !Array.isArray(value.candidates) || value.candidate_count !== value.candidates.length
-        || (value.state === "NO_MATCHING_CANDIDATES" && value.candidates.length !== 0)
-        || (value.state === "CANDIDATES_FOUND" && value.candidates.length === 0)) {
+        || (value.state === "NO_MATCHING_CANDIDATES" && (value.selected_candidate !== null || value.candidates.length !== 0))
+        || (value.state === "CANDIDATE_SELECTED"
+          && (!value.selected_candidate || typeof value.selected_candidate !== "object"
+            || value.candidates.length === 0
+            || value.selected_candidate.gpu_id !== value.candidates[0]?.gpu_id
+            || value.selected_candidate.data_center_id !== value.candidates[0]?.data_center_id
+            || value.selected_candidate.hourly_rate_usd !== value.candidates[0]?.hourly_rate_usd))) {
       throw new Error("RUNPOD_CONNECTION_RESPONSE_INVALID");
     }
     const publicCandidates = value.candidates.map(({storage_volume_id: _storageVolumeId, ...candidate}) => Object.freeze(candidate));
