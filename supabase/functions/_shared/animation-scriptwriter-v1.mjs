@@ -69,6 +69,107 @@ function reviewerSystem() {
   return "You are the independent RPE Script Reviewer. Evaluate the full script and every channel segment against the supplied registered BOAS/KNOAS, channel profile, output specification, and request. Check causal coherence, earned ending, character consistency, continuity, completeness, segmentation, production scene coverage, visual/camera direction, dialogue/sound cues, keyframe progression, audience suitability, and marketing claims where applicable. Treat corporate marketing as marketing. Do not invent missing requirements. Return JSON only: {\"decision\":\"PASS\"|\"REVISE\"|\"BLOCK\",\"issues\":[{\"severity\":\"ERROR\"|\"WARNING\",\"code\":\"...\",\"message\":\"...\",\"correction\":\"...\"}],\"summary\":\"...\"}. PASS only when there are no ERROR issues. BLOCK when policy is missing/conflicting or a safe correction cannot be determined.";
 }
 
+const BOOK_OUTPUTS = new Set(["BOOK_MANUSCRIPT", "NOVEL", "BOOK_CHAPTER", "BOOK_SCENE"]);
+const BOOK_CONTEXT_FIELDS = {
+  BOOK_MANUSCRIPT: ["audience", "book_id", "book_title", "volume_or_story_scope"],
+  NOVEL: ["audience", "book_id", "book_title", "volume_or_story_scope"],
+  BOOK_CHAPTER: ["audience", "book_id", "book_title", "book_number", "chapter_number", "chapter_title", "chapter_goal"],
+  BOOK_SCENE: ["audience", "book_id", "book_title", "book_number", "chapter_number", "scene_number", "scene_goal", "point_of_view"],
+};
+
+function validateBookContext(input) {
+  const context = input.writing_context;
+  if (!context || Array.isArray(context) || typeof context !== "object") throw new Error("BOOK_WRITING_CONTEXT_REQUIRED");
+  const fields = BOOK_CONTEXT_FIELDS[input.output_type] ?? [];
+  for (const field of fields) {
+    const value = context[field];
+    if ((typeof value !== "string" && typeof value !== "number") || String(value).trim() === "") throw new Error(`BOOK_${field.toUpperCase()}_REQUIRED`);
+  }
+  if (Number.isInteger(context.book_number) && (context.book_number < 1 || context.book_number > 13)
+      && String(context.saga_id ?? "").toUpperCase() === "OCS") throw new Error("OCS_BOOK_NUMBER_MUST_BE_1_TO_13");
+  const policy = input.channel_policy;
+  if (!policy.knoas_psc_id || !Array.isArray(policy.authorized_psc_ids) || !policy.authorized_psc_ids.includes(policy.knoas_psc_id))
+    throw new Error("APPROVED_BOOK_BIBLE_PSC_REQUIRED");
+  if ((input.output_type === "BOOK_CHAPTER" || input.output_type === "BOOK_SCENE")
+      && (!Number.isInteger(context.book_number) || context.book_number < 1 || context.book_number > 13 && String(context.saga_id ?? "").toUpperCase() === "OCS"))
+    throw new Error("BOOK_NUMBER_INVALID");
+  if (input.output_type === "BOOK_CHAPTER" && (!Number.isInteger(context.chapter_number) || context.chapter_number < 1)) throw new Error("BOOK_CHAPTER_NUMBER_INVALID");
+  if (input.output_type === "BOOK_SCENE" && (!Number.isInteger(context.scene_number) || context.scene_number < 1)) throw new Error("BOOK_SCENE_NUMBER_INVALID");
+  return context;
+}
+
+function authoringId(requestId, kind, index) {
+  const safeRequest = requestId.replace(/[^A-Za-z0-9_.:-]/g, "_");
+  return `AUTH-${safeRequest}-${kind}-${String(index).padStart(4, "0")}`;
+}
+
+function bookSystem(mode, outputType) {
+  if (mode === "WRITE_MASTER" || mode === "REVISE_MASTER") {
+    return `You are the RPE long-form Playwright. Follow only the verified BOAS/KNOAS policy, approved book-bible PSC, and supplied writing context. Apply End From Beginning Protocol: establish the requested ending/payoff first, then write the complete master. Do not segment or adapt it. Return JSON only with ending_first {final_payoff,setup_and_payoff}, logline, synopsis, full_script, continuity_ledger, character_arc_ledger, and series_arc_contribution. Keep the supplied world facts intact; never invent canon approvals or source PSCs. ${mode === "REVISE_MASTER" ? "Make only the evidence-based corrections in the supplied Reviewer receipt and return a complete new master." : "Write the complete master before any format adaptation."}`;
+  }
+  if (mode === "ADAPT_MASTER") {
+    const instruction = outputType === "BOOK_MANUSCRIPT" || outputType === "NOVEL"
+      ? "Return volume_chapter_scene_outline as ordered chapter_number/chapter_title/summary entries, plus continuity_ledger, character_arc_ledger, series_arc_contribution. Do not rewrite the supplied master."
+      : outputType === "BOOK_CHAPTER"
+        ? "Return chapter_title, chapter_beats (purpose entries), continuity_ledger, canon_source_notes, series_arc_contribution. Do not rewrite the supplied chapter master."
+        : "Return scene_beats (purpose entries), entry_state, exit_state, and canon_source_notes. Do not rewrite the supplied scene master.";
+    return `You are the format adapter for the RPE Playwright. Adapt the supplied complete master to the requested ${outputType} package using its verified policy and writing context. Preserve master text exactly; return JSON only. ${instruction}`;
+  }
+  return "You are the independent Reviewer. Evaluate the complete master and adapted book package against the verified policy, approved bible source, EFPB payoff, continuity, character arcs, audience and requested format. Return JSON only: {\"decision\":\"PASS\"|\"REVISE\"|\"BLOCK\",\"issues\":[{\"severity\":\"ERROR\"|\"WARNING\",\"code\":\"...\",\"message\":\"...\",\"correction\":\"...\"}],\"summary\":\"...\"}. PASS only with no ERROR issues; BLOCK if canon/policy conflicts cannot be safely resolved.";
+}
+
+async function runBookScriptwriter(input, { model, notify }) {
+  validateBookContext(input);
+  const policy = input.channel_policy;
+  const sourcePscIds = [policy.approval_psc_id, policy.boas_psc_id, policy.knoas_psc_id];
+  const writingContext={...input.writing_context,approved_bible_psc_id:policy.knoas_psc_id};
+  if (sourcePscIds.some(id => typeof id !== "string" || !id || !policy.authorized_psc_ids.includes(id))) throw new Error("BOOK_POLICY_SOURCE_SET_INCOMPLETE");
+  const context = {request_id:input.request_id, channel_key:input.channel_key, output_type:input.output_type,
+    idea:input.idea, writing_context:writingContext, series_context:input.series_context ?? "",
+    context_notes:input.context_notes ?? "", desired_ending_or_action:input.desired_ending_or_action ?? "", channel_policy:policy};
+  const receipts=[]; let revision=0;
+  let master=parseObject(await model.complete({mode:"WRITE_MASTER",system:bookSystem("WRITE_MASTER",input.output_type),user:jsonPrompt(context)}),"BOOK_MASTER_JSON_INVALID");
+  while (true) {
+    if (typeof master.full_script !== "string" || !master.full_script.trim() || typeof master.ending_first?.final_payoff !== "string" || !master.ending_first.final_payoff.trim()
+      || typeof master.ending_first?.setup_and_payoff !== "string" || !master.ending_first.setup_and_payoff.trim()
+      || !Array.isArray(master.continuity_ledger)) throw new Error("BOOK_MASTER_CONTRACT_INVALID");
+    if (writingContext.saga_id === "OCS" && (!Number.isInteger(writingContext.book_number) || writingContext.book_number < 1 || writingContext.book_number > 13))
+      throw new Error("OCS_BOOK_NUMBER_MUST_BE_1_TO_13");
+    const masterRevision={...master,request_id:input.request_id,revision_id:`MASTER-${input.request_id}-R${revision+1}`,revision_number:revision+1,source_psc_ids:sourcePscIds};
+    const adaptation=parseObject(await model.complete({mode:"ADAPT_MASTER",system:bookSystem("ADAPT_MASTER",input.output_type),user:jsonPrompt({...context,complete_master:masterRevision})}),"BOOK_ADAPTATION_JSON_INVALID");
+    const chapterTitle=writingContext.chapter_title;
+    const sections=input.output_type === "BOOK_MANUSCRIPT" || input.output_type === "NOVEL"
+      ? {complete_master_manuscript:masterRevision.full_script,volume_chapter_scene_outline:(adaptation.volume_chapter_scene_outline??[]).map((c,i)=>({...c,chapter_id:authoringId(input.request_id,"CH",i+1)})),continuity_ledger:masterRevision.continuity_ledger,character_arc_ledger:masterRevision.character_arc_ledger??[],series_arc_contribution:masterRevision.series_arc_contribution??adaptation.series_arc_contribution}
+      : input.output_type === "BOOK_CHAPTER"
+        ? {complete_chapter:masterRevision.full_script,chapter_title:chapterTitle,chapter_beats:(adaptation.chapter_beats??[]).map((b,i)=>({...b,beat_id:authoringId(input.request_id,"CH-BEAT",i+1)})),continuity_ledger:adaptation.continuity_ledger??masterRevision.continuity_ledger,canon_source_notes:adaptation.canon_source_notes??sourcePscIds,series_arc_contribution:masterRevision.series_arc_contribution??adaptation.series_arc_contribution}
+        : {complete_scene:masterRevision.full_script,scene_beats:(adaptation.scene_beats??[]).map((b,i)=>({...b,beat_id:authoringId(input.request_id,"SC-BEAT",i+1)})),entry_state:adaptation.entry_state,exit_state:adaptation.exit_state,canon_source_notes:adaptation.canon_source_notes??sourcePscIds};
+    const segments=[{index:1,purpose:"Complete book-format master",script:masterRevision.full_script,estimated_duration_seconds:0,handoff:"Book-format package ready for review"}];
+    const draft={...masterRevision,channel_segments:segments,sections,authoring_ids:{book_id:writingContext.book_id,chapter_id:chapterTitle?authoringId(input.request_id,"CHAPTER",writingContext.chapter_number??1):undefined}};
+    if (input.output_type === "BOOK_CHAPTER" && !chapterTitle) throw new Error("BOOK_CHAPTER_TITLE_REQUIRED");
+    if (input.output_type === "BOOK_SCENE") draft.authoring_ids.scene_id=authoringId(input.request_id,"SCENE",writingContext.scene_number);
+    if ((input.output_type === "BOOK_MANUSCRIPT" || input.output_type === "NOVEL")
+        && (!sections.volume_chapter_scene_outline.length || !sections.character_arc_ledger.length || typeof sections.series_arc_contribution !== "string" || !sections.series_arc_contribution.trim()))
+      throw new Error("BOOK_MANUSCRIPT_STRUCTURE_REQUIRED");
+    if (input.output_type === "BOOK_CHAPTER" && (!sections.chapter_beats.length || sections.chapter_beats.some(b=>typeof b.purpose!=="string"||!b.purpose.trim())))
+      throw new Error("BOOK_CHAPTER_BEATS_REQUIRED");
+    if (input.output_type === "BOOK_SCENE" && (!sections.scene_beats.length || sections.scene_beats.some(b=>typeof b.purpose!=="string"||!b.purpose.trim())
+        || !sections.entry_state || typeof sections.entry_state!=="object" || !sections.exit_state || typeof sections.exit_state!=="object"))
+      throw new Error("BOOK_SCENE_STRUCTURE_REQUIRED");
+    const review=parseObject(await model.complete({mode:"REVIEW",system:bookSystem("REVIEW",input.output_type),user:jsonPrompt({...context,complete_master:masterRevision,adapted_package:draft,previous_review_receipts:receipts})}),"BOOK_REVIEW_JSON_INVALID");
+    if (!["PASS","REVISE","BLOCK"].includes(review.decision)||!Array.isArray(review.issues)) throw new Error("BOOK_REVIEW_SHAPE_INVALID");
+    const errors=review.issues.filter(i=>i?.severity==="ERROR");
+    const decision=errors.length&&review.decision==="PASS"?"REVISE":review.decision;
+    receipts.push({attempt:revision+1,decision,issues:review.issues,summary:String(review.summary??""),master_revision_id:masterRevision.revision_id});
+    if (decision==="PASS"&&!errors.length) return {state:"SCRIPT_REVIEW_PASSED",script_package:{...draft,source_binding:{policy_id:policy.policy_id,policy_revision:policy.policy_revision,approval_psc_id:policy.approval_psc_id,boas_id:policy.boas_id,boas_revision:policy.boas_revision,boas_psc_id:policy.boas_psc_id,knoas_id:policy.knoas_id,knoas_revision:policy.knoas_revision,knoas_psc_id:policy.knoas_psc_id}},binary_validation:{ok:true,gates:[{id:"BOOK_MASTER_ADAPTATION_BINDING",result:"PASS"},{id:"BOOK_POLICY_SOURCE_SET",result:"PASS"},{id:"BOOK_AUTHORING_IDS",result:"PASS"}]},review_receipts:receipts,repair_count:revision,master_revision_id:masterRevision.revision_id};
+    if (decision==="BLOCK"||revision>=MAX_REPAIRS) {
+      await notify({type:"SCRIPT_REVIEW_NEEDS_ATTENTION",request_id:input.request_id,channel_key:input.channel_key,unresolved_issues:errors.length?errors:review.issues});
+      return {state:"SCRIPT_REVIEW_NEEDS_ATTENTION",script_package:{...draft,source_binding:{policy_id:policy.policy_id,policy_revision:policy.policy_revision,approval_psc_id:policy.approval_psc_id,boas_id:policy.boas_id,boas_revision:policy.boas_revision,boas_psc_id:policy.boas_psc_id,knoas_id:policy.knoas_id,knoas_revision:policy.knoas_revision,knoas_psc_id:policy.knoas_psc_id}},binary_validation:{ok:false,gates:[{id:"BOOK_REVIEW",result:"FAIL"}]},review_receipts:receipts,repair_count:revision,master_revision_id:masterRevision.revision_id};
+    }
+    revision++;
+    master=parseObject(await model.complete({mode:"REVISE_MASTER",system:bookSystem("REVISE_MASTER",input.output_type),user:jsonPrompt({...context,prior_master:masterRevision,review_receipt:receipts.at(-1)})}),"BOOK_REVISION_JSON_INVALID");
+  }
+}
+
 /**
  * Provider-neutral PCC writer/reviewer loop. `model.complete` must return raw JSON.
  * `notify` records unresolved QA notices; it must not dispatch to a publisher.
@@ -76,6 +177,7 @@ function reviewerSystem() {
 export async function runAnimationScriptwriter(input, { model, notify = async () => {} }) {
   validateWriterInput(input);
   if (!model || typeof model.complete !== "function") throw new Error("SCRIPT_MODEL_ADAPTER_REQUIRED");
+  if (BOOK_OUTPUTS.has(input.output_type)) return await runBookScriptwriter(input, {model, notify});
   const context = {
     request_id: input.request_id,
     channel_key: input.channel_key,
