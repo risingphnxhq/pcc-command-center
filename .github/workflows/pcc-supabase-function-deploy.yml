@@ -3,6 +3,8 @@ name: PCC Supabase Function Deploy
 on:
   push:
     branches: [main]
+    paths:
+      - 'supabase/functions/pcc-systems-read-v1/**'
   workflow_dispatch:
 
 permissions:
