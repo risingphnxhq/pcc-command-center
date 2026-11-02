@@ -448,7 +448,7 @@ Deno.serve(async (req: Request) => {
       : {};
     const writingContextInput = sourceContext.writing_context;
     const writingContext: Record<string, string | number> = {};
-    const writingContextFields = ["saga_id", "audience", "book_id", "book_number", "book_title", "volume_or_story_scope", "chapter_number", "chapter_title", "chapter_goal", "scene_number", "scene_goal", "point_of_view", "approved_bible_psc_id"];
+    const writingContextFields = ["saga_id", "audience", "book_id", "book_number", "book_title", "volume_or_story_scope", "chapter_number", "chapter_title", "chapter_goal", "scene_number", "scene_goal", "point_of_view"];
     let writingContextInvalid = false;
     if (writingContextInput !== undefined && (!writingContextInput || Array.isArray(writingContextInput) || typeof writingContextInput !== "object")) writingContextInvalid = true;
     if (writingContextInput && !Array.isArray(writingContextInput) && typeof writingContextInput === "object") {
@@ -609,6 +609,7 @@ Deno.serve(async (req: Request) => {
       if (!snapshot) return json(409, { error: "ANIMATION_POLICY_SNAPSHOT_REQUIRED" });
       trustedPolicy = await resolveLiveAnimationPolicy(service, userData.user.id, {
         channel_key: job.channel_key, output_type: job.output_type, production_intent: job.production_intent,
+        source_scope: job.request_payload?.source_scope ?? {},
       }, snapshot);
     } catch (error) {
       const failure = policyErrorResponse(error);
