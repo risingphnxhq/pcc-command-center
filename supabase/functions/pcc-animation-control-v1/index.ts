@@ -21,6 +21,9 @@ const resolveVerifiedAnimationPolicySourceTyped = resolveVerifiedAnimationPolicy
 const resolveCanonicalAnimationPolicyIdTyped = resolveCanonicalAnimationPolicyId as unknown as (input: {
   url: string; secret: string; keyId: string; approvalPscId: string;
 }) => Promise<string>;
+const invokePmfProductionRuntimeTyped = invokePmfProductionRuntime as unknown as (input: {
+  url: string; secret: string; keyId: string; runtimeAction: string; packet: Record<string, unknown>;
+}) => Promise<Record<string, unknown>>;
 const executeAnimationWriteLifecycleTyped = executeAnimationWriteLifecycle as unknown as (input: {
   job: Record<string, any>; trustedPolicy: Record<string, any>; canReview: boolean;
   model: { complete(input: { system: string; user: string }): Promise<string> };
@@ -221,7 +224,7 @@ Deno.serve(async (req: Request) => {
         url: bridgeUrl,
         secret: bridgeSecret,
         keyId: bridgeKeyId,
-        approvalPscId: registeredPolicy.approval_psc_id,
+        approvalPscId: registeredPolicy.approval_psc_id as string,
       });
     } catch (error) {
       const failure = policyErrorResponse(error);
@@ -344,7 +347,7 @@ Deno.serve(async (req: Request) => {
     const bridgeSecret = Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "PCC_PMF_BRIDGE_NOT_CONFIGURED" });
     try {
-      const result = await invokePmfProductionRuntime({
+      const result = await invokePmfProductionRuntimeTyped({
         url: bridgeUrl, secret: bridgeSecret, keyId: "pcc-animation-v1",
         runtimeAction, packet,
       });
