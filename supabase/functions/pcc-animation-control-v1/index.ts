@@ -447,6 +447,20 @@ Deno.serve(async (req: Request) => {
     const sourceContext = rawRequestPayload && !Array.isArray(rawRequestPayload) && typeof rawRequestPayload === "object"
       ? rawRequestPayload as Record<string, unknown>
       : {};
+    const writingContextInput = sourceContext.writing_context;
+    const writingContext: Record<string, string | number> = {};
+    const writingContextFields = ["saga_id", "audience", "book_id", "book_number", "book_title", "volume_or_story_scope", "chapter_number", "chapter_title", "chapter_goal", "scene_number", "scene_goal", "point_of_view", "approved_bible_psc_id"];
+    let writingContextInvalid = false;
+    if (writingContextInput !== undefined && (!writingContextInput || Array.isArray(writingContextInput) || typeof writingContextInput !== "object")) writingContextInvalid = true;
+    if (writingContextInput && !Array.isArray(writingContextInput) && typeof writingContextInput === "object") {
+      for (const field of writingContextFields) {
+        const value = (writingContextInput as Record<string, unknown>)[field];
+        if (value === undefined || value === null || value === "") continue;
+        if (typeof value === "string" && value.trim().length > 0 && value.length <= 4_000) writingContext[field] = value.trim();
+        else if (typeof value === "number" && Number.isSafeInteger(value) && value > 0) writingContext[field] = value;
+        else writingContextInvalid = true;
+      }
+    }
     const seriesContext = optionalText(sourceContext.series_context, 160);
     const sourceSeriesId = optionalText(sourceContext.source_series_id, 160);
     const sourceEpisodeId = optionalText(sourceContext.source_episode_id, 160);
@@ -455,8 +469,13 @@ Deno.serve(async (req: Request) => {
     const sourceScope = {
       ...(sourceSeriesId ? { series_id: sourceSeriesId } : {}),
       ...(sourceEpisodeId ? { episode_id: sourceEpisodeId } : {}),
+      ...(writingContext.saga_id ? { saga_id: String(writingContext.saga_id) } : {}),
+      ...(writingContext.book_id ? { book_id: String(writingContext.book_id) } : {}),
+      ...(writingContext.book_number ? { book_number: String(writingContext.book_number) } : {}),
+      ...(writingContext.chapter_number ? { chapter_number: String(writingContext.chapter_number) } : {}),
+      ...(writingContext.scene_number ? { scene_number: String(writingContext.scene_number) } : {}),
     };
-    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, source_scope: sourceScope, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
+    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, source_scope: sourceScope, writing_context: writingContext, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
       || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey)
       || !["EPISODE", "SERIES_EPISODE", "ANIMATION", "AD", "REEL", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE", "CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN", "OTHER"].includes(outputType ?? "")
@@ -464,7 +483,7 @@ Deno.serve(async (req: Request) => {
       || !idea
       || seriesContext === null || sourceSeriesId === null || sourceEpisodeId === null
       || (!!sourceSeriesId !== !!sourceEpisodeId)
-      || contextNotes === null || desiredEnding === null
+      || contextNotes === null || desiredEnding === null || writingContextInvalid
       || !rawRequestPayload || Array.isArray(rawRequestPayload) || typeof rawRequestPayload !== "object") {
       return json(400, { error: "ANIMATION_REQUEST_INVALID" });
     }
@@ -556,9 +575,10 @@ Deno.serve(async (req: Request) => {
         idea: job.idea,
         series_context: job.request_payload?.series_context ?? "",
         source_scope: job.request_payload?.source_scope ?? {},
+        writing_context: job.request_payload?.writing_context ?? {},
         context_notes: job.request_payload?.context_notes ?? "",
         desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "",
-        channel_policy: policy,
+        channel_policy: { ...policy, authorized_psc_ids: policySourceVerification.evidence_psc_ids },
       }, {
         model: createScriptModel(modelKey, modelName),
         notify: async (notice: Record<string, unknown>) => { reviewerNotices.push(notice); },
