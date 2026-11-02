@@ -36,10 +36,10 @@ paths:
         '422': { description: Asset integrity verification failed }
 components:
   securitySchemes:
-    PCCUserBearer:
+    PCCGPTIntakeBearer:
       type: http
       scheme: bearer
-      bearerFormat: PCC workspace intake key
+      bearerFormat: Dedicated pccwi_ workspace intake key
   schemas:
     SubmitRequest:
       type: object
