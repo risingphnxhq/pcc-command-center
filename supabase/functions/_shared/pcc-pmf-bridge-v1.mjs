@@ -180,6 +180,57 @@ export async function postHeldAnimationHandoff({
   return result.receipt;
 }
 
+/** Request Systems' server-side Phanimation source preparation after held intake. */
+export async function requestPmfPhanimationBatchPreparation({
+  url, secret, keyId = KEY_ID, requestId, pccJobId, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32
+      || !uuid.test(requestId ?? "") || pccJobId !== requestId || typeof fetchImpl !== "function") {
+    throw new Error("PMF_PHANIMATION_PREPARATION_REQUEST_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const action = "REQUEST_PHANIMATION_BATCH_PREPARATION";
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action,
+    payload: { request_id: requestId, pcc_job_id: pccJobId },
+  });
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); } catch { throw new Error("PMF_PHANIMATION_PREPARATION_RESPONSE_INVALID"); }
+  if (!response.ok || result?.ok !== true
+      || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== action) {
+    const reported = typeof result?.error === "string" ? result.error : "";
+    const safeCode = /^(?:PMF_EPISODE_[A-Z0-9_]{1,96}|PMF_PHANIMATION_PREPARE_[A-Z0-9_]{1,96})$/.test(reported)
+      ? reported : "PMF_PHANIMATION_PREPARATION_UNAVAILABLE";
+    throw new Error(safeCode);
+  }
+  const preparation = result.preparation;
+  if (!preparation || typeof preparation !== "object" || Array.isArray(preparation)
+      || preparation.pcc_request_id !== requestId || preparation.pcc_job_id !== pccJobId
+      || !["QUEUED", "CLAIMED", "PREPARED", "BLOCKED"].includes(preparation.state)
+      || result.render_dispatch !== "DISABLED" || result.gpu_search_performed !== false
+      || result.gpu_launch_performed !== false || preparation.render_dispatch !== "DISABLED") {
+    throw new Error("PMF_PHANIMATION_PREPARATION_RESPONSE_INVALID");
+  }
+  return preparation;
+}
+
 
 /** Signed read-only query of PMF's server-verified production admission state. */
 export async function readPmfAnimationProductionReadiness({
@@ -644,3 +695,4 @@ export async function callPmfWorkerRuntime({
   }
   return result.result;
 }
+
