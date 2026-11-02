@@ -1,0 +1,27 @@
+name: PCC GPT output route contract
+on:
+  push:
+    paths:
+      - 'workspace-intake.html'
+      - 'supabase/functions/pcc-workspace-ingest-v1/**'
+      - 'docs/openapi/pcc-gpt-creative-workspace-ingest-v1.yaml'
+      - 'tests/workspace-output-routing.test.mjs'
+      - '.github/workflows/pcc-workspace-output-routing.yml'
+  pull_request:
+    paths:
+      - 'workspace-intake.html'
+      - 'supabase/functions/pcc-workspace-ingest-v1/**'
+      - 'docs/openapi/pcc-gpt-creative-workspace-ingest-v1.yaml'
+      - 'tests/workspace-output-routing.test.mjs'
+      - '.github/workflows/pcc-workspace-output-routing.yml'
+  workflow_dispatch:
+jobs:
+  route-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/workspace-output-routing.test.mjs
+      - run: node --check supabase/functions/pcc-workspace-ingest-v1/output-route-resolver.mjs
