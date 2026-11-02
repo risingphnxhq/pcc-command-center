@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -89,6 +89,51 @@ test("rejects attempts to bypass the PMF hold or accepts a non-held receipt", as
     url: "https://systems.example/bridge", secret, packet,
     fetchImpl: async () => new Response(JSON.stringify({ ok: true, receipt: { state: "READY", render_dispatch: "ENABLED" } }), { status: 200 }),
   }), /HELD_INTAKE_FAILED/);
+});
+
+test("requests Systems Phanimation source preparation only by signed PCC and job identifiers", async () => {
+  let sent;
+  const requestId = "123e4567-e89b-42d3-a456-426614174099";
+  const output = await requestPmfPhanimationBatchPreparation({
+    url: "https://systems.example/functions/v1/pcc-animation-bridge-v1",
+    secret, requestId, pccJobId: requestId,
+    now: 1_800_000_000_000, nonce: "123e4567-e89b-42d3-a456-426614174088",
+    fetchImpl: async (url, init) => {
+      sent = { url, init };
+      return new Response(JSON.stringify({
+        ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "REQUEST_PHANIMATION_BATCH_PREPARATION",
+        preparation: { state: "QUEUED", pcc_request_id: requestId, pcc_job_id: requestId, render_dispatch: "DISABLED" },
+        render_dispatch: "DISABLED", gpu_search_performed: false, gpu_launch_performed: false,
+      }), { status: 200 });
+    },
+  });
+  assert.deepEqual(output, { state: "QUEUED", pcc_request_id: requestId, pcc_job_id: requestId, render_dispatch: "DISABLED" });
+  assert.deepEqual(JSON.parse(sent.init.body), {
+    protocol: "pcc-pmf-animation-bridge/v1", action: "REQUEST_PHANIMATION_BATCH_PREPARATION",
+    payload: { request_id: requestId, pcc_job_id: requestId },
+  });
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+  const signature = Uint8Array.from(sent.init.headers["x-pcc-bridge-signature"].match(/.{2}/g), byte => parseInt(byte, 16));
+  assert.equal(await crypto.subtle.verify("HMAC", key, signature,
+    new TextEncoder().encode(`${sent.init.headers["x-pcc-bridge-timestamp"]}\n${sent.init.headers["x-pcc-bridge-nonce"]}\n${sent.init.body}`)), true);
+});
+
+test("surfaces missing Phanimation source references and rejects any preparation dispatch", async () => {
+  const requestId = "123e4567-e89b-42d3-a456-426614174099";
+  const base = { url: "https://systems.example/bridge", secret, requestId, pccJobId: requestId };
+  await assert.rejects(requestPmfPhanimationBatchPreparation({ ...base,
+    fetchImpl: async () => new Response(JSON.stringify({ ok: false, error: "PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND" }), { status: 409 }),
+  }), /PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND/);
+  await assert.rejects(requestPmfPhanimationBatchPreparation({ ...base,
+    fetchImpl: async () => new Response(JSON.stringify({
+      ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "REQUEST_PHANIMATION_BATCH_PREPARATION",
+      preparation: { state: "QUEUED", pcc_request_id: requestId, pcc_job_id: requestId, render_dispatch: "ENABLED" },
+      render_dispatch: "ENABLED", gpu_search_performed: true, gpu_launch_performed: false,
+    }), { status: 200 }),
+  }), /PMF_PHANIMATION_PREPARATION_RESPONSE_INVALID/);
+  await assert.rejects(requestPmfPhanimationBatchPreparation({ ...base,
+    pccJobId: "123e4567-e89b-42d3-a456-426614174098", fetchImpl: async () => { throw new Error("must not call"); },
+  }), /PMF_PHANIMATION_PREPARATION_REQUEST_INVALID/);
 });
 
 
@@ -380,3 +425,4 @@ test("latest RunPod snapshot fails closed for stale data or candidates outside a
     inventory:{...base.inventory,candidates:[{...base.inventory.candidates[0],hourly_rate_usd:0.81}]}};
   await assert.rejects(call(fresh),/RUNPOD_SNAPSHOT_RESPONSE_INVALID/);
 });
+
