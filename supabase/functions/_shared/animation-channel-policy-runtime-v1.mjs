@@ -45,6 +45,7 @@ export async function resolveTrustedAnimationPolicy({
     channel_key:request.channel_key,
     output_type:request.output_type,
     production_intent:request.production_intent,
+    ...(isObject(request.source_scope) ? {source_scope:request.source_scope} : {}),
   });
   const policy=deepFreeze(validateResolvedAnimationPolicy(raw,request));
   const verification=deepFreeze(await verifySource(policy));
