@@ -23,5 +23,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/workspace-output-routing.test.mjs
+      - run: node --test tests/workspace-output-routing.test.mjs tests/workspace-review-adjudication.test.mjs
       - run: node --check supabase/functions/pcc-workspace-ingest-v1/output-route-resolver.mjs
+      - run: node --check supabase/functions/pcc-workspace-ingest-v1/review-adjudication.mjs
