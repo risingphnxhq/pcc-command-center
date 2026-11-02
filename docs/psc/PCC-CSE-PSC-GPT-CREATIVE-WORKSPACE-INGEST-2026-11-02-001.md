@@ -38,7 +38,7 @@ GPT Actions call the API with a dedicated Bearer key created in the PCC page; th
 ## Producer and viewing route contract
 
 - Route contract pcc-output-route-v1 records content kind, requested operation, producer chain, destination, placement format, viewer surface, required gates, and fail-closed reasons in receipt.route_resolution.
-- PHNX Phanimation SERIES / EPISODE maps to the PSN catalog viewer https://risingphnxhq.github.io/phnx-phanimation/. Episode profile is 1,500 seconds; PSN certificate, entitlement, and approved release remain required.
+- Script production identifies the Playwright (PCC) as writer and BOAS/KNOAS as Director in the producer chain. PHNX Phanimation SERIES / EPISODE maps to the PSN catalog viewer https://risingphnxhq.github.io/phnx-phanimation/. Episode profile is 1,500 seconds; PSN certificate, entitlement, and approved release remain required.
 - Phoenix Kids episodes selected for the PHNX Kids YouTube channel map through SPIDER. The profile records 180–300 seconds; its connection is revalidated at execution and release stays held.
 - Explicitly selected YouTube channel keys are limited to the PSC channel inventory. A selected account is not proof of a current connection or publishing permission.
 - Ads, reels, shorts, video, image, audio, book, concept, and document kinds are recognized. Destinations without a PSC-backed producer/viewer mapping return BLOCKED; no channel or store is inferred from free text.
@@ -46,9 +46,9 @@ GPT Actions call the API with a dedicated Bearer key created in the PCC page; th
 
 ## Current build checkpoint — 2026-11-02
 
-- Direct PCC source commits: 6ea5efefddeb1e0e913222f34a6f5316d7678ab6, 9b175e1efb372d9c432d321b768688c32e86debb, cc2982f295dca493a914545836bd9b1e2f627161, 1ca988156f15e4c4beeedd44820d325412ec4d9b, fb3f1b13119897b0e70e64f02861f684f2d18bb7, eab20c306ae0dbe5c647570f9321966bf8a36b80, 1526da4694b52d225317475fb28cacbf5be25611, c4c64cfc3fa412df24cd852988f03750e48e95ae, d43751c874545b65f8a74382e0ed9e9a0fbacfc0.
-- Systems Edge Function pcc-workspace-ingest-v1 is active at version 4 with the route resolver deployed.
-- Synthetic resolver matrix: 7/7 cases passed in current source (PSN episode, Kids episode, missing placement, unknown channel/platform, book destination block, classification block, and multi-destination producer chain). The committed Node test workflow is set to run on direct pushes; authenticated intake/asset end-to-end tests have not been run.
+- Direct PCC source commits: 6ea5efefddeb1e0e913222f34a6f5316d7678ab6, 9b175e1efb372d9c432d321b768688c32e86debb, cc2982f295dca493a914545836bd9b1e2f627161, 1ca988156f15e4c4beeedd44820d325412ec4d9b, fb3f1b13119897b0e70e64f02861f684f2d18bb7, eab20c306ae0dbe5c647570f9321966bf8a36b80, 1526da4694b52d225317475fb28cacbf5be25611, c4c64cfc3fa412df24cd852988f03750e48e95ae, d43751c874545b65f8a74382e0ed9e9a0fbacfc0, c332884a002fc17fb35405afc924f11aae50577e, fb58775e0ce77457110cfa797351d379f5ec7a40.
+- Systems Edge Function pcc-workspace-ingest-v1 is active at version 5 with the route resolver deployed.
+- Synthetic resolver matrix: 9/9 cases passed in current source (PSN episode, Kids episode, missing placement, unknown channel/platform, book destination block, classification block, and multi-destination producer chain). The committed Node test workflow is set to run on direct pushes; authenticated intake/asset end-to-end tests have not been run.
 - Existing intake records remain unreviewed and non-executable. This build does not automatically sync every GPT message, create producer jobs, render, or publish.
 
 ## Verification / current state
