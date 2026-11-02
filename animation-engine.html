@@ -52,6 +52,21 @@ main{max-width:1240px;margin:32px auto;padding:0 18px 48px}.eyebrow{font:600 11p
 <div class="field"><label for="seriesContext">Series, saga, or campaign</label><input id="seriesContext" maxlength="160" placeholder="For example: Obsidian Core Saga, Phoenix Kids Season 1, or Spring campaign"></div>
 <div class="field"><label for="sourceSeriesId">Source series ID</label><input id="sourceSeriesId" maxlength="160" placeholder="Example: ANGIES-WORLD"><small>Use the exact approved source identifier when the channel policy is series-scoped.</small></div>
 <div class="field"><label for="sourceEpisodeId">Source episode or item ID</label><input id="sourceEpisodeId" maxlength="160" placeholder="Example: AW-EP-001"><small>Scoped policies require an exact match. Phoenix Kids Discovery Park currently requires both IDs above.</small></div>
+<div id="bookContextFields" class="gate" hidden style="border-left-color:var(--cyan)">
+<strong>Book / chapter / scene context</strong><small class="fine">PCC resolves the approved BOAS/KNOAS revisions. Enter story scope and writing instructions here; source IDs are verified by PCC.</small>
+<div class="field"><label for="sagaId">Saga ID</label><input id="sagaId" maxlength="100" placeholder="OCS"></div>
+<div class="field"><label for="bookAudience">Audience</label><input id="bookAudience" maxlength="300" placeholder="Intended readers"></div>
+<div class="field"><label for="bookId">Book ID</label><input id="bookId" maxlength="160" placeholder="OCS-BOOK-1"></div>
+<div class="field"><label for="bookNumber">Book number</label><input id="bookNumber" type="number" min="1" max="13" step="1" placeholder="1"></div>
+<div class="field"><label for="bookTitle">Book title</label><input id="bookTitle" maxlength="300" placeholder="The Awakening"></div>
+<div class="field"><label for="volumeScope">Volume / story scope</label><input id="volumeScope" maxlength="1000" placeholder="The complete story or volume to produce"></div>
+<div class="field"><label for="chapterNumber">Chapter number</label><input id="chapterNumber" type="number" min="1" step="1"></div>
+<div class="field"><label for="chapterTitle">Chapter title</label><input id="chapterTitle" maxlength="300"></div>
+<div class="field"><label for="chapterGoal">Chapter goal</label><textarea id="chapterGoal" maxlength="2000"></textarea></div>
+<div class="field"><label for="sceneNumber">Scene number</label><input id="sceneNumber" type="number" min="1" step="1"></div>
+<div class="field"><label for="sceneGoal">Scene goal</label><textarea id="sceneGoal" maxlength="2000"></textarea></div>
+<div class="field"><label for="pointOfView">Point of view</label><input id="pointOfView" maxlength="200"></div>
+</div>
 <div class="field"><label for="contextNotes">Continuity or campaign context</label><textarea id="contextNotes" maxlength="6000" placeholder="Relevant canon, prior episodes, audience, product, brief, or campaign context"></textarea></div>
 <div class="field"><label for="desiredEnding">Desired ending or action</label><textarea id="desiredEnding" maxlength="4000" placeholder="For stories: the ending/payoff you want. For marketing: the action or result the piece should drive."></textarea></div>
 <div class="field"><label for="idea">Your idea</label><textarea id="idea" maxlength="12000" required placeholder="Describe the story, animation, corporate marketing, ad, reel, episode, novel, or scene you want."></textarea></div>
