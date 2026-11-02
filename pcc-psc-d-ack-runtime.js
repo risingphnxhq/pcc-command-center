@@ -27,6 +27,20 @@
     if (el) el.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
   }
 
+  function positiveInteger(value) {
+    if (typeof value === "string" && !/^[1-9][0-9]*$/.test(value)) return null;
+    if (typeof value !== "string" && typeof value !== "number") return null;
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  function clearReconciliation() {
+    sessionStorage.removeItem("pccPscDObservedStateVersion");
+    sessionStorage.removeItem("pccContinuityReconciled");
+    const ack = $("pscDAckButton");
+    if (ack) ack.disabled = true;
+  }
+
   async function session() {
     const { data: { session } } = await client.auth.getSession();
     if (!session?.access_token) throw new Error("AUTHENTICATED_SYSTEMS_SESSION_REQUIRED");
@@ -76,12 +90,13 @@
   let automaticRecoveryInFlight = false;
 
   async function reconcile() {
+    clearReconciliation();
     showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
       const continuityProjection = await continuity();
       const body = await pulse("MEMORY", 0, "PCC-STREAM-FOREMAN-V0-CONTINUITY-RECONCILED");
       show({ continuity: continuityProjection.data, psc_d: body });
-      const version = Number(body?.synchronization?.state_version || 0);
+      const version = positiveInteger(body?.synchronization?.state_version);
       if (!version) throw new Error("PSC_D_STATE_VERSION_UNAVAILABLE");
       sessionStorage.setItem("pccPscDObservedStateVersion", String(version));
       sessionStorage.setItem("pccContinuityReconciled", "true");
@@ -91,6 +106,7 @@
       const ack = $("pscDAckButton");
       if (ack) ack.disabled = false;
     } catch (error) {
+      clearReconciliation();
       showState("PSC-D RECONCILIATION DENIED", true);
       show(error.body || { error: error.message });
     }
@@ -101,21 +117,29 @@
       showState("CONTINUITY RECONCILIATION REQUIRED BEFORE ACK", true);
       return;
     }
-    const observed = Number(sessionStorage.getItem("pccPscDObservedStateVersion") || 0);
+    const observed = positiveInteger(sessionStorage.getItem("pccPscDObservedStateVersion"));
     if (!observed) {
       showState("RECONCILIATION REQUIRED BEFORE ACK", true);
       return;
     }
     showState("COMMITTING AUTHENTICATED PSC-D ACK");
     try {
-      const body = await pulse("DEEP_REHYDRATION", observed, "PCC-STREAM-FOREMAN-V0-COLD-SUCCESSOR-REHYDRATED-2026-10-05");
+      const body = await pulse("DEEP_REHYDRATION", observed, "PCC-PSC-D-USER-ACK-NOT-GPT-COGNITIVE-ACK");
       show(body);
       if (body?.synchronization?.state !== "SYNCHRONIZED") {
         showState(`ACK NOT SYNCHRONIZED · ${body?.synchronization?.state || "UNKNOWN"}`, true);
         return;
       }
-      showState(`SYNCHRONIZED · STATE v${body.synchronization.state_version} · RECEIPT #${body?.receipt?.sync_receipt_id ?? "UNKNOWN"}`);
+      const receiptId = positiveInteger(body?.receipt?.sync_receipt_id);
+      const stateVersion = positiveInteger(body?.synchronization?.state_version);
+      const due = Date.parse(body?.synchronization?.next_memory_sync_due_at || "");
+      if (!receiptId || stateVersion !== observed || !Number.isFinite(due) || due <= Date.now()) {
+        clearReconciliation();
+        throw new Error("PSC_D_DURABLE_RECEIPT_OR_FRESH_STATE_REQUIRED");
+      }
+      showState(`PSC-D TRANSPORT ACK · STATE v${stateVersion} · RECEIPT #${receiptId} · GPT consumption not certified`);
     } catch (error) {
+      clearReconciliation();
       showState("PSC-D ACK DENIED", true);
       show(error.body || { error: error.message });
     }
