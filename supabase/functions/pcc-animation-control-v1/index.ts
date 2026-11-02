@@ -18,6 +18,9 @@ const resolveTrustedAnimationPolicyTyped = resolveTrustedAnimationPolicy as unkn
 const resolveVerifiedAnimationPolicySourceTyped = resolveVerifiedAnimationPolicySource as unknown as (input: {
   url: string; secret: string; keyId: string; policy: Record<string, unknown>;
 }) => Promise<Record<string, unknown>>;
+const resolveCanonicalAnimationPolicyIdTyped = resolveCanonicalAnimationPolicyId as unknown as (input: {
+  url: string; secret: string; keyId: string; approvalPscId: string;
+}) => Promise<string>;
 const executeAnimationWriteLifecycleTyped = executeAnimationWriteLifecycle as unknown as (input: {
   job: Record<string, any>; trustedPolicy: Record<string, any>; canReview: boolean;
   model: { complete(input: { system: string; user: string }): Promise<string> };
@@ -214,7 +217,7 @@ Deno.serve(async (req: Request) => {
     const bridgeKeyId = "pcc-animation-v1";
     if (!bridgeUrl || !bridgeSecret) return json(503, { error: "ANIMATION_POLICY_SOURCE_RESOLVER_NOT_CONFIGURED" });
     try {
-      registeredPolicy.policy_id = await resolveCanonicalAnimationPolicyId({
+      registeredPolicy.policy_id = await resolveCanonicalAnimationPolicyIdTyped({
         url: bridgeUrl,
         secret: bridgeSecret,
         keyId: bridgeKeyId,
@@ -585,7 +588,7 @@ Deno.serve(async (req: Request) => {
         trustedPolicy,
         canReview: mayReview,
         model: createScriptModel(modelKey, modelName),
-        saveScript: (savePayload: Record<string, unknown>) => service.rpc("pcc_animation_job_control_v1", {
+        saveScript: async (savePayload: Record<string, unknown>) => await service.rpc("pcc_animation_job_control_v1", {
           p_action: "SAVE_SCRIPT",
           p_subject: userData.user.id,
           p_payload: savePayload,
