@@ -47,6 +47,16 @@ export function validateHandoffSource(job) {
     throw new Error("REVIEWER_RECEIPT_REQUIRED");
   }
   const intent = resolveProductionIntent(job.output_type, job.production_intent);
+  const outputSpec = job.request_payload?.approved_channel_policy_snapshot?.output_spec;
+  if (!outputSpec || typeof outputSpec !== "object" || Array.isArray(outputSpec)) {
+    throw new Error("APPROVED_OUTPUT_SPEC_REQUIRED");
+  }
+  if (job.output_type === "SERIES_EPISODE"
+      && (!outputSpec.release_destination || !outputSpec.runtime_policy_psc_id
+        || !Number.isFinite(outputSpec.min_total_duration_seconds)
+        || !Number.isFinite(outputSpec.max_total_duration_seconds))) {
+    throw new Error("APPROVED_EPISODE_RUNTIME_POLICY_REQUIRED");
+  }
   return {
     contract_version: "PCC_PMF_ANIMATION_HANDOFF_V1",
     request: { request_id: job.job_id, channel_key: job.channel_key, output_type: job.output_type, production_intent: intent, title: job.title, idea: job.idea },
@@ -58,6 +68,7 @@ export function validateHandoffSource(job) {
       channel_policy_approval_psc_id: job.channel_policy_approval_psc_id,
       boas_id: job.boas_id, boas_revision: job.boas_revision, boas_psc_id: job.boas_psc_id,
       knoas_id: job.knoas_id, knoas_revision: job.knoas_revision, knoas_psc_id: job.knoas_psc_id,
+      output_spec: outputSpec,
     },
     writer_master_and_segments: job.script_bundle,
     reviewer_receipt: job.review_receipt,

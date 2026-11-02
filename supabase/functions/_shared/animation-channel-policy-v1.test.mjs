@@ -8,7 +8,7 @@ const valid = () => ({
   boas_id: "BOAS-PHXN-KIDS", boas_revision: "v1", boas_psc_id: "PSC-BOAS-001",
   knoas_id: "KNOAS-PHXN-KIDS", knoas_revision: "v1", knoas_psc_id: "PSC-KNOAS-001",
   channel_profile: { audience: "8-10", canon: "approved" },
-  output_spec: { minimum_segments: 1, maximum_segments: 12 },
+  output_spec: { minimum_segments: 1, maximum_segments: 12, release_destination:"PHOENIX_KIDS", runtime_policy_psc_id:"PMF-FOUNDER-PSC-PHANIMATION-EPISODE-RUNTIME-CLARIFICATION-2026-10-31-001", min_total_duration_seconds:180, max_total_duration_seconds:300 },
 });
 
 test("accepts policy registrations only with immutable BOAS/KNOAS lineage", () => {
@@ -41,4 +41,22 @@ test("resolved policies must match the exact requested channel, format, and lane
   assert.equal(resolved.policy_id, policy.policy_id);
   assert.throws(() => validateResolvedAnimationPolicy(policy, { channel_key: "phnx_faceless", output_type: "SERIES_EPISODE", production_intent: "NARRATIVE" }), /REGISTERED_CHANNEL_POLICY_MISMATCH/);
   assert.throws(() => validateResolvedAnimationPolicy({ ...policy, approved: false }, { channel_key: "phnx_kids", output_type: "SERIES_EPISODE", production_intent: "NARRATIVE" }), /REGISTERED_CHANNEL_POLICY_REQUIRED/);
+});
+
+test("binds PHNX Phanimation series policy to PSN's exact 25-minute allocation PSC", () => {
+  const input = valid();
+  input.channel_key = "phnx_phanimation";
+  input.output_spec = {
+    release_destination: "PHNX_PHANIMATION",
+    runtime_policy_psc_id: "PMF-FOUNDER-PSC-PHANIMATION-PSN-25-MINUTE-EPISODE-ALLOCATION-2026-10-31-001",
+    min_total_duration_seconds: 1500,
+    target_total_duration_seconds: 1500,
+    max_total_duration_seconds: 1500,
+  };
+  const policy = validateAnimationPolicyRegistration(input);
+  assert.equal(policy.output_spec.target_total_duration_seconds, 1500);
+  const wrongDuration = { ...input, output_spec: { ...input.output_spec, target_total_duration_seconds: 180 } };
+  assert.throws(() => validateAnimationPolicyRegistration(wrongDuration), /POLICY_SERIES_EPISODE_RUNTIME_SPEC_MISMATCH/);
+  const wrongPsc = { ...input, output_spec: { ...input.output_spec, runtime_policy_psc_id: "UNAPPROVED" } };
+  assert.throws(() => validateAnimationPolicyRegistration(wrongPsc), /POLICY_SERIES_EPISODE_RUNTIME_SPEC_MISMATCH/);
 });

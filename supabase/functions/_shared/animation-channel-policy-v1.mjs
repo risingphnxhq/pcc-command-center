@@ -8,6 +8,11 @@ const OUTPUT_LANES = new Map([
 ]);
 const ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,159}$/;
 const CHANNEL = /^[a-z][a-z0-9_]{1,63}$/;
+const SERIES_RUNTIME_POLICY_BY_CHANNEL = {
+  phnx_phanimation: {destination:"PHNX_PHANIMATION", psc_id:"PMF-FOUNDER-PSC-PHANIMATION-PSN-25-MINUTE-EPISODE-ALLOCATION-2026-10-31-001", min_seconds:1500, max_seconds:1500},
+  phnx_kids: {destination:"PHOENIX_KIDS", psc_id:"PMF-FOUNDER-PSC-PHANIMATION-EPISODE-RUNTIME-CLARIFICATION-2026-10-31-001", min_seconds:180, max_seconds:300},
+  angies_world: {destination:"ANGIES_WORLD", psc_id:"PMF-FOUNDER-PSC-PHANIMATION-EPISODE-RUNTIME-CLARIFICATION-2026-10-31-001", min_seconds:180, max_seconds:300},
+};
 const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const requiredId = (v, field) => {
   if (typeof v !== "string" || !ID.test(v.trim())) throw new Error(`POLICY_${field.toUpperCase()}_INVALID`);
@@ -48,6 +53,18 @@ export function validateAnimationPolicyRegistration(input) {
     supersedes_policy_id: input.supersedes_policy_id ?? null,
   };
   if (!isObject(policy.channel_profile) || !isObject(policy.output_spec)) throw new Error("POLICY_PROFILE_AND_OUTPUT_SPEC_REQUIRED");
+  if (output_type === "SERIES_EPISODE") {
+    const runtime = SERIES_RUNTIME_POLICY_BY_CHANNEL[channel_key];
+    if (!runtime) throw new Error("POLICY_SERIES_EPISODE_CHANNEL_RUNTIME_UNREGISTERED");
+    if (policy.output_spec.release_destination !== runtime.destination
+        || policy.output_spec.runtime_policy_psc_id !== runtime.psc_id
+        || policy.output_spec.min_total_duration_seconds !== runtime.min_seconds
+        || policy.output_spec.max_total_duration_seconds !== runtime.max_seconds
+        || (runtime.min_seconds === runtime.max_seconds
+          && policy.output_spec.target_total_duration_seconds !== runtime.min_seconds)) {
+      throw new Error("POLICY_SERIES_EPISODE_RUNTIME_SPEC_MISMATCH");
+    }
+  }
   if (JSON.stringify(policy.channel_profile).length > 40_000 || JSON.stringify(policy.output_spec).length > 40_000) throw new Error("POLICY_PROFILE_TOO_LARGE");
   if (policy.supersedes_policy_id !== null && (typeof policy.supersedes_policy_id !== "string" || !/^[0-9a-f-]{36}$/i.test(policy.supersedes_policy_id))) {
     throw new Error("POLICY_SUPERSESSION_ID_INVALID");

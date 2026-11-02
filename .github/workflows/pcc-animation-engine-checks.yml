@@ -1,5 +1,11 @@
 name: PCC Animation Engine inventory checks
 on:
+  push:
+    branches: ['animation-engine-psn-runtime-bind-v1']
+    paths:
+      - 'supabase/functions/_shared/animation-handoff-v1.mjs'
+      - 'supabase/functions/_shared/animation-handoff-v1.test.mjs'
+      - '.github/workflows/pcc-animation-engine-checks.yml'
   pull_request:
     paths:
       - 'animation-engine.html'
@@ -19,6 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/animation-engine-inventory.test.mjs supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs
+      - run: node --test tests/animation-engine-inventory.test.mjs supabase/functions/_shared/pcc-pmf-bridge-v1.test.mjs supabase/functions/_shared/animation-handoff-v1.test.mjs
       - name: Parse PCC Animation Engine browser runtime
         run: node --check pcc-animation-engine.js
