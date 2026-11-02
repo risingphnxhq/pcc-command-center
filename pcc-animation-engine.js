@@ -51,6 +51,22 @@
   }
   formatSelect.addEventListener("change", syncIntent);
   syncIntent();
+  const bookFields=$("bookContextFields");
+  function syncBookContext() {
+    const book=["BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE"].includes(formatSelect.value);
+    bookFields.hidden=!book;
+    for(const id of ["bookAudience","bookId","bookTitle"]) $(id).required=book;
+    $("volumeScope").required=formatSelect.value==="BOOK_MANUSCRIPT";
+    $("bookNumber").required=["BOOK_CHAPTER","BOOK_SCENE"].includes(formatSelect.value);
+    $("chapterNumber").required=["BOOK_CHAPTER","BOOK_SCENE"].includes(formatSelect.value);
+    $("chapterTitle").required=formatSelect.value==="BOOK_CHAPTER";
+    $("chapterGoal").required=formatSelect.value==="BOOK_CHAPTER";
+    $("sceneNumber").required=formatSelect.value==="BOOK_SCENE";
+    $("sceneGoal").required=formatSelect.value==="BOOK_SCENE";
+    $("pointOfView").required=formatSelect.value==="BOOK_SCENE";
+  }
+  formatSelect.addEventListener("change",syncBookContext);
+  syncBookContext();
   const labels = {
     goldmind:"Phoenix GoldMind",goldwords:"GoldWords",phnx_kids:"PHNX Kids",phnx_kitchen:"PHNX Kitchen",
     phnx_sports:"PHNX Sports",phnx_studio:"PHNX Studios",phnx_faceless:"PHNX Faceless Reels",rpe:"RPE",shadow:"ShadowFrame",valarian:"Valarian Shadow"
@@ -559,14 +575,23 @@
     const channel=$("channel").value, output=$("format").value, title=$("title").value.trim(), idea=$("idea").value.trim();
     const seriesContext=$("seriesContext").value.trim(), contextNotes=$("contextNotes").value.trim(), desiredEnding=$("desiredEnding").value.trim();
     const sourceSeriesId=$("sourceSeriesId").value.trim(), sourceEpisodeId=$("sourceEpisodeId").value.trim();
+    const writingContext={
+      saga_id:$("sagaId").value.trim(),audience:$("bookAudience").value.trim(),book_id:$("bookId").value.trim(),
+      book_number:$("bookNumber").value?Number($("bookNumber").value):undefined,book_title:$("bookTitle").value.trim(),
+      volume_or_story_scope:$("volumeScope").value.trim(),chapter_number:$("chapterNumber").value?Number($("chapterNumber").value):undefined,
+      chapter_title:$("chapterTitle").value.trim(),chapter_goal:$("chapterGoal").value.trim(),scene_number:$("sceneNumber").value?Number($("sceneNumber").value):undefined,
+      scene_goal:$("sceneGoal").value.trim(),point_of_view:$("pointOfView").value.trim()
+    };
+    for(const key of Object.keys(writingContext)) if(writingContext[key]===undefined||writingContext[key]==="") delete writingContext[key];
     const key=crypto.randomUUID();
     try {
       const result=await call("CREATE", {
         idempotency_key:key, channel_key:channel, output_type:output,
         production_intent:["AD","REEL"].includes(output) ? intentSelect.value : null,
-        title, idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1",series_context:seriesContext,source_series_id:sourceSeriesId,source_episode_id:sourceEpisodeId,context_notes:contextNotes,desired_ending_or_action:desiredEnding}
+        title, idea, request_payload:{intake:"PCC_ANIMATION_ENGINE_V1",series_context:seriesContext,source_series_id:sourceSeriesId,source_episode_id:sourceEpisodeId,writing_context:writingContext,context_notes:contextNotes,desired_ending_or_action:desiredEnding}
       });
       $("title").value=""; $("seriesContext").value=""; $("sourceSeriesId").value=""; $("sourceEpisodeId").value=""; $("contextNotes").value=""; $("desiredEnding").value=""; $("idea").value="";
+      for(const id of ["sagaId","bookAudience","bookId","bookNumber","bookTitle","volumeScope","chapterNumber","chapterTitle","chapterGoal","sceneNumber","sceneGoal","pointOfView"]) $(id).value="";
       message("Saved in PCC as "+result.job.status+". No render was started.", "ok");
       await refresh();
     } catch (error) { message(error.message, "error"); }
