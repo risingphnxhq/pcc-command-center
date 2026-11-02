@@ -21,6 +21,7 @@ Enable authenticated GPT creative workspaces to submit writing and media provena
 - Tables `public.pcc_workspace_intake_v1` and `public.pcc_workspace_intake_assets_v1`, RLS enabled and client roles revoked.
 - Private Storage bucket `pcc-workspace-intake`.
 - OpenAPI Action contract and operator documentation in PCC source.
+- PCC page `workspace-intake.html`, linked from Systems Console, for file upload and one-time per-GPT key creation/listing/revocation.
 
 The Edge Function is a two-operation interface:
 1. `submit`: accept text/structured content and optional asset manifest, compute a canonical server-side SHA-256, and return a receipt. Text-only submissions enter `PENDING_PCC_TRIAGE`; assets enter `AWAITING_ASSET_UPLOAD`.
@@ -30,11 +31,11 @@ Idempotency is scoped to authenticated subject and runtime lane. A reused key wi
 
 ## Boundaries and dependencies
 
-OpenAI GPT Actions can call external APIs, and ChatGPT supports attached file/image inputs, but those are distinct data paths. The Action submits JSON and returns signed upload instructions. The PCC browser intake surface at `workspace-intake.html` accepts local binary files and transfers them to the private signed URL; it is linked from Systems Console. A GPT Action does not transfer generated binary bytes by itself, so generated files must be available to an upload-capable client. Per-GPT Action authorization setup remains an operator configuration step. No service-role secret or machine identity may be placed in a GPT.
+GPT Actions call the API with a dedicated Bearer key created in the PCC page; the operator must paste the one-time key into that GPT’s Action settings. A GPT Action does not transfer generated binary bytes by itself, so generated files must be available to the PCC browser uploader or another upload-capable client. No service-role secret or machine identity may be placed in a GPT.
 
 ## Verification / current state
 
-Schema and function were deployed to Systems project `oyjmpbuxvfxusmbouldi` on 2026-11-02. Function reports ACTIVE, version 1, JWT verification enabled. Synthetic authenticated submit/replay and binary-integrity tests have not yet been run. No production certification is claimed.
+Schema and function were deployed to Systems project `oyjmpbuxvfxusmbouldi` on 2026-11-02. Function reports ACTIVE, version 2. The Edge gateway JWT check is disabled because the function performs its own Supabase Auth validation and scoped-key verification. Schema/function deployment readback is complete; synthetic authenticated submit, key revocation, and binary tests have not yet been run. Synthetic authenticated submit/replay and binary-integrity tests have not yet been run. No production certification is claimed.
 
 ## Next authorized build step
 
