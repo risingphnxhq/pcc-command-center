@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/pcc-animation-writer.yml'
+      - 'supabase/functions/_shared/animation-handoff-v1.mjs'
+      - 'supabase/functions/_shared/animation-handoff-v1.test.mjs'
       - 'supabase/functions/_shared/animation-channel-policy-v1.mjs'
       - 'supabase/functions/_shared/animation-channel-policy-v1.test.mjs'
       - 'supabase/functions/_shared/animation-channel-policy-runtime-v1.mjs'
@@ -19,6 +21,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/pcc-animation-writer.yml'
+      - 'supabase/functions/_shared/animation-handoff-v1.mjs'
+      - 'supabase/functions/_shared/animation-handoff-v1.test.mjs'
       - 'supabase/functions/_shared/animation-channel-policy-v1.mjs'
       - 'supabase/functions/_shared/animation-channel-policy-v1.test.mjs'
       - 'supabase/functions/_shared/animation-channel-policy-runtime-v1.mjs'
@@ -46,6 +50,7 @@ jobs:
           node --test
           supabase/functions/_shared/animation-channel-policy-v1.test.mjs
           supabase/functions/_shared/animation-channel-policy-runtime-v1.test.mjs
+          supabase/functions/_shared/animation-handoff-v1.test.mjs
           supabase/functions/_shared/animation-production-breakdown-v1.test.mjs
           supabase/functions/_shared/animation-scriptwriter-v1.test.mjs
           supabase/functions/_shared/animation-write-lifecycle-v1.test.mjs
