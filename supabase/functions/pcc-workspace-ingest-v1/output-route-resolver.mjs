@@ -24,13 +24,9 @@ function clean(value, max = 160) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-function producerFor(kind, operation, placement) {
+function producerFor(kind, operation) {
   if (operation === "CAPTURE") return ["PCC_WORKSPACE_INTAKE"];
-  if (operation === "DISTRIBUTE") {
-    if (placement?.destination_type === "PSN_CATALOG" && PSN_KINDS.has(kind)) return ["PMF_RESULT_INTAKE", "PSN_RELEASE"];
-    if (placement?.destination_type === "SPIDER_YOUTUBE") return ["SPIDER_DISTRIBUTION"];
-    return [];
-  }
+  if (operation === "DISTRIBUTE") return [];
   if (operation === "AUTHOR") {
     if (kind === "BOOK" || kind === "SERIES") return ["PCC_WRITING_ROOM"];
     if (kind === "EPISODE" || MEDIA_OUTPUTS.has(kind)) return ["PCC_WRITER"];
@@ -38,20 +34,21 @@ function producerFor(kind, operation, placement) {
   }
   if (kind === "BOOK") return [];
   if (kind === "CONCEPT" || kind === "DOCUMENT" || kind === "OTHER") return ["PCC_CLASSIFICATION"];
-  if (kind === "SERIES" && placement?.destination_type === "PSN_CATALOG") {
-    return ["PCC_WRITING_ROOM", "PSN_CATALOG"];
-  }
-  if (kind === "EPISODE") {
-    return placement?.destination_type === "PSN_CATALOG"
-      ? ["PCC_WRITER", "PMF_ANIMATION", "PSN_CATALOG"]
-      : ["PCC_WRITER", "PMF_ANIMATION", "SPIDER_DISTRIBUTION"];
-  }
+  if (kind === "SERIES") return ["PCC_WRITING_ROOM"];
+  if (kind === "EPISODE") return ["PCC_WRITER", "PMF_ANIMATION"];
   if (MEDIA_OUTPUTS.has(kind)) return ["PCC_CREATIVE_WORKFLOW", "PMF_MEDIA"];
   if (kind === "IMAGE") return ["PCC_ASSET_INGEST", "PNG_ASSET_REGISTRY"];
   if (kind === "AUDIO") return ["PCC_ASSET_INGEST", "SVW_VOICE_ORCHESTRATOR"];
   return [];
 }
 
+function placementProducer(placement, operation) {
+  if (placement?.destination_type === "PSN_CATALOG") {
+    return operation === "DISTRIBUTE" ? ["PMF_RESULT_INTAKE", "PSN_RELEASE"] : operation === "AUTHOR" ? [] : ["PSN_CATALOG"];
+  }
+  if (placement?.destination_type === "SPIDER_YOUTUBE") return ["SPIDER_DISTRIBUTION"];
+  return [];
+}
 export function resolveOutputRoute(input = {}) {
   const kind = clean(input.content_kind, 40).toUpperCase();
   const operation = clean(input.requested_operation, 40).toUpperCase() || "PRODUCE";
@@ -124,9 +121,11 @@ export function resolveOutputRoute(input = {}) {
     return placement;
   });
 
-  const primary = placements[0];
-  const producerChain = producerFor(kind, operation, primary);
+  const baseProducerChain = producerFor(kind, operation);
+  const destinationProducers = placements.flatMap((placement) => placementProducer(placement, operation));
+  const producerChain = [...new Set([...baseProducerChain, ...destinationProducers])];
   if (producerChain.length === 0) reasons.push("PRODUCER_MAPPING_NOT_IN_APPROVED_ROUTE_REGISTRY");
+  const primary = placements[0];
   if (kind === "BOOK" && operation !== "AUTHOR" && operation !== "CAPTURE") {
     reasons.push("BOOK_PRODUCTION_DESTINATION_NOT_ESTABLISHED");
   }
@@ -163,6 +162,9 @@ export function resolveOutputRoute(input = {}) {
       viewer_surface: p.viewer_surface,
       viewer_url: p.viewer_url || null,
       placement_format: p.placement_format,
+      expected_duration_seconds: p.expected_duration_seconds || null,
+      expected_duration_range_seconds: p.expected_duration_range_seconds || null,
+      duration_policy: p.duration_policy || null,
       release_state: p.release_state,
     })),
     required_gates: [...requiredGates],
