@@ -20,13 +20,13 @@ async function hash(data:Uint8Array|string):Promise<string>{
   return Array.from(new Uint8Array(result)).map(x=>x.toString(16).padStart(2,"0")).join("");
 }
 async function bindingForEmail(email:string){
- const {data:rows,error}=await db.schema("pcc_institutional").from("auth_actor_bindings").select("auth_subject,actor_id,binding_class,status,valid_from,valid_until,metadata").eq("actor_id",ACTOR).eq("status","ACTIVE");
+ const {data:rows,error}=await admin.schema("pcc_institutional").from("auth_actor_bindings").select("auth_subject,actor_id,binding_class,status,valid_from,valid_until,metadata").eq("actor_id",ACTOR).eq("status","ACTIVE");
  if(error)throw Error("AUTHORITY_LOOKUP_FAILED");const now=Date.now();
  const b=(rows||[]).find((x:any)=>LANES.has(x.metadata?.runtime_lane)&&String(x.metadata?.auth_email||"").toLowerCase()===email.toLowerCase()&&["DIRECT_ACTOR","DELEGATED_RUNTIME"].includes(x.binding_class)&&Date.parse(x.valid_from)<=now&&(!x.valid_until||Date.parse(x.valid_until)>=now));
  if(!b)throw Error("WORKSPACE_BINDING_REQUIRED");return b;
 }
 async function bindingForSubject(subject:string,lane:string){
- const {data:rows,error}=await db.schema("pcc_institutional").from("auth_actor_bindings").select("actor_id,binding_class,status,valid_from,valid_until,metadata").eq("auth_subject",subject).eq("actor_id",ACTOR).eq("status","ACTIVE");
+ const {data:rows,error}=await admin.schema("pcc_institutional").from("auth_actor_bindings").select("actor_id,binding_class,status,valid_from,valid_until,metadata").eq("auth_subject",subject).eq("actor_id",ACTOR).eq("status","ACTIVE");
  if(error)throw Error("AUTHORITY_LOOKUP_FAILED");const now=Date.now();
  const b=(rows||[]).find((x:any)=>LANES.has(x.metadata?.runtime_lane)&&x.metadata?.runtime_lane===lane&&["DIRECT_ACTOR","DELEGATED_RUNTIME"].includes(x.binding_class)&&Date.parse(x.valid_from)<=now&&(!x.valid_until||Date.parse(x.valid_until)>=now));
  if(!b)throw Error("WORKSPACE_BINDING_REQUIRED");return b;
@@ -34,11 +34,11 @@ async function bindingForSubject(subject:string,lane:string){
 async function authorize(req:Request){
  const header=req.headers.get("authorization")||"";const token=header.startsWith("Bearer ")?header.slice(7).trim():"";if(!token)throw Error("UNAUTHENTICATED");
  if(token.startsWith("pccwi_")){
-  const digest=await sha(token);
-  const {data:k,error}=await db.from("pcc_workspace_ingest_keys_v1").select("key_id,created_by_auth_subject,actor_id,runtime_lane,status,expires_at").eq("token_sha256",digest).eq("status","ACTIVE").maybeSingle();
-  if(error||!k)throw Error("UNAUTHENTICATED");if(Date.parse(k.expires_at)<=Date.now()){await db.from("pcc_workspace_ingest_keys_v1").update({status:"EXPIRED"}).eq("key_id",k.key_id);throw Error("UNAUTHENTICATED");}
+  const digest=await hash(token);
+  const {data:k,error}=await admin.from("pcc_workspace_ingest_keys_v1").select("key_id,created_by_auth_subject,actor_id,runtime_lane,status,expires_at").eq("token_sha256",digest).eq("status","ACTIVE").maybeSingle();
+  if(error||!k)throw Error("UNAUTHENTICATED");if(Date.parse(k.expires_at)<=Date.now()){await admin.from("pcc_workspace_ingest_keys_v1").update({status:"EXPIRED"}).eq("key_id",k.key_id);throw Error("UNAUTHENTICATED");}
   await bindingForSubject(k.created_by_auth_subject,k.runtime_lane);
-  await db.from("pcc_workspace_ingest_keys_v1").update({last_used_at:new Date().toISOString()}).eq("key_id",k.key_id);
+  await admin.from("pcc_workspace_ingest_keys_v1").update({last_used_at:new Date().toISOString()}).eq("key_id",k.key_id);
   return{subject:k.created_by_auth_subject,actor:k.actor_id,lane:k.runtime_lane,authMode:"ACTION_KEY",keyId:k.key_id};
  }
  const userClient=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:"Bearer "+token}}});
@@ -52,21 +52,21 @@ function randomToken(){
 }
 async function createActionKey(b:any,w:any){
  if(w.authMode!=="USER_JWT")return reply(403,{error:"USER_SIGN_IN_REQUIRED_TO_CREATE_KEY"});
- const label=str(b.key_label,100).trim();if(!label)return reply(400,{error:"KEY_LABEL_REQUIRED"});
- const token=randomToken(),digest=await sha(token),expires=new Date(Date.now()+90*24*60*60*1000).toISOString();
- const {data,error}=await db.from("pcc_workspace_ingest_keys_v1").insert({created_by_auth_subject:w.subject,actor_id:w.actor,runtime_lane:w.lane,key_label:label,token_sha256:digest,expires_at:expires}).select("key_id,key_label,status,created_at,expires_at").single();
+ const label=text(b.key_label,100).trim();if(!label)return reply(400,{error:"KEY_LABEL_REQUIRED"});
+ const token=randomToken(),digest=await hash(token),expires=new Date(Date.now()+90*24*60*60*1000).toISOString();
+ const {data,error}=await admin.from("pcc_workspace_ingest_keys_v1").insert({created_by_auth_subject:w.subject,actor_id:w.actor,runtime_lane:w.lane,key_label:label,token_sha256:digest,expires_at:expires}).select("key_id,key_label,status,created_at,expires_at").single();
  if(error)throw Error("KEY_CREATE_FAILED");
  return reply(200,{key_id:data.key_id,key_label:data.key_label,status:data.status,created_at:data.created_at,expires_at:data.expires_at,api_key:token,shown_once:true,scope:["pcc-workspace-ingest-v1:submit","pcc-workspace-ingest-v1:finalize"],warning:"Copy this key into this GPT Action's Bearer API key now. It cannot be read again."});
 }
 async function listActionKeys(w:any){
  if(w.authMode!=="USER_JWT")return reply(403,{error:"USER_SIGN_IN_REQUIRED"});
- const {data,error}=await db.from("pcc_workspace_ingest_keys_v1").select("key_id,key_label,status,created_at,expires_at,last_used_at").eq("created_by_auth_subject",w.subject).eq("runtime_lane",w.lane).order("created_at",{ascending:false});
+ const {data,error}=await admin.from("pcc_workspace_ingest_keys_v1").select("key_id,key_label,status,created_at,expires_at,last_used_at").eq("created_by_auth_subject",w.subject).eq("runtime_lane",w.lane).order("created_at",{ascending:false});
  if(error)throw Error("KEY_LIST_FAILED");return reply(200,{keys:data||[]});
 }
 async function revokeActionKey(b:any,w:any){
  if(w.authMode!=="USER_JWT")return reply(403,{error:"USER_SIGN_IN_REQUIRED"});
- const id=str(b.key_id,64);if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return reply(400,{error:"INVALID_KEY_ID"});
- const {data,error}=await db.from("pcc_workspace_ingest_keys_v1").update({status:"REVOKED",revoked_at:new Date().toISOString()}).eq("key_id",id).eq("created_by_auth_subject",w.subject).eq("runtime_lane",w.lane).eq("status","ACTIVE").select("key_id,status").maybeSingle();
+ const id=text(b.key_id,64);if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return reply(400,{error:"INVALID_KEY_ID"});
+ const {data,error}=await admin.from("pcc_workspace_ingest_keys_v1").update({status:"REVOKED",revoked_at:new Date().toISOString()}).eq("key_id",id).eq("created_by_auth_subject",w.subject).eq("runtime_lane",w.lane).eq("status","ACTIVE").select("key_id,status").maybeSingle();
  if(error)throw Error("KEY_REVOKE_FAILED");if(!data)return reply(404,{error:"ACTIVE_KEY_NOT_FOUND"});return reply(200,{key_id:data.key_id,status:data.status});
 }
 function idemOk(v:unknown):v is string{return typeof v==="string"&&v.length>=8&&v.length<=128&&/^[A-Za-z0-9._:-]+$/.test(v);}
