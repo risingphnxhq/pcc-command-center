@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 import { executeAnimationWriteLifecycle } from "../_shared/animation-write-lifecycle-v1.mjs";
 import { resolveProductionIntent, validateHandoffSource } from "../_shared/animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, resolveCanonicalAnimationPolicyId, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, resolveCanonicalAnimationPolicyId, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
 
@@ -23,6 +23,9 @@ const resolveCanonicalAnimationPolicyIdTyped = resolveCanonicalAnimationPolicyId
 }) => Promise<string>;
 const invokePmfProductionRuntimeTyped = invokePmfProductionRuntime as unknown as (input: {
   url: string; secret: string; keyId: string; runtimeAction: string; packet: Record<string, unknown>;
+}) => Promise<Record<string, unknown>>;
+const requestPmfPhanimationBatchPreparationTyped = requestPmfPhanimationBatchPreparation as unknown as (input: {
+  url: string; secret: string; keyId: string; requestId: string; pccJobId: string;
 }) => Promise<Record<string, unknown>>;
 const executeAnimationWriteLifecycleTyped = executeAnimationWriteLifecycle as unknown as (input: {
   job: Record<string, any>; trustedPolicy: Record<string, any>; canReview: boolean;
@@ -686,8 +689,25 @@ Deno.serve(async (req: Request) => {
       return json(502, { ok: false, error: "PMF_RECEIPT_LOCAL_RECORD_FAILED", pmf_intake_succeeded: true,
         job_id: jobId, pmf_receipt: pmfReceipt, render_dispatch: "DISABLED" });
     }
+    let sourcePreparation: Record<string, unknown> | null = null;
+    if (job.channel_key === "phnx_phanimation" && job.output_type === "SERIES_EPISODE") {
+      try {
+        sourcePreparation = await requestPmfPhanimationBatchPreparationTyped({
+          url: bridgeUrl, secret: bridgeSecret, keyId: bridgeKeyId, requestId: job.job_id, pccJobId: job.job_id,
+        });
+      } catch (error) {
+        const reported = error instanceof Error ? error.message : "PMF_PHANIMATION_PREPARATION_UNAVAILABLE";
+        const safeCode = /^(?:PMF_EPISODE_[A-Z0-9_]{1,96}|PMF_PHANIMATION_PREPARE_[A-Z0-9_]{1,96})$/.test(reported)
+          ? reported : "PMF_PHANIMATION_PREPARATION_UNAVAILABLE";
+        sourcePreparation = {
+          state: safeCode === "PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND" ? "WAITING_FOR_SOURCE_REFERENCES" : "BLOCKED",
+          error_code: safeCode, render_dispatch: "DISABLED",
+        };
+      }
+    }
     return json(202, { ok: true, job: recorded.data, handoff_state: recorded.data.handoff_state,
-      pmf_intake_state: "HELD_PMF_ADMISSION_REQUIRED", render_dispatch: "DISABLED" });
+      pmf_intake_state: "HELD_PMF_ADMISSION_REQUIRED", pmf_source_preparation: sourcePreparation,
+      render_dispatch: "DISABLED" });
   }
 
   if (action === "LIST") {
