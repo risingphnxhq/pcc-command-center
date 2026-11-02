@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { resolveOutputRoute } from "./output-route-resolver.mjs";
+import { validateReviewDecision } from "./review-adjudication.mjs";
 
 const URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -80,6 +81,54 @@ async function issueTickets(items:any[]){
   }
   return out;
 }
+
+async function hasWorkspaceReviewAuthority(w:any){
+ if(w.authMode!=="USER_JWT")return false;
+ const {data:bindings,error:bErr}=await admin.schema("pcc_institutional").from("auth_actor_bindings")
+  .select("actor_id,binding_class,status,valid_from,valid_until,metadata")
+  .eq("auth_subject",w.subject).eq("actor_id",ACTOR).eq("status","ACTIVE");
+ if(bErr)throw Error("REVIEW_AUTHORITY_LOOKUP_FAILED");
+ const now=Date.now();
+ const binding=(bindings||[]).find((b:any)=>b.binding_class==="DIRECT_ACTOR"
+   &&b.metadata?.runtime_lane==="PRIME_MASON_ACCOUNT"
+   &&Date.parse(b.valid_from)<=now&&(!b.valid_until||Date.parse(b.valid_until)>=now));
+ if(!binding)return false;
+ const {data:assignments,error:aErr}=await admin.schema("pcc_institutional").from("authority_assignments")
+  .select("authority_code,capabilities,status,valid_from,valid_until")
+  .eq("actor_id",ACTOR).eq("authority_code","RPE-CSE").eq("status","ACTIVE");
+ if(aErr)throw Error("REVIEW_AUTHORITY_LOOKUP_FAILED");
+ return (assignments||[]).some((a:any)=>Array.isArray(a.capabilities)&&a.capabilities.includes("VERIFICATION")
+   &&Date.parse(a.valid_from)<=now&&(!a.valid_until||Date.parse(a.valid_until)>=now));
+}
+async function reviewQueue(w:any){
+ if(!await hasWorkspaceReviewAuthority(w))return reply(403,{error:"WORKSPACE_REVIEW_AUTHORITY_REQUIRED"});
+ const {data,error}=await admin.from("pcc_workspace_intake_v1")
+  .select("intake_id,created_at,runtime_lane,content_kind,title,body_text,content_document,target_system,target_channel,source_metadata,asset_manifest,payload_sha256,status,review_state,receipt")
+  .eq("status","PENDING_PCC_TRIAGE").eq("review_state","UNREVIEWED")
+  .order("created_at",{ascending:true}).limit(50);
+ if(error)throw Error("WORKSPACE_REVIEW_QUEUE_FAILED");
+ return reply(200,{items:data||[],count:(data||[]).length,decision_scope:"TRIAGE_ONLY",execution_eligible:false});
+}
+async function reviewDecision(b:any,w:any){
+ if(!await hasWorkspaceReviewAuthority(w))return reply(403,{error:"WORKSPACE_REVIEW_AUTHORITY_REQUIRED"});
+ let decision:any;
+ try{decision=validateReviewDecision(b);}catch(e){return reply(400,{error:e instanceof Error?e.message:"REVIEW_DECISION_INVALID"});}
+ const {data,error}=await admin.rpc("pcc_workspace_review_intake_v1",{
+  p_intake_id:decision.intake_id,p_reviewer_subject:w.subject,p_review_action_id:decision.review_action_id,
+  p_decision:decision.decision,p_reason:decision.reason
+ });
+ if(error)throw Error("WORKSPACE_REVIEW_WRITE_FAILED");
+ const result=data as Record<string,unknown>;
+ if(result?.ok!==true){
+  const code=typeof result?.error==="string"?result.error:"WORKSPACE_REVIEW_FAILED";
+  const status=code==="WORKSPACE_REVIEW_AUTHORITY_REQUIRED"?403:
+   code==="INTAKE_NOT_FOUND"?404:
+   code==="INTAKE_NOT_REVIEWABLE"||code==="REVIEW_IDEMPOTENCY_MISMATCH"?409:400;
+  return reply(status,{error:code});
+ }
+ return reply(200,{...result,decision_scope:"TRIAGE_ONLY",execution_eligible:false});
+}
+
 async function submit(b:any,who:any){
   if(!idemOk(b.idempotency_key)) return reply(400,{error:"INVALID_IDEMPOTENCY_KEY"});
   if(!KINDS.has(b.content_kind)) return reply(400,{error:"INVALID_CONTENT_KIND"});
@@ -165,6 +214,8 @@ Deno.serve(async(req:Request)=>{
     if(b.operation==="create_action_key") return await createActionKey(b,who);
     if(b.operation==="list_action_keys") return await listActionKeys(who);
     if(b.operation==="revoke_action_key") return await revokeActionKey(b,who);
+    if(b.operation==="review_queue") return await reviewQueue(who);
+    if(b.operation==="review_decision") return await reviewDecision(b,who);
     return reply(400,{error:"UNKNOWN_OPERATION"});
   }catch(e){
     const msg=e instanceof Error?e.message:"INTERNAL_ERROR";
