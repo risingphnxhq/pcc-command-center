@@ -435,13 +435,18 @@ export async function searchRunPodGpuAvailability({
   if (!response.ok || result?.ok !== true || result?.protocol !== "pcc-pmf-animation-bridge/v1"
       || result?.action !== "SEARCH_RUNPOD_AVAILABILITY"
       || result?.dispatch !== "READ_ONLY_NO_RESERVATION_NO_START"
-      || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
+      || !inventory || !["CANDIDATE_SELECTED", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
       || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
       || inventory.required_storage_gb !== 50 || inventory.availability_guaranteed !== false
       || !Array.isArray(inventory.candidates)
       || inventory.candidate_count !== inventory.candidates.length
-      || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
-      || (inventory.state === "CANDIDATES_FOUND" && inventory.candidates.length === 0)
+      || (inventory.state === "NO_MATCHING_CANDIDATES" && (inventory.selected_candidate !== null || inventory.candidates.length !== 0))
+      || (inventory.state === "CANDIDATE_SELECTED"
+        && (!inventory.selected_candidate || typeof inventory.selected_candidate !== "object"
+          || inventory.candidates.length === 0
+          || inventory.selected_candidate.gpu_id !== inventory.candidates[0]?.gpu_id
+          || inventory.selected_candidate.data_center_id !== inventory.candidates[0]?.data_center_id
+          || inventory.selected_candidate.hourly_rate_usd !== inventory.candidates[0]?.hourly_rate_usd))
       || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
         || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
         || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0
@@ -452,7 +457,14 @@ export async function searchRunPodGpuAvailability({
     throw new Error("RUNPOD_AVAILABILITY_RESPONSE_INVALID");
   }
   const publicCandidates = inventory.candidates.map(({storage_volume_id: _storageVolumeId, ...candidate}) => Object.freeze(candidate));
-  const publicInventory = Object.freeze({...inventory, candidates: Object.freeze(publicCandidates)});
+  const publicSelectedCandidate = inventory.selected_candidate
+    ? Object.freeze((({storage_volume_id: _storageVolumeId, ...candidate}) => candidate)(inventory.selected_candidate))
+    : null;
+  const publicInventory = Object.freeze({
+    ...inventory,
+    selected_candidate: publicSelectedCandidate,
+    candidates: Object.freeze(publicCandidates),
+  });
   return Object.freeze({
     state: publicInventory.state,
     inventory: publicInventory,
@@ -504,11 +516,18 @@ export async function readLatestRunPodAvailabilitySnapshot({
       || result.availability_guaranteed !== false
       || window?.start_local !== "00:00" || window?.end_local !== "06:00"
       || typeof window?.time_zone !== "string" || !window.time_zone
-      || !inventory || !["CANDIDATES_FOUND", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
+      || !inventory || !["CANDIDATE_SELECTED", "NO_MATCHING_CANDIDATES"].includes(inventory.state)
       || inventory.hard_max_hourly_usd !== 0.8 || inventory.applied_max_hourly_usd > 0.8
       || inventory.required_storage_gb !== 50 || !Array.isArray(inventory.candidates)
       || inventory.candidate_count !== inventory.candidates.length
       || inventory.availability_guaranteed !== false
+      || (inventory.state === "NO_MATCHING_CANDIDATES" && (inventory.selected_candidate !== null || inventory.candidates.length !== 0))
+      || (inventory.state === "CANDIDATE_SELECTED"
+        && (!inventory.selected_candidate || typeof inventory.selected_candidate !== "object"
+          || inventory.candidates.length === 0
+          || inventory.selected_candidate.gpu_id !== inventory.candidates[0]?.gpu_id
+          || inventory.selected_candidate.data_center_id !== inventory.candidates[0]?.data_center_id
+          || inventory.selected_candidate.hourly_rate_usd !== inventory.candidates[0]?.hourly_rate_usd))
       || inventory.candidates.some(item => !item || typeof item.gpu_id !== "string"
         || typeof item.gpu_name !== "string" || !["SECURE", "COMMUNITY"].includes(item.cloud_tier)
         || !Number.isFinite(item.hourly_rate_usd) || item.hourly_rate_usd <= 0 || item.hourly_rate_usd > 0.8
@@ -516,8 +535,6 @@ export async function readLatestRunPodAvailabilitySnapshot({
         || item.storage_match !== "EXISTING_NETWORK_VOLUME"
         || item.availability_guaranteed !== false
         || item.availability_scope !== "GPU_AND_DATACENTER_AGGREGATE_CLOUD_TIER_NOT_GUARANTEED")
-      || (inventory.state === "NO_MATCHING_CANDIDATES" && inventory.candidates.length !== 0)
-      || (inventory.state === "CANDIDATES_FOUND" && inventory.candidates.length === 0)
       || !Array.isArray(inventory.warnings) || inventory.warnings.some(item => typeof item !== "string")) {
     throw new Error("RUNPOD_SNAPSHOT_RESPONSE_INVALID");
   }
