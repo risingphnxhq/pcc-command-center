@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: PCC GPT Creative Workspace Intake
   version: 1.0.0
-  description: Submit writing and creative-work metadata to PCC for held triage. Authenticate with a dedicated pccwi_ key issued by the PCC Workspace Intake page. This endpoint never approves, renders, routes, or publishes.
+  description: Submit writing and creative-work metadata to PCC for held triage. PCC resolves a PSC-backed producer and viewing-placement plan in the receipt; it does not dispatch, approve, render, or publish. Authenticate with a dedicated pccwi_ key issued by the PCC Workspace Intake page.
 servers:
   - url: https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-workspace-ingest-v1
 paths:
@@ -50,6 +50,31 @@ components:
         content_kind:
           type: string
           enum: [BOOK, AD, REEL, SHORT, EPISODE, SERIES, IMAGE, VIDEO, AUDIO, DOCUMENT, CONCEPT, OTHER]
+        requested_operation:
+          type: string
+          enum: [CAPTURE, AUTHOR, PRODUCE, DISTRIBUTE]
+          default: PRODUCE
+          description: Requested next action. This is intent only; execution remains gated.
+        placements:
+          type: array
+          maxItems: 4
+          description: Explicit viewer destinations. No destination is inferred from free-text target labels.
+          items:
+            oneOf:
+              - type: object
+                required: [destination_type, destination_id]
+                properties:
+                  destination_type: { const: PSN_CATALOG }
+                  destination_id: { const: phnx_phanimation }
+                  placement_format: { type: string, maxLength: 80 }
+              - type: object
+                required: [destination_type, channel_key]
+                properties:
+                  destination_type: { const: SPIDER_YOUTUBE }
+                  channel_key:
+                    type: string
+                    enum: [phoenix_goldmind, valarian_shadow, shadowframe, phnx_studios, phnx_sports, rpe, phnx_kids, phnx_kitchen, phnx_faceless_reels, phoenix_gold_words]
+                  placement_format: { type: string, maxLength: 80 }
         title: { type: string, maxLength: 500 }
         body_text:
           type: string
