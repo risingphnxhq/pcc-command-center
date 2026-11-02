@@ -26,6 +26,12 @@ main{max-width:960px;margin:0 auto}.kicker{color:var(--gold);letter-spacing:.16e
 <div id="keyList" class="small" style="margin-top:14px"></div>
 <p class="small">In that GPT’s Action settings, import <a href="docs/openapi/pcc-gpt-creative-workspace-ingest-v1.yaml" style="color:#e2c27f">the OpenAPI schema</a>, choose API Key authentication with Bearer, and paste the one-time key. The GPT can then submit writing and source metadata. For images/video, use this PCC page’s file uploader because GPT Actions do not transmit chat-generated binary files automatically.</p>
 </section>
+<section id="reviewPanel" class="panel hidden">
+<h2>PCC triage review</h2>
+<div class="notice">Review decisions record triage only. Accepting an item does not approve canon, create a producer job, authorize execution, render, or publish it.</div>
+<div id="reviewStatus" class="status" role="status" aria-live="polite">Checking review authority…</div>
+<div id="reviewItems" style="margin-top:14px"></div>
+</section>
 <section id="formPanel" class="panel hidden">
 <h2>Submit creative work</h2><div class="notice">This PCC route records provenance only. It does not confer canon, approval, execution, rendering, or publishing authority.</div>
 <form id="intakeForm"><div class="grid" style="margin-top:16px">
@@ -53,7 +59,61 @@ const authPanel=document.querySelector("#authPanel"),formPanel=document.querySel
 function showResult(text,ok=true){result.textContent=text;result.className="status "+(ok?"ok":"bad");}
 async function getSessionToken(){const {data:{session}}=await supabase.auth.getSession();if(!session?.access_token)throw new Error("Sign in again.");return session.access_token;}
 async function api(body){const token=await getSessionToken();const response=await fetch(ENDPOINT,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(body)});const value=await response.json();if(!response.ok)throw new Error(value.error||"PCC request failed.");return value;}
-async function refresh(){const {data}=await supabase.auth.getSession();const yes=!!data.session?.access_token;formPanel.classList.toggle("hidden",!yes);document.querySelector("#keyPanel").classList.toggle("hidden",!yes);document.querySelector("#signIn").classList.toggle("hidden",yes);document.querySelector("#signOut").classList.toggle("hidden",!yes);document.querySelector("#password").classList.toggle("hidden",yes);document.querySelector("#email").classList.toggle("hidden",yes);authState.textContent=yes?"Authenticated Systems user session ready.":"Not signed in.";if(yes)loadKeys();else{const secretNotice=document.querySelector("#newKeyNotice");secretNotice.replaceChildren();secretNotice.classList.add("hidden");}}
+async function refresh(){const {data}=await supabase.auth.getSession();const yes=!!data.session?.access_token;formPanel.classList.toggle("hidden",!yes);document.querySelector("#keyPanel").classList.toggle("hidden",!yes);document.querySelector("#signIn").classList.toggle("hidden",yes);document.querySelector("#signOut").classList.toggle("hidden",!yes);document.querySelector("#password").classList.toggle("hidden",yes);document.querySelector("#email").classList.toggle("hidden",yes);authState.textContent=yes?"Authenticated Systems user session ready.":"Not signed in.";if(yes){loadKeys();loadReviewQueue();}else{const secretNotice=document.querySelector("#newKeyNotice");secretNotice.replaceChildren();secretNotice.classList.add("hidden");}}
+const reviewPanel=document.querySelector("#reviewPanel"),reviewStatus=document.querySelector("#reviewStatus"),reviewItems=document.querySelector("#reviewItems");
+const pendingReviewActionIds=new Map();
+function textNode(tag,value){const n=document.createElement(tag);n.textContent=value??"";return n;}
+function reviewDetails(item){
+ const details=document.createElement("details"),summary=textNode("summary","Review submitted content");
+ const body=textNode("pre",item.body_text||JSON.stringify(item.content_document||{},null,2));
+ body.style.whiteSpace="pre-wrap";body.style.overflowWrap="anywhere";body.style.maxHeight="360px";body.style.overflow="auto";
+ const source=textNode("pre",JSON.stringify({source_metadata:item.source_metadata,assets:item.asset_manifest,route_resolution:item.receipt?.route_resolution},null,2));
+ source.style.whiteSpace="pre-wrap";source.style.overflowWrap="anywhere";
+ details.append(summary,body,source);return details;
+}
+async function decideReview(item,decision){
+ let reason="";
+ if(decision==="NEEDS_CHANGES"||decision==="DECLINED"){
+  reason=prompt(decision==="NEEDS_CHANGES"?"What must be changed before resubmission?":"Why is this submission declined?","")?.trim()||"";
+  if(!reason)return;
+ }
+ if(decision==="ACCEPTED"&&!confirm("Accept this item for triage only? This does not start production, canonize, or publish it."))return;
+ const actionKey=item.intake_id+":"+decision;
+ const review_action_id=pendingReviewActionIds.get(actionKey)||crypto.randomUUID();
+ pendingReviewActionIds.set(actionKey,review_action_id);
+ try{
+  const result=await api({operation:"review_decision",intake_id:item.intake_id,review_action_id,decision,reason});
+  pendingReviewActionIds.delete(actionKey);
+  reviewStatus.textContent=JSON.stringify(result,null,2);reviewStatus.className="status ok";
+  await loadReviewQueue();
+ }catch(e){reviewStatus.textContent=e.message;reviewStatus.className="status bad";}
+}
+async function loadReviewQueue(){
+ try{
+  const data=await api({operation:"review_queue"});
+  reviewPanel.classList.remove("hidden");reviewItems.replaceChildren();
+  reviewStatus.textContent=data.count?data.count+" item(s) awaiting triage.":"No items are awaiting triage.";
+  reviewStatus.className="status ok";
+  for(const item of data.items){
+   const card=document.createElement("article");card.className="panel";
+   card.append(textNode("h3",item.title+" · "+item.content_kind));
+   card.append(textNode("p","Lane: "+item.runtime_lane+" · Received: "+new Date(item.created_at).toLocaleString()));
+   card.append(textNode("p","Destination: "+(item.receipt?.route_resolution?.placements?.map(p=>p.destination_type+(p.channel_key?" · "+p.channel_key:"")).join(", ")||"Unresolved / none")));
+   card.append(reviewDetails(item));
+   const actions=document.createElement("div");actions.className="actions";
+   for(const [decision,label] of [["ACCEPTED","Accept for triage"],["NEEDS_CHANGES","Request changes"],["DECLINED","Decline"]]){
+    const button=document.createElement("button");button.type="button";button.textContent=label;
+    if(decision!=="ACCEPTED")button.className="secondary";
+    button.addEventListener("click",()=>decideReview(item,decision));actions.append(button);
+   }
+   card.append(actions);reviewItems.append(card);
+  }
+ }catch(e){
+  const unauthorized=String(e?.message||"").includes("WORKSPACE_REVIEW_AUTHORITY_REQUIRED");
+  reviewPanel.classList.toggle("hidden",unauthorized);
+  if(!unauthorized){reviewPanel.classList.remove("hidden");reviewItems.replaceChildren();reviewStatus.textContent=e.message;reviewStatus.className="status bad";}
+ }
+}
 async function loadKeys(){const area=document.querySelector("#keyList");try{const data=await api({operation:"list_action_keys"});area.replaceChildren();if(!data.keys.length){area.textContent="No GPT Action keys have been issued.";return;}for(const key of data.keys){const row=document.createElement("div");row.className="status";const info=document.createElement("span");info.textContent=key.key_label+" · "+key.status+" · expires "+new Date(key.expires_at).toLocaleDateString()+(key.last_used_at?" · last used "+new Date(key.last_used_at).toLocaleString():"");row.append(info);if(key.status==="ACTIVE"){const button=document.createElement("button");button.className="secondary";button.type="button";button.textContent="Revoke";button.style.marginLeft="12px";button.addEventListener("click",async()=>{if(!confirm("Revoke the Action key for "+key.key_label+"?"))return;try{await api({operation:"revoke_action_key",key_id:key.key_id});await loadKeys();}catch(e){area.textContent=e.message;}});row.append(button);}area.append(row);}}catch(e){area.textContent=e.message;}}
 document.querySelector("#createKey").addEventListener("click",async()=>{const label=document.querySelector("#keyLabel").value.trim(),notice=document.querySelector("#newKeyNotice");if(!label){notice.textContent="Enter a GPT account label.";notice.className="status bad";notice.classList.remove("hidden");return;}try{const data=await api({operation:"create_action_key",key_label:label});notice.replaceChildren();const text=document.createElement("div");text.textContent="Copy this key now. It will not be displayed again. Expires: "+new Date(data.expires_at).toLocaleString();const secret=document.createElement("textarea");secret.readOnly=true;secret.value=data.api_key;secret.setAttribute("aria-label","One-time GPT Action key");secret.style.minHeight="74px";secret.style.marginTop="10px";const copy=document.createElement("button");copy.type="button";copy.textContent="Copy key";copy.style.marginTop="10px";copy.addEventListener("click",async()=>{await navigator.clipboard.writeText(data.api_key);copy.textContent="Copied";});notice.append(text,secret,copy);notice.className="status ok";notice.classList.remove("hidden");document.querySelector("#keyLabel").value="";await loadKeys();}catch(e){notice.textContent=e.message;notice.className="status bad";notice.classList.remove("hidden");}});
 document.querySelector("#signIn").addEventListener("click",async()=>{const email=document.querySelector("#email").value.trim(),password=document.querySelector("#password").value;authState.textContent="Signing in…";const {error}=await supabase.auth.signInWithPassword({email,password});if(error){authState.textContent="Sign-in failed: "+error.message;return;}document.querySelector("#password").value="";await refresh();});
