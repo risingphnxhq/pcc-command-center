@@ -14,6 +14,10 @@ create table if not exists public.pcc_workspace_intake_review_events_v1 (
 );
 create index if not exists pcc_workspace_review_queue_idx
   on public.pcc_workspace_intake_v1(status,review_state,created_at);
+create index if not exists pcc_workspace_review_events_intake_idx
+  on public.pcc_workspace_intake_review_events_v1(intake_id,reviewed_at desc);
+create index if not exists pcc_workspace_review_events_reviewer_idx
+  on public.pcc_workspace_intake_review_events_v1(reviewer_subject,reviewed_at desc);
 
 alter table public.pcc_workspace_intake_review_events_v1 enable row level security;
 revoke all on public.pcc_workspace_intake_review_events_v1 from anon, authenticated;
