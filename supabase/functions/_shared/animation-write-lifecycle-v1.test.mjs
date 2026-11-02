@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { resolveTrustedAnimationPolicy } from "./animation-channel-policy-runtime-v1.mjs";
 import { executeAnimationWriteLifecycle } from "./animation-write-lifecycle-v1.mjs";
 import { validateHandoffSource } from "./animation-handoff-v1.mjs";
-import { postHeldAnimationHandoff } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, requestPmfPhanimationBatchPreparation } from "./pcc-pmf-bridge-v1.mjs";
 
 const sourceScope = { saga_id: "OCS", book_id: "OCS-BOOK-1", chapter_number: "1" };
 const policy = () => ({
@@ -228,4 +228,23 @@ test("carries a reviewed 25-minute Phanimation episode through the signed held P
   assert.equal(requestBody.packet.writer_master_and_segments.full_script, channelSegments.map(segment => segment.script).join(" "));
   assert.equal(requestBody.packet.admission_snapshot.render_dispatch, "DISABLED");
   assert.equal(requestBody.packet.admission_snapshot.pmf_certification, "NOT_CERTIFIED");
+
+  let preparationRequest;
+  const preparation = await requestPmfPhanimationBatchPreparation({
+    url: "https://systems.example/functions/v1/pcc-animation-bridge-v1", secret,
+    requestId: episodeJob.job_id, pccJobId: episodeJob.job_id,
+    now: 1_800_000_000_001, nonce: "123e4567-e89b-42d3-a456-426614174089",
+    fetchImpl: async (url, init) => {
+      preparationRequest = JSON.parse(init.body);
+      return new Response(JSON.stringify({
+        ok: true, protocol: "pcc-pmf-animation-bridge/v1", action: "REQUEST_PHANIMATION_BATCH_PREPARATION",
+        preparation: { state: "QUEUED", pcc_request_id: episodeJob.job_id, pcc_job_id: episodeJob.job_id, render_dispatch: "DISABLED" },
+        render_dispatch: "DISABLED", gpu_search_performed: false, gpu_launch_performed: false,
+      }), { status: 200 });
+    },
+  });
+  assert.equal(preparationRequest.action, "REQUEST_PHANIMATION_BATCH_PREPARATION");
+  assert.deepEqual(preparationRequest.payload, { request_id: episodeJob.job_id, pcc_job_id: episodeJob.job_id });
+  assert.equal(preparation.state, "QUEUED");
+  assert.equal(preparation.render_dispatch, "DISABLED");
 });
