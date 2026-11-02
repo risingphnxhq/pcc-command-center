@@ -4,7 +4,7 @@ import { runAnimationScriptwriter, validateAnimationScript, validateWriterInput 
 
 const input = {
   request_id: "req-123", channel_key: "phnx_kids", output_type: "EPISODE", idea: "A phoenix helps a child solve a problem.",
-  channel_policy: { boas_id: "boas-kids-v1", boas_revision: "boas-rev-1", boas_approved: true, knoas_id: "knoas-kids-v1", knoas_revision: "knoas-rev-1", knoas_approved: true, channel_profile: { audience: "children" }, output_spec: { segments: "episode scenes" } },
+  channel_policy: { policy_id:"POLICY-1", policy_revision:"1", approval_psc_id:"APPROVAL-PSC-1", boas_id: "boas-kids-v1", boas_revision: "boas-rev-1", boas_approved: true, boas_psc_id:"BOAS-PSC-1", knoas_id: "knoas-kids-v1", knoas_revision: "knoas-rev-1", knoas_approved: true, knoas_psc_id:"KNOAS-PSC-1", authorized_psc_ids:["APPROVAL-PSC-1","BOAS-PSC-1","KNOAS-PSC-1","OCS-BIBLE-PSC-1"], channel_profile: { audience: "children" }, output_spec: { segments: "episode scenes" } },
 };
 const good = (payoff = "The child teaches the phoenix to ask for help.") => ({
   ending_first: { final_payoff: payoff, setup_and_payoff: "The early mistake teaches the ending lesson." },
@@ -80,4 +80,23 @@ test("binary validator rejects incomplete segment coverage even if the AI review
   const result = validateAnimationScript(input, draft);
   assert.equal(result.ok, false);
   assert.ok(result.failures.some((gate) => gate.id === "FULL_SCRIPT_SEGMENT_COVERAGE"));
+});
+
+test("book chapter writes the complete master before adaptation and preserves it with stable authoring IDs", async () => {
+  const bookInput={...input,output_type:"BOOK_CHAPTER",writing_context:{saga_id:"OCS",audience:"Young adult",book_id:"OCS-BOOK-1",book_number:1,book_title:"The Awakening",chapter_number:1,chapter_title:"THE WEIGHT OF SEEING",chapter_goal:"Introduce Tyrion's central question.",approved_bible_psc_id:"OCS-BIBLE-PSC-1"}};
+  const chapter="BOOK 1: THE AWAKENING\\n\\nCHAPTER 1: THE WEIGHT OF SEEING\\n\\nThe city never slept—but at this hour, it whispered.";
+  const calls=[];
+  const result=await runAnimationScriptwriter(bookInput,{model:{complete:async({mode})=>{
+    calls.push(mode);
+    if(mode==="WRITE_MASTER")return raw({ending_first:{final_payoff:"Who will fix it?",setup_and_payoff:"The question is seeded by the systems Ty observes."},logline:"A young inventor traces unfair systems.",synopsis:"Ty confronts the cost of seeing clearly.",full_script:chapter,continuity_ledger:[{fact:"Ty lives in East San Jose.",source:"approved canon"}],character_arc_ledger:[{character_id:"TYRION",start_state:"Observant",end_state:"Ready to act"}],series_arc_contribution:"Begins the saga's design question."});
+    if(mode==="ADAPT_MASTER")return raw({chapter_beats:[{purpose:"Establish the city and Ty's burden."},{purpose:"Reveal the unanswered betrayal."}],canon_source_notes:["OCS-BIBLE-PSC-1"],series_arc_contribution:"Begins the saga's design question."});
+    if(mode==="REVIEW")return raw({decision:"PASS",issues:[],summary:"Chapter package preserves the master and approved source binding."});
+    throw new Error("UNEXPECTED_MODEL_MODE:"+mode);
+  }}});
+  assert.deepEqual(calls,["WRITE_MASTER","ADAPT_MASTER","REVIEW"]);
+  assert.equal(result.state,"SCRIPT_REVIEW_PASSED");
+  assert.equal(result.script_package.sections.complete_chapter,chapter);
+  assert.equal(result.script_package.sections.chapter_title,"THE WEIGHT OF SEEING");
+  assert.equal(result.script_package.source_binding.knoas_revision,"knoas-rev-1");
+  assert.match(result.script_package.sections.chapter_beats[0].beat_id,/AUTH-req-123-CH-BEAT-0001/);
 });
