@@ -11,7 +11,7 @@ main{max-width:960px;margin:0 auto}.kicker{color:var(--gold);letter-spacing:.16e
 </head>
 <body><main>
 <div class="kicker">Rising Phoenix Enterprises · PCC</div><h1>GPT Creative Workspace Intake</h1>
-<p>Bring writing, concepts, and generated media from a GPT workspace into PCC. Every submission is source-recorded and held for PCC triage. Submitting never approves, renders, routes, or publishes it.</p>
+<p>Bring writing and generated media into PCC with its requested next action and intended viewing destination. PCC records a machine-readable producer and placement plan. Submitting never approves, renders, or publishes it; unresolved destinations remain blocked.</p>
 <a class="toplink" href="systems-console.html">← Return to Systems Console</a>
 <section id="authPanel" class="panel">
 <h2>Sign in to the Systems workspace</h2><p class="small">Use the Mason account associated with an active PCC workspace lane. Your password is sent to Supabase Auth and is not stored by this page.</p>
@@ -32,8 +32,11 @@ main{max-width:960px;margin:0 auto}.kicker{color:var(--gold);letter-spacing:.16e
 <div><label for="kind">Work type</label><select id="kind"><option>BOOK</option><option>AD</option><option>REEL</option><option>SHORT</option><option>EPISODE</option><option>SERIES</option><option>IMAGE</option><option>VIDEO</option><option>AUDIO</option><option>DOCUMENT</option><option>CONCEPT</option><option>OTHER</option></select></div>
 <div><label for="source">GPT/workspace label</label><input id="source" value="ChatGPT creative workspace"></div>
 <div class="wide"><label for="title">Title</label><input id="title" maxlength="500" required></div>
-<div><label for="targetSystem">Intended system (optional)</label><input id="targetSystem" placeholder="e.g. PCC, PMF, PSN, SVW"></div>
-<div><label for="targetChannel">Intended channel or production (optional)</label><input id="targetChannel" placeholder="e.g. Phoenix Phanimation"></div>
+<div><label for="operation">Requested next action</label><select id="operation"><option value="PRODUCE">Produce this work</option><option value="AUTHOR">Continue writing / authoring</option><option value="DISTRIBUTE">Distribute a completed asset</option><option value="CAPTURE">Record in PCC intake only</option></select></div>
+<div><label for="destination">Where should viewers find it?</label><select id="destination"><option value="">Choose a destination</option><option value="PSN_CATALOG">Phoenix Phanimation — PSN streaming catalog</option><option value="SPIDER_YOUTUBE">YouTube channel through SPIDER</option></select></div>
+<div id="channelWrap" class="wide hidden"><label for="channelKey">Exact YouTube channel</label><select id="channelKey"><option value="">Choose the channel</option><option value="phoenix_goldmind">Phoenix GoldMind</option><option value="valarian_shadow">Valarian Shadow</option><option value="shadowframe">ShadowFrame</option><option value="phnx_studios">PHNX Studios</option><option value="phnx_sports">PHNX Sports</option><option value="rpe">RPE</option><option value="phnx_kids">PHNX Kids</option><option value="phnx_kitchen">PHNX Kitchen</option><option value="phnx_faceless_reels">PHNX Faceless Reels</option><option value="phoenix_gold_words">Phoenix GoldWords</option></select><p class="small">The connection is checked again at execution time. This selection does not publish anything.</p></div>
+<div><label for="targetSystem">System/channel notes (context only)</label><input id="targetSystem" placeholder="Optional production notes"></div>
+<div><label for="targetChannel">Additional destination notes</label><input id="targetChannel" placeholder="Does not replace the destination above"></div>
 <div class="wide"><label for="body">Writing, concept, script, or description</label><textarea id="body" maxlength="250000" placeholder="Paste text or a bounded chapter/episode/creative segment."></textarea></div>
 <div class="wide"><label for="files">Generated or supporting files</label><input id="files" type="file" multiple><p class="small">Up to 10 files; max 20 MiB each and 50 MiB total. The system verifies each file hash after private upload.</p></div>
 </div><div class="actions"><button id="submit" type="submit">Submit to PCC</button></div></form>
@@ -57,6 +60,7 @@ document.querySelector("#signIn").addEventListener("click",async()=>{const email
 document.querySelector("#signOut").addEventListener("click",async()=>{await supabase.auth.signOut();await refresh();});
 function hex(buf){return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,"0")).join("");}
 async function sha(file){return hex(await crypto.subtle.digest("SHA-256",await file.arrayBuffer()));}
+document.querySelector("#destination").addEventListener("change",()=>document.querySelector("#channelWrap").classList.toggle("hidden",document.querySelector("#destination").value!=="SPIDER_YOUTUBE"));
 document.querySelector("#intakeForm").addEventListener("submit",async ev=>{
  ev.preventDefault();const button=document.querySelector("#submit");button.disabled=true;
  try{
@@ -64,7 +68,9 @@ document.querySelector("#intakeForm").addEventListener("submit",async ev=>{
   const files=Array.from(document.querySelector("#files").files||[]);if(files.length>10)throw new Error("Choose no more than 10 files.");
   const total=files.reduce((n,f)=>n+f.size,0);if(files.some(f=>f.size>20*1024*1024)||total>50*1024*1024)throw new Error("File size limit exceeded.");
   const manifest=[];for(const f of files){manifest.push({file_name:f.name,mime_type:f.type||"application/octet-stream",size_bytes:f.size,sha256:await sha(f),role:"GPT_WORKSPACE_OUTPUT"});}
-  const payload={operation:"submit",idempotency_key:crypto.randomUUID(),content_kind:document.querySelector("#kind").value,title:document.querySelector("#title").value.trim(),body_text:document.querySelector("#body").value,target_system:document.querySelector("#targetSystem").value.trim()||null,target_channel:document.querySelector("#targetChannel").value.trim()||null,source_metadata:{workspace_label:document.querySelector("#source").value.trim(),origin:"GPT_WORKSPACE",submitted_via:"PCC_WORKSPACE_INTAKE"},assets:manifest};
+  const destination=document.querySelector("#destination").value;
+  const placements=destination==="PSN_CATALOG"?[{destination_type:"PSN_CATALOG",destination_id:"phnx_phanimation",placement_format:document.querySelector("#kind").value}]:destination==="SPIDER_YOUTUBE"?[{destination_type:"SPIDER_YOUTUBE",channel_key:document.querySelector("#channelKey").value,placement_format:document.querySelector("#kind").value}]:[];
+  const payload={operation:"submit",idempotency_key:crypto.randomUUID(),content_kind:document.querySelector("#kind").value,requested_operation:document.querySelector("#operation").value,placements,title:document.querySelector("#title").value.trim(),body_text:document.querySelector("#body").value,target_system:document.querySelector("#targetSystem").value.trim()||null,target_channel:document.querySelector("#targetChannel").value.trim()||null,source_metadata:{workspace_label:document.querySelector("#source").value.trim(),origin:"GPT_WORKSPACE",submitted_via:"PCC_WORKSPACE_INTAKE"},assets:manifest};
   const response=await fetch(ENDPOINT,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify(payload)});
   const receipt=await response.json();if(!response.ok)throw new Error(receipt.error||"PCC intake failed.");
   for(let i=0;i<files.length;i++){const t=receipt.upload_targets[i];const {error}=await supabase.storage.from(t.bucket).uploadToSignedUrl(t.object_path,t.upload_token,files[i],{contentType:files[i].type,upsert:false});if(error)throw new Error("Upload failed for "+files[i].name+": "+error.message);}
