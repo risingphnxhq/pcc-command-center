@@ -42,7 +42,7 @@ begin
   if p_intake_id is null or p_reviewer_subject is null or p_review_action_id is null then
     return jsonb_build_object('ok',false,'error','REVIEW_FIELDS_REQUIRED');
   end if;
-  if p_decision not in ('ACCEPTED','NEEDS_CHANGES','DECLINED') or length(v_reason)>2000 then
+  if p_decision is null or p_decision not in ('ACCEPTED','NEEDS_CHANGES','DECLINED') or length(v_reason)>2000 then
     return jsonb_build_object('ok',false,'error','REVIEW_DECISION_INVALID');
   end if;
   if p_decision in ('NEEDS_CHANGES','DECLINED') and length(btrim(v_reason))=0 then
@@ -69,6 +69,14 @@ begin
     return jsonb_build_object('ok',false,'error','WORKSPACE_REVIEW_AUTHORITY_REQUIRED');
   end if;
 
+  select * into v_intake
+  from public.pcc_workspace_intake_v1
+  where intake_id=p_intake_id
+  for update;
+  if not found then return jsonb_build_object('ok',false,'error','INTAKE_NOT_FOUND'); end if;
+
+  -- Lock the intake before checking the idempotency key so concurrent retries
+  -- observe and return the first committed decision receipt.
   select * into v_existing
   from public.pcc_workspace_intake_review_events_v1
   where review_action_id=p_review_action_id;
@@ -81,12 +89,6 @@ begin
     end if;
     return jsonb_build_object('ok',false,'error','REVIEW_IDEMPOTENCY_MISMATCH');
   end if;
-
-  select * into v_intake
-  from public.pcc_workspace_intake_v1
-  where intake_id=p_intake_id
-  for update;
-  if not found then return jsonb_build_object('ok',false,'error','INTAKE_NOT_FOUND'); end if;
   if v_intake.status<>'PENDING_PCC_TRIAGE' or v_intake.review_state<>'UNREVIEWED' then
     return jsonb_build_object('ok',false,'error','INTAKE_NOT_REVIEWABLE');
   end if;
