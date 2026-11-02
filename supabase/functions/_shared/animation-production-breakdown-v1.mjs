@@ -2,7 +2,7 @@ const VIDEO_OUTPUTS = new Set([
   "EPISODE", "SERIES_EPISODE", "ANIMATION", "AD", "REEL", "MICRO_DRAMA",
   "CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN",
 ]);
-const normalize = (value) => String(value ?? "").trim().replace(/\\s+/g, " ");
+const normalize = (value) => String(value ?? "").trim().replace(/\s+/g, " ");
 const fail = (id, detail) => ({id, result:"FAIL", detail});
 
 /**
@@ -62,7 +62,16 @@ export function validateProductionBreakdown(outputType, draft, input = {}) {
   add("PRODUCTION_SCRIPT_COVERAGE", coverageOk,
     "Ordered scene script text must reproduce every channel segment exactly after whitespace normalization.");
   const totalDuration = scenes.reduce((sum, scene) => sum + (Number.isFinite(scene?.duration_seconds) ? scene.duration_seconds : 0), 0);
-  const maxDuration = input?.channel_policy?.output_spec?.max_total_duration_seconds;
+  const outputSpec = input?.channel_policy?.output_spec ?? {};
+  const targetDuration = outputSpec.target_runtime_seconds;
+  const minDuration = Number.isFinite(outputSpec.min_total_duration_seconds)
+    ? outputSpec.min_total_duration_seconds
+    : Number.isFinite(targetDuration) ? targetDuration : undefined;
+  const maxDuration = Number.isFinite(outputSpec.max_total_duration_seconds)
+    ? outputSpec.max_total_duration_seconds
+    : Number.isFinite(targetDuration) ? targetDuration : undefined;
+  add("PRODUCTION_DURATION_MINIMUM", !Number.isFinite(minDuration) || totalDuration >= minDuration,
+    "The breakdown is shorter than the registered minimum runtime.");
   add("PRODUCTION_DURATION_LIMIT", !Number.isFinite(maxDuration) || totalDuration <= maxDuration,
     "The breakdown exceeds the registered total duration limit.");
   return {required:true, ok:gates.every(g => g.result === "PASS"), total_duration_seconds:totalDuration,
