@@ -31,7 +31,7 @@ async function bindingForSubject(subject:string,lane:string){
  if(!b)throw Error("WORKSPACE_BINDING_REQUIRED");return b;
 }
 async function authorize(req:Request){
- const m=(req.headers.get("authorization")||"").match(/^Bearer\\s+(.+)$/i);if(!m)throw Error("UNAUTHENTICATED");const token=m[1];
+ const header=req.headers.get("authorization")||"";const token=header.startsWith("Bearer ")?header.slice(7).trim():"";if(!token)throw Error("UNAUTHENTICATED");
  if(token.startsWith("pccwi_")){
   const digest=await sha(token);
   const {data:k,error}=await db.from("pcc_workspace_ingest_keys_v1").select("key_id,created_by_auth_subject,actor_id,runtime_lane,status,expires_at").eq("token_sha256",digest).eq("status","ACTIVE").maybeSingle();
@@ -47,7 +47,7 @@ async function authorize(req:Request){
 }
 function randomToken(){
  const bytes=crypto.getRandomValues(new Uint8Array(32));
- return "pccwi_"+btoa(String.fromCharCode(...bytes)).replace(/=/g,"").replace(/\\+/g,"-").replace(/\\//g,"_");
+ return "pccwi_"+btoa(String.fromCharCode(...bytes)).replaceAll("+","-").replaceAll("/","_").replaceAll("=","");
 }
 async function createActionKey(b:any,w:any){
  if(w.authMode!=="USER_JWT")return reply(403,{error:"USER_SIGN_IN_REQUIRED_TO_CREATE_KEY"});
