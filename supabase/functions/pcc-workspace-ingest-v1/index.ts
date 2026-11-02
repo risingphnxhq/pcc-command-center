@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { resolveOutputRoute } from "./output-route-resolver.mjs";
 
 const URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -95,7 +96,9 @@ async function submit(b:any,who:any){
     total+=a.size_bytes;
   }
   if(total>52428800) return reply(413,{error:"ASSET_TOTAL_EXCEEDS_LIMIT"});
+  const routeResolution=resolveOutputRoute({content_kind:b.content_kind,requested_operation:b.requested_operation,placements:b.placements});
   const normalized={content_kind:b.content_kind,title,body_text:bodyText,content_document:doc,target_system:text(b.target_system,120)||null,target_channel:text(b.target_channel,160)||null,source_metadata:source,
+    requested_operation:routeResolution.requested_operation,placements:routeResolution.placements,route_resolution:routeResolution,
     assets:assets.map((a:any)=>({file_name:a.file_name,mime_type:a.mime_type,size_bytes:a.size_bytes,sha256:a.sha256,role:text(a.role,100)||null}))};
   const canonical=JSON.stringify(normalized);
   if(new TextEncoder().encode(canonical).length>350000) return reply(413,{error:"PAYLOAD_EXCEEDS_LIMIT"});
@@ -116,7 +119,7 @@ async function submit(b:any,who:any){
     return {asset_id:assetId,intake_id:intakeId,object_path:ACTOR+"/"+intakeId+"/"+assetId+"."+(ext||"bin"),file_name:a.file_name.slice(0,255),mime_type:a.mime_type,expected_size_bytes:a.size_bytes,expected_sha256:a.sha256,asset_role:text(a.role,100)||null};
   });
   const status=rows.length?"AWAITING_ASSET_UPLOAD":"PENDING_PCC_TRIAGE";
-  const receipt={intake_id:intakeId,actor_id:who.actor,runtime_lane:who.lane,authenticated_subject:who.subject,received_at:new Date().toISOString(),payload_sha256:payloadHash,asset_count:rows.length,approval_state:"NOT_APPROVED",execution_eligible:false};
+  const receipt={intake_id:intakeId,actor_id:who.actor,runtime_lane:who.lane,authenticated_subject:who.subject,received_at:new Date().toISOString(),payload_sha256:payloadHash,asset_count:rows.length,route_resolution:routeResolution,approval_state:"NOT_APPROVED",execution_eligible:false};
   const {error:insertErr}=await admin.from("pcc_workspace_intake_v1").insert({intake_id:intakeId,actor_id:who.actor,runtime_lane:who.lane,auth_subject:who.subject,idempotency_key:b.idempotency_key,content_kind:normalized.content_kind,title,body_text:bodyText,content_document:doc,target_system:normalized.target_system,target_channel:normalized.target_channel,source_metadata:source,asset_manifest:normalized.assets,payload_sha256:payloadHash,status,receipt});
   if(insertErr) throw new Error("INTAKE_INSERT_FAILED");
   if(rows.length){const {error}=await admin.from("pcc_workspace_intake_assets_v1").insert(rows);if(error) throw new Error("ASSET_MANIFEST_INSERT_FAILED");}
