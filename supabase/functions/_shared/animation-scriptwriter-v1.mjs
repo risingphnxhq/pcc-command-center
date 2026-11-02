@@ -13,6 +13,10 @@ export function validateWriterInput(input) {
     if (typeof input[field] !== "string" || !input[field].trim()) throw new Error(`WRITER_${field.toUpperCase()}_REQUIRED`);
   }
   if (!OUTPUT_TYPES.has(input.output_type)) throw new Error("WRITER_OUTPUT_TYPE_UNSUPPORTED");
+  if (input.existing_master_text !== undefined
+      && (!BOOK_OUTPUTS.has(input.output_type) || typeof input.existing_master_text !== "string"
+        || !input.existing_master_text.trim() || input.existing_master_text.length > 8_000))
+    throw new Error("EXISTING_MASTER_TEXT_INVALID");
   const p = input.channel_policy;
   if (!p || typeof p !== "object" || !p.boas_id || !p.knoas_id || !p.boas_revision || !p.knoas_revision || p.boas_approved !== true || p.knoas_approved !== true || !p.channel_profile || !p.output_spec) {
     throw new Error("REGISTERED_BOAS_KNOAS_POLICY_REQUIRED");
@@ -27,7 +31,7 @@ function parseObject(raw, errorCode) {
   if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error(errorCode);
   return parsed;
 }
-function normalizedText(value) { return String(value ?? "").trim().replace(/\\s+/g, " "); }
+function normalizedText(value) { return String(value ?? "").trim().replace(/\s+/g, " "); }
 
 /** Objective pass/fail checks; story quality remains the Reviewer's job. */
 export function validateAnimationScript(input, draft) {
@@ -104,6 +108,9 @@ function authoringId(requestId, kind, index) {
 }
 
 function bookSystem(mode, outputType) {
+  if (mode === "ANALYZE_PROVIDED_MASTER") {
+    return "You are the RPE long-form Playwright analyzing a user-provided historical manuscript. Treat its exact text as immutable source material, not approved canon. Do not rewrite, correct, summarize in place, or return the manuscript text. Return JSON only with ending_first {final_payoff,setup_and_payoff}, logline, synopsis, continuity_ledger, character_arc_ledger, and series_arc_contribution. Analyze only the supplied text and verified BOAS/KNOAS policy; do not invent canon approvals or PSC IDs.";
+  }
   if (mode === "WRITE_MASTER" || mode === "REVISE_MASTER") {
     return `You are the RPE long-form Playwright. Follow only the verified BOAS/KNOAS policy, approved book-bible PSC, and supplied writing context. Apply End From Beginning Protocol: establish the requested ending/payoff first, then write the complete master. Do not segment or adapt it. Return JSON only with ending_first {final_payoff,setup_and_payoff}, logline, synopsis, full_script, continuity_ledger, character_arc_ledger, and series_arc_contribution. Keep the supplied world facts intact; never invent canon approvals or source PSCs. ${mode === "REVISE_MASTER" ? "Make only the evidence-based corrections in the supplied Reviewer receipt and return a complete new master." : "Write the complete master before any format adaptation."}`;
   }
@@ -128,14 +135,31 @@ async function runBookScriptwriter(input, { model, notify }) {
     idea:input.idea, writing_context:writingContext, series_context:input.series_context ?? "",
     context_notes:input.context_notes ?? "", desired_ending_or_action:input.desired_ending_or_action ?? "", channel_policy:policy};
   const receipts=[]; let revision=0;
-  let master=parseObject(await model.complete({mode:"WRITE_MASTER",system:bookSystem("WRITE_MASTER",input.output_type),user:jsonPrompt(context)}),"BOOK_MASTER_JSON_INVALID");
+  const providedMasterText = input.existing_master_text;
+  const providedMasterHash = providedMasterText === undefined ? null : await (async () => {
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(providedMasterText));
+    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+  })();
+  const sourceTextProvenance = providedMasterText === undefined
+    ? { origin: "MODEL_GENERATED" }
+    : { origin: "USER_PROVIDED_UNVERIFIED_HISTORICAL_REFERENCE", preservation: "EXACT", sha256: providedMasterHash };
+  let master = providedMasterText === undefined
+    ? parseObject(await model.complete({mode:"WRITE_MASTER",system:bookSystem("WRITE_MASTER",input.output_type),user:jsonPrompt(context)}),"BOOK_MASTER_JSON_INVALID")
+    : {
+      ...parseObject(await model.complete({
+        mode: "ANALYZE_PROVIDED_MASTER",
+        system: bookSystem("ANALYZE_PROVIDED_MASTER", input.output_type),
+        user: jsonPrompt({ ...context, existing_master_text: providedMasterText }),
+      }), "BOOK_MASTER_ANALYSIS_JSON_INVALID"),
+      full_script: providedMasterText,
+    };
   while (true) {
     if (typeof master.full_script !== "string" || !master.full_script.trim() || typeof master.ending_first?.final_payoff !== "string" || !master.ending_first.final_payoff.trim()
       || typeof master.ending_first?.setup_and_payoff !== "string" || !master.ending_first.setup_and_payoff.trim()
       || !Array.isArray(master.continuity_ledger)) throw new Error("BOOK_MASTER_CONTRACT_INVALID");
     if (writingContext.saga_id === "OCS" && (!Number.isInteger(writingContext.book_number) || writingContext.book_number < 1 || writingContext.book_number > 13))
       throw new Error("OCS_BOOK_NUMBER_MUST_BE_1_TO_13");
-    const masterRevision={...master,request_id:input.request_id,revision_id:`MASTER-${input.request_id}-R${revision+1}`,revision_number:revision+1,source_psc_ids:sourcePscIds};
+    const masterRevision={...master,full_script:providedMasterText ?? master.full_script,source_text_provenance:sourceTextProvenance,request_id:input.request_id,revision_id:`MASTER-${input.request_id}-R${revision+1}`,revision_number:revision+1,source_psc_ids:sourcePscIds};
     const adaptation=parseObject(await model.complete({mode:"ADAPT_MASTER",system:bookSystem("ADAPT_MASTER",input.output_type),user:jsonPrompt({...context,complete_master:masterRevision})}),"BOOK_ADAPTATION_JSON_INVALID");
     const chapterTitle=writingContext.chapter_title;
     const sections=input.output_type === "BOOK_MANUSCRIPT" || input.output_type === "NOVEL"
@@ -160,10 +184,10 @@ async function runBookScriptwriter(input, { model, notify }) {
     const errors=review.issues.filter(i=>i?.severity==="ERROR");
     const decision=errors.length&&review.decision==="PASS"?"REVISE":review.decision;
     receipts.push({attempt:revision+1,decision,issues:review.issues,summary:String(review.summary??""),master_revision_id:masterRevision.revision_id});
-    if (decision==="PASS"&&!errors.length) return {state:"SCRIPT_REVIEW_PASSED",script_package:{...draft,source_binding:{policy_id:policy.policy_id,policy_revision:policy.policy_revision,approval_psc_id:policy.approval_psc_id,boas_id:policy.boas_id,boas_revision:policy.boas_revision,boas_psc_id:policy.boas_psc_id,knoas_id:policy.knoas_id,knoas_revision:policy.knoas_revision,knoas_psc_id:policy.knoas_psc_id}},binary_validation:{ok:true,gates:[{id:"BOOK_MASTER_ADAPTATION_BINDING",result:"PASS"},{id:"BOOK_POLICY_SOURCE_SET",result:"PASS"},{id:"BOOK_AUTHORING_IDS",result:"PASS"}]},review_receipts:receipts,repair_count:revision,master_revision_id:masterRevision.revision_id};
-    if (decision==="BLOCK"||revision>=MAX_REPAIRS) {
+    if (decision==="PASS"&&!errors.length) return {state:"SCRIPT_REVIEW_PASSED",script_package:{...draft,source_binding:{policy_id:policy.policy_id,policy_revision:policy.policy_revision,approval_psc_id:policy.approval_psc_id,boas_id:policy.boas_id,boas_revision:policy.boas_revision,boas_psc_id:policy.boas_psc_id,knoas_id:policy.knoas_id,knoas_revision:policy.knoas_revision,knoas_psc_id:policy.knoas_psc_id,source_text_provenance:sourceTextProvenance}},binary_validation:{ok:true,gates:[{id:"BOOK_MASTER_ADAPTATION_BINDING",result:"PASS"},{id:"BOOK_POLICY_SOURCE_SET",result:"PASS"},{id:"BOOK_AUTHORING_IDS",result:"PASS"}]},review_receipts:receipts,repair_count:revision,master_revision_id:masterRevision.revision_id};
+    if (decision==="BLOCK"||revision>=MAX_REPAIRS||(providedMasterText!==undefined&&decision==="REVISE")) {
       await notify({type:"SCRIPT_REVIEW_NEEDS_ATTENTION",request_id:input.request_id,channel_key:input.channel_key,unresolved_issues:errors.length?errors:review.issues});
-      return {state:"SCRIPT_REVIEW_NEEDS_ATTENTION",script_package:{...draft,source_binding:{policy_id:policy.policy_id,policy_revision:policy.policy_revision,approval_psc_id:policy.approval_psc_id,boas_id:policy.boas_id,boas_revision:policy.boas_revision,boas_psc_id:policy.boas_psc_id,knoas_id:policy.knoas_id,knoas_revision:policy.knoas_revision,knoas_psc_id:policy.knoas_psc_id}},binary_validation:{ok:false,gates:[{id:"BOOK_REVIEW",result:"FAIL"}]},review_receipts:receipts,repair_count:revision,master_revision_id:masterRevision.revision_id};
+      return {state:"SCRIPT_REVIEW_NEEDS_ATTENTION",script_package:{...draft,source_binding:{policy_id:policy.policy_id,policy_revision:policy.policy_revision,approval_psc_id:policy.approval_psc_id,boas_id:policy.boas_id,boas_revision:policy.boas_revision,boas_psc_id:policy.boas_psc_id,knoas_id:policy.knoas_id,knoas_revision:policy.knoas_revision,knoas_psc_id:policy.knoas_psc_id,source_text_provenance:sourceTextProvenance}},binary_validation:{ok:false,gates:[{id:"BOOK_REVIEW",result:"FAIL",detail:providedMasterText!==undefined&&decision==="REVISE"?"The supplied master is immutable in this request; create an explicit revision to change its text.":"The Reviewer blocked this package."}]},review_receipts:receipts,repair_count:revision,master_revision_id:masterRevision.revision_id};
     }
     revision++;
     master=parseObject(await model.complete({mode:"REVISE_MASTER",system:bookSystem("REVISE_MASTER",input.output_type),user:jsonPrompt({...context,prior_master:masterRevision,review_receipt:receipts.at(-1)})}),"BOOK_REVISION_JSON_INVALID");

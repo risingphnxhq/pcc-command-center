@@ -61,6 +61,9 @@ export async function executeAnimationWriteLifecycle({
     series_context: job.request_payload?.series_context ?? "",
     source_scope: job.request_payload?.source_scope ?? {},
     writing_context: job.request_payload?.writing_context ?? {},
+    ...(typeof job.request_payload?.existing_master_text === "string"
+      ? { existing_master_text: job.request_payload.existing_master_text }
+      : {}),
     context_notes: job.request_payload?.context_notes ?? "",
     desired_ending_or_action: job.request_payload?.desired_ending_or_action ?? "",
     channel_policy: {

@@ -93,6 +93,37 @@ test("runs source-scoped policy resolution through OCS chapter writing, review, 
   assert.equal(savePayload.can_review, true);
 });
 
+test("passes provided OCS chapter text through the authenticated PCC write lifecycle unchanged", async () => {
+  const trustedPolicy = await resolvePolicy([]);
+  const chapter = "BOOK 1: THE AWAKENING\n\nCHAPTER 1: THE WEIGHT OF SEEING\n\nThe city never slept—but at this hour, it whispered.";
+  const sourceJob = job();
+  sourceJob.request_payload.existing_master_text = chapter;
+  let saved;
+  const lifecycle = await executeAnimationWriteLifecycle({
+    job: sourceJob, trustedPolicy, canReview: true,
+    model: { complete: async ({ mode, user }) => {
+      const context = JSON.parse(user);
+      if (mode === "ANALYZE_PROVIDED_MASTER") {
+        assert.equal(context.existing_master_text, chapter);
+        return JSON.stringify({
+          ending_first: { final_payoff: "Who will fix it?", setup_and_payoff: "The question follows from Tyrion's observations." },
+          logline: "Tyrion asks who designed the systems around him.", synopsis: "He sees the architecture behind unfair outcomes.",
+          continuity_ledger: [], character_arc_ledger: [{ character_id: "TYRION", start_state: "Observant", end_state: "Questioning" }],
+          series_arc_contribution: "Introduces the central design question.",
+        });
+      }
+      if (mode === "ADAPT_MASTER") return JSON.stringify({ chapter_beats: [{ purpose: "Establish the city and central question." }] });
+      if (mode === "REVIEW") return JSON.stringify({ decision: "PASS", issues: [], summary: "Preserved source passed review." });
+      throw new Error(`UNEXPECTED_MODEL_MODE:${mode}`);
+    } },
+    saveScript: async payload => { saved = payload; return { data: { job_id: payload.job_id }, error: null }; },
+  });
+
+  assert.equal(lifecycle.result.state, "SCRIPT_REVIEW_PASSED");
+  assert.equal(saved.script_bundle.sections.complete_chapter, chapter);
+  assert.equal(saved.script_bundle.source_binding.source_text_provenance.origin, "USER_PROVIDED_UNVERIFIED_HISTORICAL_REFERENCE");
+});
+
 test("fails closed before calling the Writer or saving when source evidence is mismatched", async () => {
   const events = [];
   const resolved = await resolvePolicy(events);

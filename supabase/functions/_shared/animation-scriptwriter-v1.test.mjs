@@ -33,6 +33,24 @@ test("requires approved immutable BOAS and KNOAS revisions before writing", asyn
   }, { model: { complete: async () => "{}" } }), /REGISTERED_BOAS_KNOAS_POLICY_REQUIRED/);
 });
 
+test("accepts source text only on book outputs and enforces the bounded source size", () => {
+  const chapter = { ...input, output_type: "BOOK_CHAPTER", existing_master_text: "A historical chapter.", writing_context: {
+    audience: "Young adult", book_id: "OCS-BOOK-1", book_title: "The Awakening", book_number: 1,
+    chapter_number: 1, chapter_title: "THE WEIGHT OF SEEING", chapter_goal: "Preserve the text.",
+  } };
+  assert.equal(validateWriterInput(chapter), chapter);
+  assert.throws(() => validateWriterInput({ ...input, existing_master_text: "A source text." }), /EXISTING_MASTER_TEXT_INVALID/);
+  assert.throws(() => validateWriterInput({ ...chapter, existing_master_text: "x".repeat(8_001) }), /EXISTING_MASTER_TEXT_INVALID/);
+});
+
+test("normalizes line breaks and repeated whitespace when checking script segment coverage", () => {
+  const draft = good();
+  draft.full_script = "Scene 1...\r\n\r\nScene 2...";
+  draft.channel_segments[0].script = "Scene 1... Scene 2...";
+  const result = validateAnimationScript(input, draft);
+  assert.equal(result.gates.find(gate => gate.id === "FULL_SCRIPT_SEGMENT_COVERAGE").result, "PASS");
+});
+
 test("carries series, canon or campaign context, and desired ending into the Writer and Reviewer", async () => {
   const contextualInput = { ...input, series_context: "Obsidian Core Saga, Book 1", context_notes: "Use the approved saga canon.", desired_ending_or_action: "End with the betrayal revealed." };
   const replies = [raw(good()), raw({ decision: "PASS", issues: [], summary: "Coherent and policy-aligned." })];
@@ -99,4 +117,78 @@ test("book chapter writes the complete master before adaptation and preserves it
   assert.equal(result.script_package.sections.chapter_title,"THE WEIGHT OF SEEING");
   assert.equal(result.script_package.source_binding.knoas_revision,"knoas-rev-1");
   assert.match(result.script_package.sections.chapter_beats[0].beat_id,/AUTH-req-123-CH-BEAT-0001/);
+});
+
+test("preserves user-provided OCS chapter text exactly and records non-canon provenance", async () => {
+  const existingMaster = "BOOK 1: THE AWAKENING\r\n\r\nCHAPTER 1: THE WEIGHT OF SEEING\r\n\r\nThe city never slept—but at this hour, it whispered.\r\n";
+  const bookInput = {
+    ...input,
+    output_type: "BOOK_CHAPTER",
+    existing_master_text: existingMaster,
+    writing_context: {
+      saga_id: "OCS", audience: "Young adult", book_id: "OCS-BOOK-1", book_number: 1,
+      book_title: "The Awakening", chapter_number: 1, chapter_title: "THE WEIGHT OF SEEING",
+      chapter_goal: "Preserve this historical chapter while preparing its review package.",
+    },
+  };
+  const modes = [];
+  let savedAnalysisContext;
+  const result = await runAnimationScriptwriter(bookInput, { model: { complete: async ({ mode, user }) => {
+    modes.push(mode);
+    const context = JSON.parse(user);
+    if (mode === "ANALYZE_PROVIDED_MASTER") {
+      savedAnalysisContext = context;
+      return raw({
+        ending_first: { final_payoff: "Who will fix it?", setup_and_payoff: "The question grows from Ty's observations." },
+        logline: "An observant young inventor questions who designed the systems around him.",
+        synopsis: "Tyrion sees the architecture behind everyday inequity.",
+        continuity_ledger: [{ fact: "Tyrion lives in East San Jose.", source: "user-provided historical text; canon status unverified" }],
+        character_arc_ledger: [{ character_id: "TYRION", start_state: "Observant", end_state: "Questioning" }],
+        series_arc_contribution: "Introduces the saga's design question.",
+      });
+    }
+    if (mode === "ADAPT_MASTER") return raw({
+      chapter_beats: [{ purpose: "Establish the city, Ty's observation, and the changed question." }],
+      canon_source_notes: ["BOAS-PSC-1", "KNOAS-PSC-1"],
+      series_arc_contribution: "Introduces the saga's design question.",
+    });
+    if (mode === "REVIEW") return raw({ decision: "PASS", issues: [], summary: "Text and source provenance preserved." });
+    throw new Error(`UNEXPECTED_MODEL_MODE:${mode}`);
+  } } });
+
+  const expectedHashBytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(existingMaster)));
+  const expectedHash = Array.from(expectedHashBytes, byte => byte.toString(16).padStart(2, "0")).join("");
+  assert.deepEqual(modes, ["ANALYZE_PROVIDED_MASTER", "ADAPT_MASTER", "REVIEW"]);
+  assert.equal(savedAnalysisContext.existing_master_text, existingMaster);
+  assert.equal(result.script_package.full_script, existingMaster);
+  assert.equal(result.script_package.sections.complete_chapter, existingMaster);
+  assert.equal(result.script_package.source_binding.source_text_provenance.origin, "USER_PROVIDED_UNVERIFIED_HISTORICAL_REFERENCE");
+  assert.equal(result.script_package.source_binding.source_text_provenance.preservation, "EXACT");
+  assert.equal(result.script_package.source_binding.source_text_provenance.sha256, expectedHash);
+});
+
+test("holds a provided master for explicit revision instead of rewriting it after review findings", async () => {
+  const existingMaster = "A historical chapter draft.\n";
+  const bookInput = {
+    ...input, output_type: "BOOK_CHAPTER", existing_master_text: existingMaster,
+    writing_context: { saga_id: "OCS", audience: "Young adult", book_id: "OCS-BOOK-1", book_number: 1,
+      book_title: "The Awakening", chapter_number: 1, chapter_title: "THE WEIGHT OF SEEING", chapter_goal: "Keep source text unchanged." },
+  };
+  const modes = [];
+  const result = await runAnimationScriptwriter(bookInput, { model: { complete: async ({ mode }) => {
+    modes.push(mode);
+    if (mode === "ANALYZE_PROVIDED_MASTER") return raw({
+      ending_first: { final_payoff: "A question remains.", setup_and_payoff: "Observations motivate it." },
+      logline: "A historical chapter.", synopsis: "A short source draft.", continuity_ledger: [],
+      character_arc_ledger: [{ character_id: "TYRION", start_state: "Observant", end_state: "Questioning" }],
+      series_arc_contribution: "Opens the story.",
+    });
+    if (mode === "ADAPT_MASTER") return raw({ chapter_beats: [{ purpose: "Introduce the character." }] });
+    if (mode === "REVIEW") return raw({ decision: "REVISE", issues: [{ severity: "ERROR", code: "CANON_CHECK", message: "Needs human source review." }], summary: "Hold." });
+    throw new Error(`UNEXPECTED_MODEL_MODE:${mode}`);
+  } } });
+
+  assert.equal(result.state, "SCRIPT_REVIEW_NEEDS_ATTENTION");
+  assert.equal(result.script_package.full_script, existingMaster);
+  assert.deepEqual(modes, ["ANALYZE_PROVIDED_MASTER", "ADAPT_MASTER", "REVIEW"]);
 });

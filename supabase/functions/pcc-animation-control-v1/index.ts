@@ -60,6 +60,12 @@ function optionalText(value: unknown, max: number): string | null {
   return normalized.length <= max ? normalized : null;
 }
 
+function optionalRawText(value: unknown, max: number): string | null {
+  if (value === undefined || value === null) return "";
+  if (typeof value !== "string" || value.length > max) return null;
+  return value.length === 0 || value.trim().length > 0 ? value : null;
+}
+
 function rolesFor(user: { app_metadata?: Record<string, unknown> }): Set<string> {
   const source = user.app_metadata?.pcc_animation_access;
   return new Set(Array.isArray(source) ? source.filter((v): v is string => typeof v === "string") : []);
@@ -492,6 +498,7 @@ Deno.serve(async (req: Request) => {
     const sourceEpisodeId = optionalText(sourceContext.source_episode_id, 160);
     const contextNotes = optionalText(sourceContext.context_notes, 6_000);
     const desiredEnding = optionalText(sourceContext.desired_ending_or_action, 4_000);
+    const existingMasterText = optionalRawText(sourceContext.existing_master_text, 8_000);
     const sourceScope = {
       ...(sourceSeriesId ? { series_id: sourceSeriesId } : {}),
       ...(sourceEpisodeId ? { episode_id: sourceEpisodeId } : {}),
@@ -501,7 +508,7 @@ Deno.serve(async (req: Request) => {
       ...(writingContext.chapter_number ? { chapter_number: String(writingContext.chapter_number) } : {}),
       ...(writingContext.scene_number ? { scene_number: String(writingContext.scene_number) } : {}),
     };
-    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, source_scope: sourceScope, writing_context: writingContext, context_notes: contextNotes, desired_ending_or_action: desiredEnding };
+    const requestPayload = { intake: "PCC_ANIMATION_ENGINE_V1", series_context: seriesContext, source_scope: sourceScope, writing_context: writingContext, context_notes: contextNotes, desired_ending_or_action: desiredEnding, ...(existingMasterText ? { existing_master_text: existingMasterText } : {}) };
     if (!idempotencyKey || idempotencyKey.length < 8 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey)
       || !channelKey || !/^[a-z][a-z0-9_]{1,63}$/.test(channelKey)
       || !["EPISODE", "SERIES_EPISODE", "ANIMATION", "AD", "REEL", "MICRO_DRAMA", "NOVEL", "BOOK_MANUSCRIPT", "BOOK_CHAPTER", "BOOK_SCENE", "CORPORATE_MARKETING", "CORPORATE_JINGLE", "TV_SPOT", "TV_COMMERCIAL", "SOCIAL_MEDIA_CAMPAIGN", "OTHER"].includes(outputType ?? "")
@@ -509,7 +516,7 @@ Deno.serve(async (req: Request) => {
       || !idea
       || seriesContext === null || sourceSeriesId === null || sourceEpisodeId === null
       || (!!sourceSeriesId !== !!sourceEpisodeId)
-      || contextNotes === null || desiredEnding === null || writingContextInvalid
+      || contextNotes === null || desiredEnding === null || existingMasterText === null || writingContextInvalid
       || !rawRequestPayload || Array.isArray(rawRequestPayload) || typeof rawRequestPayload !== "object") {
       return json(400, { error: "ANIMATION_REQUEST_INVALID" });
     }
