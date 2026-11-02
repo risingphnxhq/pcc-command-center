@@ -76,3 +76,19 @@ test("unsupported concepts are classified, not silently dispatched", () => {
   assert.deepEqual(route.producer_chain, ["PCC_CLASSIFICATION"]);
   assert.ok(route.block_reasons.includes("CLASSIFICATION_REQUIRED_BEFORE_PRODUCTION"));
 });
+
+test("one production request preserves every selected viewing destination in the producer chain", () => {
+  const route = resolveOutputRoute({
+    content_kind: "EPISODE",
+    requested_operation: "PRODUCE",
+    placements: [
+      { destination_type: "PSN_CATALOG", destination_id: "phnx_phanimation" },
+      { destination_type: "SPIDER_YOUTUBE", channel_key: "phnx_kids" },
+    ],
+  });
+  assert.equal(route.resolution_status, "RESOLVED_HELD");
+  assert.deepEqual(route.producer_chain, [
+    "PCC_WRITER", "PMF_ANIMATION", "PSN_CATALOG", "SPIDER_DISTRIBUTION",
+  ]);
+  assert.equal(route.intended_viewing_surfaces.length, 2);
+});
