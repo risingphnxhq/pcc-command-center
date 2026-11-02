@@ -2,16 +2,16 @@ openapi: 3.1.0
 info:
   title: PCC GPT Creative Workspace Intake
   version: 1.0.0
-  description: Submit writing and creative-work metadata to PCC for held triage. This endpoint never approves, renders, routes, or publishes.
+  description: Submit writing and creative-work metadata to PCC for held triage. Authenticate with a dedicated pccwi_ key issued by the PCC Workspace Intake page. This endpoint never approves, renders, routes, or publishes.
 servers:
   - url: https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-workspace-ingest-v1
 paths:
   /:
     post:
       operationId: submitCreativeWorkToPCC
-      summary: Submit creative work to PCC
+      summary: Submit creative work to PCC (or finalize an asset upload)
       security:
-        - PCCUserBearer: []
+        - PCCGPTIntakeBearer: []
       requestBody:
         required: true
         content:
@@ -39,7 +39,7 @@ components:
     PCCUserBearer:
       type: http
       scheme: bearer
-      bearerFormat: Supabase user access token
+      bearerFormat: PCC workspace intake key
   schemas:
     SubmitRequest:
       type: object
