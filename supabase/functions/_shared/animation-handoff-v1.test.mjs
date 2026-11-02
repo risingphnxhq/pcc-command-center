@@ -4,7 +4,7 @@ import { resolveProductionIntent, validateHandoffSource } from "./animation-hand
 
 const job = {
   job_id: "request-1", status: "SCRIPT_REVIEW_PASSED", channel_key: "phnx_kids",
-  output_type: "EPISODE", production_intent: "NARRATIVE", title: "Pilot", idea: "A story",
+  output_type: "BOOK_CHAPTER", production_intent: "NARRATIVE", title: "Pilot", idea: "A story",
   channel_policy_id: "123e4567-e89b-42d3-a456-426614174001",
   channel_policy_revision: "policy-rev-3", channel_policy_approval_psc_id: "PSC-CHANNEL-001",
   boas_psc_id: "PSC-BOAS-001", knoas_psc_id: "PSC-KNOAS-001",
@@ -13,7 +13,7 @@ const job = {
   script_bundle: {
     full_script: "Scene.", channel_segments: [{ index: 1 }], binary_validation: { ok: true },
     policy_source_verification: {
-      status: "VERIFIED", channel_key: "phnx_kids", output_type: "EPISODE", production_intent: "NARRATIVE",
+      status: "VERIFIED", channel_key: "phnx_kids", output_type: "BOOK_CHAPTER", production_intent: "NARRATIVE",
       policy_id: "123e4567-e89b-42d3-a456-426614174001", policy_revision: "policy-rev-3",
       approval_psc_id: "PSC-CHANNEL-001", boas_id: "boas-kids", boas_revision: "rev-12", boas_psc_id: "PSC-BOAS-001",
       knoas_id: "knoas-kids", knoas_revision: "rev-9", knoas_psc_id: "PSC-KNOAS-001",
@@ -21,6 +21,10 @@ const job = {
     },
   },
   review_receipt: { state: "SCRIPT_REVIEW_PASSED", receipts: [{ decision: "PASS" }] },
+  request_payload: {
+    series_context: "Obsidian Core Saga", source_scope: { saga_id: "OCS", book_id: "OCS-BOOK-1", chapter_number: "1" },
+    writing_context: { saga_id: "OCS", book_id: "OCS-BOOK-1", chapter_number: 1, approved_bible_psc_id: "USER-TYPED-PSC" },
+  },
   pmf_job_ref: null, pve_job_ref: null, png_job_ref: null, render_job_ref: null,
 };
 
@@ -58,7 +62,11 @@ test("builds a complete, held PCC-to-PMF handoff and never dispatches it", () =>
   assert.equal(packet.writer_master_and_segments, job.script_bundle);
   assert.equal(packet.policy_source_verification, job.script_bundle.policy_source_verification);
   assert.equal(packet.reviewer_receipt, job.review_receipt);
-  assert.deepEqual(packet.production_context, { series_context: "", context_notes: "", desired_ending_or_action: "" });
+  assert.deepEqual(packet.production_context, {
+    series_context: "Obsidian Core Saga", context_notes: "", desired_ending_or_action: "",
+    source_scope: { saga_id: "OCS", book_id: "OCS-BOOK-1", chapter_number: "1" },
+    writing_context: { saga_id: "OCS", book_id: "OCS-BOOK-1", chapter_number: 1, approved_bible_psc_id: "PSC-KNOAS-001" },
+  });
   assert.equal(packet.state, "HELD_PMF_ADMISSION_REQUIRED");
   assert.equal(packet.admission_snapshot.render_dispatch, "DISABLED");
   assert.equal("dispatch" in packet, false);
@@ -72,4 +80,6 @@ test("blocks handoff when any source approval or QA receipt is missing", () => {
   assert.throws(() => validateHandoffSource({ ...job, review_receipt: null }), /REVIEWER_RECEIPT_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: null } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
   assert.throws(() => validateHandoffSource({ ...job, script_bundle: { ...job.script_bundle, policy_source_verification: { ...job.script_bundle.policy_source_verification, knoas_revision: "stale" } } }), /VERIFIED_CHANNEL_POLICY_SOURCE_REQUIRED/);
+  assert.throws(() => validateHandoffSource({ ...job, request_payload: { ...job.request_payload, source_scope: {} } }), /BOOK_HANDOFF_SOURCE_SCOPE_REQUIRED/);
 });
+
