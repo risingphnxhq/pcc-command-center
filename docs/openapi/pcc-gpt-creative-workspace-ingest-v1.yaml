@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: PCC GPT Creative Workspace Intake
+  version: 1.0.0
+  description: Submit writing and creative-work metadata to PCC for held triage. This endpoint never approves, renders, routes, or publishes.
+servers:
+  - url: https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-workspace-ingest-v1
+paths:
+  /:
+    post:
+      operationId: submitCreativeWorkToPCC
+      summary: Submit creative work to PCC
+      security:
+        - PCCUserBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/SubmitRequest'
+                - $ref: '#/components/schemas/FinalizeRequest'
+      responses:
+        '200':
+          description: PCC intake receipt or asset upload instructions
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400': { description: Invalid request }
+        '401': { description: Missing or invalid access token }
+        '403': { description: No eligible PCC workspace binding }
+        '409': { description: Idempotency conflict or asset not uploaded }
+        '413': { description: Request or asset exceeds intake limits }
+        '422': { description: Asset integrity verification failed }
+components:
+  securitySchemes:
+    PCCUserBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Supabase user access token
+  schemas:
+    SubmitRequest:
+      type: object
+      required: [operation, idempotency_key, content_kind, title]
+      properties:
+        operation: { const: submit }
+        idempotency_key: { type: string, minLength: 8, maxLength: 128 }
+        content_kind:
+          type: string
+          enum: [BOOK, AD, REEL, SHORT, EPISODE, SERIES, IMAGE, VIDEO, AUDIO, DOCUMENT, CONCEPT, OTHER]
+        title: { type: string, maxLength: 500 }
+        body_text:
+          type: string
+          description: Text or a bounded segment such as a chapter, screenplay, caption, or creative brief.
+        content_document:
+          type: object
+          additionalProperties: true
+        target_system: { type: string }
+        target_channel: { type: string }
+        source_metadata:
+          type: object
+          description: GPT/conversation/model/PSC references are provenance hints, not approval evidence.
+          additionalProperties: true
+        assets:
+          type: array
+          maxItems: 10
+          description: Manifest for binary objects uploaded separately to the returned private signed-upload URL.
+          items:
+            type: object
+            required: [file_name, mime_type, size_bytes, sha256]
+            properties:
+              file_name: { type: string, maxLength: 255 }
+              mime_type: { type: string }
+              size_bytes: { type: integer, minimum: 1, maximum: 20971520 }
+              sha256: { type: string, pattern: '^[a-f0-9]{64}$' }
+              role: { type: string }
+    FinalizeRequest:
+      type: object
+      required: [operation, intake_id]
+      properties:
+        operation: { const: finalize }
+        intake_id: { type: string, format: uuid }
