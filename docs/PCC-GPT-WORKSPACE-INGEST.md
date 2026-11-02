@@ -24,7 +24,7 @@ The request may include a manifest of up to 10 assets. Each has file name, MIME 
 
 Limits: 250,000 characters of body text, 350,000 UTF-8 bytes for normalized JSON, 20 MiB per file, 50 MiB total. The function rejects unsupported MIME types.
 
-**GPT Action limitation:** the Action schema submits JSON and a file manifest; it does not itself transmit a generated image/video binary. For binary GPT outputs, an uploader/client must transfer the actual file bytes to the signed URL. A PCC browser upload surface or an API client that can access the generated file is a follow-on integration. OpenAI’s current GPT documentation describes Actions as external API calls, while its file/image upload instructions describe attaching files to a ChatGPT conversation; those are separate flows.
+**GPT Action limitation:** the Action schema submits JSON and a file manifest; it does not itself transmit a generated image/video binary. For binary GPT outputs, an uploader/client must transfer the actual file bytes to the signed URL. A PCC browser upload surface is implemented at `workspace-intake.html`, linked from Systems Console. It accepts text and local files and uploads media to the signed private-storage URL. A GPT Action still cannot transfer an image/video binary by itself; a generated file must be accessible to that browser/client for upload. OpenAI’s current GPT documentation describes Actions as external API calls, while its file/image upload instructions describe attaching files to a ChatGPT conversation; those are separate flows.
 
 ## Approval and routing
 
