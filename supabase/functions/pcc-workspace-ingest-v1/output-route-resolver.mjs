@@ -52,7 +52,12 @@ function placementProducer(placement, operation) {
 export function resolveOutputRoute(input = {}) {
   const kind = clean(input.content_kind, 40).toUpperCase();
   const operation = clean(input.requested_operation, 40).toUpperCase() || "PRODUCE";
-  const placementsInput = Array.isArray(input.placements) ? input.placements : [];
+  const submittedPlacements = Array.isArray(input.placements) ? input.placements : [];
+  // Authoring a book chapter creates a private draft destination. It is not a
+  // public catalog placement and does not imply canon approval or publication.
+  const placementsInput = operation === "AUTHOR" && kind === "BOOK" && submittedPlacements.length === 0
+    ? [{ destination_type: "PCC_WRITING_ROOM", destination_id: "draft" }]
+    : submittedPlacements;
   const reasons = [];
   const requiredGates = new Set([
     "PCC_APPROVAL",
@@ -96,6 +101,16 @@ export function resolveOutputRoute(input = {}) {
         placement.duration_policy = kind === "EPISODE" ? "PHANIMATION_25_MINUTE_EPISODE" : null;
         requiredGates.add("PSN_CERTIFICATE_AND_ENTITLEMENT");
       }
+    } else if (destinationType === "PCC_WRITING_ROOM") {
+      if (operation !== "AUTHOR" || kind !== "BOOK" && kind !== "SERIES") {
+        reasons.push("PCC_WRITING_ROOM_AUTHORING_ONLY");
+      } else {
+        placement.destination_id = clean(raw?.destination_id, 80).toLowerCase() || "draft";
+        placement.platform = "PCC";
+        placement.viewer_surface = "PCC_PRIVATE_WRITING_ROOM";
+        placement.release_gate = "DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION";
+        placement.connection_state = "INTERNAL_DRAFT_ROUTE";
+      }
     } else if (destinationType === "SPIDER_YOUTUBE") {
       const channelKey = clean(raw?.channel_key, 80).toLowerCase();
       if (!Object.hasOwn(CHANNELS, channelKey)) {
@@ -138,7 +153,9 @@ export function resolveOutputRoute(input = {}) {
     reasons.push("SERIES_CATALOG_ROUTE_NOT_ESTABLISHED_FOR_SELECTED_DESTINATION");
   }
   if (kind === "BOOK" && operation !== "CAPTURE" && operation !== "AUTHOR") reasons.push("MANUSCRIPT_VIEWER_OR_STORE_NOT_ESTABLISHED");
-  if (kind === "BOOK" && operation === "AUTHOR") reasons.push("MANUSCRIPT_VIEWER_OR_STORE_NOT_ESTABLISHED");
+  if (kind === "BOOK" && operation === "AUTHOR" && primary?.destination_type !== "PCC_WRITING_ROOM") {
+    reasons.push("PCC_WRITING_ROOM_DRAFT_DESTINATION_REQUIRED");
+  }
   if (kind === "CONCEPT" || kind === "DOCUMENT" || kind === "OTHER") {
     reasons.push("CLASSIFICATION_REQUIRED_BEFORE_PRODUCTION");
   }
