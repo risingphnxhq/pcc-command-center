@@ -14,13 +14,13 @@ PCC sign-in validates a Supabase user token through Supabase Auth and resolves t
 
 ## Text intake
 
-POST JSON with `operation=submit`, an idempotency key, content kind, and title. Text, structured document data, intended system/channel, and source-conversation references are optional. The route computes a server-side canonical payload hash and returns a receipt in `PENDING_PCC_TRIAGE`.
+POST JSON with `operation=submit`, an idempotency key, content kind, and title. The request may include `artifact_references` containing HTTPS links; PCC records those as untrusted references and never fetches them. A reference is not a transferred or verified file—the file bytes must be uploaded through the signed asset path. Text, structured document data, intended system/channel, and source-conversation references are optional. The route computes a server-side canonical payload hash and returns a receipt in `PENDING_PCC_TRIAGE`.
 
 Supported kinds: BOOK, AD, REEL, SHORT, EPISODE, SERIES, IMAGE, VIDEO, AUDIO, DOCUMENT, CONCEPT, OTHER.
 
 ## Binary assets
 
-The request may include a manifest of up to 10 assets. Each has file name, MIME type, byte size, SHA-256, and optional role. The route returns an expiring signed upload URL. A client capable of transferring the actual file bytes uploads to private storage, then calls `operation=finalize`. PCC downloads only from its private bucket and verifies size, MIME, and SHA-256 before triage.
+The request may include a manifest of up to 10 assets. Each has file name, MIME type, byte size, SHA-256, and optional role. PNG/JPG and ZIP archives are accepted (along with the listed audio, video, PDF, text, JSON, and DOCX types). ZIPs are stored as opaque files; PCC does not extract or execute archive contents. The route returns an expiring signed upload URL. A client capable of transferring the actual file bytes uploads to private storage, then calls `operation=finalize`. PCC downloads only from its private bucket and verifies size, MIME, and SHA-256 before triage.
 
 Limits: 250,000 characters of body text, 350,000 UTF-8 bytes for normalized JSON, 20 MiB per file, 50 MiB total. The function rejects unsupported MIME types.
 
