@@ -241,15 +241,15 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
     destination_type:placement.destination_type,platform:placement.platform,viewer_surface:placement.viewer_surface,
     release_gate:placement.release_gate,resolution_status:route.resolution_status,execution_eligible:false,publication_eligible:false,
   }:null;
-  const dispatchRequestPayload=isPrivateWritingRoute?{
+  const dispatchRequestPayload={
     ...sourceRequestPayload,
-    writer_destination_receipt:writerDestinationReceipt,
+    ...(isPrivateWritingRoute?{writer_destination_receipt:writerDestinationReceipt}:{}),
     workspace_dispatch_receipt:{
       protocol:"pcc-workspace-producer/v1",intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,
       review_action_id:p.review_action_id,execution_approval_id:p.execution_approval.approval_id,
       payload_sha256:p.payload_sha256,route_resolution:route,
     },
-  }:sourceRequestPayload;
+  };
   const idempotencyKey=`workspace:${p.intake_id}:${p.dispatch_action_id}`;
   const scope=dispatchRequestPayload.source_scope&&typeof dispatchRequestPayload.source_scope==="object"&&!Array.isArray(dispatchRequestPayload.source_scope)?dispatchRequestPayload.source_scope:{};
   let trustedPolicy:Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
