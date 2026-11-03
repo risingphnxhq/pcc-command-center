@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { resolveOutputRoute } from "./output-route-resolver.mjs";
 import { validateReviewDecision } from "./review-adjudication.mjs";
+import { validateDispatchAttempt } from "./dispatch-ledger.mjs";
 
 const URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -10,7 +11,7 @@ const BUCKET = "pcc-workspace-intake";
 const ACTOR = "RPE-MASON-HQ";
 const LANES = new Set(["PRIME_MASON_ACCOUNT", "NEW_MASON_ACCOUNT"]);
 const KINDS = new Set(["BOOK","AD","REEL","SHORT","EPISODE","SERIES","IMAGE","VIDEO","AUDIO","DOCUMENT","CONCEPT","OTHER"]);
-const MIMES = new Set(["image/png","image/jpeg","image/webp","image/gif","audio/mpeg","audio/wav","audio/mp4","audio/ogg","audio/webm","video/mp4","video/webm","application/pdf","text/plain","application/json","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
+const MIMES = new Set(["image/png","image/jpeg","image/webp","image/gif","audio/mpeg","audio/wav","audio/mp4","audio/ogg","audio/webm","video/mp4","video/webm","application/pdf","text/plain","application/json","application/zip","application/x-zip-compressed","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
 const admin = createClient(URL, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,apikey,content-type,x-client-info","Access-Control-Allow-Methods":"POST,OPTIONS","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"};
 const reply = (status:number, data:Record<string,unknown>) => new Response(JSON.stringify(data),{status,headers:cors});
@@ -129,6 +130,137 @@ async function reviewDecision(b:any,w:any){
  return reply(200,{...result,decision_scope:"TRIAGE_ONLY",execution_eligible:false});
 }
 
+
+async function approveExecution(b:any,w:any){
+ if(w.authMode!=="USER_JWT")return reply(403,{error:"USER_SIGN_IN_REQUIRED_FOR_EXECUTION_APPROVAL"});
+ if(!await hasWorkspaceReviewAuthority(w))return reply(403,{error:"WORKSPACE_EXECUTION_APPROVAL_AUTHORITY_REQUIRED"});
+ const intake_id=text(b.intake_id,64),approval_id=text(b.approval_id,64),reason=text(b.reason,2000).trim();
+ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ if(!uuid.test(intake_id)||!uuid.test(approval_id)||!reason)return reply(400,{error:"EXECUTION_APPROVAL_REQUEST_INVALID"});
+ const {data,error}=await admin.rpc("pcc_workspace_approve_execution_v1",{p_intake_id:intake_id,p_approval_id:approval_id,p_approver_subject:w.subject,p_reason:reason});
+ if(error)throw Error("WORKSPACE_EXECUTION_APPROVAL_WRITE_FAILED");
+ const result=data as Record<string,unknown>;
+ if(result?.ok!==true){const code=typeof result?.error==="string"?result.error:"WORKSPACE_EXECUTION_APPROVAL_FAILED";const status=code==="WORKSPACE_EXECUTION_APPROVAL_AUTHORITY_REQUIRED"?403:code==="INTAKE_NOT_FOUND"?404:409;return reply(status,{error:code});}
+ return reply(200,{...result,approval_scope:"WRITER_AND_HELD_HANDOFF",render_dispatch:"DISABLED",publication_eligible:false});
+}
+
+async function signWorkspaceBridge(secret:string,timestamp:number,nonce:string,raw:string){
+ const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ return Array.from(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(`${timestamp}\n${nonce}\n${raw}`))),b=>b.toString(16).padStart(2,"0")).join("");
+}
+function routeHold(result:any,reason:string){return reply(200,{ok:true,dispatch_eligible:false,dispatch_scope:"HELD_RECEIPT_ONLY",producer_job_created:false,block_reasons:[reason],dispatch_receipt:result?.dispatch_receipt??null});}
+
+async function dispatchAttempt(b:any,w:any){
+ if(w.authMode!=="USER_JWT")return reply(403,{error:"USER_SIGN_IN_REQUIRED_FOR_DISPATCH"});
+ if(!await hasWorkspaceReviewAuthority(w))return reply(403,{error:"WORKSPACE_REVIEW_AUTHORITY_REQUIRED"});
+ let request:any;
+ try{request=validateDispatchAttempt(b);}catch(e){return reply(400,{error:e instanceof Error?e.message:"DISPATCH_REQUEST_INVALID"});}
+ const {data:dispatchData,error:dispatchError}=await admin.rpc("pcc_workspace_dispatch_intake_v1",{
+   p_intake_id:request.intake_id,p_dispatch_action_id:request.dispatch_action_id,p_reviewer_subject:w.subject
+ });
+ if(dispatchError)throw Error("WORKSPACE_DISPATCH_WRITE_FAILED");
+ const dispatch=dispatchData as Record<string,any>;
+ if(dispatch?.ok!==true){const code=typeof dispatch?.error==="string"?dispatch.error:"WORKSPACE_DISPATCH_FAILED";const status=code==="WORKSPACE_REVIEW_AUTHORITY_REQUIRED"?403:code==="INTAKE_NOT_FOUND"?404:409;return reply(status,{error:code,dispatch_eligible:false});}
+ const prior=dispatch.dispatch_receipt;
+ if(prior?.state==="DISPATCHED"&&prior?.producer_job_id)return reply(200,{ok:true,duplicate:true,dispatch_eligible:true,dispatch_scope:"WRITER_AND_HELD_HANDOFF",producer_job_created:true,dispatch_receipt:prior});
+ const reasons=Array.isArray(prior?.block_reasons)?prior.block_reasons:[];
+ if(reasons.length)return routeHold(dispatch,reasons[0]);
+ const {data:intake,error:intakeError}=await admin.from("pcc_workspace_intake_v1")
+  .select("intake_id,auth_subject,runtime_lane,content_kind,title,body_text,content_document,target_system,target_channel,source_metadata,asset_manifest,payload_sha256,review_state,approved_for_execution,receipt")
+  .eq("intake_id",request.intake_id).maybeSingle();
+ if(intakeError)throw Error("WORKSPACE_DISPATCH_INTAKE_READ_FAILED");
+ if(!intake||intake.review_state!=="ACCEPTED"||intake.approved_for_execution!==true)return routeHold(dispatch,"EXECUTION_APPROVAL_REQUIRED");
+ const approval=intake.receipt?.execution_approval,review=intake.receipt?.review,route=intake.receipt?.route_resolution;
+ if(!approval||approval.approved!==true||approval.payload_sha256!==intake.payload_sha256||!review||review.decision!=="ACCEPTED"||review.payload_sha256!==intake.payload_sha256)return routeHold(dispatch,"APPROVAL_PROVENANCE_MISMATCH");
+ if(!route||route.resolution_status!=="RESOLVED_HELD"||route.execution_eligible!==false||route.publication_eligible!==false||!Array.isArray(route.producer_chain))return routeHold(dispatch,"ROUTE_NOT_RESOLVED");
+ if(Array.isArray(intake.asset_manifest)&&intake.asset_manifest.length>0)return routeHold(dispatch,"ASSET_BRIDGE_NOT_CONNECTED");
+ const doc=intake.content_document&&typeof intake.content_document==="object"&&!Array.isArray(intake.content_document)?intake.content_document:{};
+ const writer=doc.writer_request&&typeof doc.writer_request==="object"&&!Array.isArray(doc.writer_request)?doc.writer_request:{};
+ const surfaces=Array.isArray(route.intended_viewing_surfaces)?route.intended_viewing_surfaces:Array.isArray(route.placements)?route.placements:[];
+ const surface=surfaces[0]??{};
+ const destination=String(surface.destination_id??"").toLowerCase();
+ let outputType=typeof writer.output_type==="string"?writer.output_type.trim().toUpperCase():"";
+ if(intake.content_kind==="BOOK"&&!["BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL"].includes(outputType))return routeHold(dispatch,"BOOK_WRITER_OUTPUT_TYPE_REQUIRED");
+ if(intake.content_kind==="EPISODE"){
+   const expected=destination==="phnx_phanimation"?"SERIES_EPISODE":"EPISODE";
+   if(outputType&&outputType!==expected)return routeHold(dispatch,"EPISODE_OUTPUT_TYPE_DESTINATION_MISMATCH");
+   outputType=expected;
+ }
+ if(intake.content_kind==="AD")outputType="AD";
+ if(intake.content_kind==="REEL")outputType="REEL";
+ if(intake.content_kind==="VIDEO"&&!["ANIMATION","MICRO_DRAMA","TV_SPOT","TV_COMMERCIAL","CORPORATE_MARKETING"].includes(outputType))return routeHold(dispatch,"VIDEO_WRITER_OUTPUT_TYPE_REQUIRED");
+ if(!outputType)return routeHold(dispatch,"WRITER_OUTPUT_TYPE_UNRESOLVED");
+ const producerChain=Array.isArray(route.producer_chain)?route.producer_chain:[];
+ const privateWritingRoute=producerChain.includes("PCC_WRITING_ROOM");
+ const writingDraftTypes=new Set(["BOOK","BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL","SERIES","SERIES_BIBLE"]);
+ if(privateWritingRoute&&!writingDraftTypes.has(outputType))return routeHold(dispatch,"PCC_WRITING_ROOM_OUTPUT_TYPE_UNSUPPORTED");
+ const channelKey=String(writer.channel_key||surface.channel_key||(destination!=="draft"?destination:"")||intake.target_channel||"").trim().toLowerCase();
+ if(!privateWritingRoute&&!/^[a-z][a-z0-9_]{1,63}$/.test(channelKey))return routeHold(dispatch,"CHANNEL_POLICY_KEY_REQUIRED");
+ const title=String(intake.title??"").trim().slice(0,200);
+ const idea=String(writer.idea??intake.body_text??"").trim().slice(0,12000);
+ if(!title||!idea)return routeHold(dispatch,"WRITER_TITLE_AND_IDEA_REQUIRED");
+ if(["BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL"].includes(outputType)){
+   const writingContext=writer.writing_context??doc.writing_context;
+   if(!writingContext||typeof writingContext!=="object"||Array.isArray(writingContext))return routeHold(dispatch,"BOOK_WRITING_CONTEXT_REQUIRED");
+   writer.writing_context=writingContext;
+ }
+ const {data:userResult,error:userError}=await admin.auth.admin.getUserById(w.subject);
+ if(userError||!userResult?.user?.email||!userResult.user.email_confirmed_at)return routeHold(dispatch,"CONFIRMED_WORKSPACE_EMAIL_REQUIRED");
+ const secret=Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+ if(!secret||secret.length<32)return routeHold(dispatch,"PCC_WRITER_BRIDGE_NOT_CONFIGURED");
+ const requestPayload={
+   source_system_subject:w.subject,source_email:userResult.user.email.toLowerCase(),
+   intake_id:intake.intake_id,dispatch_action_id:request.dispatch_action_id,payload_sha256:intake.payload_sha256,
+   review_action_id:review.review_action_id,triage_decision:"ACCEPTED",triage_payload_sha256:review.payload_sha256,
+   execution_approval:approval,route_resolution:route,channel_key:channelKey,output_type:outputType,
+   production_intent:writer.production_intent??null,title,idea,
+   request_payload:{
+     ...(writer.request_payload&&typeof writer.request_payload==="object"&&!Array.isArray(writer.request_payload)?writer.request_payload:{}),
+     writing_context:writer.writing_context??doc.writing_context??{},
+     series_context:writer.series_context??doc.series_context??"",
+     context_notes:writer.context_notes??doc.context_notes??"",
+     desired_ending_or_action:writer.desired_ending_or_action??doc.desired_ending_or_action??"",
+     source_scope:writer.source_scope??doc.source_scope??{},
+     provenance_metadata:{
+       source_metadata:intake.source_metadata&&typeof intake.source_metadata==="object"&&!Array.isArray(intake.source_metadata)?intake.source_metadata:{},
+       content_document:{
+         book_title:doc.book_title??null,chapter_title:doc.chapter_title??null,
+         source_author:doc.source_author??null,source_classification:doc.source_classification??null,
+         canon_status:doc.canon_status??null
+       }
+     }
+   }
+ };
+ const raw=JSON.stringify({protocol:"pcc-workspace-producer/v1",action:"WRITE_APPROVED",payload:requestPayload});
+ if(new TextEncoder().encode(raw).byteLength>60_000)return routeHold(dispatch,"PCC_WRITER_REQUEST_SIZE_LIMIT");
+ const timestamp=Date.now(),nonce=crypto.randomUUID(),signature=await signWorkspaceBridge(secret,timestamp,nonce,raw);
+ const endpoint="https://ttkceizmjeckrorhkhfr.supabase.co/functions/v1/pcc-animation-control-v1";
+ let response:Response;
+ try{response=await fetch(endpoint,{method:"POST",redirect:"error",headers:{"content-type":"application/json","x-pcc-bridge-key-id":"pcc-animation-v1","x-pcc-bridge-timestamp":String(timestamp),"x-pcc-bridge-nonce":nonce,"x-pcc-bridge-signature":signature},body:raw,signal:AbortSignal.timeout(120_000)});}
+ catch{return reply(502,{ok:false,error:"PCC_WRITER_BRIDGE_REQUEST_FAILED",dispatch_scope:"HELD_RECEIPT_ONLY",producer_job_created:false});}
+ let pcc:Record<string,any>;
+ try{const parsed=await response.json();pcc=parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:{};}catch{return reply(502,{ok:false,error:"PCC_WRITER_BRIDGE_RESPONSE_INVALID"});}
+ const writingDraftReceipt=pcc.script_state==="BOOK_DRAFT_STORED"&&privateWritingRoute&&pcc.writing_draft_id===pcc.producer_job_id&&pcc.canon_status==="UNAPPROVED"&&pcc.render_dispatch==="DISABLED"&&pcc.publication_eligible===false;
+ const animationScriptReceipt=["SCRIPT_REVIEW_PASSED","SCRIPT_REVIEW_NEEDS_ATTENTION"].includes(pcc.script_state);
+ if(!response.ok||pcc.ok!==true||pcc.intake_id!==intake.intake_id||pcc.dispatch_action_id!==request.dispatch_action_id
+    ||pcc.payload_sha256!==intake.payload_sha256||typeof pcc.producer_job_id!=="string"
+    ||(!animationScriptReceipt&&!writingDraftReceipt)){
+   return reply(409,{ok:false,error:typeof pcc.error==="string"?pcc.error:"PCC_PRODUCER_RECEIPT_INVALID",dispatch_scope:"HELD_RECEIPT_ONLY",producer_job_created:Boolean(pcc.producer_job_id)});
+ }
+ const receipt={intake_id:intake.intake_id,dispatch_action_id:request.dispatch_action_id,payload_sha256:intake.payload_sha256,
+   producer_job_id:pcc.producer_job_id,script_state:pcc.script_state,pmf_receipt:pcc.pmf_receipt??null,
+   writing_draft_id:writingDraftReceipt?pcc.writing_draft_id:null,canon_status:writingDraftReceipt?pcc.canon_status:null,
+   source_preparation:pcc.source_preparation??null,render_dispatch:"DISABLED",publication_eligible:false};
+ const {data:completed,error:completionError}=await admin.rpc("pcc_workspace_dispatch_complete_v1",{
+   p_intake_id:intake.intake_id,p_dispatch_action_id:request.dispatch_action_id,p_reviewer_subject:w.subject,
+   p_producer_job_id:pcc.producer_job_id,p_pcc_receipt:receipt
+ });
+ if(completionError)throw Error("WORKSPACE_DISPATCH_COMPLETION_WRITE_FAILED");
+ const completion=completed as Record<string,unknown>;
+ if(completion?.ok!==true)return reply(502,{ok:false,error:typeof completion?.error==="string"?completion.error:"WORKSPACE_DISPATCH_COMPLETION_FAILED",producer_job_id:pcc.producer_job_id});
+ return reply(200,{...completion,dispatch_eligible:true,dispatch_scope:"WRITER_AND_HELD_HANDOFF",producer_job_created:true,script_state:pcc.script_state,render_dispatch:"DISABLED",publication_eligible:false});
+}
+
 async function submit(b:any,who:any){
   if(!idemOk(b.idempotency_key)) return reply(400,{error:"INVALID_IDEMPOTENCY_KEY"});
   if(!KINDS.has(b.content_kind)) return reply(400,{error:"INVALID_CONTENT_KIND"});
@@ -136,6 +268,17 @@ async function submit(b:any,who:any){
   if(!title) return reply(400,{error:"TITLE_REQUIRED"});
   const doc=b.content_document&&typeof b.content_document==="object"&&!Array.isArray(b.content_document)?b.content_document:{};
   const source=b.source_metadata&&typeof b.source_metadata==="object"&&!Array.isArray(b.source_metadata)?b.source_metadata:{};
+  const rawReferences=Array.isArray(b.artifact_references)?b.artifact_references:[];
+  if(rawReferences.length>10) return reply(413,{error:"TOO_MANY_ARTIFACT_REFERENCES"});
+  const artifactReferences=[];
+  for(const item of rawReferences){
+    const rawUrl=text(item?.url,2048).trim();
+    let parsed:URL;
+    try{parsed=new URL(rawUrl);}catch{return reply(400,{error:"INVALID_ARTIFACT_REFERENCE"});}
+    if(parsed.protocol!=="https:"||parsed.username||parsed.password)return reply(400,{error:"INVALID_ARTIFACT_REFERENCE"});
+    artifactReferences.push({url:parsed.toString(),label:text(item?.label,255).trim()||null,role:text(item?.role,100).trim()||null,transfer_state:"REFERENCE_ONLY",fetched:false});
+  }
+  const sourceWithReferences=artifactReferences.length?{...source,artifact_references:artifactReferences}:source;
   const assets=Array.isArray(b.assets)?b.assets:[];
   if(assets.length>10) return reply(413,{error:"TOO_MANY_ASSETS"});
   let total=0;
@@ -146,7 +289,7 @@ async function submit(b:any,who:any){
   }
   if(total>52428800) return reply(413,{error:"ASSET_TOTAL_EXCEEDS_LIMIT"});
   const routeResolution=resolveOutputRoute({content_kind:b.content_kind,requested_operation:b.requested_operation,placements:b.placements});
-  const normalized={content_kind:b.content_kind,title,body_text:bodyText,content_document:doc,target_system:text(b.target_system,120)||null,target_channel:text(b.target_channel,160)||null,source_metadata:source,
+  const normalized={content_kind:b.content_kind,title,body_text:bodyText,content_document:doc,target_system:text(b.target_system,120)||null,target_channel:text(b.target_channel,160)||null,source_metadata:sourceWithReferences,
     requested_operation:routeResolution.requested_operation,placements:routeResolution.placements,route_resolution:routeResolution,
     assets:assets.map((a:any)=>({file_name:a.file_name,mime_type:a.mime_type,size_bytes:a.size_bytes,sha256:a.sha256,role:text(a.role,100)||null}))};
   const canonical=JSON.stringify(normalized);
@@ -169,7 +312,7 @@ async function submit(b:any,who:any){
   });
   const status=rows.length?"AWAITING_ASSET_UPLOAD":"PENDING_PCC_TRIAGE";
   const receipt={intake_id:intakeId,actor_id:who.actor,runtime_lane:who.lane,authenticated_subject:who.subject,received_at:new Date().toISOString(),payload_sha256:payloadHash,asset_count:rows.length,route_resolution:routeResolution,approval_state:"NOT_APPROVED",execution_eligible:false};
-  const {error:insertErr}=await admin.from("pcc_workspace_intake_v1").insert({intake_id:intakeId,actor_id:who.actor,runtime_lane:who.lane,auth_subject:who.subject,idempotency_key:b.idempotency_key,content_kind:normalized.content_kind,title,body_text:bodyText,content_document:doc,target_system:normalized.target_system,target_channel:normalized.target_channel,source_metadata:source,asset_manifest:normalized.assets,payload_sha256:payloadHash,status,receipt});
+  const {error:insertErr}=await admin.from("pcc_workspace_intake_v1").insert({intake_id:intakeId,actor_id:who.actor,runtime_lane:who.lane,auth_subject:who.subject,idempotency_key:b.idempotency_key,content_kind:normalized.content_kind,title,body_text:bodyText,content_document:doc,target_system:normalized.target_system,target_channel:normalized.target_channel,source_metadata:sourceWithReferences,asset_manifest:normalized.assets,payload_sha256:payloadHash,status,receipt});
   if(insertErr) throw new Error("INTAKE_INSERT_FAILED");
   if(rows.length){const {error}=await admin.from("pcc_workspace_intake_assets_v1").insert(rows);if(error) throw new Error("ASSET_MANIFEST_INSERT_FAILED");}
   const upload_targets=rows.length?await issueTickets(rows):[];
@@ -216,6 +359,8 @@ Deno.serve(async(req:Request)=>{
     if(b.operation==="revoke_action_key") return await revokeActionKey(b,who);
     if(b.operation==="review_queue") return await reviewQueue(who);
     if(b.operation==="review_decision") return await reviewDecision(b,who);
+    if(b.operation==="approve_execution") return await approveExecution(b,who);
+    if(b.operation==="dispatch_attempt") return await dispatchAttempt(b,who);
     return reply(400,{error:"UNKNOWN_OPERATION"});
   }catch(e){
     const msg=e instanceof Error?e.message:"INTERNAL_ERROR";
