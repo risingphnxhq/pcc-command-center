@@ -88,6 +88,17 @@ components:
           type: object
           description: GPT/conversation/model/PSC references are provenance hints, not approval evidence.
           additionalProperties: true
+        artifact_references:
+          type: array
+          maxItems: 10
+          description: HTTPS provenance references only. PCC stores these as untrusted references and never fetches them; upload actual file bytes through the signed asset path.
+          items:
+            type: object
+            required: [url]
+            properties:
+              url: { type: string, format: uri, pattern: '^https://' }
+              label: { type: string, maxLength: 255 }
+              role: { type: string, maxLength: 100 }
         assets:
           type: array
           maxItems: 10
@@ -97,7 +108,9 @@ components:
             required: [file_name, mime_type, size_bytes, sha256]
             properties:
               file_name: { type: string, maxLength: 255 }
-              mime_type: { type: string }
+              mime_type:
+                type: string
+                enum: [image/png, image/jpeg, image/webp, image/gif, audio/mpeg, audio/wav, audio/mp4, audio/ogg, audio/webm, video/mp4, video/webm, application/pdf, text/plain, application/json, application/zip, application/x-zip-compressed, application/vnd.openxmlformats-officedocument.wordprocessingml.document]
               size_bytes: { type: integer, minimum: 1, maximum: 20971520 }
               sha256: { type: string, pattern: '^[a-f0-9]{64}$' }
               role: { type: string }
