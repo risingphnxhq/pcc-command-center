@@ -221,31 +221,37 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
   const idea=text(p.idea,12_000);
   const sourceRequestPayload=p.request_payload&&typeof p.request_payload==="object"&&!Array.isArray(p.request_payload)?p.request_payload:{};
   const isPrivateWritingRoute=Array.isArray(route.producer_chain)&&route.producer_chain.includes("PCC_WRITING_ROOM");
-  const writingDraftTypes=new Set(["BOOK","BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL","SERIES","SERIES_BIBLE"]);
-  if(writingDraftTypes.has(outputType)&&isPrivateWritingRoute) {
-    const placement=Array.isArray(route.placements)?route.placements.find((x:any)=>x?.destination_type==="PCC_WRITING_ROOM"):null;
-    if(!title||!idea||!placement||placement.platform!=="PCC"||placement.viewer_surface!=="PCC_PRIVATE_WRITING_ROOM"
-       ||placement.release_gate!=="DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION") {
-      return json(409,{error:"PCC_PRIVATE_WRITING_ROOM_ROUTE_INVALID"});
-    }
-    const {data:draft,error:draftError}=await service.rpc("pcc_workspace_writing_draft_create_v1",{
-      p_source_system_subject:p.source_system_subject,p_intake_id:p.intake_id,p_dispatch_action_id:p.dispatch_action_id,
-      p_review_action_id:p.review_action_id,p_approval_id:p.execution_approval.approval_id,
-      p_payload_sha256:p.payload_sha256,p_content_kind:outputType.startsWith("SERIES")?"SERIES":"BOOK",p_title:title,p_content_text:idea,
-      p_writing_context:sourceRequestPayload,p_route_receipt:route
-    });
-    if(draftError||!draft)return json(503,{error:"PCC_WRITING_DRAFT_PERSIST_FAILED"});
-    const result=draft as Record<string,any>;
-    if(result.ok!==true||typeof result.producer_job_id!=="string")return json(409,{error:typeof result.error==="string"?result.error:"PCC_WRITING_DRAFT_RECEIPT_INVALID"});
-    return json(200,{ok:true,intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,payload_sha256:p.payload_sha256,
-      producer_job_id:result.producer_job_id,writing_draft_id:result.writing_draft_id,script_state:"BOOK_DRAFT_STORED",
-      canon_status:"UNAPPROVED",render_dispatch:"DISABLED",publication_eligible:false});
-  }
   const intent=outputType?resolveProductionIntent(outputType,p.production_intent):null;
+  const writingOutputTypes=new Set(["BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL"]);
+  const placement=Array.isArray(route.placements)?route.placements.find((x:any)=>x?.destination_type==="PCC_WRITING_ROOM"):null;
+  if(isPrivateWritingRoute) {
+    if(!writingOutputTypes.has(String(outputType??""))) {
+      return json(409,{error:"PCC_WRITING_ROOM_OUTPUT_TYPE_UNSUPPORTED",held:true,render_dispatch:"DISABLED",publication_eligible:false});
+    }
+    if(!placement||placement.platform!=="PCC"||placement.viewer_surface!=="PCC_PRIVATE_WRITING_ROOM"
+       ||placement.release_gate!=="DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION") {
+      return json(409,{error:"PCC_PRIVATE_WRITING_ROOM_ROUTE_INVALID",held:true});
+    }
+    if(!channelKey||!intent) {
+      return json(409,{error:"PCC_WRITING_ROOM_APPROVED_CHANNEL_POLICY_REQUIRED",held:true,render_dispatch:"DISABLED",publication_eligible:false});
+    }
+  }
   if(!outputType||!channelKey||!title||!idea||!intent)return json(400,{error:"WORKSPACE_WRITER_REQUEST_INVALID"});
+  const writerDestinationReceipt=isPrivateWritingRoute?{
+    destination_type:placement.destination_type,platform:placement.platform,viewer_surface:placement.viewer_surface,
+    release_gate:placement.release_gate,resolution_status:route.resolution_status,execution_eligible:false,publication_eligible:false,
+  }:null;
+  const dispatchRequestPayload=isPrivateWritingRoute?{
+    ...sourceRequestPayload,
+    writer_destination_receipt:writerDestinationReceipt,
+    workspace_dispatch_receipt:{
+      protocol:"pcc-workspace-producer/v1",intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,
+      review_action_id:p.review_action_id,execution_approval_id:p.execution_approval.approval_id,
+      payload_sha256:p.payload_sha256,route_resolution:route,
+    },
+  }:sourceRequestPayload;
   const idempotencyKey=`workspace:${p.intake_id}:${p.dispatch_action_id}`;
-  const sourceRequestPayload=p.request_payload&&typeof p.request_payload==="object"&&!Array.isArray(p.request_payload)?p.request_payload:{};
-  const scope=sourceRequestPayload.source_scope&&typeof sourceRequestPayload.source_scope==="object"&&!Array.isArray(sourceRequestPayload.source_scope)?sourceRequestPayload.source_scope:{};
+  const scope=dispatchRequestPayload.source_scope&&typeof dispatchRequestPayload.source_scope==="object"&&!Array.isArray(dispatchRequestPayload.source_scope)?dispatchRequestPayload.source_scope:{};
   let trustedPolicy:Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
   try {
     trustedPolicy=await resolveLiveAnimationPolicy(service,pccSubject,{channel_key:channelKey,output_type:outputType,production_intent:intent,source_scope:scope});
@@ -253,7 +259,7 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
     const failure=policyErrorResponse(error);
     return json(failure.status,{error:failure.error});
   }
-  const boundRequestPayload={...sourceRequestPayload,approved_channel_policy_snapshot:trustedPolicy.snapshot,policy_source_verification:trustedPolicy.verification};
+  const boundRequestPayload={...dispatchRequestPayload,approved_channel_policy_snapshot:trustedPolicy.snapshot,policy_source_verification:trustedPolicy.verification};
   const {data:created,error:createError}=await service.rpc("pcc_animation_job_control_v1",{
     p_action:"CREATE",p_subject:pccSubject,
     p_payload:{idempotency_key:idempotencyKey,channel_key:channelKey,output_type:outputType,production_intent:intent,title,idea,request_payload:boundRequestPayload}
