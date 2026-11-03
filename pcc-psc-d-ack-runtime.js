@@ -37,6 +37,7 @@
   function clearReconciliation() {
     sessionStorage.removeItem("pccPscDObservedStateVersion");
     sessionStorage.removeItem("pccContinuityReconciled");
+    sessionStorage.removeItem("pccPscDContextDigest");
     const ack = $("pscDAckButton");
     if (ack) ack.disabled = true;
   }
@@ -94,16 +95,15 @@
     clearReconciliation();
     showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
-      const continuityProjection = await continuity();
-      const body = await pulse("MEMORY", 0, null, "READ");
-      show({ continuity: continuityProjection.data, psc_d: body });
-      const version = positiveInteger(body?.synchronization?.state_version);
+      const body = await pulse("MEMORY", 0, null, "BOOTSTRAP");
+      show({ psc_d_context: body });
+      if (body?.retrieval_state !== "RETRIEVED_RECONCILIATION_REQUIRED" || !Array.isArray(body.records) || !body.records.length || !/^[a-f0-9]{64}$/.test(body.context_sha256 || "")) throw Object.assign(new Error("FULL_GOVERNING_CONTEXT_REQUIRED"), { body });
+      const version = positiveInteger(body?.state_version);
+      sessionStorage.setItem("pccPscDContextDigest", body.context_sha256);
       if (!version) throw new Error("PSC_D_STATE_VERSION_UNAVAILABLE");
       sessionStorage.setItem("pccPscDObservedStateVersion", String(version));
       sessionStorage.setItem("pccContinuityReconciled", "true");
-      showState(body?.synchronization?.state === "REFRESH_REQUIRED"
-        ? `REFRESH REQUIRED · AUTHORITATIVE STATE v${version}`
-        : `PSC-D STATE v${version} · ${body?.synchronization?.state || "UNKNOWN"}`);
+      showState(`PSC-D CONTEXT v${version} · ${body.record_count} governing records · Read and reconcile before ACK`);
       const ack = $("pscDAckButton");
       if (ack) ack.disabled = false;
     } catch (error) {
@@ -125,7 +125,10 @@
     }
     showState("COMMITTING AUTHENTICATED PSC-D ACK");
     try {
-      const body = await pulse("DEEP_REHYDRATION", observed, "PCC-PSC-D-USER-ACK-NOT-GPT-COGNITIVE-ACK");
+      const digest = sessionStorage.getItem("pccPscDContextDigest");
+      const current = await pulse("MEMORY", 0, null, "BOOTSTRAP");
+      if (current.retrieval_state !== "RETRIEVED_RECONCILIATION_REQUIRED" || current.context_sha256 !== digest || current.state_version !== observed) throw new Error("GOVERNING_CONTEXT_CHANGED_RECONCILE_AGAIN");
+      const body = await pulse("DEEP_REHYDRATION", observed, "PCC-USER-ACK-NOT-GPT:" + digest);
       show(body);
       if (body?.synchronization?.state !== "SYNCHRONIZED") {
         showState(`ACK NOT SYNCHRONIZED · ${body?.synchronization?.state || "UNKNOWN"}`, true);
