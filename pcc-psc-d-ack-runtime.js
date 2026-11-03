@@ -5,11 +5,12 @@
   const PUBLISHABLE_KEY = "sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE";
   const FUNCTION_NAME = "pcc-workforce-sync-v1";
   const CONTINUITY_FUNCTION_NAME = "pcc-systems-read-v1";
-  const ACTOR_ID = "RPE-MASON-HQ";
+  const requestedActor = window.PCC_PSC_D_ACTOR_ID || "RPE-MASON-HQ";
+  const ACTOR_ID = ["RPE-MASON-HQ", "RPE-CHAD-HQ"].includes(requestedActor) ? requestedActor : "RPE-MASON-HQ";
 
   if (!window.supabase) return;
 
-  const client = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
+  const client = window.PCC_PSC_D_CLIENT || window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
@@ -206,8 +207,11 @@
   $("pscDAckButton")?.addEventListener("click", acknowledge);
   window.addEventListener("pcc:systems-runtime-verified", recoverContinuityAutomatically);
 
+  let lastSubject = null;
   client.auth.onAuthStateChange((_event, s) => {
     authEpoch++;
+    if ((s?.user?.id || null) !== lastSubject) clearReconciliation();
+    lastSubject = s?.user?.id || null;
     const acceptance = $("pscDRunAcceptanceButton");
     if (acceptance) acceptance.disabled = !s;
     if (!s) {
