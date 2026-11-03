@@ -410,6 +410,23 @@
       const detail=document.createElement("small");
       detail.textContent=(labels[job.channel_key]||safeText(job.channel_key)||"Channel pending")+" · "+safeText(job.output_type)+" · "+new Date(job.created_at).toLocaleString();
       article.append(detail);
+      const dispatchReceipt=job.request_payload?.workspace_dispatch_receipt;
+      const writerDestination=job.request_payload?.writer_destination_receipt;
+      if(dispatchReceipt || writerDestination) {
+        const destinationNote=document.createElement("small");
+        destinationNote.className="job-notice";
+        const resolvedPlacements=Array.isArray(dispatchReceipt?.route_resolution?.placements)
+          ? dispatchReceipt.route_resolution.placements : [];
+        const resolvedText=resolvedPlacements.map((item) =>
+          [item?.platform,item?.viewer_surface].filter((value)=>typeof value==="string"&&value.trim()).join(" · ")
+        ).filter(Boolean).join("; ");
+        const destinationText=writerDestination?.viewer_surface==="PCC_PRIVATE_WRITING_ROOM"
+          ? "Private PCC Writing Room · draft review required · canon and publication remain disabled"
+          : resolvedText || "Destination recorded in route receipt";
+        destinationNote.textContent="Producer destination: "+destinationText
+          +(dispatchReceipt?.intake_id ? " · GPT intake "+safeText(dispatchReceipt.intake_id) : "");
+        article.append(destinationNote);
+      }
       const noteText=document.createElement("small");
       noteText.textContent=job.failure_code ? "Previous Script Writer attempt needs retry: "+safeText(job.failure_code)+". Rendering remains held." : "PCC request saved. Rendering remains held until PMF admission/certification and the PCC production connection are complete.";
       article.append(noteText);
