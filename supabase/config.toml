@@ -22,6 +22,11 @@ verify_jwt = true
 [functions.pcc-animation-control-v1]
 verify_jwt = true
 
+# This function validates Supabase user JWTs or scoped pccwi_ keys in-handler.
+# The Supabase gateway must pass both credential types to that authorization logic.
+[functions.pcc-workspace-ingest-v1]
+verify_jwt = false
+
 # PMF authenticates this result callback with timestamped HMAC in-handler.
 # PCC records the artifact as private and review-required only.
 [functions.pmf-animation-result-v1]
