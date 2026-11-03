@@ -47,7 +47,7 @@
     return session;
   }
 
-  async function pulse(pulseType, observedStateVersion, contextFingerprint) {
+  async function pulse(pulseType, observedStateVersion, contextFingerprint, action) {
     const s = await session();
     const response = await fetch(`${PROJECT_URL}/functions/v1/${FUNCTION_NAME}`, {
       method: "POST",
@@ -58,6 +58,7 @@
       },
       body: JSON.stringify({
         actor_id: ACTOR_ID,
+        ...(action ? { action } : {}),
         pulse_type: pulseType,
         observed_state_version: observedStateVersion,
         context_fingerprint: contextFingerprint || null
@@ -94,7 +95,7 @@
     showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
       const continuityProjection = await continuity();
-      const body = await pulse("MEMORY", 0, "PCC-STREAM-FOREMAN-V0-CONTINUITY-RECONCILED");
+      const body = await pulse("MEMORY", 0, null, "READ");
       show({ continuity: continuityProjection.data, psc_d: body });
       const version = positiveInteger(body?.synchronization?.state_version);
       if (!version) throw new Error("PSC_D_STATE_VERSION_UNAVAILABLE");
@@ -151,7 +152,7 @@
     sessionStorage.removeItem("pccPscDObservedStateVersion");
     await reconcile();
     if (sessionStorage.getItem("pccContinuityReconciled") !== "true") return;
-    await acknowledge();
+    showState("PROJECTION LOADED · READ GOVERNING CANON BEFORE EXPLICIT ACK");
   }
 
   async function recoverContinuityAutomatically() {
@@ -159,11 +160,43 @@
     automaticRecoveryInFlight = true;
     try {
       showState("PCC RECOVERING INSTITUTIONAL CONTINUITY");
-      await runContinuityAcceptance();
+      await reconcile();
     } finally {
       automaticRecoveryInFlight = false;
     }
   }
+
+  let freshnessReadInFlight = false;
+  let authEpoch = 0;
+  async function inspectFreshness() {
+    if (freshnessReadInFlight) return;
+    freshnessReadInFlight = true;
+    const epoch = authEpoch;
+    try {
+      const body = await pulse("MEMORY", 0, null, "READ");
+      if (epoch !== authEpoch) return;
+      const sync = body.synchronization;
+      const current = positiveInteger(sync?.state_version);
+      const observed = positiveInteger(sessionStorage.getItem("pccPscDObservedStateVersion"));
+      if (sync?.evaluated_state !== "SYNCHRONIZED" || !current || (observed && current !== observed)) {
+        clearReconciliation();
+        showState("PSC-D REHYDRATION REQUIRED · Last ACK: " + (sync?.last_memory_sync_at || "never"), true);
+        window.dispatchEvent(new CustomEvent("pcc:psc-d-stale", { detail: { actor_id: ACTOR_ID, state: sync?.evaluated_state || "STATE_UNVERIFIED" } }));
+      } else {
+        showState("PSC-D TRANSPORT CURRENT · Last ACK: " + sync.last_memory_sync_at + " · Due: " + sync.next_memory_sync_due_at + " · GPT consumption not certified");
+      }
+    } catch (error) {
+      if (epoch !== authEpoch) return;
+      clearReconciliation();
+      showState("PSC-D STATE UNVERIFIED · authenticated recovery required", true);
+    } finally { freshnessReadInFlight = false; }
+  }
+  // Read-only freshness inspection. Never renews cognitive synchronization.
+  setInterval(inspectFreshness, 60000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") inspectFreshness();
+  });
+  window.addEventListener("online", inspectFreshness);
 
   $("pscDRunAcceptanceButton")?.addEventListener("click", runContinuityAcceptance);
   $("pscDReconcileButton")?.addEventListener("click", reconcile);
@@ -171,6 +204,7 @@
   window.addEventListener("pcc:systems-runtime-verified", recoverContinuityAutomatically);
 
   client.auth.onAuthStateChange((_event, s) => {
+    authEpoch++;
     const acceptance = $("pscDRunAcceptanceButton");
     if (acceptance) acceptance.disabled = !s;
     if (!s) {
