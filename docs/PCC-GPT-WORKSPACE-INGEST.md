@@ -3,7 +3,7 @@
 Implementation record: `PCC-CSE-PSC-GPT-CREATIVE-WORKSPACE-INGEST-2026-11-02-001`.
 
 - Systems project: `oyjmpbuxvfxusmbouldi`.
-- Edge Function: `pcc-workspace-ingest-v1`, JWT verification enabled.
+- Edge Function: `pcc-workspace-ingest-v1`; Supabase gateway JWT verification is disabled because the function validates either a Supabase user JWT or a scoped `pccwi_` key in-handler.
 - Database migration: `supabase/migrations/20261102000100_pcc_gpt_workspace_ingest_v1.sql`.
 - Action schema: `docs/openapi/pcc-gpt-creative-workspace-ingest-v1.yaml`.
 - Binary objects use private bucket `pcc-workspace-intake`.
@@ -26,12 +26,11 @@ Limits: 250,000 characters of body text, 350,000 UTF-8 bytes for normalized JSON
 
 **GPT Action limitation:** the Action schema submits JSON and a file manifest; it does not itself transmit a generated image/video binary. For binary GPT outputs, an uploader/client must transfer the actual file bytes to the signed URL. A PCC browser upload surface is implemented at `workspace-intake.html`, linked from Systems Console. It accepts text and local files and uploads media to the signed private-storage URL. A GPT Action still cannot transfer an image/video binary by itself; a generated file must be accessible to that browser/client for upload. OpenAI’s current GPT documentation describes Actions as external API calls, while its file/image upload instructions describe attaching files to a ChatGPT conversation; those are separate flows.
 
-
 ## PCC triage review
 
 The authenticated Systems workspace has a PCC triage panel for direct, signed-in Prime Mason sessions with the active `RPE-CSE` verification assignment. GPT Action keys cannot review. Decisions (`ACCEPTED`, `NEEDS_CHANGES`, `DECLINED`) are recorded in an append-only review receipt table. Acceptance is triage-only: `approved_for_execution` and `execution_eligible` remain false. No producer job is created by review.
 
-Review events are service-only with RLS enabled, and the decision RPC is executable only by `service_role`. Migration/checkpoint details are in `docs/psc/PCC-CSE-PSC-GPT-CREATIVE-WORKSPACE-TRIAGE-REVIEW-2026-11-02-001.md`.
+Review events are service-only with RLS enabled, and the decision RPC is executable only by `service_role`. Migration/checkpoint details are in `docs/psc/PCC-CSE-PSC-GPT-WORKSPACE-TRIAGE-REVIEW-2026-11-02-001.md`.
 
 ## Approval and routing
 
