@@ -232,6 +232,76 @@ export async function requestPmfPhanimationBatchPreparation({
 }
 
 
+/** Register hash-bound Phanimation source pointers through Systems. No source is approved here. */
+export async function registerPmfPhanimationEpisodeSourceReferences({
+  url, secret, keyId = KEY_ID, requestId, pccJobId, sourceRefs, fetchImpl = fetch,
+  now = Date.now(), nonce = crypto.randomUUID(),
+}) {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (keyId !== KEY_ID || typeof secret !== "string" || secret.length < 32
+      || !uuid.test(requestId ?? "") || pccJobId !== requestId
+      || !sourceRefs || typeof sourceRefs !== "object" || Array.isArray(sourceRefs)
+      || !sourceRefs.production_order || typeof sourceRefs.production_order !== "object"
+      || Array.isArray(sourceRefs.production_order) || !Array.isArray(sourceRefs.episodes)
+      || sourceRefs.episodes.length < 1 || sourceRefs.episodes.length > 100
+      || typeof fetchImpl !== "function") {
+    throw new Error("PMF_PHANIMATION_SOURCE_REF_REQUEST_INVALID");
+  }
+  const endpoint = validateHttpsEndpoint(url);
+  const action = "REGISTER_PHANIMATION_EPISODE_SOURCE_REFERENCES";
+  const body = JSON.stringify({
+    protocol: "pcc-pmf-animation-bridge/v1",
+    action,
+    payload: { request_id: requestId, pcc_job_id: pccJobId, source_refs: sourceRefs },
+  });
+  if (new TextEncoder().encode(body).byteLength > 4 * 1024 * 1024) {
+    throw new Error("PMF_PHANIMATION_SOURCE_REF_REQUEST_INVALID");
+  }
+  const signature = await sign(secret, now, nonce, body);
+  const response = await fetchImpl(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-pcc-bridge-key-id": keyId,
+      "x-pcc-bridge-timestamp": String(now),
+      "x-pcc-bridge-nonce": nonce,
+      "x-pcc-bridge-signature": signature,
+    },
+    body,
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  let result;
+  try { result = await response.json(); }
+  catch { throw new Error("PMF_PHANIMATION_SOURCE_REF_RESPONSE_INVALID"); }
+  if (!response.ok || result?.ok !== true
+      || result?.protocol !== "pcc-pmf-animation-bridge/v1"
+      || result?.action !== action) {
+    const reported = typeof result?.error === "string" ? result.error : "";
+    const safeCode = /^PMF_[A-Z0-9_]{1,100}$/.test(reported)
+      ? reported : "PMF_PHANIMATION_SOURCE_REF_REGISTRATION_FAILED";
+    throw new Error(safeCode);
+  }
+  const registration = result.registration;
+  const sha = /^[a-f0-9]{64}$/i;
+  if (!registration || typeof registration !== "object" || Array.isArray(registration)
+      || registration.state !== "SOURCE_REFERENCES_ONLY"
+      || registration.pcc_request_id !== requestId || registration.pcc_job_id !== pccJobId
+      || !sha.test(registration.pcc_packet_sha256 ?? "")
+      || !sha.test(registration.source_refs_sha256 ?? "")
+      || !sha.test(registration.manifest_sha256 ?? "")
+      || !Number.isSafeInteger(registration.episode_count)
+      || registration.episode_count !== sourceRefs.episodes.length
+      || registration.verified !== false || registration.requires_server_source_readers !== true
+      || registration.render_dispatch !== "DISABLED"
+      || registration.gpu_search_performed !== false || registration.gpu_launch_performed !== false
+      || result.render_dispatch !== "DISABLED"
+      || result.gpu_search_performed !== false || result.gpu_launch_performed !== false) {
+    throw new Error("PMF_PHANIMATION_SOURCE_REF_RESPONSE_INVALID");
+  }
+  return Object.freeze({ ...registration });
+}
+
 /** Signed read-only query of PMF's server-verified production admission state. */
 export async function readPmfAnimationProductionReadiness({
   url, secret, keyId = KEY_ID, fetchImpl = fetch,

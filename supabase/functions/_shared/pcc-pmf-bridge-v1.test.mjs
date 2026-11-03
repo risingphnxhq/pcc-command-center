@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
+import { postHeldAnimationHandoff, readLatestRunPodAvailabilitySnapshot, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, registerPmfPhanimationEpisodeSourceReferences, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability } from "./pcc-pmf-bridge-v1.mjs";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const policy = {
@@ -426,3 +426,54 @@ test("latest RunPod snapshot fails closed for stale data or candidates outside a
   await assert.rejects(call(fresh),/RUNPOD_SNAPSHOT_RESPONSE_INVALID/);
 });
 
+
+
+test("registers Phanimation source pointers over the signed bridge and requires pointer-only receipt", async () => {
+  let sent;
+  const requestId = "123e4567-e89b-42d3-a456-426614174000";
+  const sourceRefs = { production_order: { order_id: "ORDER-1" }, episodes: [{ episode_id: "EP-1" }] };
+  const registration = {
+    state: "SOURCE_REFERENCES_ONLY", pcc_request_id: requestId, pcc_job_id: requestId,
+    pcc_packet_sha256: "a".repeat(64), source_refs_sha256: "b".repeat(64),
+    manifest_sha256: "c".repeat(64), episode_count: 1, verified: false,
+    requires_server_source_readers: true, render_dispatch: "DISABLED",
+    gpu_search_performed: false, gpu_launch_performed: false,
+  };
+  const result = await registerPmfPhanimationEpisodeSourceReferences({
+    url: "https://systems.example/functions/v1/pcc-animation-bridge-v1", secret, requestId, pccJobId: requestId,
+    sourceRefs, now: 1793222400000, nonce: "11111111-1111-4111-8111-111111111111",
+    fetchImpl: async (url, options) => {
+      sent = { url, options };
+      return new Response(JSON.stringify({ ok: true, protocol: "pcc-pmf-animation-bridge/v1",
+        action: "REGISTER_PHANIMATION_EPISODE_SOURCE_REFERENCES", registration,
+        render_dispatch: "DISABLED", gpu_search_performed: false, gpu_launch_performed: false }), { status: 200 });
+    },
+  });
+  assert.deepEqual(result, registration);
+  const envelope = JSON.parse(sent.options.body);
+  assert.equal(envelope.action, "REGISTER_PHANIMATION_EPISODE_SOURCE_REFERENCES");
+  assert.deepEqual(envelope.payload.source_refs, sourceRefs);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+  const signature = Uint8Array.from(sent.options.headers["x-pcc-bridge-signature"].match(/.{2}/g), byte => parseInt(byte, 16));
+  assert.equal(await crypto.subtle.verify("HMAC", key, signature,
+    new TextEncoder().encode(`${sent.options.headers["x-pcc-bridge-timestamp"]}\n${sent.options.headers["x-pcc-bridge-nonce"]}\n${sent.options.body}`)), true);
+});
+
+test("rejects invalid source-reference registration input and any receipt that implies verification", async () => {
+  const requestId = "123e4567-e89b-42d3-a456-426614174000";
+  const sourceRefs = { production_order: { order_id: "ORDER-1" }, episodes: [{ episode_id: "EP-1" }] };
+  await assert.rejects(registerPmfPhanimationEpisodeSourceReferences({
+    url: "https://systems.example/bridge", secret, requestId, pccJobId: "different",
+    sourceRefs, fetchImpl: async () => { throw new Error("must not call"); },
+  }), /REQUEST_INVALID/);
+  await assert.rejects(registerPmfPhanimationEpisodeSourceReferences({
+    url: "https://systems.example/bridge", secret, requestId, pccJobId: requestId, sourceRefs,
+    fetchImpl: async () => new Response(JSON.stringify({ ok: true, protocol: "pcc-pmf-animation-bridge/v1",
+      action: "REGISTER_PHANIMATION_EPISODE_SOURCE_REFERENCES",
+      registration: { state: "SOURCE_REFERENCES_ONLY", pcc_request_id: requestId, pcc_job_id: requestId,
+        pcc_packet_sha256: "a".repeat(64), source_refs_sha256: "b".repeat(64), manifest_sha256: "c".repeat(64),
+        episode_count: 1, verified: true, requires_server_source_readers: true, render_dispatch: "DISABLED",
+        gpu_search_performed: false, gpu_launch_performed: false },
+      render_dispatch: "DISABLED", gpu_search_performed: false, gpu_launch_performed: false }), { status: 200 }),
+  }), /RESPONSE_INVALID/);
+});
