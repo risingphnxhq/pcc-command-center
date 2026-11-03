@@ -219,6 +219,27 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
   const channelKey=text(p.channel_key,64);
   const title=text(p.title,200);
   const idea=text(p.idea,12_000);
+  const sourceRequestPayload=p.request_payload&&typeof p.request_payload==="object"&&!Array.isArray(p.request_payload)?p.request_payload:{};
+  const isPrivateWritingRoute=Array.isArray(route.producer_chain)&&route.producer_chain.includes("PCC_WRITING_ROOM");
+  if((outputType==="BOOK"||outputType==="SERIES")&&isPrivateWritingRoute) {
+    const placement=Array.isArray(route.placements)?route.placements.find((x:any)=>x?.destination_type==="PCC_WRITING_ROOM"):null;
+    if(!title||!idea||!placement||placement.platform!=="PCC"||placement.viewer_surface!=="PCC_PRIVATE_WRITING_ROOM"
+       ||placement.release_gate!=="DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION") {
+      return json(409,{error:"PCC_PRIVATE_WRITING_ROOM_ROUTE_INVALID"});
+    }
+    const {data:draft,error:draftError}=await service.rpc("pcc_workspace_writing_draft_create_v1",{
+      p_source_system_subject:p.source_system_subject,p_intake_id:p.intake_id,p_dispatch_action_id:p.dispatch_action_id,
+      p_review_action_id:p.review_action_id,p_approval_id:p.execution_approval.approval_id,
+      p_payload_sha256:p.payload_sha256,p_content_kind:outputType,p_title:title,p_content_text:idea,
+      p_writing_context:sourceRequestPayload,p_route_receipt:route
+    });
+    if(draftError||!draft)return json(503,{error:"PCC_WRITING_DRAFT_PERSIST_FAILED"});
+    const result=draft as Record<string,any>;
+    if(result.ok!==true||typeof result.producer_job_id!=="string")return json(409,{error:typeof result.error==="string"?result.error:"PCC_WRITING_DRAFT_RECEIPT_INVALID"});
+    return json(200,{ok:true,intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,payload_sha256:p.payload_sha256,
+      producer_job_id:result.producer_job_id,writing_draft_id:result.writing_draft_id,script_state:"BOOK_DRAFT_STORED",
+      canon_status:"UNAPPROVED",render_dispatch:"DISABLED",publication_eligible:false});
+  }
   const intent=outputType?resolveProductionIntent(outputType,p.production_intent):null;
   if(!outputType||!channelKey||!title||!idea||!intent)return json(400,{error:"WORKSPACE_WRITER_REQUEST_INVALID"});
   const idempotencyKey=`workspace:${p.intake_id}:${p.dispatch_action_id}`;
