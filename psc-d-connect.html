@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PSC-D Connection | RPE</title>
+<style>body{margin:0;background:#0c1422;color:#edf1f7;font:16px/1.5 system-ui}main{max-width:900px;margin:40px auto;padding:24px}a{color:#a7c8ff}h1{margin-bottom:4px}section{background:#152238;border:1px solid #334560;border-radius:12px;padding:20px;margin:20px 0}label{display:block;margin:12px 0 5px}input,select,button{font:inherit;padding:10px;border-radius:6px;border:1px solid #526782}input{box-sizing:border-box;width:100%;background:#0c1422;color:inherit}button{margin:12px 8px 0 0;cursor:pointer}button:disabled{opacity:.5;cursor:default}.status{padding:12px;background:#233753;border-radius:6px}.bad{background:#542c35}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:65vh;overflow:auto;font:13px/1.5 monospace}small{color:#c0cadd}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script></head>
+<body><main><a href="command-floor.html">PCC headquarters</a><h1>PSC-D connection</h1><p>Read the context assigned to your authenticated RPE identity and reconcile it before acknowledging.</p>
+<section><label for="actor">Institutional office</label><select id="actor"><option value="RPE-CHAD-HQ">Corporate Chad</option><option value="RPE-MASON-HQ">Mason / Systems</option></select><p><small>Selection requests an office. PCC verifies your existing binding before returning its context.</small></p>
+<form id="signIn"><label for="email">PCC account email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button id="signInButton" type="submit">Sign in</button><button id="signOut" type="button">Sign out</button></form><p id="authStatus" role="status">Checking existing session…</p></section>
+<section><p id="pscDState" class="status" role="status">Authentication required</p><button id="pscDReconcileButton">Retrieve governing context</button><button id="pscDAckButton" disabled>I have read and reconciled this context</button><p><small>Missing records keep acknowledgment held. A browser acknowledgment records the user's statement; it does not certify that a GPT stream consumed the context.</small></p><pre id="pscDOutput" aria-label="Assigned governing context"></pre></section></main>
+<script>
+(() => {
+ 'use strict';
+ const params=new URLSearchParams(location.search);
+ const requested=params.get('actor');
+ const actor=['RPE-CHAD-HQ','RPE-MASON-HQ'].includes(requested)?requested:'RPE-CHAD-HQ';
+ document.getElementById('actor').value=actor;
+ window.PCC_PSC_D_ACTOR_ID=actor;
+ const client=window.supabase.createClient('https://oyjmpbuxvfxusmbouldi.supabase.co','sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ window.PCC_PSC_D_CLIENT=client;
+ const status=document.getElementById('authStatus');
+ document.getElementById('actor').addEventListener('change',event=>{location.href='psc-d-connect.html?actor='+encodeURIComponent(event.target.value)});
+ document.getElementById('signIn').addEventListener('submit',async event=>{
+  event.preventDefault();const button=document.getElementById('signInButton');button.disabled=true;status.textContent='Signing in…';
+  try{const {error}=await client.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});document.getElementById('password').value='';status.textContent=error?'Sign-in failed. Check your PCC account credentials.':'Signed in. Retrieve governing context to verify office access.';}catch{status.textContent='Sign-in unavailable. Try again.';}finally{button.disabled=false;}
+ });
+ document.getElementById('signOut').addEventListener('click',async()=>{await client.auth.signOut();document.getElementById('password').value='';document.getElementById('pscDOutput').textContent='';status.textContent='Signed out.'});
+ client.auth.onAuthStateChange((_event,session)=>{status.textContent=session?'Signed in. Office access is verified when context is retrieved.':'Sign in with an existing authorized PCC account.';document.getElementById('pscDReconcileButton').disabled=!session;});
+})();
+</script><script src="pcc-psc-d-ack-runtime.js?context=20261103-accounts"></script></body></html>
