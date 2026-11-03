@@ -102,6 +102,57 @@
     }
     return result;
   }
+  const approvedPhanimationPolicy = {
+    channel_key: "phnx_phanimation",
+    output_type: "SERIES_EPISODE",
+    production_intent: "NARRATIVE",
+    policy_revision: "PHANIMATION-SERIES-EPISODE-R1",
+    approval_psc_id: "PCC-FOUNDER-PSC-PHANIMATION-SERIES-EPISODE-CHANNEL-POLICY-2026-11-03-001",
+    boas_id: "BOAS-ROOT-PMF-316a4429-ea8e-4310-a52b-8eb0b52110db",
+    boas_revision: "0.3.0",
+    boas_psc_id: "PMF-FOUNDER-PSC-ANIMATION-V0.3.0-QA-ACCEPTANCE-LOCK-2026-10-27-001",
+    knoas_id: "KNOAS-PHXN-PHANIMATION-CHANNEL-DIRECTOR",
+    knoas_revision: "1.0.0",
+    knoas_psc_id: "PMF-FOUNDER-PSC-PHANIMATION-KNOAS-CHANNEL-DIRECTOR-CONTRACT-2026-11-03-001",
+    channel_profile: {
+      channel_key: "phnx_phanimation",
+      channel_name: "Phoenix Phanimation",
+      platform: "Phoenix Story Network",
+      output_family: "SERIES_EPISODE",
+      writing_role: "PLAYWRIGHT",
+      director_role: "KNOAS",
+      narrative_rules: [
+        "The Playwright writes the episode; KNOAS directs character knowledge, continuity, and reveal order.",
+        "This channel policy is not an episode-specific script approval or Director package.",
+        "No approved canon, character knowledge, or reveal timing may be silently changed.",
+        "Resolve the exact approved episode and script source before production dispatch."
+      ]
+    },
+    output_spec: {
+      release_destination: "PHNX_PHANIMATION",
+      runtime_policy_psc_id: "PMF-FOUNDER-PSC-PHANIMATION-PSN-25-MINUTE-EPISODE-ALLOCATION-2026-10-31-001",
+      min_total_duration_seconds: 1500,
+      target_total_duration_seconds: 1500,
+      max_total_duration_seconds: 1500,
+      production_sequence: {
+        sound_and_vocals_first: true,
+        sound_and_vocal_producers: ["SVW", "Voice Orchestrator"],
+        animation_gpu_scope: "VISUAL_ANIMATION_ONLY",
+        soundtrack_assembly: "AFTER_ANIMATION",
+        approved_music_resource_required: true
+      },
+      controls: {
+        episode_specific_director_package_required: true,
+        approved_locked_script_required: true,
+        source_hash_and_revision_binding_required: true,
+        pmf_admission_and_certification_required_before_render: true,
+        job_scoped_spend_authorization_required_before_paid_gpu: true,
+        psn_review_required_before_release: true,
+        automatic_publication: false
+      }
+    },
+    supersedes_policy_id: null
+  };
   const approvedPilotPolicy = {
     channel_key: "phnx_kids",
     output_type: "SERIES_EPISODE",
@@ -176,6 +227,26 @@
         registerPilotStatus.className = "note error";
       } finally {
         registerPilotButton.disabled = false;
+      }
+    });
+  }
+  const phanimationRegisterButton = $("registerPhanimationPolicy");
+  const phanimationRegisterStatus = $("phanimationPolicyStatus");
+  if (phanimationRegisterButton && phanimationRegisterStatus) {
+    phanimationRegisterButton.addEventListener("click", async () => {
+      phanimationRegisterButton.disabled = true;
+      phanimationRegisterStatus.textContent = "Verifying the Phanimation approval, BOAS registry revision, and KNOAS Director contract…";
+      phanimationRegisterStatus.className = "note";
+      try {
+        const result = await call("REGISTER_POLICY", { policy: approvedPhanimationPolicy });
+        const policyId = safeText(result.policy?.policy_id) || "registered";
+        phanimationRegisterStatus.textContent = "Phanimation policy " + policyId + " registered; source verification: " + safeText(result.source_validation) + ". No job, GPU search, render, release, or publication was started.";
+        phanimationRegisterStatus.className = "note ok";
+      } catch (error) {
+        phanimationRegisterStatus.textContent = error.message;
+        phanimationRegisterStatus.className = "note error";
+      } finally {
+        phanimationRegisterButton.disabled = false;
       }
     });
   }
