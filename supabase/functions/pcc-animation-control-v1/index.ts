@@ -163,9 +163,179 @@ async function readBoundedBody(req: Request, maxBytes: number): Promise<string |
   return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
 
+
+async function workspaceBridgeSha256(raw: string) {
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+async function verifyWorkspaceBridgeSignature(req: Request, raw: string, secret: string) {
+  const keyId=req.headers.get("x-pcc-bridge-key-id")??"";
+  const timestampText=req.headers.get("x-pcc-bridge-timestamp")??"";
+  const nonce=req.headers.get("x-pcc-bridge-nonce")??"";
+  const signature=req.headers.get("x-pcc-bridge-signature")??"";
+  const timestamp=Number(timestampText);
+  if(keyId!=="pcc-animation-v1"||!Number.isSafeInteger(timestamp)||Math.abs(Date.now()-timestamp)>60_000
+      ||! /^[0-9a-f-]{36}$/i.test(nonce)||! /^[0-9a-f]{64}$/i.test(signature)||secret.length<32)return false;
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const expected=Array.from(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(`${timestampText}\n${nonce}\n${raw}`))),b=>b.toString(16).padStart(2,"0")).join("");
+  const left=new TextEncoder().encode(expected),right=new TextEncoder().encode(signature.toLowerCase());
+  if(left.length!==right.length)return false;
+  let diff=0;for(let i=0;i<left.length;i++)diff|=left[i]^right[i];
+  return diff===0;
+}
+
+async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, service: any) {
+  const p=body.payload&&typeof body.payload==="object"&&!Array.isArray(body.payload)?body.payload as Record<string,any>:null;
+  const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if(body.protocol!=="pcc-workspace-producer/v1"||body.action!=="WRITE_APPROVED"||!p
+      ||!uuid.test(String(p.source_system_subject??""))||!uuid.test(String(p.intake_id??""))
+      ||!uuid.test(String(p.dispatch_action_id??""))||!uuid.test(String(p.review_action_id??""))
+      ||!/^[a-f0-9]{64}$/.test(String(p.payload_sha256??""))
+      ||p.triage_decision!=="ACCEPTED"||p.triage_payload_sha256!==p.payload_sha256
+      ||p.execution_approval?.approved!==true||p.execution_approval?.payload_sha256!==p.payload_sha256
+      ||!uuid.test(String(p.execution_approval?.approval_id??""))
+      ||p.execution_approval?.scope!=="WRITER_AND_HELD_HANDOFF") {
+    return json(409,{error:"WORKSPACE_EXECUTION_APPROVAL_REQUIRED"});
+  }
+  const route=p.route_resolution;
+  if(!route||typeof route!=="object"||Array.isArray(route)||route.resolution_status!=="RESOLVED_HELD"
+      ||route.execution_eligible!==false||route.publication_eligible!==false
+      ||!Array.isArray(route.block_reasons)||route.block_reasons.length!==0
+      ||!Array.isArray(route.producer_chain)
+      ||!route.producer_chain.some((x:unknown)=>["PCC_WRITING_ROOM","PCC_PLAYWRIGHT"].includes(String(x)))) {
+    return json(409,{error:"WORKSPACE_ROUTE_NOT_DISPATCHABLE"});
+  }
+  const email=typeof p.source_email==="string"?p.source_email.trim().toLowerCase():"";
+  if(!email||email.length>320||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(403,{error:"WORKSPACE_IDENTITY_BINDING_REQUIRED"});
+  const {data:userPage,error:userError}=await service.auth.admin.listUsers({page:1,perPage:1000});
+  if(userError)return json(503,{error:"WORKSPACE_IDENTITY_LOOKUP_FAILED"});
+  const matches=(userPage?.users??[]).filter((u:any)=>String(u.email??"").trim().toLowerCase()===email&&Boolean(u.email_confirmed_at));
+  if(matches.length!==1)return json(403,{error:"WORKSPACE_IDENTITY_BINDING_REQUIRED"});
+  const pccSubject=matches[0].id;
+  const {data:isFounder,error:founderError}=await service.rpc("pcc_founder_private_subject",{p_subject:pccSubject});
+  if(founderError||isFounder!==true)return json(403,{error:"WORKSPACE_FOUNDER_BINDING_REQUIRED"});
+  const outputType=text(p.output_type,48);
+  const channelKey=text(p.channel_key,64);
+  const title=text(p.title,200);
+  const idea=text(p.idea,12_000);
+  const intent=outputType?resolveProductionIntent(outputType,p.production_intent):null;
+  if(!outputType||!channelKey||!title||!idea||!intent)return json(400,{error:"WORKSPACE_WRITER_REQUEST_INVALID"});
+  const idempotencyKey=`workspace:${p.intake_id}:${p.dispatch_action_id}`;
+  const sourceRequestPayload=p.request_payload&&typeof p.request_payload==="object"&&!Array.isArray(p.request_payload)?p.request_payload:{};
+  const scope=sourceRequestPayload.source_scope&&typeof sourceRequestPayload.source_scope==="object"&&!Array.isArray(sourceRequestPayload.source_scope)?sourceRequestPayload.source_scope:{};
+  let trustedPolicy:Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
+  try {
+    trustedPolicy=await resolveLiveAnimationPolicy(service,pccSubject,{channel_key:channelKey,output_type:outputType,production_intent:intent,source_scope:scope});
+  } catch(error) {
+    const failure=policyErrorResponse(error);
+    return json(failure.status,{error:failure.error});
+  }
+  const boundRequestPayload={...sourceRequestPayload,approved_channel_policy_snapshot:trustedPolicy.snapshot,policy_source_verification:trustedPolicy.verification};
+  const {data:created,error:createError}=await service.rpc("pcc_animation_job_control_v1",{
+    p_action:"CREATE",p_subject:pccSubject,
+    p_payload:{idempotency_key:idempotencyKey,channel_key:channelKey,output_type:outputType,production_intent:intent,title,idea,request_payload:boundRequestPayload}
+  });
+  if(createError||!created)return json(409,{error:"WORKSPACE_PRODUCER_JOB_CREATE_FAILED"});
+  let job=created;
+  let scriptState=job.script_bundle?(job.status==="SCRIPT_REVIEW_PASSED"?"SCRIPT_REVIEW_PASSED":"SCRIPT_REVIEW_NEEDS_ATTENTION"):"";
+  if(!job.script_bundle) {
+    const current=await resolveLiveAnimationPolicy(service,pccSubject,{channel_key:job.channel_key,output_type:job.output_type,production_intent:job.production_intent,source_scope:scope},trustedPolicy.snapshot).catch(()=>null);
+    if(!current)return json(409,{error:"WORKSPACE_POLICY_CHANGED_BEFORE_WRITE"});
+    const claimed=await service.rpc("pcc_animation_job_control_v1",{p_action:"CLAIM_SCRIPT",p_subject:pccSubject,p_payload:{job_id:job.job_id,can_review:false}});
+    if(claimed.error||!claimed.data)return json(409,{error:"WORKSPACE_WRITER_CLAIM_FAILED",producer_job_id:job.job_id});
+    try {
+      const modelKey=Deno.env.get("PCC_SCRIPT_MODEL_API_KEY"),modelName=Deno.env.get("PCC_SCRIPT_MODEL_NAME");
+      if(!modelKey||!modelName)throw new Error("SCRIPT_RUNTIME_CONFIGURATION_MISSING");
+      const lifecycle=await executeAnimationWriteLifecycleTyped({
+        job,trustedPolicy:current,canReview:false,model:createScriptModel(modelKey,modelName),
+        saveScript:async(savePayload:Record<string,unknown>)=>await service.rpc("pcc_animation_job_control_v1",{p_action:"SAVE_SCRIPT",p_subject:pccSubject,p_payload:savePayload})
+      });
+      job=lifecycle.saved.data as Record<string,any>;
+      scriptState=lifecycle.result.state;
+    } catch(error) {
+      const code=error instanceof Error?error.message:"SCRIPT_GENERATION_FAILED";
+      const failure=code.slice(0,120);
+      await service.rpc("pcc_animation_job_control_v1",{p_action:"FAIL_SCRIPT",p_subject:pccSubject,p_payload:{job_id:job.job_id,failure_code:failure,review_receipt:{state:"SCRIPT_GENERATION_FAILED",failure_code:failure,retryable:true},can_review:false}});
+      return json(502,{error:"WORKSPACE_SCRIPT_GENERATION_FAILED",code:failure,producer_job_id:job.job_id});
+    }
+  }
+  let pmfReceipt:Record<string,unknown>|null=null;
+  let sourcePreparation:Record<string,unknown>|null=null;
+  if(scriptState==="SCRIPT_REVIEW_PASSED"&&!["BOOK_CHAPTER","BOOK_SCENE","BOOK_MANUSCRIPT","NOVEL"].includes(outputType)) {
+    const current=await resolveLiveAnimationPolicy(service,pccSubject,{channel_key:job.channel_key,output_type:job.output_type,production_intent:job.production_intent,source_scope:scope},job.request_payload?.approved_channel_policy_snapshot).catch(()=>null);
+    if(!current)return json(409,{error:"WORKSPACE_POLICY_CHANGED_BEFORE_HANDOFF",producer_job_id:job.job_id,script_state:scriptState});
+    const policy=current.policy;
+    if(job.channel_policy_id!==policy.policy_id||job.channel_policy_revision!==policy.policy_revision
+        ||job.channel_policy_approval_psc_id!==policy.approval_psc_id||job.boas_id!==policy.boas_id
+        ||job.boas_revision!==policy.boas_revision||job.boas_psc_id!==policy.boas_psc_id
+        ||job.knoas_id!==policy.knoas_id||job.knoas_revision!==policy.knoas_revision||job.knoas_psc_id!==policy.knoas_psc_id) {
+      return json(409,{error:"WORKSPACE_SCRIPT_POLICY_LINEAGE_MISMATCH",producer_job_id:job.job_id});
+    }
+    let packet:Record<string,unknown>;
+    try {packet=validateHandoffSource(job);}
+    catch(error){return json(409,{error:error instanceof Error?error.message:"WORKSPACE_HANDOFF_SOURCE_INVALID",producer_job_id:job.job_id});}
+    const staged=await service.rpc("pcc_animation_job_control_v1",{p_action:"STAGE_HANDOFF",p_subject:pccSubject,p_payload:{job_id:job.job_id,can_stage:true,packet}});
+    if(staged.error||!staged.data)return json(409,{error:"WORKSPACE_PMF_HANDOFF_STAGE_FAILED",producer_job_id:job.job_id});
+    const bridgeUrl=Deno.env.get("PCC_PMF_BRIDGE_URL")??"https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-animation-bridge-v1";
+    const bridgeSecret=Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET");
+    if(!bridgeSecret)return json(503,{error:"PCC_PMF_BRIDGE_NOT_CONFIGURED",producer_job_id:job.job_id});
+    try {
+      pmfReceipt=await postHeldAnimationHandoff({url:bridgeUrl,secret:bridgeSecret,keyId:"pcc-animation-v1",packet:staged.data.handoff_packet??packet});
+    } catch {
+      return json(502,{error:"WORKSPACE_PMF_HELD_INTAKE_FAILED",producer_job_id:job.job_id,pcc_staged:true,render_dispatch:"DISABLED"});
+    }
+    const recorded=await service.rpc("pcc_animation_record_pmf_receipt_v1",{p_subject:pccSubject,p_payload:{job_id:job.job_id,pmf_receipt:pmfReceipt,can_stage:true,can_review:true}});
+    if(recorded.error||!recorded.data)return json(502,{error:"WORKSPACE_PMF_RECEIPT_RECORD_FAILED",producer_job_id:job.job_id,pmf_intake_succeeded:true,render_dispatch:"DISABLED"});
+    if(job.channel_key==="phnx_phanimation"&&outputType==="SERIES_EPISODE") {
+      try {
+        sourcePreparation=await requestPmfPhanimationBatchPreparationTyped({url:bridgeUrl,secret:bridgeSecret,keyId:"pcc-animation-v1",requestId:job.job_id,pccJobId:job.job_id});
+      } catch(error) {
+        const code=error instanceof Error?error.message:"PMF_PHANIMATION_PREPARATION_UNAVAILABLE";
+        sourcePreparation={state:code==="PMF_EPISODE_BATCH_SOURCE_REFERENCES_NOT_FOUND"?"WAITING_FOR_SOURCE_REFERENCES":"BLOCKED",error_code:code,render_dispatch:"DISABLED"};
+      }
+    }
+  }
+  return json(200,{ok:true,intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,payload_sha256:p.payload_sha256,
+    producer_job_id:job.job_id,script_state:scriptState,job,pmf_receipt:pmfReceipt,source_preparation:sourcePreparation,render_dispatch:"DISABLED",publication_eligible:false});
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method !== "POST") return json(405, { error: "POST_REQUIRED" });
+
+  if (req.headers.has("x-pcc-bridge-key-id")) {
+    const raw=await readBoundedBody(req,MAX_BODY_BYTES);
+    if(raw===null)return json(413,{error:"REQUEST_TOO_LARGE"});
+    const secret=Deno.env.get("PCC_PMF_BRIDGE_HMAC_SECRET")??"";
+    if(!await verifyWorkspaceBridgeSignature(req,raw,secret))return json(401,{error:"PCC_WORKSPACE_BRIDGE_AUTHENTICATION_FAILED"});
+    let bridgeBody:Record<string,unknown>;
+    try {const parsed=JSON.parse(raw);if(!parsed||Array.isArray(parsed)||typeof parsed!=="object")throw new Error();bridgeBody=parsed as Record<string,unknown>;}
+    catch{return json(400,{error:"JSON_OBJECT_REQUIRED"});}
+    if(bridgeBody.protocol!=="pcc-workspace-producer/v1"||bridgeBody.action!=="WRITE_APPROVED")return json(403,{error:"PCC_WORKSPACE_BRIDGE_ACTION_NOT_ALLOWED"});
+    const supabaseUrl=Deno.env.get("SUPABASE_URL"),serviceRoleKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if(!supabaseUrl||!serviceRoleKey)return json(503,{error:"PCC_RUNTIME_CONFIGURATION_MISSING"});
+    const service=createClient(supabaseUrl,serviceRoleKey,{auth:{persistSession:false,autoRefreshToken:false}});
+    const payload=bridgeBody.payload&&typeof bridgeBody.payload==="object"&&!Array.isArray(bridgeBody.payload)?bridgeBody.payload as Record<string,unknown>:{};
+    const dispatchId=typeof payload.dispatch_action_id==="string"?payload.dispatch_action_id:"";
+    const nonce=req.headers.get("x-pcc-bridge-nonce")??"";
+    const requestHash=await workspaceBridgeSha256(raw);
+    const claim=await service.rpc("pcc_workspace_bridge_claim_v1",{p_dispatch_action_id:dispatchId,p_nonce:nonce,p_request_sha256:requestHash});
+    if(claim.error||!claim.data)return json(503,{error:"PCC_WORKSPACE_BRIDGE_REPLAY_LEDGER_UNAVAILABLE"});
+    if(claim.data.state==="DUPLICATE_COMPLETE") {
+      const cached=claim.data.response;
+      if(!cached||typeof cached!=="object"||!Number.isInteger(cached.http_status)||!cached.body)return json(503,{error:"PCC_WORKSPACE_BRIDGE_CACHE_INVALID"});
+      return json(cached.http_status,cached.body);
+    }
+    if(claim.data.ok!==true)return json(409,{error:claim.data.reason??"PCC_WORKSPACE_BRIDGE_REQUEST_REJECTED"});
+    const result=await handleWorkspaceWriterDispatch(bridgeBody,service);
+    let resultBody:Record<string,unknown>;
+    try {const parsed=await result.json();resultBody=parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed as Record<string,unknown>:{error:"PCC_WORKSPACE_BRIDGE_RESPONSE_INVALID"};}
+    catch {resultBody={error:"PCC_WORKSPACE_BRIDGE_RESPONSE_INVALID"};}
+    const finish=await service.rpc("pcc_workspace_bridge_finish_v1",{p_dispatch_action_id:dispatchId,p_request_sha256:requestHash,p_response:{http_status:result.status,body:resultBody},p_success:result.status>=200&&result.status<300});
+    if(finish.error||finish.data!==true)return json(503,{error:"PCC_WORKSPACE_BRIDGE_RESULT_PERSIST_FAILED"});
+    return json(result.status,resultBody);
+  }
 
   const authorization = req.headers.get("authorization") ?? "";
   const publishableKey = req.headers.get("apikey") ?? "";
