@@ -221,7 +221,8 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
   const idea=text(p.idea,12_000);
   const sourceRequestPayload=p.request_payload&&typeof p.request_payload==="object"&&!Array.isArray(p.request_payload)?p.request_payload:{};
   const isPrivateWritingRoute=Array.isArray(route.producer_chain)&&route.producer_chain.includes("PCC_WRITING_ROOM");
-  if((outputType==="BOOK"||outputType==="SERIES")&&isPrivateWritingRoute) {
+  const writingDraftTypes=new Set(["BOOK","BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL","SERIES","SERIES_BIBLE"]);
+  if(writingDraftTypes.has(outputType)&&isPrivateWritingRoute) {
     const placement=Array.isArray(route.placements)?route.placements.find((x:any)=>x?.destination_type==="PCC_WRITING_ROOM"):null;
     if(!title||!idea||!placement||placement.platform!=="PCC"||placement.viewer_surface!=="PCC_PRIVATE_WRITING_ROOM"
        ||placement.release_gate!=="DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION") {
@@ -230,7 +231,7 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
     const {data:draft,error:draftError}=await service.rpc("pcc_workspace_writing_draft_create_v1",{
       p_source_system_subject:p.source_system_subject,p_intake_id:p.intake_id,p_dispatch_action_id:p.dispatch_action_id,
       p_review_action_id:p.review_action_id,p_approval_id:p.execution_approval.approval_id,
-      p_payload_sha256:p.payload_sha256,p_content_kind:outputType,p_title:title,p_content_text:idea,
+      p_payload_sha256:p.payload_sha256,p_content_kind:outputType.startsWith("SERIES")?"SERIES":"BOOK",p_title:title,p_content_text:idea,
       p_writing_context:sourceRequestPayload,p_route_receipt:route
     });
     if(draftError||!draft)return json(503,{error:"PCC_WRITING_DRAFT_PERSIST_FAILED"});
