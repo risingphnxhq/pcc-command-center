@@ -93,10 +93,12 @@
   let automaticRecoveryInFlight = false;
 
   async function reconcile() {
+    const epoch = authEpoch;
     clearReconciliation();
     showState("READING PCC CONTINUITY + AUTHORITATIVE PSC-D STATE");
     try {
       const body = await pulse("MEMORY", 0, null, "BOOTSTRAP");
+      if (epoch !== authEpoch) return;
       show({ psc_d_context: body });
       if (body?.retrieval_state !== "RETRIEVED_RECONCILIATION_REQUIRED" || !Array.isArray(body.records) || !body.records.length || !/^[a-f0-9]{64}$/.test(body.context_sha256 || "")) throw Object.assign(new Error("FULL_GOVERNING_CONTEXT_REQUIRED"), { body });
       const version = positiveInteger(body?.state_version);
@@ -108,6 +110,7 @@
       const ack = $("pscDAckButton");
       if (ack) ack.disabled = false;
     } catch (error) {
+      if (epoch !== authEpoch) return;
       clearReconciliation();
       showState("PSC-D RECONCILIATION DENIED", true);
       show(error.body || { error: error.message });
@@ -115,6 +118,7 @@
   }
 
   async function acknowledge() {
+    const epoch = authEpoch;
     if (sessionStorage.getItem("pccContinuityReconciled") !== "true") {
       showState("CONTINUITY RECONCILIATION REQUIRED BEFORE ACK", true);
       return;
@@ -128,8 +132,10 @@
     try {
       const digest = sessionStorage.getItem("pccPscDContextDigest");
       const current = await pulse("MEMORY", 0, null, "BOOTSTRAP");
+      if (epoch !== authEpoch) return;
       if (current.retrieval_state !== "RETRIEVED_RECONCILIATION_REQUIRED" || current.context_sha256 !== digest || current.state_version !== observed) throw new Error("GOVERNING_CONTEXT_CHANGED_RECONCILE_AGAIN");
       const body = await pulse("DEEP_REHYDRATION", observed, "PCC-USER-ACK-NOT-GPT:" + digest);
+      if (epoch !== authEpoch) return;
       show(body);
       if (body?.synchronization?.state !== "SYNCHRONIZED") {
         showState(`ACK NOT SYNCHRONIZED · ${body?.synchronization?.state || "UNKNOWN"}`, true);
@@ -210,7 +216,7 @@
   let lastSubject = null;
   client.auth.onAuthStateChange((_event, s) => {
     authEpoch++;
-    if ((s?.user?.id || null) !== lastSubject) clearReconciliation();
+    if ((s?.user?.id || null) !== lastSubject) { clearReconciliation(); show(""); }
     lastSubject = s?.user?.id || null;
     const acceptance = $("pscDRunAcceptanceButton");
     if (acceptance) acceptance.disabled = !s;
