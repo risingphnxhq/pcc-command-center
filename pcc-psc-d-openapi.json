@@ -1,0 +1,110 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PCC PSC-D",
+    "version": "1.0.0",
+    "description": "Authenticated assigned context retrieval and explicit runtime acknowledgment. Separate PSC-D credentials only; no Creative Intake authority."
+  },
+  "servers": [
+    {
+      "url": "https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1"
+    }
+  ],
+  "security": [
+    {
+      "PscDBearer": []
+    }
+  ],
+  "paths": {
+    "/pcc-workforce-sync-v1": {
+      "post": {
+        "operationId": "synchronizeAssignedPccContext",
+        "description": "At startup or after context loss call BOOTSTRAP and read full assigned context. Never ACK incomplete context. ACK the returned exact state_version and context_sha256 as context_fingerprint after reconciliation. ACTION_GATE requires assigned mission_id, required_capability, observed_state_version; PASS is a synchronization precondition, not execution authorization or independent acceptance.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "BOOTSTRAP",
+                      "READ",
+                      "ACK",
+                      "ACTION_GATE"
+                    ]
+                  },
+                  "actor_id": {
+                    "type": "string",
+                    "enum": [
+                      "RPE-CHAD-HQ",
+                      "RPE-MASON-HQ"
+                    ]
+                  },
+                  "pulse_type": {
+                    "type": "string",
+                    "enum": [
+                      "MEMORY",
+                      "DEEP_REHYDRATION"
+                    ]
+                  },
+                  "observed_state_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "context_fingerprint": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "mission_id": {
+                    "type": "string"
+                  },
+                  "required_capability": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Assigned context, synchronization statement or gate result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired or revoked credential"
+          },
+          "403": {
+            "description": "Binding, actor, mission or capability denied"
+          },
+          "409": {
+            "description": "Incomplete, changed or stale context; retrieve and reconcile before retry"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "PscDBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Dedicated pccsd_ key issued after authorized PCC sign-in. Never use Intake, service-role or shared credentials."
+      }
+    }
+  }
+}
