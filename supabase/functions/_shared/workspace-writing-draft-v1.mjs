@@ -41,3 +41,41 @@ export async function createWorkspaceWritingDraft({ model, request }) {
   });
   return { ...normalized, draftText: parseWorkspaceWritingDraft(raw) };
 }
+
+export async function storeWorkspaceWritingDraft({ service, model, payload, request, routeReceipt, contentKind }) {
+  const approvalId = String(payload.execution_approval.approval_id);
+  const { data: existing, error: lookupError } = await service.from("pcc_workspace_writing_drafts_v1")
+    .select("writing_draft_id,producer_job_id,source_system_subject,review_action_id,approval_id,payload_sha256,content_kind,title,canon_status,publication_eligible")
+    .eq("intake_id", payload.intake_id).eq("dispatch_action_id", payload.dispatch_action_id).maybeSingle();
+  if (lookupError) throw new Error("PCC_WRITING_ROOM_IDEMPOTENCY_LOOKUP_FAILED");
+  if (existing) {
+    if (existing.source_system_subject !== payload.source_system_subject
+        || existing.review_action_id !== payload.review_action_id
+        || existing.approval_id !== approvalId
+        || existing.payload_sha256 !== payload.payload_sha256
+        || existing.content_kind !== contentKind
+        || existing.title !== request.title) {
+      throw new Error("PCC_WRITING_ROOM_IDEMPOTENCY_MISMATCH");
+    }
+    return { saved: existing, idempotentReplay: true };
+  }
+
+  const generated = await createWorkspaceWritingDraft({ model, request });
+  const { data: saved, error: saveError } = await service.rpc("pcc_workspace_writing_draft_create_v1", {
+    p_source_system_subject: payload.source_system_subject,
+    p_intake_id: payload.intake_id,
+    p_dispatch_action_id: payload.dispatch_action_id,
+    p_review_action_id: payload.review_action_id,
+    p_approval_id: approvalId,
+    p_payload_sha256: payload.payload_sha256,
+    p_content_kind: contentKind,
+    p_title: generated.title,
+    p_content_text: generated.draftText,
+    p_writing_context: generated.writingContext,
+    p_route_receipt: routeReceipt,
+  });
+  if (saveError || !saved || saved.ok !== true || !saved.writing_draft_id) {
+    throw new Error("PCC_WRITING_ROOM_DRAFT_STORE_FAILED");
+  }
+  return { saved, idempotentReplay: false };
+}
