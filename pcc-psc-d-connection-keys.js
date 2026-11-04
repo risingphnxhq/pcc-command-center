@@ -13,7 +13,7 @@ async function call(action,extra={}){
 }
 $('createConnectionKey').addEventListener('click',async()=>{
  const e=epoch;clear();$('connectionStatus').textContent='Verifying your existing office binding…';
- try{const r=await call('CREATE_CONNECTION_KEY',{key_label:actor+' PSC-D account connection'});if(e!==epoch)return;$('connectionSecret').value=r.api_key;$('connectionSecretPanel').hidden=false;$('connectionStatus').textContent='Connection key created. Add it to your private PSC-D plugin credential field. This page shows it once; it expires '+r.expires_at+'.';}
+ try{const r=await call('CREATE_CONNECTION_KEY',{key_label:($('connectionLabel')?.value||'').trim()||actor+' PSC-D account connection'});if(e!==epoch)return;$('connectionSecret').value=r.api_key;$('connectionSecretPanel').hidden=false;$('connectionStatus').textContent='Connection key created. Add it to your private PSC-D plugin credential field. This page shows it once; it expires '+r.expires_at+'.';}
  catch(error){if(e===epoch)$('connectionStatus').textContent=error.message;}
 });
 $('copyConnectionKey').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('connectionSecret').value);$('connectionStatus').textContent='Copied. Paste only into the private plugin credential field.';}catch{$('connectionStatus').textContent='Clipboard unavailable. Use the key field to copy securely.';}});
