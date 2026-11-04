@@ -261,7 +261,7 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
     const routeReceipt={protocol:"pcc-output-route-v1",intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,
       review_action_id:p.review_action_id,approval_id:p.execution_approval.approval_id,payload_sha256:p.payload_sha256,
       destination:{destination_type:"PCC_WRITING_ROOM",platform:"PCC",viewer_surface:"PCC_PRIVATE_WRITING_ROOM"},
-      route_resolution_status:"RESOLVED_HELD",release_gate:"DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION",
+      resolution_status:"RESOLVED_HELD",release_gate:"DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION",
       execution_eligible:false,render_dispatch:"DISABLED",publication_eligible:false};
     try {
       const modelKey=Deno.env.get("PCC_SCRIPT_MODEL_API_KEY"),modelName=Deno.env.get("PCC_SCRIPT_MODEL_NAME");
