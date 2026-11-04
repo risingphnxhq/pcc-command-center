@@ -5,7 +5,7 @@ import { resolveProductionIntent, validateHandoffSource } from "../_shared/anima
 import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, resolveCanonicalAnimationPolicyId, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
-import { createWorkspaceWritingDraft } from "../_shared/workspace-writing-draft-v1.mjs";
+import { storeWorkspaceWritingDraft } from "../_shared/workspace-writing-draft-v1.mjs";
 
 // These JavaScript boundary modules validate their inputs at runtime. Keep the
 // edge function's adapter types explicit because Deno otherwise infers overly
@@ -257,23 +257,12 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
   // PCC_WRITING_ROOM is its own producer. Keep it out of the animation policy
   // resolver/job table and persist the result through the held writing-draft RPC.
   if(isPrivateWritingRoute) {
-    const approvalId=String(p.execution_approval.approval_id);
     const contentKind=outputType==="SERIES_BIBLE"?"SERIES":"BOOK";
-    const {data:existing,error:existingError}=await service.from("pcc_workspace_writing_drafts_v1")
-      .select("writing_draft_id,producer_job_id,source_system_subject,review_action_id,approval_id,payload_sha256,content_kind,title,canon_status,publication_eligible")
-      .eq("intake_id",p.intake_id).eq("dispatch_action_id",p.dispatch_action_id).maybeSingle();
-    if(existingError)return json(503,{error:"PCC_WRITING_ROOM_IDEMPOTENCY_LOOKUP_FAILED",held:true,render_dispatch:"DISABLED",publication_eligible:false});
-    if(existing) {
-      if(existing.source_system_subject!==p.source_system_subject||existing.review_action_id!==p.review_action_id
-          ||existing.approval_id!==approvalId||existing.payload_sha256!==p.payload_sha256
-          ||existing.content_kind!==contentKind||existing.title!==title) {
-        return json(409,{error:"PCC_WRITING_ROOM_IDEMPOTENCY_MISMATCH",held:true,render_dispatch:"DISABLED",publication_eligible:false});
-      }
-      return json(200,{ok:true,intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,payload_sha256:p.payload_sha256,
-        producer_job_id:existing.producer_job_id??existing.writing_draft_id,writing_draft_id:existing.writing_draft_id,
-        script_state:"BOOK_DRAFT_STORED",canon_status:existing.canon_status,render_dispatch:"DISABLED",publication_eligible:false,
-        destination_receipt:writerDestinationReceipt,idempotent_replay:true});
-    }
+    const routeReceipt={protocol:"pcc-output-route-v1",intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,
+      review_action_id:p.review_action_id,approval_id:p.execution_approval.approval_id,payload_sha256:p.payload_sha256,
+      destination:{destination_type:"PCC_WRITING_ROOM",platform:"PCC",viewer_surface:"PCC_PRIVATE_WRITING_ROOM"},
+      route_resolution_status:"RESOLVED_HELD",release_gate:"DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION",
+      execution_eligible:false,render_dispatch:"DISABLED",publication_eligible:false};
     try {
       const modelKey=Deno.env.get("PCC_SCRIPT_MODEL_API_KEY"),modelName=Deno.env.get("PCC_SCRIPT_MODEL_NAME");
       if(!modelKey||!modelName)throw new Error("SCRIPT_RUNTIME_CONFIGURATION_MISSING");
@@ -286,28 +275,17 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
         destination_receipt:writerDestinationReceipt,
         draft_status:"PRIVATE_DRAFT_UNAPPROVED",
       };
-      const generated=await createWorkspaceWritingDraft({model:createScriptModel(modelKey,modelName),request:{outputType,title,idea,writingContext}});
-      const routeReceipt={protocol:"pcc-output-route-v1",intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,
-        review_action_id:p.review_action_id,approval_id:approvalId,payload_sha256:p.payload_sha256,
-        destination:{destination_type:"PCC_WRITING_ROOM",platform:"PCC",viewer_surface:"PCC_PRIVATE_WRITING_ROOM"},
-        route_resolution_status:"RESOLVED_HELD",release_gate:"DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION",
-        execution_eligible:false,render_dispatch:"DISABLED",publication_eligible:false};
-      const {data:saved,error:saveError}=await service.rpc("pcc_workspace_writing_draft_create_v1",{
-        p_source_system_subject:p.source_system_subject,p_intake_id:p.intake_id,p_dispatch_action_id:p.dispatch_action_id,
-        p_review_action_id:p.review_action_id,p_approval_id:approvalId,p_payload_sha256:p.payload_sha256,
-        p_content_kind:contentKind,p_title:title,p_content_text:generated.draftText,
-        p_writing_context:generated.writingContext,p_route_receipt:routeReceipt,
-      });
-      if(saveError||!saved||saved.ok!==true||!saved.writing_draft_id) {
-        return json(409,{error:"PCC_WRITING_ROOM_DRAFT_STORE_FAILED",held:true,render_dispatch:"DISABLED",publication_eligible:false});
-      }
+      const {saved,idempotentReplay}=await storeWorkspaceWritingDraft({service,model:createScriptModel(modelKey,modelName),
+        payload:p,request:{outputType,title,idea,writingContext},routeReceipt,contentKind});
       return json(200,{ok:true,intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,payload_sha256:p.payload_sha256,
         producer_job_id:saved.producer_job_id??saved.writing_draft_id,writing_draft_id:saved.writing_draft_id,
         script_state:"BOOK_DRAFT_STORED",canon_status:saved.canon_status,render_dispatch:"DISABLED",
-        publication_eligible:false,destination_receipt:writerDestinationReceipt,idempotent_replay:false});
+        publication_eligible:false,destination_receipt:writerDestinationReceipt,idempotent_replay:idempotentReplay});
     } catch(error) {
       const code=error instanceof Error?error.message:"WORKSPACE_WRITING_DRAFT_FAILED";
-      return json(502,{error:"PCC_WRITING_ROOM_DRAFT_GENERATION_FAILED",code:code.slice(0,120),held:true,render_dispatch:"DISABLED",publication_eligible:false});
+      const status=code==="PCC_WRITING_ROOM_IDEMPOTENCY_MISMATCH"?409:code==="PCC_WRITING_ROOM_IDEMPOTENCY_LOOKUP_FAILED"?503:502;
+      return json(status,{error:code.startsWith("PCC_WRITING_ROOM_")?code:"PCC_WRITING_ROOM_DRAFT_GENERATION_FAILED",
+        ...(status===502?{code:code.slice(0,120)}:{}),held:true,render_dispatch:"DISABLED",publication_eligible:false});
     }
   }
   let trustedPolicy:Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
