@@ -19,8 +19,10 @@
   if(verified.error||verified.data?.user?.id!==expectedUser){fail('This account is not Corporate Chad’s registered PSC-D identity. Use PSC-D connection management to sign in with the correct account.');return;}
   const {data,error:requestError}=await client.auth.oauth.getAuthorizationDetails(authorizationId);
   if(requestError||!data){fail('This authorization request is unavailable or expired. Start Connect again from the plugin.');return;}
+  // Supabase may return a completed redirect for a grant the user already approved.
+  if(!('authorization_id' in data)){if(callbackAllowed(data.redirect_url)){status('This connection was previously approved. Returning to ChatGPT…');location.replace(data.redirect_url);}else fail('The return destination could not be verified.');return;}
   const scopes=typeof data.scope==='string'?data.scope.split(/\s+/).filter(Boolean):[];
-  if(data.client?.id!==expectedClient||!callbackAllowed(data.redirect_uri)||!scopes.length||scopes.some(s=>!allowedScopes.has(s))){fail('This request does not match Corporate Chad’s registered connection. No access was approved.');return;}
+  if(data.authorization_id!==authorizationId||data.user?.id!==expectedUser||data.client?.id!==expectedClient||!callbackAllowed(data.redirect_uri)||!scopes.length||scopes.some(s=>!allowedScopes.has(s))){fail('This request does not match Corporate Chad’s registered connection. No access was approved.');return;}
   details=data;$('clientName').textContent=data.client.name||'PCC PSC-D — Corporate Chad';$('scopes').textContent=scopes.join(', ');$('destination').textContent=new URL(data.redirect_uri).origin;$('consent').hidden=false;$('approve').disabled=false;$('deny').disabled=false;status('Review this request before approving the connection.');
  }
  $('signIn').addEventListener('submit',async event=>{event.preventDefault();$('signInButton').disabled=true;try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('password').value='';if(error){status('Sign-in failed. Check the account credentials.');return;}await review();}catch{status('Sign-in is unavailable. Try again.');}finally{$('signInButton').disabled=false;}});
