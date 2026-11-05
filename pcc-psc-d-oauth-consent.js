@@ -1,0 +1,30 @@
+(() => {
+ 'use strict';
+ const $=id=>document.getElementById(id),status=s=>{$('status').textContent=s;};
+ const expectedClient='29b4c197-7df5-4ef1-a7ca-e89bad3fd59e';
+ const expectedUser='2d7d7b10-53f1-43ee-9c38-52e7760a7a98';
+ const allowedScopes=new Set(['openid','email','profile','offline_access']);
+ const authorizationId=new URLSearchParams(location.search).get('authorization_id');
+ let details=null;
+ const fail=message=>{details=null;$('consent').hidden=true;status(message);};
+ if(!authorizationId||!/^[a-zA-Z0-9_-]{8,200}$/.test(authorizationId)){fail('Open Connect from the Corporate Chad plugin to start a valid authorization request.');return;}
+ if(!window.supabase){fail('Account authentication could not load. Refresh this page.');return;}
+ const client=window.supabase.createClient('https://oyjmpbuxvfxusmbouldi.supabase.co','sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+ const callbackAllowed=value=>{try{const u=new URL(value);return u.origin==='https://chatgpt.com'&&(u.pathname==='/connector_platform_oauth_redirect'||/^\/connector\/oauth\/[a-zA-Z0-9_-]+$/.test(u.pathname));}catch{return false;}};
+ async function review(){
+  $('signIn').hidden=true;$('consent').hidden=true;details=null;
+  const {data:{session},error}=await client.auth.getSession();
+  if(error||!session){$('signIn').hidden=false;status('Sign in with Corporate Chad’s authorized PSC-D Systems account.');return;}
+  const verified=await client.auth.getUser();
+  if(verified.error||verified.data?.user?.id!==expectedUser){fail('This account is not Corporate Chad’s registered PSC-D identity. Use PSC-D connection management to sign in with the correct account.');return;}
+  const {data,error:requestError}=await client.auth.oauth.getAuthorizationDetails(authorizationId);
+  if(requestError||!data){fail('This authorization request is unavailable or expired. Start Connect again from the plugin.');return;}
+  const scopes=typeof data.scope==='string'?data.scope.split(/\s+/).filter(Boolean):[];
+  if(data.client?.id!==expectedClient||!callbackAllowed(data.redirect_uri)||!scopes.length||scopes.some(s=>!allowedScopes.has(s))){fail('This request does not match Corporate Chad’s registered connection. No access was approved.');return;}
+  details=data;$('clientName').textContent=data.client.name||'PCC PSC-D — Corporate Chad';$('scopes').textContent=scopes.join(', ');$('destination').textContent=new URL(data.redirect_uri).origin;$('consent').hidden=false;$('approve').disabled=false;$('deny').disabled=false;status('Review this request before approving the connection.');
+ }
+ $('signIn').addEventListener('submit',async event=>{event.preventDefault();$('signInButton').disabled=true;try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('password').value='';if(error){status('Sign-in failed. Check the account credentials.');return;}await review();}catch{status('Sign-in is unavailable. Try again.');}finally{$('signInButton').disabled=false;}});
+ async function decide(approve){if(!details)return;$('approve').disabled=true;$('deny').disabled=true;status(approve?'Connecting Corporate Chad…':'Canceling connection…');try{const result=approve?await client.auth.oauth.approveAuthorization(authorizationId,{skipBrowserRedirect:true}):await client.auth.oauth.denyAuthorization(authorizationId,{skipBrowserRedirect:true});if(result.error||!callbackAllowed(result.data?.redirect_url)){fail('The connection could not finish. Start Connect again from the plugin.');return;}location.replace(result.data.redirect_url);}catch{fail('The connection could not finish. Start Connect again from the plugin.');}}
+ $('approve').addEventListener('click',()=>decide(true));$('deny').addEventListener('click',()=>decide(false));
+ review().catch(()=>fail('The authorization service is unavailable. Start Connect again from the plugin.'));
+})();
