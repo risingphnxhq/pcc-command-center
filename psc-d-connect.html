@@ -30,4 +30,4 @@
  document.getElementById('signOut').addEventListener('click',async()=>{await client.auth.signOut();document.getElementById('password').value='';document.getElementById('pscDOutput').textContent='';status.textContent='Signed out.'});
  client.auth.onAuthStateChange((_event,session)=>{status.textContent=session?'Signed in. Office access is verified when context is retrieved.':'Sign in with an existing authorized PCC account.';document.getElementById('pscDReconcileButton').disabled=!session;});
 })();
-</script><script src="pcc-psc-d-ack-runtime.js?context=20261103-accounts"></script><script src="pcc-psc-d-connection-keys.js?v=20261104-prime"></script></body></html>
+</script><script src="pcc-psc-d-ack-runtime.js?context=20261105-missing-references"></script><script src="pcc-psc-d-connection-keys.js?v=20261104-prime"></script></body></html>
