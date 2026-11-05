@@ -90,6 +90,17 @@
     return body;
   }
 
+  // Share only dependency diagnostics; never expose the full governing context or credentials.
+  let retrievalIssues = [];
+  $("pscDCopyIssuesButton")?.addEventListener("click", async () => {
+    if (!retrievalIssues.length) return;
+    const report = JSON.stringify({ protocol: "PSC-D", retrieval_state: "INCOMPLETE_HOLD", issues: retrievalIssues }, null, 2);
+    try {
+      await navigator.clipboard.writeText(report);
+      showState("Missing-reference report copied (no credentials included)");
+    } catch { showState("Copy unavailable; inspect the issues field in the displayed context", true); }
+  });
+
   let automaticRecoveryInFlight = false;
 
   async function reconcile() {
@@ -99,6 +110,9 @@
     try {
       const body = await pulse("MEMORY", 0, null, "BOOTSTRAP");
       if (epoch !== authEpoch) return;
+      retrievalIssues = Array.isArray(body?.issues) ? body.issues.filter(x => x && typeof x === "object").map(x => ({ code: String(x.code || "UNKNOWN"), ...(typeof x.psc_id === "string" ? { psc_id: x.psc_id } : {}) })) : [];
+      const copyIssues = $("pscDCopyIssuesButton");
+      if (copyIssues) copyIssues.disabled = retrievalIssues.length === 0;
       show({ psc_d_context: body });
       if (body?.retrieval_state !== "RETRIEVED_RECONCILIATION_REQUIRED" || !Array.isArray(body.records) || !body.records.length || !/^[a-f0-9]{64}$/.test(body.context_sha256 || "")) throw Object.assign(new Error("FULL_GOVERNING_CONTEXT_REQUIRED"), { body });
       const version = positiveInteger(body?.state_version);
