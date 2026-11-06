@@ -929,6 +929,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .left,.right{top:144px!important;height:calc(100vh - 158px)!important}
 @media(max-width:1180px){.app{grid-template-rows:auto!important}.left,.right{height:auto!important;position:static!important}}
 @media(max-width:760px){.brand-mark{width:68px!important;height:68px!important;flex-basis:68px!important}.topbar{min-height:88px!important}}
+
+/* Subordinate workspace routes retain their parent office navigation. */
+.nav-child{margin-left:18px;width:calc(100% - 18px);padding:11px 12px;font-size:11px;letter-spacing:.04em;border-left:2px solid var(--gold);border-radius:4px;line-height:1.5}.nav-child .nav-dot{width:5px;height:5px;background:var(--gold);box-shadow:none}
 </style>
   <link rel="icon" type="image/png" href="/rpe_seal_logo.png">
   <link rel="apple-touch-icon" href="/rpe_seal_logo.png">
@@ -959,7 +962,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           <div class="group-label">Primary</div>
           <div class="nav-list">
             <a class="nav-btn" href="founder-suite.html"><span class="nav-dot"></span> Phoenix King’s Suite</a><a class="nav-btn" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
-            <a class="nav-btn active" href="console.html"><span class="nav-dot"></span> Console</a><a class="nav-btn" href="systems-console.html"><span class="nav-dot"></span> Systems Console</a>
+            <a class="nav-btn active" href="console.html"><span class="nav-dot"></span> Corporate Console</a>
+            <a class="nav-btn nav-child" href="psc-d-connect.html"><span class="nav-dot" aria-hidden="true"></span> PSC-D Connection</a><a class="nav-btn" href="systems-console.html"><span class="nav-dot"></span> Systems Console</a>
             <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
             <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
           </div>
