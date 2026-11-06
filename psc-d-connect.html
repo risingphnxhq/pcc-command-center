@@ -4,7 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script></head>
 <body><main><a href="command-floor.html">PCC headquarters</a><h1>PSC-D connection</h1><p>Read the context assigned to your authenticated RPE identity and reconcile it before acknowledging.</p>
 <section><label for="actor">Institutional office</label><select id="actor"><option value="RPE-CHAD-HQ">Corporate Chad</option><option value="RPE-MASON-HQ">Mason / Systems</option></select><p><small>Selection requests an office. PCC verifies your existing binding before returning its context.</small></p>
-<form id="signIn"><label for="email">PCC account email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button id="signInButton" type="submit">Sign in</button><button id="signOut" type="button">Sign out</button></form><p><a href="recover-systems-account.html">Forgot your PSC-D Systems account password?</a></p><p id="authStatus" role="status">Checking existing session…</p></section>
+<form id="signIn"><label for="email">PCC account email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button id="signInButton" type="submit">Sign in</button><button id="signOut" type="button" hidden>Sign out</button></form><p><a href="recover-systems-account.html">Forgot your PSC-D Systems account password?</a></p><p id="authStatus" role="status">Checking existing session…</p></section>
 <section><p id="pscDState" class="status" role="status">Authentication required</p><button id="pscDReconcileButton">Retrieve governing context</button><button id="pscDAckButton" disabled>I have read and reconciled this context</button><button id="pscDCopyIssuesButton" type="button" disabled>Copy missing-reference report</button><p><small>Missing records keep acknowledgment held. A browser acknowledgment records the user's statement; it does not certify that a GPT stream consumed the context.</small></p><pre id="pscDOutput" aria-label="Assigned governing context"></pre></section>
 <section><h2>GPT account connection</h2><p>Create a dedicated PSC-D credential after PCC verifies your existing account binding. Use a separate credential for each runtime role: Corporate Chad, New Mason, Prime Chad and Prime Mason. Prime Chad and Prime Mason share one GPT account, but their credentials remain bound to separate institutional offices.</p><p><a href="pcc-psc-d-openapi.json">PSC-D plugin API contract</a></p><table><thead><tr><th>GPT account</th><th>Scoped connections required</th></tr></thead><tbody><tr><td>Corporate Chad</td><td>Chad office</td></tr><tr><td>New Mason</td><td>Mason office</td></tr><tr><td>Prime account</td><td>Prime Chad / Chad office; Prime Mason / Mason office</td></tr></tbody></table><p>For the Prime account, provision each office separately after its binding is verified. Selecting an office does not create a binding or transfer authority. Existing PCC credentials can be used here; this page does not require access to the locked ChatGPT login.</p><label for="connectionLabel">Connection label</label><input id="connectionLabel" maxlength="100" placeholder="Corporate Chad, New Mason, Prime Chad or Prime Mason">
 <button id="createConnectionKey" disabled>Create PSC-D connection key</button><button id="listConnectionKeys" disabled>List / revoke connections</button>
@@ -22,12 +22,61 @@
  const client=window.supabase.createClient('https://oyjmpbuxvfxusmbouldi.supabase.co','sb_publishable_rwTE4QRlQkzr0R0f5t5ylA_a9zuj0eE',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  window.PCC_PSC_D_CLIENT=client;
  const status=document.getElementById('authStatus');
+ const form=document.getElementById('signIn'),signInButton=document.getElementById('signInButton'),signOutButton=document.getElementById('signOut');
+ const email=document.getElementById('email'),password=document.getElementById('password');
+ let attempt=0,busy=false;
+ function render(message,state){
+  status.textContent=message;status.className='status'+(state==='error'?' bad':'');status.setAttribute('aria-live','polite');
+  const signed=state==='signed';
+  email.hidden=signed;password.hidden=signed;
+  form.querySelectorAll('label').forEach(label=>label.hidden=signed);
+  signInButton.hidden=signed;signInButton.disabled=busy;
+  signOutButton.hidden=!signed;signOutButton.disabled=busy;
+  document.getElementById('pscDReconcileButton').disabled=!signed;
+  document.getElementById('connectionStatus').textContent=signed?'Account signed in. Office access has not yet been verified. Creating a key does not connect ChatGPT.':'Sign in to manage your connection.';
+ }
+ async function verify(ticket){
+  try{
+   const {data,error}=await client.auth.getUser();
+   if(ticket!==attempt)return;
+   busy=false;
+   if(error||!data?.user){render('Not signed in. Enter your authorized PCC Systems account credentials.','out');return;}
+   render('Account verified: '+(data.user.email||'authorized PCC account')+'. Next: retrieve governing context to verify the selected office. GPT connection is not verified by this browser login.','signed');
+  }catch{if(ticket===attempt){busy=false;render('Unable to verify your account with PCC. Check your connection and try again.','error');}}
+ }
  document.getElementById('actor').addEventListener('change',event=>{location.href='psc-d-connect.html?actor='+encodeURIComponent(event.target.value)});
- document.getElementById('signIn').addEventListener('submit',async event=>{
-  event.preventDefault();const button=document.getElementById('signInButton');button.disabled=true;status.textContent='Signing in…';
-  try{const {error}=await client.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});document.getElementById('password').value='';status.textContent=error?'Sign-in failed. Check your PCC account credentials.':'Signed in. Retrieve governing context to verify office access.';}catch{status.textContent='Sign-in unavailable. Try again.';}finally{button.disabled=false;}
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();const ticket=++attempt;busy=true;
+  render('Signing in… Waiting for PCC to confirm your account.','pending');
+  try{
+   const {error}=await client.auth.signInWithPassword({email:email.value.trim(),password:password.value});
+   if(ticket!==attempt)return;
+   password.value='';
+   if(error){busy=false;render('Sign-in failed. This attempt did not sign you in. Check your email and password; if the problem continues, use password recovery.','error');return;}
+   render('Credentials accepted. Verifying account with PCC…','pending');
+   await verify(ticket);
+  }catch{if(ticket===attempt){busy=false;password.value='';render('Sign-in could not be completed. Check your connection and try again.','error');}}
  });
- document.getElementById('signOut').addEventListener('click',async()=>{await client.auth.signOut();document.getElementById('password').value='';document.getElementById('pscDOutput').textContent='';status.textContent='Signed out.'});
- client.auth.onAuthStateChange((_event,session)=>{status.textContent=session?'Signed in. Office access is verified when context is retrieved.':'Sign in with an existing authorized PCC account.';document.getElementById('pscDReconcileButton').disabled=!session;});
+ signOutButton.addEventListener('click',async()=>{
+  const ticket=++attempt;busy=true;render('Signing out…','pending');
+  try{
+   const {error}=await client.auth.signOut();
+   if(ticket!==attempt)return;
+   busy=false;password.value='';
+   if(error){render('Sign-out could not be confirmed. Reload to check your session before leaving this device.','error');return;}
+   document.getElementById('pscDOutput').textContent='';
+   render('Signed out.','out');
+  }catch{if(ticket===attempt){busy=false;render('Sign-out could not be confirmed. Check your connection.','error');}}
+ });
+ client.auth.onAuthStateChange((event,session)=>{
+  if(busy)return;
+  const ticket=++attempt;
+  if(!session){render('Not signed in. Enter your authorized PCC Systems account credentials.','out');return;}
+  busy=true;render('Checking saved session with PCC…','pending');
+  // Leave the auth callback before making another Auth request.
+  setTimeout(()=>verify(ticket),0);
+ });
+ render('Checking saved session with PCC…','pending');
+
 })();
 </script><script src="pcc-psc-d-ack-runtime.js?context=20261105-missing-references"></script><script src="pcc-psc-d-connection-keys.js?v=20261104-prime"></script></body></html>
