@@ -984,6 +984,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .nace-intercom{font:700 11px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--gold);border:1px solid var(--line-strong);padding:10px 12px;text-decoration:none}.nace-intercom:hover{background:var(--gold-soft)}
 .founder-room{border-color:rgba(198,161,91,.7);background:linear-gradient(135deg,rgba(198,161,91,.16),#121b26)}
 .dispatch-links{display:grid;gap:0}.dispatch-links a{padding:10px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none;font-size:12px}.dispatch-links a:hover{color:var(--gold)}
+
+/* Subordinate workspace routes retain their parent office navigation. */
+.nav-child{margin-left:18px;width:calc(100% - 18px);padding:11px 12px;font-size:11px;letter-spacing:.04em;border-left:2px solid var(--gold);border-radius:4px;line-height:1.5}.nav-child .nav-dot{width:5px;height:5px;background:var(--gold);box-shadow:none}
 </style>  <link rel="icon" type="image/png" href="/rpe_seal_logo.png">
   <link rel="apple-touch-icon" href="/rpe_seal_logo.png">
   <link rel="stylesheet" href="executive-briefing.css?v=20261016">
@@ -1010,7 +1013,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           <div class="group-label">Founder &amp; executive</div>
           <div class="nav-list">
             <a class="nav-btn" href="founder-suite.html"><span class="nav-dot"></span> Phoenix King’s Suite</a><a class="nav-btn active" href="command-floor.html"><span class="nav-dot"></span> Command Floor</a>
-            <a class="nav-btn" href="console.html"><span class="nav-dot"></span> Corporate Console</a><a class="nav-btn" href="systems-console.html"><span class="nav-dot"></span> Systems Console</a>
+            <a class="nav-btn" href="console.html"><span class="nav-dot"></span> Corporate Console</a>
+            <a class="nav-btn nav-child" href="psc-d-connect.html"><span class="nav-dot" aria-hidden="true"></span> PSC-D Connection</a><a class="nav-btn" href="systems-console.html"><span class="nav-dot"></span> Systems Console</a>
             <a class="nav-btn" href="war-room.html"><span class="nav-dot"></span> War Room</a>
             <a class="nav-btn" href="council-staff.html"><span class="nav-dot"></span> Council + Staff</a>
           </div>
@@ -1021,11 +1025,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
           <div class="nav-list">
             <a class="nav-btn" href="spider-connections.html"><span class="nav-dot"></span> SPIDER Connections</a>
             <a class="nav-btn" href="animation-engine.html"><span class="nav-dot"></span> Animation Engine</a>
+            <a class="nav-btn nav-child" href="workspace-intake.html"><span class="nav-dot" aria-hidden="true"></span> GPT Creative Workspace</a>
             <a class="nav-btn" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
             <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
             <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
             <a class="nav-btn" href="financial-tracking.html"><span class="nav-dot"></span> Financial Tracking</a>
-            <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>\n            <a class="nav-btn" href="support-center.html"><span class="nav-dot"></span> Support Center</a>
+            <a class="nav-btn" href="registry.html"><span class="nav-dot"></span> Registry</a>
+            <a class="nav-btn" href="support-center.html"><span class="nav-dot"></span> Support Center</a>
           </div>
         </div>
 
