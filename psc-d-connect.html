@@ -6,11 +6,20 @@
 <section><label for="actor">Institutional office</label><select id="actor"><option value="RPE-CHAD-HQ">Corporate Chad</option><option value="RPE-MASON-HQ">Mason / Systems</option></select><p><small>Selection requests an office. PCC verifies your existing binding before returning its context.</small></p>
 <form id="signIn"><label for="email">PCC account email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button id="signInButton" type="submit">Sign in</button><button id="signOut" type="button" hidden>Sign out</button></form><p><a href="recover-systems-account.html">Forgot your PSC-D Systems account password?</a></p><p id="authStatus" role="status">Checking existing session…</p></section>
 <section><p id="pscDState" class="status" role="status">Authentication required</p><button id="pscDReconcileButton">Retrieve governing context</button><button id="pscDAckButton" disabled>I have read and reconciled this context</button><button id="pscDCopyIssuesButton" type="button" disabled>Copy missing-reference report</button><p><small>Missing records keep acknowledgment held. A browser acknowledgment records the user's statement; it does not certify that a GPT stream consumed the context.</small></p><pre id="pscDOutput" aria-label="Assigned governing context"></pre></section>
-<section><h2>GPT account connection</h2><p>Create a dedicated PSC-D credential after PCC verifies your existing account binding. Use a separate credential for each runtime role: Corporate Chad, New Mason, Prime Chad and Prime Mason. Prime Chad and Prime Mason share one GPT account, but their credentials remain bound to separate institutional offices.</p><p><a href="pcc-psc-d-openapi.json">PSC-D plugin API contract</a></p><table><thead><tr><th>GPT account</th><th>Scoped connections required</th></tr></thead><tbody><tr><td>Corporate Chad</td><td>Chad office</td></tr><tr><td>New Mason</td><td>Mason office</td></tr><tr><td>Prime account</td><td>Prime Chad / Chad office; Prime Mason / Mason office</td></tr></tbody></table><p>For the Prime account, provision each office separately after its binding is verified. Selecting an office does not create a binding or transfer authority. Existing PCC credentials can be used here; this page does not require access to the locked ChatGPT login.</p><label for="connectionLabel">Connection label</label><input id="connectionLabel" maxlength="100" placeholder="Corporate Chad, New Mason, Prime Chad or Prime Mason">
-<button id="createConnectionKey" disabled>Create PSC-D connection key</button><button id="listConnectionKeys" disabled>List / revoke connections</button>
+<section><h2>Connect a GPT account to PSC-D</h2>
+<p><strong>Corporate Chad uses OAuth. You do not need to create or paste a connection key for this plugin.</strong></p>
+<p><a href="https://chatgpt.com/settings/plugins-settings/plugin_asdk_app_6aecf1d0e59881918a1f3d7a8ba92d70">Open Corporate Chad’s ChatGPT connection settings</a></p>
+<p>In ChatGPT, connect the existing PCC PSC-D — Corporate Chad plugin using your authorized PCC Systems account. If ChatGPT already shows your account under Connected accounts, return to the GPT conversation and request a full PSC-D bootstrap.</p>
+<p>This PCC browser page cannot certify that a GPT conversation is connected or synchronized. The GPT must retrieve its own assigned context, reconcile it and record its own acknowledgment.</p>
+<p>New Mason, Prime Chad and Prime Mason require separately verified runtime connections. Prime Chad and Prime Mason share a GPT account but retain separate office bindings. Corporate Chad’s OAuth connection does not connect those runtimes.</p>
+<details><summary>Optional API-key connections — not required for Corporate Chad OAuth</summary>
+<p>Use these controls only for a client explicitly configured for PSC-D API-key authentication. A key cannot be pasted into the OAuth Connect flow. Key creation does not install or connect a GPT plugin, create an office binding, or grant authority. Keep each key private and scoped to its verified runtime.</p>
+<p><a href="pcc-psc-d-openapi.json">PSC-D API-key client contract</a></p>
+<label for="connectionLabel">Connection label</label><input id="connectionLabel" maxlength="100" placeholder="Corporate Chad, New Mason, Prime Chad or Prime Mason">
+<button id="createConnectionKey" disabled>Create PSC-D connection key</button><button id="listConnectionKeys" disabled>List / revoke API keys</button>
 <p id="connectionStatus" role="status">Sign in to manage your connection.</p>
-<div id="connectionSecretPanel" hidden><label for="connectionSecret">Private connection key — shown once</label><input id="connectionSecret" type="password" readonly autocomplete="off"><button id="copyConnectionKey">Copy key</button><button id="clearConnectionKey">Clear key from page</button></div><div id="connectionKeys"></div>
-<p><small>Creating a key does not install a plugin or grant new office authority. A fresh GPT stream must retrieve its assigned context and acknowledge it itself. Incomplete context keeps acknowledgment held.</small></p></section></main>
+<div id="connectionSecretPanel" hidden><label for="connectionSecret">Private connection key — shown once</label><input id="connectionSecret" type="password" readonly autocomplete="off"><button id="copyConnectionKey">Copy API key</button><button id="clearConnectionKey">Clear key from page</button></div><div id="connectionKeys"></div>
+<p><small>Creating a key does not install a plugin or grant new office authority. A fresh GPT stream must retrieve its assigned context and acknowledge it itself. Incomplete context keeps acknowledgment held.</small></p></details></section></main>
 <script>
 (() => {
  'use strict';
@@ -33,7 +42,7 @@
   signInButton.hidden=signed;signInButton.disabled=busy;
   signOutButton.hidden=!signed;signOutButton.disabled=busy;
   document.getElementById('pscDReconcileButton').disabled=!signed;
-  document.getElementById('connectionStatus').textContent=signed?'Account signed in. Office access has not yet been verified. Creating a key does not connect ChatGPT.':'Sign in to manage your connection.';
+  document.getElementById('connectionStatus').textContent=signed?'Account signed in. These optional API-key controls do not manage the Corporate Chad OAuth connection.':'Sign in to manage your connection.';
  }
  async function verify(ticket){
   try{
@@ -79,4 +88,4 @@
  render('Checking saved session with PCC…','pending');
 
 })();
-</script><script src="pcc-psc-d-ack-runtime.js?context=20261105-missing-references"></script><script src="pcc-psc-d-connection-keys.js?v=20261104-prime"></script></body></html>
+</script><script src="pcc-psc-d-ack-runtime.js?context=20261105-missing-references"></script><script src="pcc-psc-d-connection-keys.js?v=20261106-method-labels"></script></body></html>
