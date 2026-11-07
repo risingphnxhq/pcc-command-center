@@ -9,6 +9,7 @@
   const url = 'https://oyjmpbuxvfxusmbouldi.supabase.co';
   const status = panel.querySelector('[role="status"]');
   const rows = panel.querySelector('tbody');
+  const accounts = panel.querySelector('[data-psc-accounts]');
   const refresh = panel.querySelector('[data-refresh]');
   if (!window.supabase) {
     status.textContent = 'PSC-D sign-in is unavailable. Open the central workforce sheet.';
@@ -25,6 +26,7 @@
     const current = new AbortController();
     request = current;
     rows.replaceChildren();
+    accounts?.replaceChildren();
     refresh.disabled = true;
     status.textContent = 'Reading PSC-D workforce…';
     try {
@@ -49,6 +51,14 @@
       }
       const report = await response.json();
       if (current.signal.aborted) return;
+      if (accounts) {
+        for (const account of report.connections || []) {
+          if (account.actor_id !== actor || !lanes.includes(account.lane)) continue;
+          const item = document.createElement('li');
+          item.textContent = account.label + ' · ' + label(account.binding_state) + ' · ' + account.registered_streams + ' registered streams';
+          accounts.append(item);
+        }
+      }
       const streams = report.rows.filter(row => row.actor_id === actor && lanes.includes(row.runtime_lane));
       for (const stream of streams) {
         const row = rows.insertRow();

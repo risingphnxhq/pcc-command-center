@@ -963,7 +963,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
         <div class="nav-group">
           <div class="group-label">Systems</div>
           <div class="nav-list">
-            <a class="nav-btn" href="workforce-console.html"><span class="nav-dot"></span> Workforce Console</a>
+            <a class="nav-btn" href="#systems-psc-d"><span class="nav-dot"></span> PSC-D Workforce</a>
+            <a class="nav-btn" href="workforce-console.html"><span class="nav-dot"></span> Systems Work Orders</a>
             <a class="nav-btn" href="voice-engine.html"><span class="nav-dot"></span> Voice Engine</a>
             <a class="nav-btn" href="execution.html"><span class="nav-dot"></span> Execution</a>
             <a class="nav-btn" href="nhce-monitor.html"><span class="nav-dot"></span> NHCE Monitor</a>
@@ -985,11 +986,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       </div>
     </aside>
 
-<main class="center glass"><div class="center-scroll"><section class="intel-board" data-psc-workforce="RPE-MASON-HQ" aria-label="Systems PSC-D workforce">
+<main class="center glass"><div class="center-scroll"><section id="systems-psc-d" class="intel-board" data-psc-workforce="RPE-MASON-HQ" aria-label="Systems PSC-D workforce">
   <div class="intel-head"><h2>Systems PSC-D Workforce</h2><small>Conversation continuity</small></div>
   <p role="status">Checking PSC-D sign-in…</p>
+  <ul data-psc-accounts aria-label="Systems PSC-D account bindings"></ul>
   <button type="button" data-refresh>Refresh workforce</button>
   <a href="psc-d-connect.html?actor=RPE-MASON-HQ">Open PSC-D workforce sheet</a>
+  <details style="margin-top:12px"><summary>Connect and verify a Systems GPT stream</summary><ol><li>In the intended New Mason GPT conversation, connect the existing PCC PSC-D — New Mason plugin through its OAuth prompt using the authorized PCC account.</li><li>Register the conversation under its assigned mission and keep the runtime ID. If it already has an ID, reuse it.</li><li>Bootstrap with that ID, reconcile the governing records, and acknowledge only after reconciliation succeeds.</li><li>Refresh this panel and match the runtime ID and last acknowledgment to the receipt from that conversation.</li></ol></details>
   <div style="overflow:auto;margin-top:12px">
     <table style="width:100%;text-align:left;border-spacing:12px 8px" aria-label="Systems active streams">
       <thead><tr><th>Account</th><th>Stream</th><th>Runtime ID</th><th>Mission</th><th>Health</th><th>Last ACK</th><th>Next due</th><th>Checkpoint</th></tr></thead>
@@ -1003,5 +1006,5 @@ const pccLeftSignOut=document.getElementById('pccLeftSignOut');
 const pccGlobalSignOut=document.getElementById('pccGlobalSignOut');
 if(pccGlobalSignOut) pccGlobalSignOut.style.display='none';
 pccLeftSignOut?.addEventListener('click',()=>window.PCCSession?.signOut?.());
-</script>\n<script src="pcc-psc-d-console-workforce.js" defer></script></body>
+</script>\n<script src="pcc-psc-d-console-workforce.js?v=systems-continuity" defer></script></body>
 </html>
