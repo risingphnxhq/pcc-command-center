@@ -936,7 +936,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
   <link rel="icon" type="image/png" href="/rpe_seal_logo.png">
   <link rel="apple-touch-icon" href="/rpe_seal_logo.png">
   <link rel="stylesheet" href="executive-briefing.css?v=20261016">
-</head>
+<style>
+.pcc-gauge{--reading:0%;--gauge-color:#dfb96b;position:relative;display:grid;place-items:center;width:88px;height:88px;margin:12px auto;border-radius:50%;background:conic-gradient(var(--gauge-color) var(--reading),rgba(170,182,196,.24) 0);color:inherit}
+.pcc-gauge::before{content:"";position:absolute;inset:8px;border-radius:50%;background:#12171e}
+.pcc-gauge span{position:relative;color:#f4e7d0;font:600 14px system-ui;text-transform:none;letter-spacing:0}
+.pcc-gauge[data-state="current"]{--gauge-color:#74d8ad}
+.pcc-gauge[data-state="unverified"]{background:repeating-conic-gradient(rgba(170,182,196,.34) 0 6deg,transparent 6deg 12deg)}
+</style></head>
 <body>
   <div class="app">
     <header class="topbar glass"><div class="brand">
@@ -989,14 +995,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       <div class="center-scroll"><section id="corporate-monitor" class="intel-board" data-psc-workforce="RPE-CHAD-HQ" aria-label="Corporate Monitoring">
   <div class="intel-head"><h2>Corporate Monitoring</h2><small>Health, safety and items that need attention</small></div>
   <div class="intel-grid">
-    <div class="intel-card"><span>Overall health</span><strong>Not verified</strong><small>Corporate service and safety checks are still missing.</small></div>
-    <div class="intel-card"><span>Business operations</span><strong>Not verified</strong><small>PCC has no confirmed live health readings for Corporate services.</small></div>
-    <div class="intel-card"><span>Access and security</span><strong>Not verified</strong><small>PCC has no verified security check to show here.</small></div>
-    <div class="intel-card"><span>Operational safeguards</span><strong>Not verified</strong><small>PCC has no verified safeguard check to show here.</small></div>
+    <div class="intel-card"><span>Overall health</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>Corporate service and safety checks are still missing.</small></div>
+    <div class="intel-card"><span>Business operations</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no confirmed live health readings for Corporate services.</small></div>
+    <div class="intel-card"><span>Access and security</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no verified security check to show here.</small></div>
+    <div class="intel-card"><span>Operational safeguards</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no verified safeguard check to show here.</small></div>
   </div>
   <div class="intel-head" style="margin-top:18px"><h2>Workforce Monitoring</h2><small>Checks whether active GPT conversations are current</small></div>
   <p role="status">Checking access to workforce monitoring…</p>
   <div class="intel-grid" data-psc-summary aria-label="Workforce health counts">
+    <div class="intel-card"><span>Workforce check-in gauge</span><div class="pcc-gauge" data-psc-gauge data-state="unverified" role="img" aria-label="Workforce check-in gauge: no reading"><span>—</span></div><small data-psc-gauge-note>Waiting for a verified reading</small></div>
     <div class="intel-card"><span>Active conversations</span><strong><span data-psc-active>—</span></strong><small>Registered and active</small></div>
     <div class="intel-card"><span>Up to date</span><strong><span data-psc-synced>—</span></strong><small>Current check-in on file</small></div>
     <div class="intel-card"><span>Need attention</span><strong><span data-psc-attention>—</span></strong><small>Check-in or connection needs review</small></div>
@@ -1973,5 +1980,5 @@ loadCorporateSnapshot();
   </script>
 <script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>
 <script src="executive-briefing.js?v=20261016"></script>
-<script src="pcc-psc-d-console-workforce.js?v=office-monitoring" defer></script></body>
+<script src="pcc-psc-d-console-workforce.js?v=office-gauges" defer></script></body>
 </html> 

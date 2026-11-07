@@ -12,6 +12,8 @@
   const accounts = panel.querySelector('[data-psc-accounts]');
   const refresh = panel.querySelector('[data-refresh]');
   const summary = panel.querySelector('[data-psc-summary]');
+  const gauge = panel.querySelector('[data-psc-gauge]');
+  const gaugeNote = panel.querySelector('[data-psc-gauge-note]');
   const attentionOnly = panel.querySelector('[data-psc-attention-only]');
   if (!window.supabase) {
     status.textContent = 'PSC-D sign-in is unavailable. Open the central workforce sheet.';
@@ -23,12 +25,26 @@
   let request;
   const date = value => value ? new Date(value).toLocaleString() : '—';
   const label = value => String(value || 'Unknown').replaceAll('_', ' ').toLowerCase();
+  function renderGauge(total, attention) {
+    if (!gauge || !gaugeNote) return;
+    const hasReading = Number.isInteger(total) && total > 0 && Number.isInteger(attention);
+    const current = hasReading ? total - attention : 0;
+    const percentage = hasReading ? Math.round(current / total * 100) : 0;
+    gauge.style.setProperty('--reading', percentage + '%');
+    gauge.dataset.state = !hasReading ? 'unverified' : attention === 0 ? 'current' : 'attention';
+    gauge.querySelector('span').textContent = hasReading ? percentage + '%' : '—';
+    const description = hasReading ? current + ' of ' + total + ' conversations up to date'
+      : total === 0 ? 'No active conversations' : 'No verified reading';
+    gauge.setAttribute('aria-label', 'Workforce check-in gauge: ' + description);
+    gaugeNote.textContent = description;
+  }
   async function load() {
     request?.abort();
     const current = new AbortController();
     request = current;
     rows.replaceChildren();
     accounts?.replaceChildren();
+    renderGauge();
     if (summary) {
       for (const reading of summary.querySelectorAll('[data-psc-active], [data-psc-synced], [data-psc-attention]')) reading.textContent = '—';
     }
@@ -72,6 +88,7 @@
         const counted = Number.isInteger(attention?.total) && attention.total >= 0 && attention.total <= report.total;
         summary.querySelector('[data-psc-synced]').textContent = counted ? report.total - attention.total : '—';
         summary.querySelector('[data-psc-attention]').textContent = counted ? attention.total : '—';
+        renderGauge(report.total, counted ? attention.total : null);
       }
       for (const stream of streams) {
         const row = rows.insertRow();

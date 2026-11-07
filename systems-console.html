@@ -931,7 +931,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 @media(max-width:760px){.brand-mark{width:68px!important;height:68px!important;flex-basis:68px!important}.topbar{min-height:88px!important}}
 </style>  <link rel="icon" type="image/png" href="/rpe_seal_logo.png">
   <link rel="apple-touch-icon" href="/rpe_seal_logo.png">
-</head><body><div class="app"><header class="topbar glass"><div class="brand">
+<style>
+.pcc-gauge{--reading:0%;--gauge-color:#dfb96b;position:relative;display:grid;place-items:center;width:88px;height:88px;margin:12px auto;border-radius:50%;background:conic-gradient(var(--gauge-color) var(--reading),rgba(170,182,196,.24) 0);color:inherit}
+.pcc-gauge::before{content:"";position:absolute;inset:8px;border-radius:50%;background:#12171e}
+.pcc-gauge span{position:relative;color:#f4e7d0;font:600 14px system-ui;text-transform:none;letter-spacing:0}
+.pcc-gauge[data-state="current"]{--gauge-color:#74d8ad}
+.pcc-gauge[data-state="unverified"]{background:repeating-conic-gradient(rgba(170,182,196,.34) 0 6deg,transparent 6deg 12deg)}
+</style></head><body><div class="app"><header class="topbar glass"><div class="brand">
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
         </div>
@@ -989,14 +995,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 <main class="center glass"><div class="center-scroll"><section id="systems-psc-d" class="intel-board" data-psc-workforce="RPE-MASON-HQ" aria-label="Systems Monitoring">
   <div class="intel-head"><h2>Systems Monitoring</h2><small>Health, safety and items that need attention</small></div>
   <div class="intel-grid">
-    <div class="intel-card"><span>Overall health</span><strong>Not verified</strong><small>Systems service and safety checks are still missing.</small></div>
-    <div class="intel-card"><span>Services and infrastructure</span><strong>Not verified</strong><small>PCC has no confirmed live readings for the services Systems depends on.</small></div>
-    <div class="intel-card"><span>Build and release safety</span><strong>Not verified</strong><small>Build tests and release approvals are not checked by this dashboard.</small></div>
-    <div class="intel-card"><span>Access and security</span><strong>Not verified</strong><small>PCC has no verified security check to show here.</small></div>
+    <div class="intel-card"><span>Overall health</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>Systems service and safety checks are still missing.</small></div>
+    <div class="intel-card"><span>Services and infrastructure</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no confirmed live readings for the services Systems depends on.</small></div>
+    <div class="intel-card"><span>Build and release safety</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>Build tests and release approvals are not checked by this dashboard.</small></div>
+    <div class="intel-card"><span>Access and security</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no verified security check to show here.</small></div>
   </div>
   <div class="intel-head" style="margin-top:18px"><h2>Workforce Monitoring</h2><small>Checks whether active GPT conversations are current</small></div>
   <p role="status">Checking access to workforce monitoring…</p>
   <div class="intel-grid" data-psc-summary aria-label="Workforce health counts">
+    <div class="intel-card"><span>Workforce check-in gauge</span><div class="pcc-gauge" data-psc-gauge data-state="unverified" role="img" aria-label="Workforce check-in gauge: no reading"><span>—</span></div><small data-psc-gauge-note>Waiting for a verified reading</small></div>
     <div class="intel-card"><span>Active conversations</span><strong><span data-psc-active>—</span></strong><small>Registered and active</small></div>
     <div class="intel-card"><span>Up to date</span><strong><span data-psc-synced>—</span></strong><small>Current check-in on file</small></div>
     <div class="intel-card"><span>Need attention</span><strong><span data-psc-attention>—</span></strong><small>Check-in or connection needs review</small></div>
@@ -1020,5 +1027,5 @@ const pccLeftSignOut=document.getElementById('pccLeftSignOut');
 const pccGlobalSignOut=document.getElementById('pccGlobalSignOut');
 if(pccGlobalSignOut) pccGlobalSignOut.style.display='none';
 pccLeftSignOut?.addEventListener('click',()=>window.PCCSession?.signOut?.());
-</script>\n<script src="pcc-psc-d-console-workforce.js?v=office-monitoring" defer></script></body>
+</script>\n<script src="pcc-psc-d-console-workforce.js?v=office-gauges" defer></script></body>
 </html>
