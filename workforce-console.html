@@ -43,12 +43,7 @@
 <div class="row"><button id="executeAction" disabled>Execute Governed Action</button><button id="clearOutput" class="secondary">Clear Output</button></div>
 </div></section>
 
-<section class="card" style="grid-column:1/-1"><h2>PSC-D Cognitive Synchronization</h2><div class="stack">
-<div id="pscDState" class="status">AUTHENTICATED SYSTEMS SESSION REQUIRED</div>
-<div class="row"><button id="pscDRunAcceptanceButton" disabled>Run Continuity Acceptance Test</button><button id="pscDReconcileButton" class="secondary">Reconcile PSC-D State</button><button id="pscDAckButton" disabled>ACK Deep Rehydration</button></div>
-<p class="help">Fail-closed continuity control for RPE-MASON-HQ. The acceptance control runs the existing authenticated reconciliation + DEEP_REHYDRATION corridor and returns PASS only when PSC-D reports SYNCHRONIZED with a receipt. Manual controls remain diagnostic fallbacks.</p>
-<pre id="pscDOutput">No PSC-D operation executed.</pre>
-</div></section>
+<section class="card" style="grid-column:1/-1"><h2>PSC-D Workforce Continuity</h2><p class="help">Open the <a href="systems-console.html">Systems Console</a> for the Systems workforce view or the <a href="psc-d-connect.html?actor=RPE-MASON-HQ">PSC-D workforce sheet</a> for stream details and history.</p></section>
 
 <section class="card" style="grid-column:1/-1"><h2>PSC-C Institutional Continuity Mailbox</h2><div class="stack"><div id="pscCState" class="status">AUTHENTICATED SYSTEMS SESSION REQUIRED</div><div class="row"><button id="pscCInbox" class="secondary" disabled>Read Inbox</button></div><label>Action<select id="pscCAction"><option>INBOX</option><option>READ</option><option>SEND</option><option>ACKNOWLEDGE</option><option>REPLY</option></select></label><label>Input JSON<textarea id="pscCInput">{}</textarea></label><div class="row"><button id="pscCExecute" disabled>Execute PSC-C Action</button></div><p class="help">Authenticated institutional mailbox for Stream continuity. Uses the existing Systems Supabase session and pcc-institutional-comms-v1.</p><pre id="pscCOutput">No PSC-C operation executed.</pre></div></section>
 
@@ -57,7 +52,6 @@
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
 <script src="pcc-workforce-runtime.js"></script>
-<script src="pcc-psc-d-ack-runtime.js"></script>
 <script src="pcc-institutional-comms-runtime.js"></script>
 <script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>
 </body></html>
