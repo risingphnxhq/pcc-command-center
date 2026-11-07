@@ -11,6 +11,8 @@
   const rows = panel.querySelector('tbody');
   const accounts = panel.querySelector('[data-psc-accounts]');
   const refresh = panel.querySelector('[data-refresh]');
+  const summary = panel.querySelector('[data-psc-summary]');
+  const attentionOnly = panel.querySelector('[data-psc-attention-only]');
   if (!window.supabase) {
     status.textContent = 'PSC-D sign-in is unavailable. Open the central workforce sheet.';
     return;
@@ -27,6 +29,7 @@
     request = current;
     rows.replaceChildren();
     accounts?.replaceChildren();
+    if (summary) summary.hidden = true;
     refresh.disabled = true;
     status.textContent = 'Reading PSC-D workforce…';
     try {
@@ -60,15 +63,25 @@
         }
       }
       const streams = report.rows.filter(row => row.actor_id === actor && lanes.includes(row.runtime_lane));
+      if (summary) {
+        summary.querySelector('[data-psc-active]').textContent = report.total;
+        summary.querySelector('[data-psc-synced]').textContent = streams.filter(stream => stream.evaluated_status === 'SYNCHRONIZED').length;
+        summary.querySelector('[data-psc-attention]').textContent = streams.filter(stream => stream.evaluated_status !== 'SYNCHRONIZED').length;
+        summary.hidden = false;
+      }
       for (const stream of streams) {
         const row = rows.insertRow();
+        row.dataset.attention = String(stream.evaluated_status !== 'SYNCHRONIZED');
         for (const value of [label(stream.runtime_lane), stream.runtime_label, stream.runtime_id,
           stream.mission_name, label(stream.evaluated_status), date(stream.last_ack_at),
           date(stream.next_sync_due_at), stream.checkpoint || '—']) {
           row.insertCell().textContent = value || '—';
         }
       }
-      status.textContent = streams.length
+      filterRows();
+      status.textContent = summary && streams.length
+        ? 'Loaded ' + streams.length + ' of ' + report.total + ' active streams · Last checked ' + date(report.generated_at) + '.'
+        : streams.length
         ? 'Showing ' + streams.length + ' active streams. Open the workforce sheet for search and history.'
         : 'No active streams are visible for this office under your PSC-D session.';
     } catch {
@@ -77,7 +90,17 @@
       if (!current.signal.aborted) refresh.disabled = false;
     }
   }
+  function filterRows() {
+    if (!attentionOnly) return;
+    for (const row of rows.rows) {
+      row.hidden = attentionOnly.checked && row.dataset.attention !== 'true';
+    }
+  }
+  attentionOnly?.addEventListener('change', filterRows);
   refresh.addEventListener('click', load);
+  if (summary) setInterval(() => {
+    if (!document.hidden && !refresh.disabled) load();
+  }, 60000);
   client.auth.onAuthStateChange(event => {
     if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') setTimeout(load, 0);
   });

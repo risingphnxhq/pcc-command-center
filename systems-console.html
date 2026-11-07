@@ -987,12 +987,17 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
     </aside>
 
 <main class="center glass"><div class="center-scroll"><section id="systems-psc-d" class="intel-board" data-psc-workforce="RPE-MASON-HQ" aria-label="Systems PSC-D workforce">
-  <div class="intel-head"><h2>Systems PSC-D Workforce</h2><small>Conversation continuity</small></div>
+  <div class="intel-head"><h2>Systems PSC-D Monitor</h2><small>Conversation continuity</small></div>
   <p role="status">Checking PSC-D sign-in…</p>
-  <ul data-psc-accounts aria-label="Systems PSC-D account bindings"></ul>
-  <button type="button" data-refresh>Refresh workforce</button>
+  <div class="intel-grid" data-psc-summary hidden aria-label="Health counts for the loaded streams">
+    <div class="intel-card"><span>Active streams</span><strong data-psc-active>—</strong></div>
+    <div class="intel-card"><span>Synchronized on this page</span><strong data-psc-synced>—</strong></div>
+    <div class="intel-card"><span>Need attention on this page</span><strong data-psc-attention>—</strong></div>
+  </div>
+  <button type="button" data-refresh>Refresh monitor</button>
+  <label><input type="checkbox" data-psc-attention-only> Needs attention only</label>
   <a href="psc-d-connect.html?actor=RPE-MASON-HQ">Open PSC-D workforce sheet</a>
-  <details style="margin-top:12px"><summary>Connect and verify a Systems GPT stream</summary><ol><li>In the intended New Mason GPT conversation, connect the existing PCC PSC-D — New Mason plugin through its OAuth prompt using the authorized PCC account.</li><li>Register the conversation under its assigned mission and keep the runtime ID. If it already has an ID, reuse it.</li><li>Bootstrap with that ID, reconcile the governing records, and acknowledge only after reconciliation succeeds.</li><li>Refresh this panel and match the runtime ID and last acknowledgment to the receipt from that conversation.</li></ol></details>
+  <details style="margin-top:12px"><summary>Account bindings and connection setup</summary><ul data-psc-accounts aria-label="Systems PSC-D account bindings"></ul><ol><li>In the intended New Mason GPT conversation, connect the existing PCC PSC-D — New Mason plugin through its OAuth prompt using the authorized PCC account.</li><li>Register the conversation under its assigned mission and keep the runtime ID. If it already has an ID, reuse it.</li><li>Bootstrap with that ID, reconcile the governing records, and acknowledge only after reconciliation succeeds.</li><li>Refresh this panel and match the runtime ID and last acknowledgment to the receipt from that conversation.</li></ol></details>
   <div style="overflow:auto;margin-top:12px">
     <table style="width:100%;text-align:left;border-spacing:12px 8px" aria-label="Systems active streams">
       <thead><tr><th>Account</th><th>Stream</th><th>Runtime ID</th><th>Mission</th><th>Health</th><th>Last ACK</th><th>Next due</th><th>Checkpoint</th></tr></thead>
@@ -1006,5 +1011,5 @@ const pccLeftSignOut=document.getElementById('pccLeftSignOut');
 const pccGlobalSignOut=document.getElementById('pccGlobalSignOut');
 if(pccGlobalSignOut) pccGlobalSignOut.style.display='none';
 pccLeftSignOut?.addEventListener('click',()=>window.PCCSession?.signOut?.());
-</script>\n<script src="pcc-psc-d-console-workforce.js?v=systems-continuity" defer></script></body>
+</script>\n<script src="pcc-psc-d-console-workforce.js?v=systems-monitor" defer></script></body>
 </html>
