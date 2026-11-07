@@ -31,12 +31,15 @@
     const current = hasReading ? total - attention : 0;
     const percentage = hasReading ? Math.round(current / total * 100) : 0;
     gauge.style.setProperty('--reading', percentage + '%');
-    gauge.dataset.state = !hasReading ? 'unverified' : attention === 0 ? 'current' : 'attention';
+    const state = !hasReading ? 'unverified' : attention === 0 ? 'current' : current === 0 ? 'problematic' : 'attention';
+    const stateLabel = { current: 'Good', attention: 'Concern', problematic: 'Problematic', unverified: 'No reading' };
+    gauge.dataset.state = state;
     gauge.querySelector('span').textContent = hasReading ? percentage + '%' : '—';
     const description = hasReading ? current + ' of ' + total + ' conversations up to date'
       : total === 0 ? 'No active conversations' : 'No verified reading';
-    gauge.setAttribute('aria-label', 'Workforce check-in gauge: ' + description);
-    gaugeNote.textContent = description;
+    const reading = stateLabel[state] + ' · ' + description;
+    gauge.setAttribute('aria-label', 'Workforce check-in gauge: ' + reading);
+    gaugeNote.textContent = reading;
   }
   async function load() {
     request?.abort();

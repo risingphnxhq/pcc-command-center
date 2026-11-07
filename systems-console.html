@@ -936,6 +936,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .pcc-gauge::before{content:"";position:absolute;inset:8px;border-radius:50%;background:#12171e}
 .pcc-gauge span{position:relative;color:#f4e7d0;font:600 14px system-ui;text-transform:none;letter-spacing:0}
 .pcc-gauge[data-state="current"]{--gauge-color:#74d8ad}
+.pcc-gauge[data-state="attention"]{--gauge-color:#f7ce54;outline:2px solid #f7ce54}
+.pcc-gauge[data-state="problematic"]{--gauge-color:#ff8585;outline:2px solid #ff8585}
+.pcc-gauge[data-state="problematic"] span{color:#ffb2b2}
+.pcc-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0 14px}
+.pcc-legend span::before{content:"●";color:var(--legend-color);margin-right:5px}
 .pcc-gauge[data-state="unverified"]{background:repeating-conic-gradient(rgba(170,182,196,.34) 0 6deg,transparent 6deg 12deg)}
 </style></head><body><div class="app"><header class="topbar glass"><div class="brand">
         <div class="brand-mark">
@@ -994,6 +999,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 
 <main class="center glass"><div class="center-scroll"><section id="systems-psc-d" class="intel-board" data-psc-workforce="RPE-MASON-HQ" aria-label="Systems Monitoring">
   <div class="intel-head"><h2>Systems Monitoring</h2><small>Health, safety and items that need attention</small></div>
+  <div class="pcc-legend" aria-label="Monitoring status legend"><span style="--legend-color:#74d8ad">Good</span><span style="--legend-color:#f7ce54">Concern</span><span style="--legend-color:#ff8585">Problematic</span><span style="--legend-color:#aab6c4">No reading</span></div>
   <div class="intel-grid">
     <div class="intel-card"><span>Overall health</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>Systems service and safety checks are still missing.</small></div>
     <div class="intel-card"><span>Services and infrastructure</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no confirmed live readings for the services Systems depends on.</small></div>
@@ -1027,5 +1033,5 @@ const pccLeftSignOut=document.getElementById('pccLeftSignOut');
 const pccGlobalSignOut=document.getElementById('pccGlobalSignOut');
 if(pccGlobalSignOut) pccGlobalSignOut.style.display='none';
 pccLeftSignOut?.addEventListener('click',()=>window.PCCSession?.signOut?.());
-</script>\n<script src="pcc-psc-d-console-workforce.js?v=office-gauges" defer></script></body>
+</script>\n<script src="pcc-psc-d-console-workforce.js?v=monitor-status-colors" defer></script></body>
 </html>
