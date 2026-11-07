@@ -942,6 +942,18 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .pcc-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0 14px}
 .pcc-legend span::before{content:"●";color:var(--legend-color);margin-right:5px}
 .pcc-gauge[data-state="unverified"]{background:repeating-conic-gradient(rgba(170,182,196,.34) 0 6deg,transparent 6deg 12deg)}
+</style><style>
+.pcc-instruments{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(155px,1fr);gap:12px;margin:12px 0}
+.pcc-trend{margin:0;min-width:0}.pcc-trend svg{display:block;width:100%;max-height:210px;margin:8px 0}
+.pcc-trend figcaption{font-weight:600}.pcc-dial-card{text-align:center}.pcc-dial svg{display:block;width:100%;max-width:180px;margin:8px auto 0}
+.pcc-dial span{font-size:22px;font-weight:600}.pcc-dial-arc{stroke:#aab6c4}
+.pcc-dial[data-state="current"] .pcc-dial-arc{stroke:#74d8ad}
+.pcc-dial[data-state="attention"] .pcc-dial-arc{stroke:#f7ce54}
+.pcc-dial[data-state="problematic"] .pcc-dial-arc{stroke:#ff8585}
+.pcc-dial[data-state="unverified"] .pcc-dial-arc{stroke-dasharray:3 6}
+.pcc-dial[data-state="unverified"] [data-psc-needle]{visibility:hidden}
+.pcc-counts{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px}
+@media(max-width:570px){.pcc-instruments{grid-template-columns:1fr}.pcc-counts{grid-template-columns:1fr}}
 </style></head><body><div class="app"><header class="topbar glass"><div class="brand">
         <div class="brand-mark">
           <img src="rpe_seal_logo.png" alt="RPE Seal Logo">
@@ -1008,11 +1020,36 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
   </div>
   <div class="intel-head" style="margin-top:18px"><h2>Workforce Monitoring</h2><small>Checks whether active GPT conversations are current</small></div>
   <p role="status">Checking access to workforce monitoring…</p>
-  <div class="intel-grid" data-psc-summary aria-label="Workforce health counts">
-    <div class="intel-card"><span>Workforce check-in gauge</span><div class="pcc-gauge" data-psc-gauge data-state="unverified" role="img" aria-label="Workforce check-in gauge: no reading"><span>—</span></div><small data-psc-gauge-note>Waiting for a verified reading</small></div>
+  <div data-psc-summary aria-label="Workforce health readings">
+    <div class="pcc-instruments">
+      <figure class="intel-card pcc-trend">
+        <figcaption>Workforce check-ins over time</figcaption>
+        <svg viewBox="0 0 480 140" role="img" aria-label="Recent workforce check-in readings">
+          <path d="M44 16H460 M44 66H460 M44 116H460" fill="none" stroke="currentColor" opacity=".25"/>
+          <g fill="currentColor" font-size="10"><text x="5" y="20">100%</text><text x="11" y="70">50%</text><text x="18" y="120">0%</text><text x="44" y="135">Earlier</text><text x="429" y="135">Latest</text></g>
+          <path data-psc-trend-line fill="none" stroke="#83cafa" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <small data-psc-trend-note>Waiting for verified readings. History starts when this dashboard opens.</small>
+      </figure>
+      <div class="intel-card pcc-dial-card">
+        <span>Current workforce check-ins</span>
+        <div class="pcc-dial" data-psc-gauge data-state="unverified" role="img" aria-label="Workforce check-in gauge: no reading">
+          <svg viewBox="0 0 160 100" aria-hidden="true">
+            <path class="pcc-dial-arc" d="M23 78 A57 57 0 0 1 137 78" fill="none" stroke-width="8" stroke-linecap="round"/>
+            <g fill="currentColor" font-size="9"><text x="18" y="95">0</text><text x="72" y="15">50</text><text x="130" y="95">100</text></g>
+            <path data-psc-needle d="M80 78L80 32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="80" cy="78" r="4" fill="currentColor"/>
+          </svg>
+          <span>—</span>
+        </div>
+        <small data-psc-gauge-note>Waiting for a verified reading</small>
+      </div>
+    </div>
+    <div class="intel-grid pcc-counts">
     <div class="intel-card"><span>Active conversations</span><strong><span data-psc-active>—</span></strong><small>Registered and active</small></div>
     <div class="intel-card"><span>Up to date</span><strong><span data-psc-synced>—</span></strong><small>Current check-in on file</small></div>
     <div class="intel-card"><span>Need attention</span><strong><span data-psc-attention>—</span></strong><small>Check-in or connection needs review</small></div>
+    </div>
   </div>
   <button type="button" data-refresh>Refresh readings</button>
   <details style="margin-top:12px"><summary>Inspect conversation readings</summary>
@@ -1033,5 +1070,5 @@ const pccLeftSignOut=document.getElementById('pccLeftSignOut');
 const pccGlobalSignOut=document.getElementById('pccGlobalSignOut');
 if(pccGlobalSignOut) pccGlobalSignOut.style.display='none';
 pccLeftSignOut?.addEventListener('click',()=>window.PCCSession?.signOut?.());
-</script>\n<script src="pcc-psc-d-console-workforce.js?v=monitor-status-colors" defer></script></body>
+</script>\n<script src="pcc-psc-d-console-workforce.js?v=monitor-instruments" defer></script></body>
 </html>

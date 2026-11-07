@@ -13,6 +13,10 @@
   const refresh = panel.querySelector('[data-refresh]');
   const summary = panel.querySelector('[data-psc-summary]');
   const gauge = panel.querySelector('[data-psc-gauge]');
+  const trendLine = panel.querySelector('[data-psc-trend-line]');
+  const trendNote = panel.querySelector('[data-psc-trend-note]');
+  const samples = [];
+  let sampleOwner;
   const gaugeNote = panel.querySelector('[data-psc-gauge-note]');
   const attentionOnly = panel.querySelector('[data-psc-attention-only]');
   if (!window.supabase) {
@@ -30,7 +34,7 @@
     const hasReading = Number.isInteger(total) && total > 0 && Number.isInteger(attention);
     const current = hasReading ? total - attention : 0;
     const percentage = hasReading ? Math.round(current / total * 100) : 0;
-    gauge.style.setProperty('--reading', percentage + '%');
+    gauge.querySelector('[data-psc-needle]')?.setAttribute('transform', 'rotate(' + (-90 + percentage * 1.8) + ' 80 78)');
     const state = !hasReading ? 'unverified' : attention === 0 ? 'current' : current === 0 ? 'problematic' : 'attention';
     const stateLabel = { current: 'Good', attention: 'Concern', problematic: 'Problematic', unverified: 'No reading' };
     gauge.dataset.state = state;
@@ -40,6 +44,25 @@
     const reading = stateLabel[state] + ' · ' + description;
     gauge.setAttribute('aria-label', 'Workforce check-in gauge: ' + reading);
     gaugeNote.textContent = reading;
+  }
+  function renderTrend() {
+    if (!trendLine || !trendNote) return;
+    const first = samples[0]?.time ?? 0;
+    const span = Math.max(60000, (samples.at(-1)?.time ?? 0) - first);
+    let previous = false;
+    let path = '';
+    let count = 0;
+    for (const sample of samples) {
+      if (sample.value === null) { previous = false; continue; }
+      const x = 44 + (sample.time - first) / span * 416;
+      const y = 116 - sample.value;
+      path += (previous ? 'L' : 'M') + x + ' ' + y + (previous ? '' : 'h0.4');
+      previous = true;
+      count++;
+    }
+    trendLine.setAttribute('d', path);
+    trendNote.textContent = count ? count + ' verified readings since opening this dashboard. Gaps indicate unavailable readings.'
+      : 'No verified trend readings yet. History starts when this dashboard opens.';
   }
   async function load() {
     request?.abort();
@@ -56,6 +79,12 @@
     try {
       const { data, error } = await client.auth.getSession();
       if (current.signal.aborted) return;
+      const owner = !error && data?.session?.user?.id;
+      if (owner !== sampleOwner) {
+        sampleOwner = owner;
+        samples.length = 0;
+        renderTrend();
+      }
       if (error || !data?.session?.access_token) {
         status.textContent = 'Sign in with your authorized PSC-D account in the workforce sheet, then return here.';
         return;
@@ -92,6 +121,12 @@
         summary.querySelector('[data-psc-synced]').textContent = counted ? report.total - attention.total : '—';
         summary.querySelector('[data-psc-attention]').textContent = counted ? attention.total : '—';
         renderGauge(report.total, counted ? attention.total : null);
+        const time = Date.parse(report.generated_at);
+        if (Number.isFinite(time) && (!samples.length || time > samples.at(-1).time)) {
+          samples.push({ time, value: counted && report.total > 0 ? (report.total - attention.total) / report.total * 100 : null });
+          if (samples.length > 60) samples.shift();
+          renderTrend();
+        }
       }
       for (const stream of streams) {
         const row = rows.insertRow();
