@@ -986,17 +986,33 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
     </aside>
 
     <main class="center glass">
-      <div class="center-scroll"><section class="intel-board" data-psc-workforce="RPE-CHAD-HQ" aria-label="Corporate PSC-D workforce">
-  <div class="intel-head"><h2>Corporate PSC-D Workforce</h2><small>Conversation continuity</small></div>
-  <p role="status">Checking PSC-D sign-in…</p>
-  <button type="button" data-refresh>Refresh workforce</button>
-  <a href="psc-d-connect.html?actor=RPE-CHAD-HQ">Open PSC-D workforce sheet</a>
-  <div style="overflow:auto;margin-top:12px">
+      <div class="center-scroll"><section id="corporate-monitor" class="intel-board" data-psc-workforce="RPE-CHAD-HQ" aria-label="Corporate Monitoring">
+  <div class="intel-head"><h2>Corporate Monitoring</h2><small>Health, safety and items that need attention</small></div>
+  <div class="intel-grid">
+    <div class="intel-card"><span>Overall health</span><strong>Not verified</strong><small>Corporate service and safety checks are still missing.</small></div>
+    <div class="intel-card"><span>Business operations</span><strong>Not verified</strong><small>PCC has no confirmed live health readings for Corporate services.</small></div>
+    <div class="intel-card"><span>Access and security</span><strong>Not verified</strong><small>PCC has no verified security check to show here.</small></div>
+    <div class="intel-card"><span>Operational safeguards</span><strong>Not verified</strong><small>PCC has no verified safeguard check to show here.</small></div>
+  </div>
+  <div class="intel-head" style="margin-top:18px"><h2>Workforce Monitoring</h2><small>Checks whether active GPT conversations are current</small></div>
+  <p role="status">Checking access to workforce monitoring…</p>
+  <div class="intel-grid" data-psc-summary aria-label="Workforce health counts">
+    <div class="intel-card"><span>Active conversations</span><strong><span data-psc-active>—</span></strong><small>Registered and active</small></div>
+    <div class="intel-card"><span>Up to date</span><strong><span data-psc-synced>—</span></strong><small>Current check-in on file</small></div>
+    <div class="intel-card"><span>Need attention</span><strong><span data-psc-attention>—</span></strong><small>Check-in or connection needs review</small></div>
+  </div>
+  <button type="button" data-refresh>Refresh readings</button>
+  <details style="margin-top:12px"><summary>Inspect conversation readings</summary>
+    <label><input type="checkbox" data-psc-attention-only checked> Needs attention only</label>
+    <a href="psc-d-connect.html?actor=RPE-CHAD-HQ">Open full PSC-D workforce monitor</a>
+    <div style="overflow:auto;margin-top:12px">
     <table style="width:100%;text-align:left;border-spacing:12px 8px" aria-label="Corporate active streams">
-      <thead><tr><th>Account</th><th>Stream</th><th>Runtime ID</th><th>Mission</th><th>Health</th><th>Last ACK</th><th>Next due</th><th>Checkpoint</th></tr></thead>
+      <thead><tr><th>Account</th><th>Stream</th><th>Conversation ID</th><th>Mission</th><th>Health</th><th>Last check-in</th><th>Next check-in due</th><th>Checkpoint</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
+  </details>
+  
 </section><section id="executive-briefing" aria-label="Private executive briefing"></section><section class="intel-board"><div class="intel-head"><h2>HQ Intelligence</h2><small>Corporate registered source · Trust remains unverified</small></div><div class="top-microbars">
           <div class="micro-card">
             <div class="micro-label">Corporate Offices</div>
@@ -1957,5 +1973,5 @@ loadCorporateSnapshot();
   </script>
 <script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>
 <script src="executive-briefing.js?v=20261016"></script>
-<script src="pcc-psc-d-console-workforce.js" defer></script></body>
+<script src="pcc-psc-d-console-workforce.js?v=office-monitoring" defer></script></body>
 </html> 

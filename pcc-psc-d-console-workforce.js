@@ -29,7 +29,9 @@
     request = current;
     rows.replaceChildren();
     accounts?.replaceChildren();
-    if (summary) summary.hidden = true;
+    if (summary) {
+      for (const reading of summary.querySelectorAll('[data-psc-active], [data-psc-synced], [data-psc-attention]')) reading.textContent = '—';
+    }
     refresh.disabled = true;
     status.textContent = 'Reading PSC-D workforce…';
     try {
@@ -39,12 +41,13 @@
         status.textContent = 'Sign in with your authorized PSC-D account in the workforce sheet, then return here.';
         return;
       }
-      const response = await fetch(url + '/functions/v1/pcc-workforce-sync-v1', {
+      const read = statusFilter => fetch(url + '/functions/v1/pcc-workforce-sync-v1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + data.session.access_token },
-        body: JSON.stringify({ action: 'WORKFORCE_READ', actor_filter: actor }),
+        body: JSON.stringify({ action: 'WORKFORCE_READ', actor_filter: actor, status: statusFilter }),
         signal: current.signal
       });
+      const [response, attentionResponse] = await Promise.all([read(''), summary ? read('ATTENTION') : null]);
       if (current.signal.aborted) return;
       if (!response.ok) {
         status.textContent = response.status === 401 || response.status === 403
@@ -53,6 +56,7 @@
         return;
       }
       const report = await response.json();
+      const attention = attentionResponse?.ok ? await attentionResponse.json() : null;
       if (current.signal.aborted) return;
       if (accounts) {
         for (const account of report.connections || []) {
@@ -65,9 +69,9 @@
       const streams = report.rows.filter(row => row.actor_id === actor && lanes.includes(row.runtime_lane));
       if (summary) {
         summary.querySelector('[data-psc-active]').textContent = report.total;
-        summary.querySelector('[data-psc-synced]').textContent = streams.filter(stream => stream.evaluated_status === 'SYNCHRONIZED').length;
-        summary.querySelector('[data-psc-attention]').textContent = streams.filter(stream => stream.evaluated_status !== 'SYNCHRONIZED').length;
-        summary.hidden = false;
+        const counted = Number.isInteger(attention?.total) && attention.total >= 0 && attention.total <= report.total;
+        summary.querySelector('[data-psc-synced]').textContent = counted ? report.total - attention.total : '—';
+        summary.querySelector('[data-psc-attention]').textContent = counted ? attention.total : '—';
       }
       for (const stream of streams) {
         const row = rows.insertRow();
@@ -80,7 +84,7 @@
       }
       filterRows();
       status.textContent = summary && streams.length
-        ? 'Loaded ' + streams.length + ' of ' + report.total + ' active streams · Last checked ' + date(report.generated_at) + '.'
+        ? 'Loaded ' + streams.length + ' of ' + report.total + ' active conversations · Last read ' + date(report.generated_at) + '. Existing check-ins determine the readings.'
         : streams.length
         ? 'Showing ' + streams.length + ' active streams. Open the workforce sheet for search and history.'
         : 'No active streams are visible for this office under your PSC-D session.';
