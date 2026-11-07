@@ -9,6 +9,7 @@
   });
   const gauge = panel.querySelector('.pcc-gauge');
   const status = panel.querySelector('[data-animation-status]');
+  const evidence = panel.querySelector('[data-pmf-evidence]');
   const jobs = panel.querySelector('[data-animation-jobs]');
   const time = panel.querySelector('[data-animation-time]');
   const button = panel.querySelector('[data-animation-refresh]');
@@ -41,12 +42,41 @@
       : 'No completed job in the visible records.';
     return completion + (failed ? ' Failed jobs in view: ' + failed + '.' : '');
   }
+  function describeEvidence(production) {
+    const { readiness, contract } = production || {};
+    if (!readiness || !Array.isArray(readiness.failures) || !Array.isArray(contract?.required_gates) ||
+        !contract.required_gates.length || !['PRODUCTION_ADMITTED', 'PRODUCTION_BLOCKED'].includes(readiness.state)) {
+      return ['PMF build, test and certificate evidence is unavailable for this session.'];
+    }
+    const failures = new Set(readiness.failures);
+    const buildBlocked = ['PMF_REGISTERED_BUILD_EVIDENCE_REQUIRED', 'PMF_BUILD_CONTROL_NOT_ALIGNED'].some(code => failures.has(code));
+    const failedGates = contract.required_gates.filter(code => failures.has('PMF_BUILD_GATE_' + code + '_NOT_EVIDENCE_BACKED_PASS')).length;
+    const certBlocked = ['PMF_VERSION_NOT_CERTIFIED', 'PMF_CURRENT_UNCONDITIONAL_CERTIFICATE_REQUIRED'].some(code => failures.has(code));
+    const readings = [
+      buildBlocked ? 'Build: registered evidence is missing or out of alignment.' : 'Build: registered evidence checks passed.',
+      'Acceptance gates: ' + (contract.required_gates.length - failedGates) + ' of ' + contract.required_gates.length + ' passed with evidence.',
+      certBlocked ? 'Certification: a current production certificate was not verified.' : 'Certification: certificate checks passed.',
+      'Production: ' + (readiness.state === 'PRODUCTION_ADMITTED' ? 'admitted; each render requires authorization.' : 'blocked.')
+    ];
+    if (readiness.evidence?.build_commit_sha) readings.push('Build commit: ' + readiness.evidence.build_commit_sha);
+    if (readiness.evidence?.certificate_id) readings.push('Certificate: ' + readiness.evidence.certificate_id);
+    return readings;
+  }
+  function showEvidence(production) {
+    if (!evidence) return;
+    evidence.replaceChildren(...describeEvidence(production).map(reading => {
+      const item = document.createElement('li');
+      item.textContent = reading;
+      return item;
+    }));
+  }
   async function load() {
     request?.abort();
     const current = new AbortController();
     request = current;
     display('unverified', 'No reading', 'Checking production and GPU status…');
     jobs.textContent = '';
+    showEvidence();
     time.textContent = '';
     button.disabled = true;
     try {
@@ -71,6 +101,7 @@
       const [production, gpu, history] = readings.map(reading => reading.value);
       const reading = assess(production?.readiness, gpu?.connection);
       display(...reading);
+      showEvidence(production);
       jobs.textContent = describeJobs(history?.jobs);
       if (reading[0] !== 'unverified') time.textContent = 'Last verified ' + new Date().toLocaleString() + '.';
     } catch {

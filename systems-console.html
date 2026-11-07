@@ -1011,7 +1011,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
   <div class="pcc-legend" aria-label="Monitoring status legend"><span style="--legend-color:#74d8ad">Good</span><span style="--legend-color:#f7ce54">Concern</span><span style="--legend-color:#ff8585">Problematic</span><span style="--legend-color:#aab6c4">No reading</span></div>
   <div class="intel-grid">
     <div class="intel-card"><span>Overall health</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>Systems service and safety checks are still missing.</small></div>
-    <div class="intel-card" data-animation-health aria-live="polite"><span>Animation Engine</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small data-animation-status>Checking access to production and GPU readings.</small><small data-animation-jobs></small><small data-animation-time></small><button type="button" data-animation-refresh>Check again</button></div>
+    <div class="intel-card" data-animation-health aria-live="polite"><span>Phoenix Media Forge</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small data-animation-status>Checking access to production and GPU readings.</small><small data-animation-jobs></small><details><summary>Build, tests and certification</summary><ul data-pmf-evidence><li>Waiting for PMF evidence.</li></ul></details><small data-animation-time></small><button type="button" data-animation-refresh>Check again</button></div>
     <div class="intel-card"><span>Build and release safety</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>Build tests and release approvals are not checked by this dashboard.</small></div>
     <div class="intel-card"><span>Access and security</span><div class="pcc-gauge" data-state="unverified" aria-hidden="true"><span>—</span></div><strong>No reading</strong><small>PCC has no verified security check to show here.</small></div>
   </div>
@@ -1070,5 +1070,5 @@ pccLeftSignOut?.addEventListener('click',()=>window.PCCSession?.signOut?.());
 </script>\n<script src="pcc-psc-d-console-workforce.js?v=monitor-instruments" defer></script><style>
 [data-animation-health] .pcc-gauge[data-state="current"]{outline:2px solid #74d8ad}
 [data-animation-health] small{display:block;margin-bottom:6px}
-</style><script src="pcc-animation-health.js?v=1" defer></script></body>
+</style><script src="pcc-animation-health.js?v=pmf-evidence" defer></script></body>
 </html>
