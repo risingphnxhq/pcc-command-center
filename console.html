@@ -986,7 +986,18 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
     </aside>
 
     <main class="center glass">
-      <div class="center-scroll"><section id="executive-briefing" aria-label="Private executive briefing"></section><section class="intel-board"><div class="intel-head"><h2>HQ Intelligence</h2><small>Corporate registered source · Trust remains unverified</small></div><div class="top-microbars">
+      <div class="center-scroll"><section class="intel-board" data-psc-workforce="RPE-CHAD-HQ" aria-label="Corporate PSC-D workforce">
+  <div class="intel-head"><h2>Corporate PSC-D Workforce</h2><small>Conversation continuity</small></div>
+  <p role="status">Checking PSC-D sign-in…</p>
+  <button type="button" data-refresh>Refresh workforce</button>
+  <a href="psc-d-connect.html?actor=RPE-CHAD-HQ">Open PSC-D workforce sheet</a>
+  <div style="overflow:auto;margin-top:12px">
+    <table style="width:100%;text-align:left;border-spacing:12px 8px" aria-label="Corporate active streams">
+      <thead><tr><th>Account</th><th>Stream</th><th>Runtime ID</th><th>Mission</th><th>Health</th><th>Last ACK</th><th>Next due</th><th>Checkpoint</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section><section id="executive-briefing" aria-label="Private executive briefing"></section><section class="intel-board"><div class="intel-head"><h2>HQ Intelligence</h2><small>Corporate registered source · Trust remains unverified</small></div><div class="top-microbars">
           <div class="micro-card">
             <div class="micro-label">Corporate Offices</div>
             <div class="micro-value" id="sourceOffices">—</div>
@@ -1946,5 +1957,5 @@ loadCorporateSnapshot();
   </script>
 <script src="nace-runtime.js?v=20261001f" defer></script><script src="pcc-session-runtime.js"></script>
 <script src="executive-briefing.js?v=20261016"></script>
-</body>
+<script src="pcc-psc-d-console-workforce.js" defer></script></body>
 </html> 
