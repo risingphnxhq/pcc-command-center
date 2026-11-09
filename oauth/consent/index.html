@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; connect-src https://ttkceizmjeckrorhkhfr.supabase.co; form-action 'self'; base-uri 'none'; frame-ancestors 'none'">
+  <title>Connect RPE Corporate PSC-D</title>
+  <style>
+    :root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#0c1422;color:#edf1f7}
+    body{margin:0;padding:5vh 18px}
+    main{max-width:620px;margin:0 auto}
+    .card{padding:24px;border:1px solid #526782;border-radius:14px;background:#152238}
+    h1{font-size:1.6rem;line-height:1.2}
+    label{display:block;margin-top:14px}
+    input,button{font:inherit;padding:12px;border-radius:7px;border:1px solid #526782}
+    input{box-sizing:border-box;width:100%;margin-top:5px;background:#0c1422;color:inherit}
+    button{margin:16px 10px 0 0;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}
+    .primary{background:#d9e7ff;color:#0c1422;font-weight:650}
+    #status{min-height:48px}
+    dt{font-weight:700;margin-top:16px}
+    dd{margin:4px 0 0;overflow-wrap:anywhere}
+    .note{color:#c3d0df}
+    [hidden]{display:none!important}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js" defer></script>
+  <script src="consent.js" defer></script>
+</head>
+<body>
+  <main>
+    <p>RISING PHOENIX ENTERPRISES · CORPORATE</p>
+    <h1>Connect RPE Corporate PSC-D</h1>
+    <section class="card" aria-labelledby="request-title">
+      <h2 id="request-title">Review this connection request</h2>
+      <p id="status" role="status" aria-live="polite">Checking the Corporate Supabase authorization request…</p>
+      <form id="signIn" hidden>
+        <label for="email">Corporate PCC account email</label>
+        <input id="email" type="email" autocomplete="username" required>
+        <label for="password">Corporate PCC account password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button class="primary" id="signInButton">Sign in to Corporate PCC</button>
+      </form>
+      <div id="consent" hidden>
+        <dl>
+          <dt>Application requesting access</dt><dd id="clientName"></dd>
+          <dt>Access requested</dt><dd id="scopes"></dd>
+          <dt>Return destination</dt><dd id="destination">ChatGPT</dd>
+          <dt>Corporate account</dt><dd>Signed-in PCC account</dd>
+        </dl>
+        <p class="note">Approve only if you are Chad and started this request from the RPE Corporate PSC-D Web plugin. Approval lets ChatGPT authenticate to Corporate Supabase. PCC checks the signed-in account’s existing Corporate actor binding for each PSC-D operation.</p>
+        <button class="primary" id="approve" disabled>Approve Corporate connection</button>
+        <button id="deny" disabled>Cancel</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
