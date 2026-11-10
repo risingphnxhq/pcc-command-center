@@ -5,6 +5,7 @@ import { resolveProductionIntent, validateHandoffSource } from "../_shared/anima
 import { postHeldAnimationHandoff, readPmfAnimationProductionReadiness, readRunPodAnimationConnection, requestPmfAnimationReviewUrl, requestPmfPhanimationBatchPreparation, resolveCanonicalAnimationPolicyId, resolveVerifiedAnimationPolicySource, searchRunPodGpuAvailability, readLatestRunPodAvailabilitySnapshot, invokePmfProductionRuntime } from "../_shared/pcc-pmf-bridge-v1.mjs";
 import { validateAnimationPolicyRegistration } from "../_shared/animation-channel-policy-v1.mjs";
 import { resolveTrustedAnimationPolicy } from "../_shared/animation-channel-policy-runtime-v1.mjs";
+import { storeWorkspaceWritingDraft } from "../_shared/workspace-writing-draft-v1.mjs";
 
 // These JavaScript boundary modules validate their inputs at runtime. Keep the
 // edge function's adapter types explicit because Deno otherwise infers overly
@@ -222,7 +223,7 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
   const sourceRequestPayload=p.request_payload&&typeof p.request_payload==="object"&&!Array.isArray(p.request_payload)?p.request_payload:{};
   const isPrivateWritingRoute=Array.isArray(route.producer_chain)&&route.producer_chain.includes("PCC_WRITING_ROOM");
   const intent=outputType?resolveProductionIntent(outputType,p.production_intent):null;
-  const writingOutputTypes=new Set(["BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL"]);
+  const writingOutputTypes=new Set(["BOOK_MANUSCRIPT","BOOK_CHAPTER","BOOK_SCENE","NOVEL","SERIES_BIBLE"]);
   const placement=Array.isArray(route.placements)?route.placements.find((x:any)=>x?.destination_type==="PCC_WRITING_ROOM"):null;
   if(isPrivateWritingRoute) {
     if(!writingOutputTypes.has(String(outputType??""))) {
@@ -252,6 +253,41 @@ async function handleWorkspaceWriterDispatch(body: Record<string, unknown>, serv
   };
   const idempotencyKey=`workspace:${p.intake_id}:${p.dispatch_action_id}`;
   const scope=dispatchRequestPayload.source_scope&&typeof dispatchRequestPayload.source_scope==="object"&&!Array.isArray(dispatchRequestPayload.source_scope)?dispatchRequestPayload.source_scope:{};
+
+  // PCC_WRITING_ROOM is its own producer. Keep it out of the animation policy
+  // resolver/job table and persist the result through the held writing-draft RPC.
+  if(isPrivateWritingRoute) {
+    const contentKind=outputType==="SERIES_BIBLE"?"SERIES":"BOOK";
+    const routeReceipt={protocol:"pcc-output-route-v1",intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,
+      review_action_id:p.review_action_id,approval_id:p.execution_approval.approval_id,payload_sha256:p.payload_sha256,
+      destination:{destination_type:"PCC_WRITING_ROOM",platform:"PCC",viewer_surface:"PCC_PRIVATE_WRITING_ROOM"},
+      resolution_status:"RESOLVED_HELD",release_gate:"DRAFT_REVIEW_REQUIRED_NO_CANON_OR_PUBLICATION",
+      execution_eligible:false,render_dispatch:"DISABLED",publication_eligible:false};
+    try {
+      const modelKey=Deno.env.get("PCC_SCRIPT_MODEL_API_KEY"),modelName=Deno.env.get("PCC_SCRIPT_MODEL_NAME");
+      if(!modelKey||!modelName)throw new Error("SCRIPT_RUNTIME_CONFIGURATION_MISSING");
+      const writingContext={
+        ...(sourceRequestPayload.writing_context&&typeof sourceRequestPayload.writing_context==="object"&&!Array.isArray(sourceRequestPayload.writing_context)?sourceRequestPayload.writing_context:{}),
+        ...(sourceRequestPayload.series_context?{series_context:sourceRequestPayload.series_context}:{}),
+        ...(sourceRequestPayload.context_notes?{context_notes:sourceRequestPayload.context_notes}:{}),
+        ...(sourceRequestPayload.desired_ending_or_action?{desired_ending_or_action:sourceRequestPayload.desired_ending_or_action}:{}),
+        ...(sourceRequestPayload.source_scope&&typeof sourceRequestPayload.source_scope==="object"&&!Array.isArray(sourceRequestPayload.source_scope)?{source_scope:sourceRequestPayload.source_scope}:{}),
+        destination_receipt:writerDestinationReceipt,
+        draft_status:"PRIVATE_DRAFT_UNAPPROVED",
+      };
+      const {saved,idempotentReplay}=await storeWorkspaceWritingDraft({service,model:createScriptModel(modelKey,modelName),
+        payload:p,request:{outputType,title,idea,writingContext},routeReceipt,contentKind});
+      return json(200,{ok:true,intake_id:p.intake_id,dispatch_action_id:p.dispatch_action_id,payload_sha256:p.payload_sha256,
+        producer_job_id:saved.producer_job_id??saved.writing_draft_id,writing_draft_id:saved.writing_draft_id,
+        script_state:"BOOK_DRAFT_STORED",canon_status:saved.canon_status,render_dispatch:"DISABLED",
+        publication_eligible:false,destination_receipt:writerDestinationReceipt,idempotent_replay:idempotentReplay});
+    } catch(error) {
+      const code=error instanceof Error?error.message:"WORKSPACE_WRITING_DRAFT_FAILED";
+      const status=code==="PCC_WRITING_ROOM_IDEMPOTENCY_MISMATCH"?409:code==="PCC_WRITING_ROOM_IDEMPOTENCY_LOOKUP_FAILED"?503:502;
+      return json(status,{error:code.startsWith("PCC_WRITING_ROOM_")?code:"PCC_WRITING_ROOM_DRAFT_GENERATION_FAILED",
+        ...(status===502?{code:code.slice(0,120)}:{}),held:true,render_dispatch:"DISABLED",publication_eligible:false});
+    }
+  }
   let trustedPolicy:Awaited<ReturnType<typeof resolveLiveAnimationPolicy>>;
   try {
     trustedPolicy=await resolveLiveAnimationPolicy(service,pccSubject,{channel_key:channelKey,output_type:outputType,production_intent:intent,source_scope:scope});
