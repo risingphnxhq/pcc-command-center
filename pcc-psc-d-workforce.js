@@ -3,6 +3,36 @@
  const $=id=>document.getElementById(id),client=window.PCC_PSC_D_CLIENT;
  const endpoint='https://oyjmpbuxvfxusmbouldi.supabase.co/functions/v1/pcc-workforce-sync-v1';
  let page=0,sequence=0,signed=false,timer,rows=[];
+ let receiverEventId;
+ const receiverSend=$('receiverTestSend'),receiverStatus=$('receiverTestStatus'),receiverResult=$('receiverTestResult');
+ async function receiverRequest(action,params={}){
+  const {data,error}=await client.auth.getSession();
+  if(error||!data?.session?.access_token)throw Error('Sign in with the New Mason PCC account.');
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({action,actor_id:'RPE-MASON-HQ',...params})});
+  return {ok:response.ok,result:await response.json()};
+ }
+ receiverSend.onclick=async()=>{
+  receiverSend.disabled=true;
+  receiverStatus.disabled=true;
+  receiverResult.textContent='Sending test message…';
+  try{
+   const {ok,result}=await receiverRequest('RECEIVER_TEST_SEND');
+   if(result.eventId)receiverEventId=result.eventId;
+   receiverResult.textContent=ok?'Callback accepted. Waiting for the Communications stream receipt. '+receiverEventId:human(result.error||result.status)+'.';
+  }catch(e){receiverResult.textContent=e.message;}
+  finally{receiverSend.disabled=false;receiverStatus.disabled=!receiverEventId;}
+ };
+ receiverStatus.onclick=async()=>{
+  receiverStatus.disabled=true;
+  receiverSend.disabled=true;
+  try{
+   const {ok,result}=await receiverRequest('RECEIVER_TEST_STATUS',{test_id:receiverEventId});
+   if(!ok)throw Error(human(result.error));
+   const status={VERIFIED:'Communications stream receipt verified',WAITING:'Waiting for the Communications stream receipt',UNCONFIRMED:'No verified receipt arrived before the deadline'};
+   receiverResult.textContent=status[result.status]+'. '+receiverEventId+(result.verified_at?' · '+date(result.verified_at)+' · '+result.runtime_id:'');
+  }catch(e){receiverResult.textContent=e.message;}
+  finally{receiverStatus.disabled=false;receiverSend.disabled=false;}
+ };
  const labels={CORPORATE_CHAD_ACCOUNT:'Corporate Chad',NEW_MASON_ACCOUNT:'New Mason',PRIME_CHAD_ACCOUNT:'Prime Chad',PRIME_MASON_ACCOUNT:'Prime Mason'};
  const date=v=>v?new Date(v).toLocaleString(): 'No receipt';
  const human=v=>String(v||'Unknown').replaceAll('_',' ').toLowerCase().replace(/^./,c=>c.toUpperCase());
